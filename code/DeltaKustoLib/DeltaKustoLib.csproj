@@ -14,10 +14,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="CommandModel\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.Azure.Kusto.Language" Version="9.0.9" />
   </ItemGroup>
 
