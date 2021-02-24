@@ -1,0 +1,29 @@
+name:  Continuous Build / Unit Test
+
+on:
+  push
+
+env:
+  rg:  gram-parser
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.x
+    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-restore
+    - name: Install dependencies
+      run: dotnet restore code
+    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-build
+    - name: Build
+      run: dotnet build code --configuration Release --no-restore
+    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
+    - name: Test
+      run: dotnet test code --configuration Release --no-restore --verbosity normal
+
