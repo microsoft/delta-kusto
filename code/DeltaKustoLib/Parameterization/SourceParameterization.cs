@@ -2,10 +2,8 @@
 {
     public class SourceParameterization
     {
-        public string? ClusterUri { get; set; } = null;
+        public ClusterSourceParameterization? Cluster { get; set; } = null;
         
-        public string[]? FilePaths { get; set; } = null;
-        
-        public SourceFolderParametrization[]? Folders { get; set; } = null;
+        public SourceFileParametrization[]? Folders { get; set; } = null;
     }
 }
