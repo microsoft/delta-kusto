@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "delta-kusto", "delta-kusto\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeltaKustoLib", "DeltaKustoLib\DeltaKustoLib.csproj", "{3CAA96FF-DC0C-45C3-B71B-91F7CB86160C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeltaKustoUnitTest", "DeltaKustoUnitTest\DeltaKustoUnitTest.csproj", "{281A0C61-FD53-4F22-946D-D88C0BCEE198}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{3CAA96FF-DC0C-45C3-B71B-91F7CB86160C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3CAA96FF-DC0C-45C3-B71B-91F7CB86160C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3CAA96FF-DC0C-45C3-B71B-91F7CB86160C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{281A0C61-FD53-4F22-946D-D88C0BCEE198}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{281A0C61-FD53-4F22-946D-D88C0BCEE198}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{281A0C61-FD53-4F22-946D-D88C0BCEE198}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{281A0C61-FD53-4F22-946D-D88C0BCEE198}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
