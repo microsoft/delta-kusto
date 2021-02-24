@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DeltaKustoLib.CommandModel;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
@@ -21,18 +22,22 @@ namespace DeltaKustoLib.SchemaModel
             string docString,
             IEnumerable<TableModel> tableModels)
         {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
             Name = name;
             Folder = folder;
             DocString = docString;
             Tables = tableModels.ToImmutableArray();
         }
 
-        public static DatabaseModel FromScript(string databaseName, string script)
+        public static DatabaseModel FromCommands(IEnumerable<CommandBase> commands)
         {
             throw new NotImplementedException();
         }
 
-        public static DatabaseModel MergeModels(IEnumerable<DatabaseModel> databaseModels)
+        public IImmutableList<CommandBase> ComputeDelta(DatabaseModel targetModel)
         {
             throw new NotImplementedException();
         }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DeltaKustoLib.CommandModel;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
@@ -14,7 +15,7 @@ namespace DeltaKustoLib.SchemaModel
             Databases = databaseModels.ToImmutableArray();
         }
 
-        public static ClusterModel MergeModels(IEnumerable<DatabaseModel> databaseModels)
+        public static ClusterModel FromCommands(IEnumerable<CommandBase> commands)
         {
             throw new NotImplementedException();
         }
