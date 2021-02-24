@@ -1,7 +1,6 @@
 name:  Continuous Build / Unit Test
 
-on:
-  push
+on:  push
 
 env:
   rg:  gram-parser
