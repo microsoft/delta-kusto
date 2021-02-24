@@ -6,4 +6,8 @@
     <RootNamespace>delta_kusto</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\DeltaKustoLib\DeltaKustoLib.csproj" />
+  </ItemGroup>
+
 </Project>
