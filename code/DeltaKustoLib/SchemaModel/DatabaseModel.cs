@@ -37,6 +37,11 @@ namespace DeltaKustoLib.SchemaModel
             throw new NotImplementedException();
         }
 
+        public static DatabaseModel FromJsonSchema(string json)
+        {
+            throw new NotImplementedException();
+        }
+
         public IImmutableList<CommandBase> ComputeDelta(DatabaseModel targetModel)
         {
             throw new NotImplementedException();

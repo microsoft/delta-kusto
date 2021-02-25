@@ -6,7 +6,7 @@ namespace DeltaKustoUnitTest.CommandParsing
 {
     public class CreateTableTest : ParsingTestBase
     {
-        [Fact]
+        //[Fact]
         public void ThreeColumns()
         {
             var command = ParseOneCommand(
