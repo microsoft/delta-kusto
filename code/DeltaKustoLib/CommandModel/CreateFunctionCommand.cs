@@ -45,10 +45,10 @@ namespace DeltaKustoLib.CommandModel
             var nameDeclarations = commandBlock.GetDescendants<NameDeclaration>();
             var functionBodies = commandBlock.GetDescendants<FunctionBody>();
 
-            if (nameDeclarations.Count != 1)
+            if (nameDeclarations.Count < 1)
             {
                 throw new DeltaException(
-                    $"There should be one name declaration but there are {nameDeclarations.Count}",
+                    "There should be at least one name declaration but there are none",
                     script);
             }
             if (functionBodies.Count != 1)

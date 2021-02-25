@@ -31,5 +31,21 @@ namespace DeltaKustoUnitTest.CommandParsing
             Assert.Equal("YourFunction", createFunctionCommand.FunctionName);
             Assert.Equal("72", createFunctionCommand.FunctionBody);
         }
+
+        [Fact]
+        public void CreateOrAlterFunctionWithLets()
+        {
+            var name = "MyFunction4";
+            var body = "let limitVar = 100; let result = MyFunction(limitVar); result";
+            var command = ParseOneCommand(
+                $".create-or-alter function {name}() {{ {body} }}");
+
+            Assert.IsType<CreateFunctionCommand>(command);
+
+            var createFunctionCommand = (CreateFunctionCommand)command;
+
+            Assert.Equal(name, createFunctionCommand.FunctionName);
+            Assert.Equal(body, createFunctionCommand.FunctionBody);
+        }
     }
 }
