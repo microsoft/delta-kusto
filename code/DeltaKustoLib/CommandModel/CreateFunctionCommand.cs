@@ -1,6 +1,7 @@
 ﻿using Kusto.Language.Syntax;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
@@ -11,7 +12,9 @@ namespace DeltaKustoLib.CommandModel
     {
         public string FunctionName { get; }
 
-        public string FunctionBody { get; }
+        public IImmutableList<TypedParameter> Parameters { get; }
+
+        public string Body { get; }
 
         public string? Folder { get; }
 
@@ -22,6 +25,7 @@ namespace DeltaKustoLib.CommandModel
         private CreateFunctionCommand(
             string databaseName,
             string functionName,
+            IEnumerable<TypedParameter> parameters,
             string functionBody,
             string? folder,
             string? docString,
@@ -29,7 +33,8 @@ namespace DeltaKustoLib.CommandModel
             : base(databaseName)
         {
             FunctionName = functionName;
-            FunctionBody = functionBody;
+            Parameters = parameters.ToImmutableArray();
+            Body = functionBody;
             Folder = folder;
             DocString = docString;
             SkipValidation = skipValidation;
@@ -38,13 +43,16 @@ namespace DeltaKustoLib.CommandModel
         public override bool Equals([AllowNull] CommandBase other)
         {
             var otherFunction = other as CreateFunctionCommand;
-
-            return otherFunction != null
+            var areEqualed = otherFunction != null
                 && otherFunction.FunctionName == FunctionName
-                && otherFunction.FunctionBody == FunctionBody
+                //  Check that all parameters are equal
+                && otherFunction.Parameters.Zip(Parameters, (p1, p2) => p1.Equals(p2)).All(p => p)
+                && otherFunction.Body == Body
                 && otherFunction.Folder == Folder
                 && otherFunction.DocString == DocString
                 && otherFunction.SkipValidation == SkipValidation;
+
+            return areEqualed;
         }
 
         public override string ToScript()
@@ -66,9 +74,13 @@ namespace DeltaKustoLib.CommandModel
                 builder.Append(") ");
             }
             builder.Append(FunctionName);
-            builder.Append(" {");
+            builder.Append(" ");
+            builder.Append("(");
+            builder.AppendJoin(", ", Parameters.Select(p => $"['{p.ParameterName}']:{p.Type}"));
+            builder.Append(") ");
+            builder.Append("{");
             builder.AppendLine();
-            builder.Append(FunctionBody);
+            builder.Append(Body);
             builder.AppendLine();
             builder.Append("}");
 
@@ -82,12 +94,20 @@ namespace DeltaKustoLib.CommandModel
         {
             var functionNameDeclarations = commandBlock.GetDescendants<NameDeclaration>(
                 n => n.NameInParent == "FunctionName");
+            var functionParametersCollection = commandBlock.GetDescendants<FunctionParameters>();
             var functionBodies = commandBlock.GetDescendants<FunctionBody>();
 
             if (functionNameDeclarations.Count < 1)
             {
                 throw new DeltaException(
                     "There should be at least one function name declaration but there are none",
+                    script);
+            }
+            if (functionParametersCollection.Count != 1)
+            {
+                throw new DeltaException(
+                    "There should be one collection of function "
+                    + $"parameters but there are {functionParametersCollection.Count}",
                     script);
             }
             if (functionBodies.Count != 1)
@@ -99,6 +119,7 @@ namespace DeltaKustoLib.CommandModel
 
             var functionNameDeclaration = functionNameDeclarations.First();
             var functionName = functionNameDeclaration.Name.SimpleName;
+            var functionParameters = GetParameters(script, functionParametersCollection.First());
             var functionBody = functionBodies.First();
             var bodyText = script.Substring(
                 functionBody.OpenBrace.TextStart + 1,
@@ -110,10 +131,30 @@ namespace DeltaKustoLib.CommandModel
             return new CreateFunctionCommand(
                 databaseName,
                 functionName,
+                functionParameters,
                 bodyText.Trim(),
                 folder,
                 docString,
                 skipValidation);
+        }
+
+        private static IEnumerable<TypedParameter> GetParameters(
+            string script,
+            FunctionParameters functionParameters)
+        {
+            var pairDeclarations = functionParameters.GetDescendants<NameAndTypeDeclaration>();
+            var names = pairDeclarations
+                .Select(p => p.GetDescendants<NameDeclaration>())
+                .SelectMany(n => n)
+                .Select(n => n.SimpleName);
+            var types = pairDeclarations
+                .Select(p => p.GetDescendants<PrimitiveTypeExpression>())
+                .SelectMany(n => n)
+                .Select(n => n.Type.ValueText);
+            var parameters = names
+                .Zip(types, (n, t) => new TypedParameter(n, t));
+
+            return parameters;
         }
 
         private static bool? GetSkipValidation(string script, CommandBlock commandBlock)
