@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
@@ -18,7 +19,7 @@ namespace DeltaKustoLib.CommandModel
             DatabaseName = databaseName;
         }
 
-        public static CommandBase FromScript(string databaseName, string script)
+        public static IImmutableList<CommandBase> FromScript(string databaseName, string script)
         {
             throw new NotImplementedException();
         }
