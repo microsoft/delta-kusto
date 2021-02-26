@@ -82,7 +82,7 @@ namespace DeltaKustoUnitTest.CommandParsing
                 new TypedParameter("source", "string")
             };
             var parameterText = string
-                .Join(", ", parameters.Select(p => $"{p.ParameterName}:{p.Type}"));
+                .Join(", ", parameters.Select(p => $"{p.ParameterName}:{p.PrimitiveType}"));
             var folder = "StormEventsFunctions";
             var docString = "";
             var skipValidation = true;
@@ -135,7 +135,7 @@ namespace DeltaKustoUnitTest.CommandParsing
             var parameters = scalarTypes
                 .Select(t => new TypedParameter($"param{t}", t));
             var parameterText =
-                string.Join(", ", parameters.Select(p => $"{p.ParameterName}:{p.Type}"));
+                string.Join(", ", parameters.Select(p => $"{p.ParameterName}:{p.PrimitiveType}"));
             var command = ParseOneCommand(
                 ".create-or-alter function "
                 + $"{name} ({parameterText}) {{ {body} }}");

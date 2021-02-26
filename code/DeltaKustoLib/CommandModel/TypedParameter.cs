@@ -7,32 +7,51 @@ namespace DeltaKustoLib.CommandModel
     {
         public string ParameterName { get; }
 
-        public string Type { get; }
+        public string? PrimitiveType { get; }
 
-        public TypedParameter(string parameterName, string type)
+        public TableSchema? TableType { get; }
+
+        private TypedParameter(string parameterName)
         {
-            if(string.IsNullOrWhiteSpace(parameterName))
+            if (string.IsNullOrWhiteSpace(parameterName))
             {
                 throw new ArgumentNullException(nameof(parameterName));
             }
-            if (string.IsNullOrWhiteSpace(type))
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
             ParameterName = parameterName;
-            Type = type;
+        }
+
+        public TypedParameter(string parameterName, string primitiveType) : this(parameterName)
+        {
+            if (string.IsNullOrWhiteSpace(primitiveType))
+            {
+                throw new ArgumentNullException(nameof(primitiveType));
+            }
+            PrimitiveType = primitiveType;
+        }
+
+        public TypedParameter(string parameterName, TableSchema tableType) : this(parameterName)
+        {
+            TableType = tableType;
         }
 
         public bool Equals([AllowNull] TypedParameter other)
         {
             return other != null
                 && ParameterName == other.ParameterName
-                && Type == other.Type;
+                && PrimitiveType == other.PrimitiveType
+                && TableType == other.TableType;
         }
 
         public override string ToString()
         {
-            return $"['{ParameterName}']:{Type}";
+            if (PrimitiveType != null)
+            {
+                return $"['{ParameterName}']:{PrimitiveType}";
+            }
+            else
+            {
+                return $"['{ParameterName}']:{TableType}";
+            }
         }
     }
 }

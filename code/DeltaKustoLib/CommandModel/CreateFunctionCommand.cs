@@ -76,7 +76,7 @@ namespace DeltaKustoLib.CommandModel
             builder.Append(FunctionName);
             builder.Append(" ");
             builder.Append("(");
-            builder.AppendJoin(", ", Parameters.Select(p => $"['{p.ParameterName}']:{p.Type}"));
+            builder.AppendJoin(", ", Parameters.Select(p => $"['{p.ParameterName}']:{p.PrimitiveType}"));
             builder.Append(") ");
             builder.Append("{");
             builder.AppendLine();
