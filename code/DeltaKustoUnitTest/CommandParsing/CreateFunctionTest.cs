@@ -153,6 +153,27 @@ namespace DeltaKustoUnitTest.CommandParsing
         }
 
         [Fact]
+        public void UUidScalarTypes()
+        {
+            var name = "UUidScalarTypeFct";
+            var body = "42";
+
+            try
+            {
+                //  According to list in https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/scalar-data-types/
+                //  it should be legal but it doesn't work in Web UI
+                ParseOneCommand(
+                    ".create-or-alter function "
+                    + $"{name} (a:uuid) {{ {body} }}");
+
+                throw new Exception("This should have failed with ArgumentNullException by now");
+            }
+            catch (ArgumentNullException)
+            {
+            }
+        }
+
+        [Fact]
         public void SimpleTableTypeParameter()
         {
             var name = "TableTypeFct";
