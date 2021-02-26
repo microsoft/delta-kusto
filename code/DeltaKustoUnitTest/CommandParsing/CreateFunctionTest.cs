@@ -153,9 +153,22 @@ namespace DeltaKustoUnitTest.CommandParsing
         }
 
         [Fact]
-        public void TableTypeParameter()
+        public void SimpleTableTypeParameter()
         {
-            throw new NotImplementedException();
+            var name = "TableTypeFct";
+            var body = "42";
+            var command = ParseOneCommand(
+                ".create-or-alter function "
+                + $"{name} (T:(x:long)) {{ {body} }}");
+
+            Assert.IsType<CreateFunctionCommand>(command);
+
+            var createFunctionCommand = (CreateFunctionCommand)command;
+
+            Assert.Equal(name, createFunctionCommand.FunctionName);
+            Assert.Single(createFunctionCommand.Parameters);
+            Assert.Equal("T", createFunctionCommand.Parameters.First().ParameterName);
+            Assert.Equal(body, createFunctionCommand.Body);
         }
 
         [Fact]

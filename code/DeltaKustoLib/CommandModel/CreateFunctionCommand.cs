@@ -89,64 +89,74 @@ namespace DeltaKustoLib.CommandModel
 
         internal static CommandBase FromCode(
             string databaseName,
-            string script,
-            CommandBlock commandBlock)
+            CustomCommand customCommand)
         {
-            var functionNameDeclarations = commandBlock.GetDescendants<NameDeclaration>(
-                n => n.NameInParent == "FunctionName");
-            var functionParametersCollection = commandBlock.GetDescendants<FunctionParameters>();
-            var functionBodies = commandBlock.GetDescendants<FunctionBody>();
-
-            if (functionNameDeclarations.Count < 1)
-            {
-                throw new DeltaException(
-                    "There should be at least one function name declaration but there are none",
-                    script);
-            }
-            if (functionParametersCollection.Count != 1)
-            {
-                throw new DeltaException(
-                    "There should be one collection of function "
-                    + $"parameters but there are {functionParametersCollection.Count}",
-                    script);
-            }
-            if (functionBodies.Count != 1)
-            {
-                throw new DeltaException(
-                    $"There should be one function body but there are {functionBodies.Count}",
-                    script);
-            }
-
-            var functionNameDeclaration = functionNameDeclarations.First();
-            var functionName = functionNameDeclaration.Name.SimpleName;
-            var functionParameters = GetParameters(script, functionParametersCollection.First());
-            var functionBody = functionBodies.First();
-            var bodyText = script.Substring(
+            var (withNode, nameDeclaration, functionDeclaration) = ExtractRootNodes(customCommand);
+            var (functionParameters, functionBody) = functionDeclaration
+                .GetImmediateDescendants<SyntaxNode>()
+                .ExtractChildren<FunctionParameters, FunctionBody>("Function declaration");
+            var functionName = nameDeclaration.Name.SimpleName;
+            var parameters = GetParameters(functionParameters);
+            var bodyText = functionBody.Root.ToString(IncludeTrivia.All).Substring(
                 functionBody.OpenBrace.TextStart + 1,
                 functionBody.CloseBrace.TextStart - functionBody.OpenBrace.TextStart - 1);
-            var folder = GetPropertyValue(script, "folder", commandBlock);
-            var docString = GetPropertyValue(script, "docstring", commandBlock);
-            var skipValidation = GetSkipValidation(script, commandBlock);
+            var (folder, docString, skipValidation) = GetProperties(withNode);
 
             return new CreateFunctionCommand(
                 databaseName,
                 functionName,
-                functionParameters,
+                parameters,
                 bodyText.Trim(),
                 folder,
                 docString,
                 skipValidation);
         }
 
+        private static (CustomNode?, NameDeclaration, FunctionDeclaration) ExtractRootNodes(
+            CustomCommand customCommand)
+        {
+            var customNode = customCommand.GetUniqueImmediateDescendant<CustomNode>("Custom node");
+            var rootNodes = customNode.GetImmediateDescendants<SyntaxNode>();
+
+            if (rootNodes.Count < 2 || rootNodes.Count > 3)
+            {
+                throw new DeltaException(
+                    $"2 or 3 root nodes are expected but {rootNodes.Count} were found");
+            }
+            else
+            {
+                CustomNode? withNode = null;
+
+                if (rootNodes.Count == 3)
+                {
+                    withNode = rootNodes.First() as CustomNode;
+
+                    if (withNode == null)
+                    {
+                        throw new DeltaException(
+                            $"A custom node was expected as first node but '{rootNodes.First().GetType().Name}' was found instead");
+                    }
+                }
+
+                var nameDeclaration = rootNodes.SkipLast(1).Last() as NameDeclaration;
+                var functionDeclaration = rootNodes.Last() as FunctionDeclaration;
+
+                if (nameDeclaration == null)
+                {
+                    throw new DeltaException("Name declaration was expected but not found");
+                }
+                if (functionDeclaration == null)
+                {
+                    throw new DeltaException("Function declaration was expected but not found");
+                }
+
+                return (withNode, nameDeclaration, functionDeclaration);
+            }
+        }
+
         private static IEnumerable<TypedParameter> GetParameters(
-            string script,
             FunctionParameters functionParameters)
         {
-            //  Show all elements (for debug purposes)
-            var list = new List<SyntaxElement>();
-
-            functionParameters.WalkElements(e => list.Add(e));
-
             var pairDeclarations = functionParameters.GetDescendants<NameAndTypeDeclaration>();
             var names = pairDeclarations
                 .Select(p => p.GetDescendants<NameDeclaration>())
@@ -162,56 +172,61 @@ namespace DeltaKustoLib.CommandModel
             return parameters;
         }
 
-        private static bool? GetSkipValidation(string script, CommandBlock commandBlock)
+        private static bool? GetSkipValidation(string text)
         {
-            var skipValidationText = GetPropertyValue(script, "skipvalidation", commandBlock);
-
-            if (skipValidationText == null)
+            if (text.ToLower() != "true" && text.ToLower() != "false")
             {
-                return null;
+                throw new DeltaException(
+                    $"skipvalidation must be 'true' or 'false', it can't be '{text}'");
             }
-            else
-            {
-                if (skipValidationText.ToLower() != "true"
-                && skipValidationText.ToLower() != "false")
-                {
-                    throw new DeltaException($"skipvalidation must be 'true' or 'false', it can't be '{skipValidationText}'");
-                }
 
-                var skipValidation = bool.Parse(skipValidationText);
+            var skipValidation = bool.Parse(text);
 
-                return skipValidation;
-            }
+            return skipValidation;
         }
 
-        private static string? GetPropertyValue(
-            string script,
-            string propertyName,
-            CommandBlock commandBlock)
+        private static (string? folder, string? docString, bool? skipValidation) GetProperties(
+            CustomNode? withNode)
         {
-            var propertyNameDeclaration = commandBlock.GetDescendants<NameDeclaration>(
-                n => n.NameInParent == "PropertyName" && n.SimpleName == propertyName)
-                .FirstOrDefault();
-
-            if (propertyNameDeclaration == null)
+            if (withNode == null)
             {
-                return null;
+                return (null, null, null);
             }
             else
             {
-                var literalExpression = propertyNameDeclaration
-                    .Parent
-                    .GetDescendants<LiteralExpression>()
-                    .FirstOrDefault();
+                var properties = withNode!
+                    .GetDescendants<CustomNode>()
+                    .Select(n => n.GetDescendants<SyntaxNode>())
+                    .Select(l =>
+                    {
+                        var (name, _, literal) = l.ExtractChildren<NameDeclaration, TokenName, LiteralExpression>("With properties");
 
-                if (literalExpression == null)
+                        return (name: name.SimpleName, value: (string)literal.LiteralValue);
+                    });
+                string? folder = null;
+                string? docString = null;
+                bool? skipValidation = null;
+
+                foreach (var property in properties)
                 {
-                    throw new DeltaException(
-                        $"Can't find literal expression for {propertyName}",
-                        script);
+                    switch (property.name)
+                    {
+                        case "folder":
+                            folder = property.value;
+                            break;
+                        case "docstring":
+                            docString = property.value;
+                            break;
+                        case "skipvalidation":
+                            skipValidation = GetSkipValidation(property.value);
+                            break;
+                        default:
+                            throw new DeltaException(
+                                $"Unsupported function property name:  '{property.name}'");
+                    }
                 }
 
-                return (string)literalExpression.LiteralValue;
+                return (folder, docString, skipValidation);
             }
         }
     }

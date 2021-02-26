@@ -13,7 +13,8 @@ namespace DeltaKustoLib
             Script = string.Empty;
         }
 
-        public DeltaException(string message, string script) : base(message)
+        public DeltaException(string message, string script, Exception? innerException = null)
+            : base(message, innerException)
         {
             Script = script;
         }

@@ -58,40 +58,43 @@ namespace DeltaKustoLib.CommandModel
 
         private static CommandBase CreateCommand(string databaseName, string script, KustoCode code)
         {
-            var commandBlock = code.Syntax as CommandBlock;
-
-            if (commandBlock == null)
+            try
             {
-                throw new DeltaException("Script isn't a command", script);
+                var commandBlock = code.Syntax as CommandBlock;
+
+                if (commandBlock == null)
+                {
+                    throw new DeltaException("Script isn't a command");
+                }
+
+                var customCommand = commandBlock.GetUniqueDescendant<CustomCommand>("custom command");
+
+                //  Show all elements (for debug purposes)
+                //var list = new List<SyntaxElement>();
+
+                //commandBlock.WalkElements(e => list.Add(e));
+
+                switch (customCommand.CommandKind)
+                {
+                    case "CreateFunction":
+                    case "CreateOrAlterFunction":
+                        return CreateFunctionCommand.FromCode(databaseName, customCommand);
+
+                    default:
+                        throw new DeltaException(
+                            $"Can't handle CommandKind '{customCommand.CommandKind}'");
+                }
             }
-
-            var customCommands = commandBlock.GetDescendants<CustomCommand>();
-
-            if (customCommands.Count != 1)
+            catch (DeltaException ex)
             {
-                throw new DeltaException(
-                    $"There should be one custom command but there are {customCommands.Count}",
-                    script);
-            }
-
-            //customCommand.Kind
-            //  Show all elements (for debug purposes)
-            //var list = new List<SyntaxElement>();
-
-            //commandBlock.WalkElements(e => list.Add(e));
-
-            var customCommand = customCommands.First();
-
-            switch (customCommand.CommandKind)
-            {
-                case "CreateFunction":
-                case "CreateOrAlterFunction":
-                    return CreateFunctionCommand.FromCode(databaseName, script, commandBlock);
-
-                default:
-                    throw new DeltaException(
-                        $"Can't handle CommandKind '{customCommand.CommandKind}'",
-                        script);
+                if (string.IsNullOrWhiteSpace(ex.Script))
+                {
+                    throw new DeltaException(ex.Message, script, ex);
+                }
+                else
+                {
+                    throw;
+                }
             }
         }
 
