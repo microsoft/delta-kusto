@@ -2,22 +2,27 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace DeltaKustoLib.CommandModel
 {
     public class TableSchema : IEquatable<TableSchema>
     {
-        public IImmutableList<TableSchema> Columns { get; }
+        public IImmutableList<ColumnSchema> Columns { get; }
 
-        public TableSchema(IEnumerable<TableSchema> columns)
+        public TableSchema(IEnumerable<ColumnSchema> columns)
         {
             Columns = columns.ToImmutableArray();
         }
 
         public bool Equals(TableSchema? other)
         {
-            return other != null;
+            return other != null
+                && Columns.Count == other.Columns.Count
+                && Columns
+                .Zip(other.Columns, (c1, c2) => c1.Equals(c2))
+                .All(p => p);
         }
 
         public override string ToString()
@@ -26,7 +31,7 @@ namespace DeltaKustoLib.CommandModel
                 ", ",
                 Columns.Select(c => c.ToString()));
 
-            return $"{{ {columnsText} }}";
+            return $"({columnsText})";
         }
     }
 }

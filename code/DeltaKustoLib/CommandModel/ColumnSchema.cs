@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace DeltaKustoLib.CommandModel
 {
@@ -22,7 +23,7 @@ namespace DeltaKustoLib.CommandModel
             PrimitiveType = primitiveType;
         }
 
-        public bool Equals(ColumnSchema? other)
+        public bool Equals([AllowNull] ColumnSchema other)
         {
             return other != null
                 && ColumnName == other.ColumnName

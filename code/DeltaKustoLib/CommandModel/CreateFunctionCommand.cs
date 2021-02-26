@@ -76,7 +76,7 @@ namespace DeltaKustoLib.CommandModel
             builder.Append(FunctionName);
             builder.Append(" ");
             builder.Append("(");
-            builder.AppendJoin(", ", Parameters.Select(p => $"['{p.ParameterName}']:{p.PrimitiveType}"));
+            builder.AppendJoin(", ", Parameters.Select(p => p.ToString()));
             builder.Append(") ");
             builder.Append("{");
             builder.AppendLine();
@@ -157,19 +157,46 @@ namespace DeltaKustoLib.CommandModel
         private static IEnumerable<TypedParameter> GetParameters(
             FunctionParameters functionParameters)
         {
-            var pairDeclarations = functionParameters.GetDescendants<NameAndTypeDeclaration>();
-            var names = pairDeclarations
-                .Select(p => p.GetDescendants<NameDeclaration>())
-                .SelectMany(n => n)
-                .Select(n => n.SimpleName);
-            var types = pairDeclarations
-                .Select(p => p.GetDescendants<PrimitiveTypeExpression>())
-                .SelectMany(n => n)
-                .Select(n => n.Type.ValueText);
-            var parameters = names
-                .Zip(types, (n, t) => new TypedParameter(n, t));
+            var typeParameters = functionParameters
+                .GetDescendants<FunctionParameter>()
+                .Select(n => n.GetUniqueImmediateDescendant<NameAndTypeDeclaration>("Function Parameter Declaration"))
+                .Select(n => GetParameter(n));
 
-            return parameters;
+            return typeParameters;
+        }
+
+        private static TypedParameter GetParameter(NameAndTypeDeclaration declaration)
+        {
+            var (name, type) = declaration
+                .GetImmediateDescendants<SyntaxNode>()
+                .ExtractChildren<NameDeclaration, TypeExpression>("Parameter pair");
+
+            if (type is PrimitiveTypeExpression)
+            {
+                var typeExpression = type as PrimitiveTypeExpression;
+
+                return new TypedParameter(name.SimpleName, typeExpression!.Type.ValueText);
+            }
+            else
+            {
+                var typeExpression = type as SchemaTypeExpression;
+                var columns = typeExpression!
+                    .Columns
+                    .Select(c => c.GetUniqueImmediateDescendant<NameAndTypeDeclaration>("Function parameter table column"))
+                    .Select(n => GetColumnSchema(n));
+                var table = new TableSchema(columns);
+
+                return new TypedParameter(name.SimpleName, table);
+            }
+        }
+
+        private static ColumnSchema GetColumnSchema(NameAndTypeDeclaration declaration)
+        {
+            var (name, type) = declaration
+                .GetImmediateDescendants<SyntaxNode>()
+                .ExtractChildren<NameDeclaration, PrimitiveTypeExpression>("Column pair");
+
+            return new ColumnSchema(name.SimpleName, type.Type.ValueText);
         }
 
         private static bool? GetSkipValidation(string text)
