@@ -142,6 +142,11 @@ namespace DeltaKustoLib.CommandModel
             string script,
             FunctionParameters functionParameters)
         {
+            //  Show all elements (for debug purposes)
+            var list = new List<SyntaxElement>();
+
+            functionParameters.WalkElements(e => list.Add(e));
+
             var pairDeclarations = functionParameters.GetDescendants<NameAndTypeDeclaration>();
             var names = pairDeclarations
                 .Select(p => p.GetDescendants<NameDeclaration>())

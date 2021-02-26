@@ -78,10 +78,11 @@ namespace DeltaKustoUnitTest.CommandParsing
             var body = "StormEvents | where State == state | where Source == source";
             var parameters = new[]
             {
-                new { Name = "state", Type = "string"},
-                new { Name = "source", Type = "string"}
+                new TypedParameter("state", "string"),
+                new TypedParameter("source", "string")
             };
-            var parameterText = string.Join(", ", parameters.Select(p => $"{p.Name}:{p.Type}"));
+            var parameterText = string
+                .Join(", ", parameters.Select(p => $"{p.ParameterName}:{p.Type}"));
             var folder = "StormEventsFunctions";
             var docString = "";
             var skipValidation = true;
@@ -95,6 +96,10 @@ namespace DeltaKustoUnitTest.CommandParsing
             var createFunctionCommand = (CreateFunctionCommand)command;
 
             Assert.Equal(name, createFunctionCommand.FunctionName);
+            Assert.True(createFunctionCommand
+                .Parameters
+                .Zip(parameters, (p1, p2) => p1.Equals(p2))
+                .All(p => p));
             Assert.Equal(body, createFunctionCommand.Body);
             Assert.Equal(folder, createFunctionCommand.Folder);
             Assert.Equal(docString, createFunctionCommand.DocString);
@@ -102,7 +107,53 @@ namespace DeltaKustoUnitTest.CommandParsing
         }
 
         [Fact]
-        public void AllParameterTypes()
+        public void AllScalarTypes()
+        {
+            var name = "AllScalarTypesFct";
+            var body = "42";
+            //  According to list in https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/scalar-data-types/
+            var scalarTypes = new[]
+            {
+                "bool",
+                "boolean",
+                "datetime",
+                "date",
+                "dynamic",
+                "guid",
+                //  Is uuid legal?
+                //"uuid",
+                "uniqueid",
+                "int",
+                "long",
+                "real",
+                "double",
+                "string",
+                "timespan",
+                "time",
+                "decimal"
+            };
+            var parameters = scalarTypes
+                .Select(t => new TypedParameter($"param{t}", t));
+            var parameterText =
+                string.Join(", ", parameters.Select(p => $"{p.ParameterName}:{p.Type}"));
+            var command = ParseOneCommand(
+                ".create-or-alter function "
+                + $"{name} ({parameterText}) {{ {body} }}");
+
+            Assert.IsType<CreateFunctionCommand>(command);
+
+            var createFunctionCommand = (CreateFunctionCommand)command;
+
+            Assert.Equal(name, createFunctionCommand.FunctionName);
+            Assert.True(createFunctionCommand
+                .Parameters
+                .Zip(parameters, (p1, p2) => new { p1, p2, predicate = p1.Equals(p2) })
+                .All(p => p.predicate));
+            Assert.Equal(body, createFunctionCommand.Body);
+        }
+
+        [Fact]
+        public void TableTypeParameter()
         {
             throw new NotImplementedException();
         }

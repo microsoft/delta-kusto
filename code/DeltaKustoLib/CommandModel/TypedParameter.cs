@@ -11,6 +11,14 @@ namespace DeltaKustoLib.CommandModel
 
         public TypedParameter(string parameterName, string type)
         {
+            if(string.IsNullOrWhiteSpace(parameterName))
+            {
+                throw new ArgumentNullException(nameof(parameterName));
+            }
+            if (string.IsNullOrWhiteSpace(type))
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
             ParameterName = parameterName;
             Type = type;
         }
@@ -20,6 +28,11 @@ namespace DeltaKustoLib.CommandModel
             return other != null
                 && ParameterName == other.ParameterName
                 && Type == other.Type;
+        }
+
+        public override string ToString()
+        {
+            return $"['{ParameterName}']:{Type}";
         }
     }
 }
