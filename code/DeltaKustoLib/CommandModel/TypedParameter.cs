@@ -9,7 +9,7 @@ namespace DeltaKustoLib.CommandModel
 
         public string? PrimitiveType { get; }
 
-        public TableSchema? TableSchema { get; }
+        public TableSchema? ComplexType { get; }
 
         private TypedParameter(string parameterName)
         {
@@ -32,7 +32,7 @@ namespace DeltaKustoLib.CommandModel
         public TypedParameter(string parameterName, TableSchema tableSchema)
             : this(parameterName)
         {
-            TableSchema = tableSchema;
+            ComplexType = tableSchema;
         }
 
         public bool Equals(TypedParameter? other)
@@ -41,7 +41,7 @@ namespace DeltaKustoLib.CommandModel
                 && ParameterName == other.ParameterName
                 && (PrimitiveType!=null
                 ? PrimitiveType.Equals(other.PrimitiveType)
-                : TableSchema!.Equals(other.TableSchema));
+                : ComplexType!.Equals(other.ComplexType));
         }
 
         public override string ToString()
@@ -52,7 +52,7 @@ namespace DeltaKustoLib.CommandModel
             }
             else
             {
-                return $"['{ParameterName}']:{TableSchema}";
+                return $"['{ParameterName}']:{ComplexType}";
             }
         }
     }
