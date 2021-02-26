@@ -22,7 +22,7 @@ namespace DeltaKustoLib.CommandModel
 
         public bool? SkipValidation { get; }
 
-        private CreateFunctionCommand(
+        public CreateFunctionCommand(
             string databaseName,
             string functionName,
             IEnumerable<TypedParameter> parameters,
@@ -40,7 +40,32 @@ namespace DeltaKustoLib.CommandModel
             SkipValidation = skipValidation;
         }
 
-        public override bool Equals([AllowNull] CommandBase other)
+        internal static CommandBase FromCode(
+            string databaseName,
+            CustomCommand customCommand)
+        {
+            var (withNode, nameDeclaration, functionDeclaration) = ExtractRootNodes(customCommand);
+            var (functionParameters, functionBody) = functionDeclaration
+                .GetImmediateDescendants<SyntaxNode>()
+                .ExtractChildren<FunctionParameters, FunctionBody>("Function declaration");
+            var functionName = nameDeclaration.Name.SimpleName;
+            var parameters = GetParameters(functionParameters);
+            var bodyText = functionBody.Root.ToString(IncludeTrivia.All).Substring(
+                functionBody.OpenBrace.TextStart + 1,
+                functionBody.CloseBrace.TextStart - functionBody.OpenBrace.TextStart - 1);
+            var (folder, docString, skipValidation) = GetProperties(withNode);
+
+            return new CreateFunctionCommand(
+                databaseName,
+                functionName,
+                parameters,
+                bodyText.Trim(),
+                folder,
+                docString,
+                skipValidation);
+        }
+
+        public override bool Equals(CommandBase? other)
         {
             var otherFunction = other as CreateFunctionCommand;
             var areEqualed = otherFunction != null
@@ -85,31 +110,6 @@ namespace DeltaKustoLib.CommandModel
             builder.Append("}");
 
             return builder.ToString();
-        }
-
-        internal static CommandBase FromCode(
-            string databaseName,
-            CustomCommand customCommand)
-        {
-            var (withNode, nameDeclaration, functionDeclaration) = ExtractRootNodes(customCommand);
-            var (functionParameters, functionBody) = functionDeclaration
-                .GetImmediateDescendants<SyntaxNode>()
-                .ExtractChildren<FunctionParameters, FunctionBody>("Function declaration");
-            var functionName = nameDeclaration.Name.SimpleName;
-            var parameters = GetParameters(functionParameters);
-            var bodyText = functionBody.Root.ToString(IncludeTrivia.All).Substring(
-                functionBody.OpenBrace.TextStart + 1,
-                functionBody.CloseBrace.TextStart - functionBody.OpenBrace.TextStart - 1);
-            var (folder, docString, skipValidation) = GetProperties(withNode);
-
-            return new CreateFunctionCommand(
-                databaseName,
-                functionName,
-                parameters,
-                bodyText.Trim(),
-                folder,
-                docString,
-                skipValidation);
         }
 
         private static (CustomNode?, NameDeclaration, FunctionDeclaration) ExtractRootNodes(
