@@ -237,11 +237,5 @@ namespace DeltaKustoUnitTest.CommandParsing
 
             Assert.Equal(body, createFunctionCommand.Body);
         }
-
-        [Fact]
-        public void IfNotExists()
-        {
-            throw new NotImplementedException();
-        }
     }
 }
