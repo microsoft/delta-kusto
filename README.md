@@ -1,11 +1,12 @@
 ![delta-kusto](delta-kusto.png)
 
-# delta-kusto
+# Delta-Kusto
 
-Command-line interface (CLI) enabling CI / CD automation with Kusto objects (e.g. tables, functions, policies, security roles, etc.)
-in [Azure Data Explorer](https://docs.microsoft.com/en-us/azure/data-explorer/data-explorer-overview) (ADX) databases.
+Delta-Kusto is a Command-line interface (CLI) enabling CI / CD automation with Kusto objects (e.g. tables, functions, policies, security roles, etc.) in [Azure Data Explorer](https://docs.microsoft.com/en-us/azure/data-explorer/data-explorer-overview) (ADX) databases.
 
-delta-kusto aims at doing what [SQL Database projects](https://docs.microsoft.com/en-us/sql/ssdt/project-oriented-offline-database-development) do for Microsoft SQL:  enabling CI/CD, change management and source control of Kusto databases.
+Delta-Kusto aims at doing what [SQL Database projects](https://docs.microsoft.com/en-us/sql/ssdt/project-oriented-offline-database-development) do for Microsoft SQL:  enabling CI/CD, change management and source control of Kusto databases.
+
+Delta-Kusto runs on both Linux & Windows as a stand-alone executable.
 
 ## Overview
 
