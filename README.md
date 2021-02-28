@@ -6,7 +6,7 @@ Delta-Kusto is a Command-line interface (CLI) enabling Continuous Integration / 
 
 Delta-Kusto is doing what [SQL Database projects](https://docs.microsoft.com/en-us/sql/ssdt/project-oriented-offline-database-development) do for Microsoft SQL:  enabling CI/CD, change management and source control of Kusto databases.  It works with and produces Kusto scripts so it doesn't require a new language / serialization format and can therefore be used with other tools of the ADX ecosystem.
 
-Delta-Kusto runs on both Linux & Windows as a stand-alone executable.
+Delta-Kusto runs on both Linux & Windows as a stand-alone executable.  It is meant to be used in *headless* mode.
 
 ## Overview
 
