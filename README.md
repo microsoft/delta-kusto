@@ -8,6 +8,17 @@ Delta-Kusto is doing what [SQL Database projects](https://docs.microsoft.com/en-
 
 Delta-Kusto runs on both Linux & Windows as a stand-alone executable.  It is meant to be used in *headless* mode.
 
+Delta-Kusto works on database structure, **not data**:
+
+* Tables / Columns
+* Ingestion Mapping
+* Functions
+* Policies
+* Materialized Views
+* Security roles
+* External tables
+* Continuous Export
+
 ## Overview
 
 The high-level view of delta-kusto is the following:
@@ -66,3 +77,5 @@ This is the *Live Sync* scenario:  we want to bring an ADX database to the same 
 ## Limitations
 
 Delta-Kusto is currently in development.  It has no releases yet.
+
+The minimum viable product (MVP) will compute delta on *functions*.
