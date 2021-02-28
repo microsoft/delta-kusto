@@ -1,4 +1,5 @@
 ﻿using DeltaKustoLib.CommandModel;
+using DeltaKustoLib.SchemaObjects;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -8,36 +9,47 @@ namespace DeltaKustoLib.SchemaModel
 {
     public class DatabaseModel
     {
-        public string Name { get; }
+        public string DatabaseName { get; }
 
-        public string Folder { get; }
-
-        public string DocString { get; }
-
-        public IImmutableList<TableModel> Tables { get; }
+        public IImmutableList<CreateFunctionCommand> FunctionCommands { get; }
 
         private DatabaseModel(
-            string name,
-            string folder,
-            string docString,
-            IEnumerable<TableModel> tableModels)
+            string databaseName,
+            IEnumerable<CreateFunctionCommand> functionCommands)
         {
-            if (string.IsNullOrWhiteSpace(name))
+            if (string.IsNullOrWhiteSpace(databaseName))
             {
-                throw new ArgumentNullException(nameof(name));
+                throw new ArgumentNullException(nameof(databaseName));
             }
-            Name = name;
-            Folder = folder;
-            DocString = docString;
-            Tables = tableModels.ToImmutableArray();
+            DatabaseName = databaseName;
+            FunctionCommands = functionCommands.ToImmutableArray();
         }
 
-        public static DatabaseModel FromCommands(IEnumerable<CommandBase> commands)
+        public static DatabaseModel FromCommands(
+            string databaseName,
+            IEnumerable<CommandBase> commands)
         {
-            throw new NotImplementedException();
+            var functions = new List<CreateFunctionCommand>();
+
+            foreach (var command in commands)
+            {
+                var function = command as CreateFunctionCommand;
+
+                if (function != null)
+                {
+                    functions.Add(function);
+                }
+                else
+                {
+                    throw new NotSupportedException(
+                        $"Command of type {command.GetType().FullName} are currently unsupported");
+                }
+            }
+
+            return new DatabaseModel(databaseName, functions.ToImmutableArray());
         }
 
-        public static DatabaseModel FromJsonSchema(string json)
+        public static DatabaseModel FromDatabaseSchema(DatabaseSchema databaseSchema)
         {
             throw new NotImplementedException();
         }
