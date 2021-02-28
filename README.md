@@ -2,7 +2,7 @@
 
 # Delta-Kusto
 
-Delta-Kusto is a Command-line interface (CLI) enabling Continuous Integration / Continuous Deployment (CI / CD) automation with Kusto objects (e.g. tables, functions, policies, security roles, etc.) in [Azure Data Explorer](https://docs.microsoft.com/en-us/azure/data-explorer/data-explorer-overview) (ADX) databases.  It can work on a single database, multiple databases or an entire cluster.  It also support *multi-tenant* scenarios.
+Delta-Kusto is a Command-line interface (CLI) enabling Continuous Integration / Continuous Deployment (CI / CD) automation with Kusto objects (e.g. tables, functions, policies, security roles, etc.) in [Azure Data Explorer](https://docs.microsoft.com/en-us/azure/data-explorer/data-explorer-overview) (ADX) databases.  It can work on a single database, multiple databases, or an entire cluster.  It also supports *multi-tenant* scenarios.
 
 Delta-Kusto is doing what [SQL Database projects](https://docs.microsoft.com/en-us/sql/ssdt/project-oriented-offline-database-development) do for Microsoft SQL:  enabling CI/CD, change management and source control of Kusto databases.  It works with and produces Kusto scripts so it doesn't require a new language / serialization format and can therefore be used with other tools of the ADX ecosystem.
 
@@ -17,9 +17,9 @@ The high-level view of delta-kusto is the following:
 The green boxes represent [sources](documentation/sources.md).  A source can be:
 
 * ADX Database
-* Kusto scripts (either a kusto script file or a hierarchy of folders containing kusto scripts)
+* Kusto scripts (either a Kusto script file or a hierarchy of folders containing Kusto scripts)
 
-delta-script computes the *delta* between the two sources.  The *delta* can be represented as a Kusto script containing the kusto commands required to run on the *current source* so it would be identical to *target source*.  For instance the delta 
+Delta-Script computes the *delta* between the two sources.  The *delta* can be represented as a Kusto script containing the kusto commands required to run on the *current source* so it would be identical to *target source*.
 
 This *delta script* can either be applied directly to an ADX Database or saved as a Kusto script for human validation.  Human validation often are required, especially if `.drop` commands are issued (which could result in data lost).
 
@@ -42,10 +42,10 @@ Here we reverse the roles from the previous scenario.
 
 Here are two use case for that scenario:
 
-1.  We start with an empty *current* script:  the delta script becomes a complete script to recreate the target database (delta scripts can be exported in a folder hierarchy for human readibility and easy git-diff)
+1.  We start with an empty *current* script:  the delta script becomes a complete script to recreate the target database (delta scripts can be exported in a folder hierarchy for human readability and easy git-diff)
 1.  The *current* script could represent the last state of a production database and the *target* database could be the dev database.  In this case, the delta script will show the changes done in the dev environment.
 
-Basically this scenario is useful to reverse engineer changes done *manually* to an environment.
+Basically, this scenario is useful to reverse engineer changes done *manually* to an environment.
 
 ### 3. Kusto scripts (current) to Kusto scripts (target)
 
