@@ -10,6 +10,6 @@
 
         public string DocString { get; set; } = string.Empty;
 
-        public InputParameter[] InputParameter { get; set; } = new InputParameter[0];
+        public InputParameter[] InputParameters { get; set; } = new InputParameter[0];
     }
 }

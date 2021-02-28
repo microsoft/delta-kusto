@@ -1,11 +1,13 @@
 ﻿using DeltaKustoLib.CommandModel;
 using DeltaKustoLib.SchemaObjects;
+using Kusto.Language.Syntax;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Text;
 
-namespace DeltaKustoLib.SchemaModel
+namespace DeltaKustoLib.KustoModel
 {
     public class DatabaseModel
     {
@@ -51,12 +53,44 @@ namespace DeltaKustoLib.SchemaModel
 
         public static DatabaseModel FromDatabaseSchema(DatabaseSchema databaseSchema)
         {
-            throw new NotImplementedException();
+            var functions = databaseSchema
+                .Functions
+                .Values
+                .Select(s => FromFunctionSchema(databaseSchema.Name, s));
+
+            return new DatabaseModel(databaseSchema.Name, functions);
         }
 
         public IImmutableList<CommandBase> ComputeDelta(DatabaseModel targetModel)
         {
             throw new NotImplementedException();
+        }
+
+        private static CreateFunctionCommand FromFunctionSchema(
+            string databaseName,
+            FunctionSchema schema)
+        {
+            var parameters = schema
+                .InputParameters
+                .Select(i => FromParameterSchema(i));
+
+            return new CreateFunctionCommand(
+                databaseName,
+                schema.Name,
+                parameters,
+                schema.Body,
+                schema.Folder,
+                schema.DocString,
+                true);
+        }
+
+        private static TypedParameter FromParameterSchema(InputParameter input)
+        {
+            return input.CslType == null
+                ? new TypedParameter(
+                    input.Name,
+                    new TableSchema(input.Columns.Select(c => new ColumnSchema(c.Name, c.CslType))))
+                : new TypedParameter(input.Name, input.CslType);
         }
     }
 }

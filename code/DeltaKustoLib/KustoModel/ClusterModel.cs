@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
 
-namespace DeltaKustoLib.SchemaModel
+namespace DeltaKustoLib.KustoModel
 {
     public class ClusterModel
     {
