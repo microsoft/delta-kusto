@@ -78,8 +78,8 @@ namespace DeltaKustoUnitTest.CommandParsing
             var body = "StormEvents | where State == state | where Source == source";
             var parameters = new[]
             {
-                new TypedParameter("state", "string"),
-                new TypedParameter("source", "string")
+                new TypedParameterModel("state", "string"),
+                new TypedParameterModel("source", "string")
             };
             var parameterText = string
                 .Join(", ", parameters.Select(p => $"{p.ParameterName}:{p.PrimitiveType}"));
@@ -133,7 +133,7 @@ namespace DeltaKustoUnitTest.CommandParsing
                 "decimal"
             };
             var parameters = scalarTypes
-                .Select(t => new TypedParameter($"param{t}", t));
+                .Select(t => new TypedParameterModel($"param{t}", t));
             var parameterText =
                 string.Join(", ", parameters.Select(p => $"{p.ParameterName}:{p.PrimitiveType}"));
             var command = ParseOneCommand(

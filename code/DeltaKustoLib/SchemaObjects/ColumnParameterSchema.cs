@@ -1,6 +1,6 @@
 ﻿namespace DeltaKustoLib.SchemaObjects
 {
-    public class ColumnParameter
+    public class ColumnParameterSchema
     {
         public string Name { get; set; } = string.Empty;
 

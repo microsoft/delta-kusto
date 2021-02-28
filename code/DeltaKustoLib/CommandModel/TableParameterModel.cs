@@ -7,16 +7,16 @@ using System.Linq;
 
 namespace DeltaKustoLib.CommandModel
 {
-    public class TableSchema : IEquatable<TableSchema>
+    public class TableParameterModel : IEquatable<TableParameterModel>
     {
-        public IImmutableList<ColumnSchema> Columns { get; }
+        public IImmutableList<ColumnModel> Columns { get; }
 
-        public TableSchema(IEnumerable<ColumnSchema> columns)
+        public TableParameterModel(IEnumerable<ColumnModel> columns)
         {
             Columns = columns.ToImmutableArray();
         }
 
-        public bool Equals(TableSchema? other)
+        public bool Equals(TableParameterModel? other)
         {
             return other != null
                 && Columns.Count == other.Columns.Count

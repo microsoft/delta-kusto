@@ -84,13 +84,13 @@ namespace DeltaKustoLib.KustoModel
                 true);
         }
 
-        private static TypedParameter FromParameterSchema(InputParameter input)
+        private static TypedParameterModel FromParameterSchema(InputParameterSchema input)
         {
             return input.CslType == null
-                ? new TypedParameter(
+                ? new TypedParameterModel(
                     input.Name,
-                    new TableSchema(input.Columns.Select(c => new ColumnSchema(c.Name, c.CslType))))
-                : new TypedParameter(input.Name, input.CslType);
+                    new TableParameterModel(input.Columns.Select(c => new ColumnModel(c.Name, c.CslType))))
+                : new TypedParameterModel(input.Name, input.CslType);
         }
     }
 }

@@ -12,7 +12,7 @@ namespace DeltaKustoLib.CommandModel
     {
         public string FunctionName { get; }
 
-        public IImmutableList<TypedParameter> Parameters { get; }
+        public IImmutableList<TypedParameterModel> Parameters { get; }
 
         public string Body { get; }
 
@@ -25,7 +25,7 @@ namespace DeltaKustoLib.CommandModel
         public CreateFunctionCommand(
             string databaseName,
             string functionName,
-            IEnumerable<TypedParameter> parameters,
+            IEnumerable<TypedParameterModel> parameters,
             string functionBody,
             string? folder,
             string? docString,
@@ -154,7 +154,7 @@ namespace DeltaKustoLib.CommandModel
             }
         }
 
-        private static IEnumerable<TypedParameter> GetParameters(
+        private static IEnumerable<TypedParameterModel> GetParameters(
             FunctionParameters functionParameters)
         {
             var typeParameters = functionParameters
@@ -165,7 +165,7 @@ namespace DeltaKustoLib.CommandModel
             return typeParameters;
         }
 
-        private static TypedParameter GetParameter(NameAndTypeDeclaration declaration)
+        private static TypedParameterModel GetParameter(NameAndTypeDeclaration declaration)
         {
             var (name, type) = declaration
                 .GetImmediateDescendants<SyntaxNode>()
@@ -175,7 +175,7 @@ namespace DeltaKustoLib.CommandModel
             {
                 var typeExpression = type as PrimitiveTypeExpression;
 
-                return new TypedParameter(name.SimpleName, typeExpression!.Type.ValueText);
+                return new TypedParameterModel(name.SimpleName, typeExpression!.Type.ValueText);
             }
             else
             {
@@ -184,19 +184,19 @@ namespace DeltaKustoLib.CommandModel
                     .Columns
                     .Select(c => c.GetUniqueImmediateDescendant<NameAndTypeDeclaration>("Function parameter table column"))
                     .Select(n => GetColumnSchema(n));
-                var table = new TableSchema(columns);
+                var table = new TableParameterModel(columns);
 
-                return new TypedParameter(name.SimpleName, table);
+                return new TypedParameterModel(name.SimpleName, table);
             }
         }
 
-        private static ColumnSchema GetColumnSchema(NameAndTypeDeclaration declaration)
+        private static ColumnModel GetColumnSchema(NameAndTypeDeclaration declaration)
         {
             var (name, type) = declaration
                 .GetImmediateDescendants<SyntaxNode>()
                 .ExtractChildren<NameDeclaration, PrimitiveTypeExpression>("Column pair");
 
-            return new ColumnSchema(name.SimpleName, type.Type.ValueText);
+            return new ColumnModel(name.SimpleName, type.Type.ValueText);
         }
 
         private static bool? GetSkipValidation(string text)

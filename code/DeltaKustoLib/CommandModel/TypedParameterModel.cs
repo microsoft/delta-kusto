@@ -3,15 +3,15 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace DeltaKustoLib.CommandModel
 {
-    public class TypedParameter : IEquatable<TypedParameter>
+    public class TypedParameterModel : IEquatable<TypedParameterModel>
     {
         public string ParameterName { get; }
 
         public string? PrimitiveType { get; }
 
-        public TableSchema? ComplexType { get; }
+        public TableParameterModel? ComplexType { get; }
 
-        private TypedParameter(string parameterName)
+        private TypedParameterModel(string parameterName)
         {
             if (string.IsNullOrWhiteSpace(parameterName))
             {
@@ -20,7 +20,7 @@ namespace DeltaKustoLib.CommandModel
             ParameterName = parameterName;
         }
 
-        public TypedParameter(string parameterName, string primitiveType) : this(parameterName)
+        public TypedParameterModel(string parameterName, string primitiveType) : this(parameterName)
         {
             if (string.IsNullOrWhiteSpace(primitiveType))
             {
@@ -29,13 +29,13 @@ namespace DeltaKustoLib.CommandModel
             PrimitiveType = primitiveType;
         }
 
-        public TypedParameter(string parameterName, TableSchema tableSchema)
+        public TypedParameterModel(string parameterName, TableParameterModel tableSchema)
             : this(parameterName)
         {
             ComplexType = tableSchema;
         }
 
-        public bool Equals(TypedParameter? other)
+        public bool Equals(TypedParameterModel? other)
         {
             return other != null
                 && ParameterName == other.ParameterName
