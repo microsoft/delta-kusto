@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using Xunit;
 
-namespace DeltaKustoUnitTest.CommandParsing
+namespace DeltaKustoUnitTest
 {
     public abstract class ParsingTestBase
     {
