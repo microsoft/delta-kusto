@@ -63,7 +63,11 @@ namespace DeltaKustoLib.KustoModel
 
         public IImmutableList<CommandBase> ComputeDelta(DatabaseModel targetModel)
         {
-            throw new NotImplementedException();
+            var functions =
+                CreateFunctionCommand.ComputeDelta(FunctionCommands,targetModel.FunctionCommands);
+            var deltaCommands = functions;
+
+            return deltaCommands.ToImmutableArray();
         }
 
         private static CreateFunctionCommand FromFunctionSchema(

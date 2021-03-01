@@ -126,6 +126,25 @@ namespace DeltaKustoLib.CommandModel
                     true);
         }
 
+        internal static IEnumerable<CommandBase> ComputeDelta(
+            IImmutableList<CreateFunctionCommand> currentFunctionCommands,
+            IImmutableList<CreateFunctionCommand> targetFunctionCommands)
+        {
+            var currentFunctions =
+                currentFunctionCommands.ToImmutableDictionary(c => c.FunctionName);
+            var currentFunctionNames = currentFunctions.Keys.ToImmutableSortedSet();
+            var targetFunctions =
+                targetFunctionCommands.ToImmutableDictionary(c => c.FunctionName);
+            var targetFunctionNames = targetFunctions.Keys.ToImmutableSortedSet();
+            var dropFunctionNames = currentFunctionNames.Except(targetFunctionNames);
+            var createFunctionNames = targetFunctionNames.Except(currentFunctionNames);
+            var changedFunctionsNames = targetFunctionNames
+                .Intersect(currentFunctionNames)
+                .Select(name => !targetFunctions[name].Equals(currentFunctions[name]));
+
+            throw new NotImplementedException();
+        }
+
         private static (CustomNode?, NameDeclaration, FunctionDeclaration) ExtractRootNodes(
             CustomCommand customCommand)
         {
