@@ -39,7 +39,7 @@ namespace DeltaKustoLib.KustoModel
 
                 if (function != null)
                 {
-                    functions.Add(function.ForceSkipValidation());
+                    functions.Add(function);
                 }
                 else
                 {
