@@ -8,7 +8,7 @@ using System.Text;
 
 namespace DeltaKustoLib.CommandModel
 {
-    public class CreateFunctionCommand : CommandBase
+    internal class CreateFunctionCommand : CommandBase
     {
         public string FunctionName { get; }
 

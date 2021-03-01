@@ -13,7 +13,7 @@ namespace DeltaKustoLib.KustoModel
     {
         public string DatabaseName { get; }
 
-        public IImmutableList<CreateFunctionCommand> FunctionCommands { get; }
+        internal IImmutableList<CreateFunctionCommand> FunctionCommands { get; }
 
         private DatabaseModel(
             string databaseName,
