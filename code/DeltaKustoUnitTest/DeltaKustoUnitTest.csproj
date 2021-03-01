@@ -24,6 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DeltaKustoIntegration\DeltaKustoIntegration.csproj" />
     <ProjectReference Include="..\DeltaKustoLib\DeltaKustoLib.csproj" />
   </ItemGroup>
 
