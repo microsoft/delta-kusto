@@ -1,4 +1,4 @@
-﻿namespace DeltaKustoLib.Parameterization
+﻿namespace DeltaKustoIntegration.Parameterization
 {
     public class ActionParameterization
     {
