@@ -79,3 +79,7 @@ This is the *Live Sync* scenario:  we want to bring an ADX database to the same 
 Delta-Kusto is currently in development.  It has no releases yet.
 
 The minimum viable product (MVP) will compute delta on *functions*.
+
+## Alternatives
+
+* [Sync Kusto](https://github.com/microsoft/synckusto) - The Sync Kusto tool was built to help create a maintainable development process around Kusto.
