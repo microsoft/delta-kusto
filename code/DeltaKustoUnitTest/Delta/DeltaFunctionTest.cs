@@ -58,5 +58,19 @@ namespace DeltaKustoUnitTest.Delta
 
             Assert.Empty(delta);
         }
+
+        [Fact]
+        public void UpdateOne()
+        {
+            var currentCommands = Parse(".create function MyFunction() { 42 }");
+            var currentDatabase = DatabaseModel.FromCommands("current", currentCommands);
+            var targetCommands = Parse(".create function MyFunction(){ 42 }\n\n.create function MyOtherFunction(){ 42 }");
+            var targetDatabase = DatabaseModel.FromCommands("target", targetCommands);
+            var delta = currentDatabase.ComputeDelta(targetDatabase);
+
+            Assert.Single(delta);
+            Assert.IsType<CreateFunctionCommand>(delta[0]);
+            Assert.Equal("MyOtherFunction", ((CreateFunctionCommand)delta[0]).FunctionName);
+        }
     }
 }
