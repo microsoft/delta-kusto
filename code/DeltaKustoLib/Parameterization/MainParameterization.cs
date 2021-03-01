@@ -8,6 +8,8 @@ namespace DeltaKustoLib.Parameterization
     {
         public string Schema { get; set; } = "Temp-URI!";
 
+        public bool SendTelemetryOptIn { get; set; } = false;
+
         public int? ServicePrincipal { get; set; }
 
         public SourceParameterization? Current { get; set; }
