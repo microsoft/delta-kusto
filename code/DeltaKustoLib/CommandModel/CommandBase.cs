@@ -11,22 +11,11 @@ namespace DeltaKustoLib.CommandModel
 {
     public abstract class CommandBase : IEquatable<CommandBase>
     {
-        public string DatabaseName { get; }
-
-        protected CommandBase(string databaseName)
-        {
-            if (string.IsNullOrWhiteSpace(databaseName))
-            {
-                throw new ArgumentNullException(nameof(databaseName));
-            }
-            DatabaseName = databaseName;
-        }
-
-        public static IImmutableList<CommandBase> FromScript(string databaseName, string script)
+        public static IImmutableList<CommandBase> FromScript(string script)
         {
             var scripts = SplitCommandScripts(script);
             var commands = scripts
-                .Select(s => CreateCommand(databaseName, s, KustoCode.Parse(s)))
+                .Select(s => CreateCommand(s, KustoCode.Parse(s)))
                 .ToImmutableArray();
 
             return commands;
@@ -51,12 +40,11 @@ namespace DeltaKustoLib.CommandModel
 
         public override int GetHashCode()
         {
-            return DatabaseName.GetHashCode()
-                | base.GetHashCode();
+            return base.GetHashCode();
         }
         #endregion
 
-        private static CommandBase CreateCommand(string databaseName, string script, KustoCode code)
+        private static CommandBase CreateCommand(string script, KustoCode code)
         {
             try
             {
@@ -78,7 +66,7 @@ namespace DeltaKustoLib.CommandModel
                 {
                     case "CreateFunction":
                     case "CreateOrAlterFunction":
-                        return CreateFunctionCommand.FromCode(databaseName, customCommand);
+                        return CreateFunctionCommand.FromCode(customCommand);
 
                     default:
                         throw new DeltaException(

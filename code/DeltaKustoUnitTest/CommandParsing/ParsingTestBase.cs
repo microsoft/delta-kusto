@@ -12,9 +12,9 @@ namespace DeltaKustoUnitTest.CommandParsing
     {
         protected IImmutableList<CommandBase> Parse(string script)
         {
-            var commands = CommandBase.FromScript("mydb", script);
+            var commands = CommandBase.FromScript(script);
             var reformedScript = string.Join("\n", commands.Select(c => c.ToScript()));
-            var reformedCommands = CommandBase.FromScript("mydb", reformedScript);
+            var reformedCommands = CommandBase.FromScript(reformedScript);
             var commandEquality = commands
                 .Zip(reformedCommands, (c, rc) => c.Equals(rc));
 

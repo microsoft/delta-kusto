@@ -23,14 +23,12 @@ namespace DeltaKustoLib.CommandModel
         public bool? SkipValidation { get; }
 
         public CreateFunctionCommand(
-            string databaseName,
             string functionName,
             IEnumerable<TypedParameterModel> parameters,
             string functionBody,
             string? folder,
             string? docString,
             bool? skipValidation)
-            : base(databaseName)
         {
             FunctionName = functionName;
             Parameters = parameters.ToImmutableArray();
@@ -40,9 +38,7 @@ namespace DeltaKustoLib.CommandModel
             SkipValidation = skipValidation;
         }
 
-        internal static CommandBase FromCode(
-            string databaseName,
-            CustomCommand customCommand)
+        internal static CommandBase FromCode(CustomCommand customCommand)
         {
             var (withNode, nameDeclaration, functionDeclaration) = ExtractRootNodes(customCommand);
             var (functionParameters, functionBody) = functionDeclaration
@@ -56,7 +52,6 @@ namespace DeltaKustoLib.CommandModel
             var (folder, docString, skipValidation) = GetProperties(withNode);
 
             return new CreateFunctionCommand(
-                databaseName,
                 functionName,
                 parameters,
                 bodyText.Trim(),
@@ -117,7 +112,6 @@ namespace DeltaKustoLib.CommandModel
             return SkipValidation == true
                 ? this
                 : new CreateFunctionCommand(
-                    DatabaseName,
                     FunctionName,
                     Parameters,
                     Body,
@@ -141,6 +135,8 @@ namespace DeltaKustoLib.CommandModel
             var changedFunctionsNames = targetFunctionNames
                 .Intersect(currentFunctionNames)
                 .Select(name => !targetFunctions[name].Equals(currentFunctions[name]));
+            //var dropFunctions = dropFunctionNames
+            //    .Select(name => new DropFunctionCommand())
 
             throw new NotImplementedException();
         }

@@ -56,7 +56,7 @@ namespace DeltaKustoLib.KustoModel
             var functions = databaseSchema
                 .Functions
                 .Values
-                .Select(s => FromFunctionSchema(databaseSchema.Name, s));
+                .Select(s => FromFunctionSchema(s));
 
             return new DatabaseModel(databaseSchema.Name, functions);
         }
@@ -70,16 +70,13 @@ namespace DeltaKustoLib.KustoModel
             return deltaCommands.ToImmutableArray();
         }
 
-        private static CreateFunctionCommand FromFunctionSchema(
-            string databaseName,
-            FunctionSchema schema)
+        private static CreateFunctionCommand FromFunctionSchema(FunctionSchema schema)
         {
             var parameters = schema
                 .InputParameters
                 .Select(i => FromParameterSchema(i));
 
             return new CreateFunctionCommand(
-                databaseName,
                 schema.Name,
                 parameters,
                 schema.Body,
