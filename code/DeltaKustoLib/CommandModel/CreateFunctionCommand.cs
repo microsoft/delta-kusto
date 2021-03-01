@@ -34,7 +34,7 @@ namespace DeltaKustoLib.CommandModel
         {
             FunctionName = functionName;
             Parameters = parameters.ToImmutableArray();
-            Body = functionBody;
+            Body = functionBody.Trim();
             Folder = folder;
             DocString = docString;
             SkipValidation = skipValidation;
@@ -110,6 +110,20 @@ namespace DeltaKustoLib.CommandModel
             builder.Append("}");
 
             return builder.ToString();
+        }
+
+        internal CreateFunctionCommand ForceSkipValidation()
+        {
+            return SkipValidation == true
+                ? this
+                : new CreateFunctionCommand(
+                    DatabaseName,
+                    FunctionName,
+                    Parameters,
+                    Body,
+                    Folder,
+                    DocString,
+                    true);
         }
 
         private static (CustomNode?, NameDeclaration, FunctionDeclaration) ExtractRootNodes(
