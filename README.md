@@ -83,3 +83,4 @@ The minimum viable product (MVP) will compute delta on *functions*.
 ## Alternatives
 
 * [Sync Kusto](https://github.com/microsoft/synckusto) - The Sync Kusto tool was built to help create a maintainable development process around Kusto.
+* [Azure DevOps Task for Azure Data Explorer](https://docs.microsoft.com/en-us/azure/data-explorer/devops) - Azure Pipelines task that enables you to create release pipelines and deploy your database changes to your Azure Data Explorer databases.
