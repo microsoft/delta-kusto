@@ -134,11 +134,16 @@ namespace DeltaKustoLib.CommandModel
             var createFunctionNames = targetFunctionNames.Except(currentFunctionNames);
             var changedFunctionsNames = targetFunctionNames
                 .Intersect(currentFunctionNames)
-                .Select(name => !targetFunctions[name].Equals(currentFunctions[name]));
-            //var dropFunctions = dropFunctionNames
-            //    .Select(name => new DropFunctionCommand())
+                .Where(name => !targetFunctions[name].Equals(currentFunctions[name]));
+            var dropFunctions = dropFunctionNames
+                .Select(name => new DropFunctionCommand(name));
+            var createAlterFunctions = createFunctionNames
+                .Concat(changedFunctionsNames)
+                .Select(name => targetFunctions[name]);
 
-            throw new NotImplementedException();
+            return dropFunctions
+                .Cast<CommandBase>()
+                .Concat(createAlterFunctions);
         }
 
         private static (CustomNode?, NameDeclaration, FunctionDeclaration) ExtractRootNodes(
