@@ -11,6 +11,11 @@ namespace DeltaKustoLib.KustoModel
 {
     public class DatabaseModel
     {
+        private static readonly IImmutableSet<Type> INPUT_COMMANDS = new[]
+        {
+            typeof(CreateFunctionCommand)
+        }.ToImmutableHashSet();
+
         public string DatabaseName { get; }
 
         internal IImmutableList<CreateFunctionCommand> FunctionCommands { get; }
@@ -31,22 +36,17 @@ namespace DeltaKustoLib.KustoModel
             string databaseName,
             IEnumerable<CommandBase> commands)
         {
-            var functions = new List<CreateFunctionCommand>();
+            var commandGroups = commands
+                .GroupBy(c => c.GetType())
+                .ToImmutableDictionary(g => g.Key);
 
-            foreach (var command in commands)
-            {
-                var function = command as CreateFunctionCommand;
+            ValidateCommandTypes(commandGroups.Select(c => c.Key));
 
-                if (function != null)
-                {
-                    functions.Add(function);
-                }
-                else
-                {
-                    throw new NotSupportedException(
-                        $"Command of type {command.GetType().FullName} are currently unsupported");
-                }
-            }
+            var functions = commandGroups.ContainsKey(typeof(CreateFunctionCommand))
+                ? commandGroups[typeof(CreateFunctionCommand)].Cast<CreateFunctionCommand>()
+                : new CreateFunctionCommand[0];
+
+            ValidateDuplicates("Functions", functions, f => f.FunctionName);
 
             return new DatabaseModel(databaseName, functions.ToImmutableArray());
         }
@@ -64,7 +64,7 @@ namespace DeltaKustoLib.KustoModel
         public IImmutableList<CommandBase> ComputeDelta(DatabaseModel targetModel)
         {
             var functions =
-                CreateFunctionCommand.ComputeDelta(FunctionCommands,targetModel.FunctionCommands);
+                CreateFunctionCommand.ComputeDelta(FunctionCommands, targetModel.FunctionCommands);
             var deltaCommands = functions;
 
             return deltaCommands.ToImmutableArray();
@@ -92,6 +92,40 @@ namespace DeltaKustoLib.KustoModel
                     input.Name,
                     new TableParameterModel(input.Columns.Select(c => new ColumnModel(c.Name, c.CslType))))
                 : new TypedParameterModel(input.Name, input.CslType);
+        }
+
+        private static void ValidateCommandTypes(IEnumerable<Type> commandTypes)
+        {
+            var extraCommandTypes = commandTypes
+                .Except(INPUT_COMMANDS)
+                .ToArray();
+
+            if (extraCommandTypes.Any())
+            {
+                throw new DeltaException(
+                    "Unsupported command types:  "
+                    + $"{string.Join(", ", extraCommandTypes.Select(t => t.Name))}");
+            }
+        }
+
+        private static void ValidateDuplicates<T>(
+            string objectName,
+            IEnumerable<T> functions,
+            Func<T, string> nameFinder)
+        {
+            var functionDuplicates = functions
+                .GroupBy(f => nameFinder(f))
+                .Where(g => g.Count() > 1)
+                .Select(g => new { Name = g.Key, Objects = g.ToArray(), Count = g.Count() });
+
+            if (functionDuplicates.Any())
+            {
+                var duplicateText = string.Join(
+                    ", ",
+                    functionDuplicates.Select(d => $"(Name = '{d.Name}', Count = {d.Count})"));
+
+                throw new DeltaException($"{objectName} have duplicates:  {{ {duplicateText} }}");
+            }
         }
     }
 }

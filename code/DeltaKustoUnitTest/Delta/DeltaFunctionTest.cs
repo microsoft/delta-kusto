@@ -1,4 +1,5 @@
-﻿using DeltaKustoLib.CommandModel;
+﻿using DeltaKustoLib;
+using DeltaKustoLib.CommandModel;
 using DeltaKustoLib.KustoModel;
 using System;
 using System.Collections.Generic;
@@ -71,6 +72,44 @@ namespace DeltaKustoUnitTest.Delta
             Assert.Single(delta);
             Assert.IsType<CreateFunctionCommand>(delta[0]);
             Assert.Equal("MyOtherFunction", ((CreateFunctionCommand)delta[0]).FunctionName);
+        }
+
+        [Fact]
+        public void DetectDuplicates()
+        {
+            try
+            {
+                var commands = Parse(
+                    ".create-or-alter function YourFunction() { 72 }\n\n"
+                    + ".create-or-alter function OtherFunction() { 72 }\n\n"
+                    + ".create-or-alter function with (folder='myfolder') YourFunction() { 72 }\n\n");
+                var database = DatabaseModel.FromCommands("db", commands);
+
+                throw new InvalidOperationException("This should have failed by now");
+            }
+            catch (DeltaException)
+            {
+            }
+        }
+
+        [Fact]
+        public void DetectIntruder()
+        {
+            try
+            {
+                var function = ParseOneCommand(".create-or-alter function YourFunction() { 72 }\n\n");
+                var commands = new CommandBase[]
+                {
+                    function,
+                    new DropFunctionCommand("myFunction")
+                };
+                var database = DatabaseModel.FromCommands("db", commands);
+
+                throw new InvalidOperationException("This should have failed by now");
+            }
+            catch (DeltaException)
+            {
+            }
         }
     }
 }
