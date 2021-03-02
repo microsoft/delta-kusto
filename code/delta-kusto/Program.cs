@@ -1,9 +1,11 @@
 ﻿using CommandLine;
 using CommandLine.Text;
+using DeltaKustoIntegration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace delta_kusto
 {
@@ -20,11 +22,11 @@ namespace delta_kusto
             var result = parser.ParseArguments<CommandLineOptions>(args);
 
             result
-                .WithParsed(RunOptions)
-                .WithNotParsed(errors => HandleParseError(result, errors));
+                .WithNotParsed(errors => HandleParseError(result, errors))
+                .WithParsedAsync(RunOptions);
         }
 
-        private static void RunOptions(CommandLineOptions options)
+        private static async Task RunOptions(CommandLineOptions options)
         {
             var versionAttribute = typeof(Program)
                 .Assembly
@@ -37,6 +39,10 @@ namespace delta_kusto
             {
                 Console.WriteLine("Verbose output enabled");
             }
+
+            var orchestration = new DeltaOrchestration(new FileGateway());
+
+            await orchestration.ComputeDeltaAsync(options.ParameterFilePath);
         }
 
         private static void HandleParseError(

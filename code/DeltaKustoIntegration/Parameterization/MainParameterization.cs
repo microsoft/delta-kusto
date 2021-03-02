@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DeltaKustoLib;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -12,10 +13,14 @@ namespace DeltaKustoIntegration.Parameterization
 
         public int? ServicePrincipal { get; set; }
 
-        public SourceParameterization? Current { get; set; }
-        
-        public SourceParameterization? Target { get; set; }
+        public JobParameterization[] Jobs { get; set; } = new JobParameterization[0];
 
-        public ActionParameterization? Action { get; set; }
+        public void Validate()
+        {
+            if (Jobs.Length == 0)
+            {
+                throw new DeltaException("'jobs' must contain at least one job");
+            }
+        }
     }
 }
