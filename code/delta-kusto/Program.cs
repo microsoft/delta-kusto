@@ -1,6 +1,8 @@
 ﻿using CommandLine;
 using CommandLine.Text;
 using DeltaKustoIntegration;
+using DeltaKustoLib;
+using Kusto.Language.Parsing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +13,7 @@ namespace delta_kusto
 {
     class Program
     {
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
             //  Use CommandLineParser NuGet package to parse command line
             //  See https://github.com/commandlineparser/commandline
@@ -19,11 +21,35 @@ namespace delta_kusto
             {
                 with.HelpWriter = null;
             });
-            var result = parser.ParseArguments<CommandLineOptions>(args);
 
-            result
-                .WithNotParsed(errors => HandleParseError(result, errors))
-                .WithParsedAsync(RunOptions);
+            try
+            {
+                var result = parser.ParseArguments<CommandLineOptions>(args);
+
+                result
+                    .WithNotParsed(errors => HandleParseError(result, errors))
+                    .WithParsedAsync(RunOptions);
+
+                return result.Tag == ParserResultType.Parsed
+                    ? 0
+                    : 1;
+            }
+            catch (DeltaException ex)
+            {
+                Console.Error.WriteLine($"Error:  {ex.Message}");
+                if (!string.IsNullOrWhiteSpace(ex.Script))
+                {
+                    Console.Error.WriteLine($"Error:  {ex.Script}");
+                }
+
+                return 1;
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine(ex.Message);
+
+                return 1;
+            }
         }
 
         private static async Task RunOptions(CommandLineOptions options)
