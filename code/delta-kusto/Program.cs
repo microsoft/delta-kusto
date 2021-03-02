@@ -78,6 +78,7 @@ namespace delta_kusto
             //if (errors.IsVersion() || errors.IsHelp())
             var helpText = HelpText.AutoBuild(result, h =>
             {
+                h.AutoVersion = false;
                 h.Copyright = string.Empty;
 
                 return HelpText.DefaultParsingErrorsHandler(result, h);
