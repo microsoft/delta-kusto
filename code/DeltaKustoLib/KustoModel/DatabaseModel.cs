@@ -16,24 +16,15 @@ namespace DeltaKustoLib.KustoModel
             typeof(CreateFunctionCommand)
         }.ToImmutableHashSet();
 
-        public string DatabaseName { get; }
-
         internal IImmutableList<CreateFunctionCommand> FunctionCommands { get; }
 
         private DatabaseModel(
-            string databaseName,
             IEnumerable<CreateFunctionCommand> functionCommands)
         {
-            if (string.IsNullOrWhiteSpace(databaseName))
-            {
-                throw new ArgumentNullException(nameof(databaseName));
-            }
-            DatabaseName = databaseName;
             FunctionCommands = functionCommands.ToImmutableArray();
         }
 
         public static DatabaseModel FromCommands(
-            string databaseName,
             IEnumerable<CommandBase> commands)
         {
             var commandGroups = commands
@@ -48,7 +39,7 @@ namespace DeltaKustoLib.KustoModel
 
             ValidateDuplicates("Functions", functions, f => f.FunctionName);
 
-            return new DatabaseModel(databaseName, functions.ToImmutableArray());
+            return new DatabaseModel(functions.ToImmutableArray());
         }
 
         public static DatabaseModel FromDatabaseSchema(DatabaseSchema databaseSchema)
@@ -58,7 +49,7 @@ namespace DeltaKustoLib.KustoModel
                 .Values
                 .Select(s => FromFunctionSchema(s));
 
-            return new DatabaseModel(databaseSchema.Name, functions);
+            return new DatabaseModel(functions);
         }
 
         public IImmutableList<CommandBase> ComputeDelta(DatabaseModel targetModel)

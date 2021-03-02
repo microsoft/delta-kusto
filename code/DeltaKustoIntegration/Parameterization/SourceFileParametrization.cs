@@ -29,6 +29,11 @@ namespace DeltaKustoIntegration.Parameterization
                 throw new DeltaException(
                     "If 'extensions' is specified, it must contain at least one extension");
             }
+            if (FilePath != null && Extensions != null)
+            {
+                throw new DeltaException(
+                    "'extensions' can't be specified in conjonction with 'filePath'");
+            }
             if (FilePath != null && string.IsNullOrWhiteSpace(FilePath))
             {
                 throw new DeltaException(

@@ -14,9 +14,9 @@ namespace DeltaKustoUnitTest.Delta
         public void FromEmptyToEmpty()
         {
             var currentCommands = new CommandBase[0];
-            var currentDatabase = DatabaseModel.FromCommands("current", currentCommands);
+            var currentDatabase = DatabaseModel.FromCommands(currentCommands);
             var targetCommands = new CommandBase[0];
-            var targetDatabase = DatabaseModel.FromCommands("target", targetCommands);
+            var targetDatabase = DatabaseModel.FromCommands(targetCommands);
             var delta = currentDatabase.ComputeDelta(targetDatabase);
 
             Assert.Empty(delta);
@@ -26,9 +26,9 @@ namespace DeltaKustoUnitTest.Delta
         public void FromEmptyToSomething()
         {
             var currentCommands = new CommandBase[0];
-            var currentDatabase = DatabaseModel.FromCommands("current", currentCommands);
+            var currentDatabase = DatabaseModel.FromCommands(currentCommands);
             var targetCommands = Parse(".create function MyFunction() { 42 }");
-            var targetDatabase = DatabaseModel.FromCommands("target", targetCommands);
+            var targetDatabase = DatabaseModel.FromCommands(targetCommands);
             var delta = currentDatabase.ComputeDelta(targetDatabase);
 
             Assert.Single(delta);
@@ -39,9 +39,9 @@ namespace DeltaKustoUnitTest.Delta
         public void FromSomethingToEmpty()
         {
             var currentCommands = Parse(".create function MyFunction() { 42 }");
-            var currentDatabase = DatabaseModel.FromCommands("current", currentCommands);
+            var currentDatabase = DatabaseModel.FromCommands(currentCommands);
             var targetCommands = new CommandBase[0];
-            var targetDatabase = DatabaseModel.FromCommands("target", targetCommands);
+            var targetDatabase = DatabaseModel.FromCommands(targetCommands);
             var delta = currentDatabase.ComputeDelta(targetDatabase);
 
             Assert.Single(delta);
@@ -52,9 +52,9 @@ namespace DeltaKustoUnitTest.Delta
         public void AlreadyMirror()
         {
             var currentCommands = Parse(".create function MyFunction() { 42 }");
-            var currentDatabase = DatabaseModel.FromCommands("current", currentCommands);
+            var currentDatabase = DatabaseModel.FromCommands(currentCommands);
             var targetCommands = Parse(".create function MyFunction()     { 42 }//Different syntax");
-            var targetDatabase = DatabaseModel.FromCommands("target", targetCommands);
+            var targetDatabase = DatabaseModel.FromCommands(targetCommands);
             var delta = currentDatabase.ComputeDelta(targetDatabase);
 
             Assert.Empty(delta);
@@ -64,9 +64,9 @@ namespace DeltaKustoUnitTest.Delta
         public void UpdateOne()
         {
             var currentCommands = Parse(".create function MyFunction() { 42 }");
-            var currentDatabase = DatabaseModel.FromCommands("current", currentCommands);
+            var currentDatabase = DatabaseModel.FromCommands(currentCommands);
             var targetCommands = Parse(".create function MyFunction(){ 42 }\n\n.create function MyOtherFunction(){ 42 }");
-            var targetDatabase = DatabaseModel.FromCommands("target", targetCommands);
+            var targetDatabase = DatabaseModel.FromCommands(targetCommands);
             var delta = currentDatabase.ComputeDelta(targetDatabase);
 
             Assert.Single(delta);
@@ -83,7 +83,7 @@ namespace DeltaKustoUnitTest.Delta
                     ".create-or-alter function YourFunction() { 72 }\n\n"
                     + ".create-or-alter function OtherFunction() { 72 }\n\n"
                     + ".create-or-alter function with (folder='myfolder') YourFunction() { 72 }\n\n");
-                var database = DatabaseModel.FromCommands("db", commands);
+                var database = DatabaseModel.FromCommands(commands);
 
                 throw new InvalidOperationException("This should have failed by now");
             }
@@ -103,7 +103,7 @@ namespace DeltaKustoUnitTest.Delta
                     function,
                     new DropFunctionCommand("myFunction")
                 };
-                var database = DatabaseModel.FromCommands("db", commands);
+                var database = DatabaseModel.FromCommands(commands);
 
                 throw new InvalidOperationException("This should have failed by now");
             }

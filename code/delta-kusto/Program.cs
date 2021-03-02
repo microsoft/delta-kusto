@@ -46,7 +46,7 @@ namespace delta_kusto
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine(ex.Message);
+                Console.Error.WriteLine($"Exception encountered:  {ex.GetType().FullName} ; {ex.Message}");
 
                 return 1;
             }
@@ -66,7 +66,10 @@ namespace delta_kusto
                 Console.WriteLine("Verbose output enabled");
             }
 
-            var orchestration = new DeltaOrchestration(new FileGateway());
+            //  Dependency injection
+            var orchestration = new DeltaOrchestration(
+                new FileGateway(),
+                new KustoManagementGatewayFactory());
 
             await orchestration.ComputeDeltaAsync(options.ParameterFilePath);
         }
