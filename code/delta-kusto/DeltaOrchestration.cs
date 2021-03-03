@@ -40,7 +40,17 @@ namespace delta_kusto
             {
                 var currentDb = await RetrieveDatabase(job.Current, parameters.ServicePrincipal);
                 var targetDb = await RetrieveDatabase(job.Target, parameters.ServicePrincipal);
+                var deltaCommands = currentDb.ComputeDelta(targetDb);
+
+                await ProcessDeltaCommandsAsync(deltaCommands, job.Action);
             }
+        }
+
+        private Task ProcessDeltaCommandsAsync(
+            IEnumerable<CommandBase> deltaCommands,
+            ActionParameterization? action)
+        {
+            throw new NotImplementedException();
         }
 
         private async Task<DatabaseModel> RetrieveDatabase(
