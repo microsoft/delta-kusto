@@ -10,8 +10,6 @@ namespace DeltaKustoIntegration.Parameterization
 
         public string? FolderPath { get; set; }
 
-        public bool FailIfDrop { get; set; } = false;
-
         public bool UseTargetCluster { get; set; } = false;
 
         internal void Validate()
