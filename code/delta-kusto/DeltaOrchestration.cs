@@ -36,14 +36,21 @@ namespace delta_kusto
 
             parameters.Validate();
 
+            var tokenProvider = CreateTokenProvider(parameters.TokenProvider);
+
             foreach (var job in parameters.Jobs)
             {
-                var currentDb = await RetrieveDatabase(job.Current, parameters.ServicePrincipal);
-                var targetDb = await RetrieveDatabase(job.Target, parameters.ServicePrincipal);
+                var currentDb = await RetrieveDatabase(job.Current, tokenProvider);
+                var targetDb = await RetrieveDatabase(job.Target, tokenProvider);
                 var deltaCommands = currentDb.ComputeDelta(targetDb);
 
                 await ProcessDeltaCommandsAsync(deltaCommands, job.Action);
             }
+        }
+
+        private ITokenProvider? CreateTokenProvider(TokenProviderParameterization? tokenProvider)
+        {
+            throw new NotImplementedException();
         }
 
         private Task ProcessDeltaCommandsAsync(
@@ -55,7 +62,7 @@ namespace delta_kusto
 
         private async Task<DatabaseModel> RetrieveDatabase(
             SourceParameterization? source,
-            int? servicePrincipal)
+            ITokenProvider? tokenProvider)
         {
             if (source == null)
             {
@@ -65,10 +72,15 @@ namespace delta_kusto
             {
                 if (source.Cluster != null)
                 {
+                    if (tokenProvider == null)
+                    {
+                        throw new InvalidOperationException($"{tokenProvider} can't be null at this point");
+                    }
+
                     var kustoManagementGateway = _kustoManagementGatewayFactory.CreateGateway(
                         source.Cluster.ClusterUri!,
                         source.Cluster.Database!,
-                        servicePrincipal);
+                        tokenProvider);
                     var databaseSchema = await kustoManagementGateway.GetDatabaseSchemaAsync();
 
                     throw new NotImplementedException();

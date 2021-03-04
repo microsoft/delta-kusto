@@ -9,6 +9,6 @@ namespace DeltaKustoIntegration
         IKustoManagementGateway CreateGateway(
             string clusterUri,
             string database,
-            int? servicePrincipal);
+            ITokenProvider tokenProvider);
     }
 }

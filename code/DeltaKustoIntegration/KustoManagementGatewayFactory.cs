@@ -9,7 +9,7 @@ namespace DeltaKustoIntegration
         public IKustoManagementGateway CreateGateway(
             string clusterUri,
             string database,
-            int? servicePrincipal)
+            ITokenProvider tokenProvider)
         {
             throw new NotImplementedException();
         }
