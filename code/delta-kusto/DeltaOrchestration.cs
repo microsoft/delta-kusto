@@ -1,4 +1,5 @@
 ﻿using DeltaKustoIntegration;
+using DeltaKustoIntegration.Database;
 using DeltaKustoIntegration.Parameterization;
 using DeltaKustoLib;
 using DeltaKustoLib.CommandModel;
@@ -43,11 +44,48 @@ namespace delta_kusto
 
             foreach (var job in parameters.Jobs)
             {
-                var currentDb = await RetrieveDatabase(job.Current, tokenProvider);
-                var targetDb = await RetrieveDatabase(job.Target, tokenProvider);
+                var currentDbProvider = CreateDatabaseProvider(job.Current, tokenProvider);
+                var targetDbProvider = CreateDatabaseProvider(job.Target, tokenProvider);
+                var currentDb = await currentDbProvider.RetrieveDatabaseAsync();
+                var targetDb = await targetDbProvider.RetrieveDatabaseAsync();
                 var deltaCommands = currentDb.ComputeDelta(targetDb);
 
                 await ProcessDeltaCommandsAsync(deltaCommands, tokenProvider, job.Action);
+            }
+        }
+
+        private IDatabaseProvider CreateDatabaseProvider(
+            SourceParameterization? source,
+            ITokenProvider? tokenProvider)
+        {
+            if (source == null)
+            {
+                return new EmptyDatabaseProvider();
+            }
+            else
+            {
+                if (source.Cluster != null)
+                {
+                    if (tokenProvider == null)
+                    {
+                        throw new InvalidOperationException($"{tokenProvider} can't be null at this point");
+                    }
+
+                    var kustoManagementGateway = _kustoManagementGatewayFactory.CreateGateway(
+                        source.Cluster.ClusterUri!,
+                        source.Cluster.Database!,
+                        tokenProvider);
+
+                    return new KustoDatabaseProvider(kustoManagementGateway);
+                }
+                else if (source.Scripts != null)
+                {
+                    return new ScriptDatabaseProvider(_fileGateway, source.Scripts);
+                }
+                else
+                {
+                    throw new InvalidOperationException("We should never get here");
+                }
             }
         }
 
@@ -71,78 +109,6 @@ namespace delta_kusto
             else if (action.UseTargetCluster == true)
             {
                 throw new NotImplementedException();
-            }
-            else
-            {
-                throw new InvalidOperationException("We should never get here");
-            }
-        }
-
-        private async Task<DatabaseModel> RetrieveDatabase(
-            SourceParameterization? source,
-            ITokenProvider? tokenProvider)
-        {
-            if (source == null)
-            {
-                return DatabaseModel.FromDatabaseSchema(new DatabaseSchema { Name = "empty-db" });
-            }
-            else
-            {
-                if (source.Cluster != null)
-                {
-                    if (tokenProvider == null)
-                    {
-                        throw new InvalidOperationException($"{tokenProvider} can't be null at this point");
-                    }
-
-                    var kustoManagementGateway = _kustoManagementGatewayFactory.CreateGateway(
-                        source.Cluster.ClusterUri!,
-                        source.Cluster.Database!,
-                        tokenProvider);
-                    var databaseSchema = await kustoManagementGateway.GetDatabaseSchemaAsync();
-
-                    return DatabaseModel.FromDatabaseSchema(databaseSchema);
-                }
-                else if (source.Scripts != null)
-                {
-                    var scriptTasks = source
-                        .Scripts
-                        .Select(s => LoadScriptsAsync(s));
-
-                    await Task.WhenAll(scriptTasks);
-
-                    var commands = scriptTasks
-                        .SelectMany(t => t.Result)
-                        .SelectMany(s => CommandBase.FromScript(s))
-                        .ToImmutableArray();
-                    var database = DatabaseModel.FromCommands(commands);
-
-                    return database;
-                }
-                else
-                {
-                    throw new InvalidOperationException("We should never get here");
-                }
-            }
-        }
-
-        private async Task<IEnumerable<string>> LoadScriptsAsync(SourceFileParametrization fileParametrization)
-        {
-            if (fileParametrization.FilePath != null)
-            {
-                var script = await _fileGateway.GetFileContentAsync(fileParametrization.FilePath);
-
-                return new[] { script };
-            }
-            else if (fileParametrization.FolderPath != null)
-            {
-                var scripts = _fileGateway.GetFolderContentsAsync(
-                    fileParametrization.FolderPath,
-                    fileParametrization.Extensions);
-                var contents = (await scripts.ToEnumerableAsync())
-                    .Select(t => t.content);
-
-                return contents;
             }
             else
             {
