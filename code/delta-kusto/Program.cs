@@ -69,7 +69,8 @@ namespace delta_kusto
             //  Dependency injection
             var orchestration = new DeltaOrchestration(
                 new FileGateway(),
-                new KustoManagementGatewayFactory());
+                new KustoManagementGatewayFactory(),
+                new TokenProviderFactory());
 
             await orchestration.ComputeDeltaAsync(options.ParameterFilePath);
         }

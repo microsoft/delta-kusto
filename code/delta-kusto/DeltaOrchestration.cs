@@ -18,13 +18,16 @@ namespace delta_kusto
     {
         private readonly IFileGateway _fileGateway;
         private readonly IKustoManagementGatewayFactory _kustoManagementGatewayFactory;
+        private readonly ITokenProviderFactory _tokenProviderFactory;
 
         public DeltaOrchestration(
             IFileGateway fileGateway,
-            IKustoManagementGatewayFactory kustoManagementGatewayFactory)
+            IKustoManagementGatewayFactory kustoManagementGatewayFactory,
+            ITokenProviderFactory tokenProviderFactory)
         {
             _fileGateway = fileGateway;
             _kustoManagementGatewayFactory = kustoManagementGatewayFactory;
+            _tokenProviderFactory = tokenProviderFactory;
         }
 
         public async Task ComputeDeltaAsync(string parameterFilePath)
@@ -36,7 +39,7 @@ namespace delta_kusto
 
             parameters.Validate();
 
-            var tokenProvider = CreateTokenProvider(parameters.TokenProvider);
+            var tokenProvider = _tokenProviderFactory.CreateProvider(parameters.TokenProvider);
 
             foreach (var job in parameters.Jobs)
             {
@@ -46,11 +49,6 @@ namespace delta_kusto
 
                 await ProcessDeltaCommandsAsync(deltaCommands, job.Action);
             }
-        }
-
-        private ITokenProvider? CreateTokenProvider(TokenProviderParameterization? tokenProvider)
-        {
-            throw new NotImplementedException();
         }
 
         private Task ProcessDeltaCommandsAsync(
@@ -83,7 +81,7 @@ namespace delta_kusto
                         tokenProvider);
                     var databaseSchema = await kustoManagementGateway.GetDatabaseSchemaAsync();
 
-                    throw new NotImplementedException();
+                    return DatabaseModel.FromDatabaseSchema(databaseSchema);
                 }
                 else if (source.Scripts != null)
                 {
