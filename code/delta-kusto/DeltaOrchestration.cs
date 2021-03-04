@@ -47,15 +47,35 @@ namespace delta_kusto
                 var targetDb = await RetrieveDatabase(job.Target, tokenProvider);
                 var deltaCommands = currentDb.ComputeDelta(targetDb);
 
-                await ProcessDeltaCommandsAsync(deltaCommands, job.Action);
+                await ProcessDeltaCommandsAsync(deltaCommands, tokenProvider, job.Action);
             }
         }
 
         private Task ProcessDeltaCommandsAsync(
             IEnumerable<CommandBase> deltaCommands,
+            ITokenProvider? tokenProvider,
             ActionParameterization? action)
         {
-            throw new NotImplementedException();
+            if (action == null)
+            {
+                throw new NotImplementedException();
+            }
+            else if (action.FilePath != null)
+            {
+                throw new NotImplementedException();
+            }
+            else if (action.FolderPath != null)
+            {
+                throw new NotImplementedException();
+            }
+            else if (action.UseTargetCluster == true)
+            {
+                throw new NotImplementedException();
+            }
+            else
+            {
+                throw new InvalidOperationException("We should never get here");
+            }
         }
 
         private async Task<DatabaseModel> RetrieveDatabase(
