@@ -1,4 +1,5 @@
 ﻿using DeltaKustoIntegration;
+using DeltaKustoIntegration.Action;
 using DeltaKustoIntegration.Database;
 using DeltaKustoIntegration.Parameterization;
 using DeltaKustoLib;
@@ -8,6 +9,7 @@ using DeltaKustoLib.SchemaObjects;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -46,11 +48,39 @@ namespace delta_kusto
             {
                 var currentDbProvider = CreateDatabaseProvider(job.Current, tokenProvider);
                 var targetDbProvider = CreateDatabaseProvider(job.Target, tokenProvider);
+                var actionProvider = CreateActionProvider(job.Action, tokenProvider, job.Target!.Cluster);
                 var currentDb = await currentDbProvider.RetrieveDatabaseAsync();
                 var targetDb = await targetDbProvider.RetrieveDatabaseAsync();
                 var deltaCommands = currentDb.ComputeDelta(targetDb);
 
-                await ProcessDeltaCommandsAsync(deltaCommands, tokenProvider, job.Action);
+                await actionProvider.ProcessDeltaCommandsAsync(deltaCommands);
+            }
+        }
+
+        private IActionProvider CreateActionProvider(
+            ActionParameterization? action,
+            ITokenProvider? tokenProvider,
+            ClusterSourceParameterization? cluster)
+        {
+            if (action == null)
+            {
+                throw new NotImplementedException();
+            }
+            else if (action.FilePath != null)
+            {
+                throw new NotImplementedException();
+            }
+            else if (action.FolderPath != null)
+            {
+                throw new NotImplementedException();
+            }
+            else if (action.UseTargetCluster == true)
+            {
+                throw new NotImplementedException();
+            }
+            else
+            {
+                throw new InvalidOperationException("We should never get here");
             }
         }
 
@@ -86,33 +116,6 @@ namespace delta_kusto
                 {
                     throw new InvalidOperationException("We should never get here");
                 }
-            }
-        }
-
-        private Task ProcessDeltaCommandsAsync(
-            IEnumerable<CommandBase> deltaCommands,
-            ITokenProvider? tokenProvider,
-            ActionParameterization? action)
-        {
-            if (action == null)
-            {
-                throw new NotImplementedException();
-            }
-            else if (action.FilePath != null)
-            {
-                throw new NotImplementedException();
-            }
-            else if (action.FolderPath != null)
-            {
-                throw new NotImplementedException();
-            }
-            else if (action.UseTargetCluster == true)
-            {
-                throw new NotImplementedException();
-            }
-            else
-            {
-                throw new InvalidOperationException("We should never get here");
             }
         }
     }

@@ -17,8 +17,4 @@
     <ProjectReference Include="..\DeltaKustoLib\DeltaKustoLib.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Action\" />
-  </ItemGroup>
-
 </Project>
