@@ -8,7 +8,7 @@ using Xunit;
 
 namespace DeltaKustoUnitTest.Delta
 {
-    public class DeltaFunctionTest: ParsingTestBase
+    public class DeltaFunctionTest : ParsingTestBase
     {
         [Fact]
         public void FromEmptyToEmpty()

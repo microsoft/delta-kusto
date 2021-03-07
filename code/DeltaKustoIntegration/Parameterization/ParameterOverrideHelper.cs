@@ -10,13 +10,23 @@ namespace DeltaKustoIntegration.Parameterization
 {
     public static class ParameterOverrideHelper
     {
+        #region Inner Types
+        private class SingleOverride
+        {
+            public string? Path { get; set; }
+
+            public object? Value { get; set; }
+        }
+        #endregion
         public static void InplaceOverride(object target, string jsonOverrides)
         {
             try
             {
-                var overrideMap = JsonSerializer.Deserialize<IDictionary<string, object>>(jsonOverrides);
+                var overrideMap = JsonSerializer.Deserialize<SingleOverride[]>(
+                    jsonOverrides,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
                 var overrides = overrideMap
-                    .Select(m => (path: m.Key, value: m.Value));
+                    .Select(m => ValidateAndTransform(m));
 
                 InplaceOverride(target, overrides);
             }
@@ -50,11 +60,6 @@ namespace DeltaKustoIntegration.Parameterization
 
             try
             {
-                if (value == null)
-                {
-                    throw new DeltaException("Value is null");
-                }
-
                 ValidateProperties(properties);
 
                 RecursiveInplaceOverride(target, properties, value);
@@ -94,6 +99,16 @@ namespace DeltaKustoIntegration.Parameterization
             {
                 try
                 {
+                    if(value is JsonElement)
+                    {
+                        var text = JsonSerializer.Serialize(value);
+                        var newValue = JsonSerializer.Deserialize(
+                            text,
+                            propertyInfo.PropertyType,
+                            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                        value = newValue;
+                    }
                     propertyInfo.GetSetMethod()!.Invoke(target, new object[] { value });
                 }
                 catch (Exception ex)
@@ -138,6 +153,13 @@ namespace DeltaKustoIntegration.Parameterization
                 throw new DeltaException(
                     $"Illegal character '{illegalCharacter}' in property path '{property}'");
             }
+        }
+
+        private static (string path, object value) ValidateAndTransform(SingleOverride m)
+        {
+            return (
+                path: m.Path ?? throw new DeltaException("Path can't be null"),
+                value: m.Value ?? throw new DeltaException("Value can't be null"));
         }
     }
 }
