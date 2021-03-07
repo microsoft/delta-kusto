@@ -8,9 +8,9 @@ namespace DeltaKustoLib
     {
         public string Script { get; }
 
-        public DeltaException(string message) : base(message)
+        public DeltaException(string message, Exception? innerException = null)
+            : this(message, string.Empty, innerException)
         {
-            Script = string.Empty;
         }
 
         public DeltaException(string message, string script, Exception? innerException = null)

@@ -36,19 +36,44 @@ namespace delta_kusto
             }
             catch (DeltaException ex)
             {
-                Console.Error.WriteLine($"Error:  {ex.Message}");
-                if (!string.IsNullOrWhiteSpace(ex.Script))
-                {
-                    Console.Error.WriteLine($"Error:  {ex.Script}");
-                }
+                DisplayDeltaException(ex);
 
                 return 1;
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"Exception encountered:  {ex.GetType().FullName} ; {ex.Message}");
+                DisplayGenericException(ex);
 
                 return 1;
+            }
+        }
+
+        private static void DisplayGenericException(Exception ex, string tab = "")
+        {
+            Console.Error.WriteLine($"{tab}Exception encountered:  {ex.GetType().FullName} ; {ex.Message}");
+            if (ex.InnerException != null)
+            {
+                DisplayGenericException(ex.InnerException, tab + "  ");
+            }
+        }
+
+        private static void DisplayDeltaException(DeltaException ex, string tab = "")
+        {
+            Console.Error.WriteLine($"{tab}Error:  {ex.Message}");
+            if (!string.IsNullOrWhiteSpace(ex.Script))
+            {
+                Console.Error.WriteLine($"{tab}Error:  {ex.Script}");
+            }
+
+            var deltaInnerException = ex.InnerException as DeltaException;
+
+            if (deltaInnerException != null)
+            {
+                DisplayDeltaException(deltaInnerException, tab + "  ");
+            }
+            if (ex.InnerException != null)
+            {
+                DisplayGenericException(ex.InnerException, tab + "  ");
             }
         }
 
