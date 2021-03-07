@@ -54,5 +54,30 @@ namespace DeltaKustoUnitTest
             {
             }
         }
+
+        [Fact]
+        public void TestPropertyPath()
+        {
+            var main = new MainParameterization
+            {
+                TokenProvider = new TokenProviderParameterization
+                {
+                    Login = new ServicePrincipalLoginParameterization
+                    {
+                        TenantId = "42",
+                        ClientId = "15",
+                        Secret = "My secret"
+                    }
+                }
+            };
+            var before = main.TokenProvider!.Login!.TenantId;
+            var newTenantId = before + before;
+
+            ParameterOverrideHelper.InplaceOverride(
+                main,
+                $"[{{\"path\" : \"tokenProvider.login.tenantId\", \"value\":\"{newTenantId}\" }}]");
+
+            Assert.Equal(newTenantId, main.TokenProvider!.Login!.TenantId);
+        }
     }
 }
