@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 
@@ -72,6 +73,104 @@ namespace DeltaKustoIntegration.Parameterization
 
         private static void RecursiveInplaceOverride(object target, IImmutableList<string> properties, object value)
         {
+            var isDictonary = target.GetType().IsGenericType
+                && target.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>);
+
+            if (isDictonary)
+            {
+                var arguments = target.GetType().GetGenericArguments();
+                var keyType = arguments[0];
+                var valueType = arguments[1];
+                var genericMethod = typeof(ParameterOverrideHelper).GetMethod(
+                    nameof(RecursiveInplaceOverrideOnDictionary),
+                    BindingFlags.NonPublic | BindingFlags.Static);
+
+                if (keyType != typeof(string))
+                {
+                    throw new NotSupportedException("We only support string-keyed map");
+                }
+                if (genericMethod == null)
+                {
+                    throw new NotSupportedException(
+                        $"Can't find method '{nameof(RecursiveInplaceOverrideOnDictionary)}'");
+                }
+
+                var specificMethod = genericMethod.MakeGenericMethod(valueType);
+
+                specificMethod.Invoke(null, new object[] { target, properties, value });
+            }
+            else
+            {
+                RecursiveInplaceOverrideOnObject(target, properties, value);
+            }
+        }
+
+        private static void RecursiveInplaceOverrideOnDictionary<T>(
+            IDictionary<string, T> target,
+            IImmutableList<string> properties,
+            object value) where T : class
+        {
+            var property = properties.First();
+
+            if (properties.Count() > 1)
+            {
+                if (!target.ContainsKey(property))
+                {
+                    throw new DeltaException($"Property '{property}' doesn't exist on object");
+                }
+
+                var newTarget = target[property];
+
+                if (newTarget == null)
+                {
+                    throw new DeltaException($"Property '{property}' is null");
+                }
+
+                RecursiveInplaceOverride(
+                    newTarget,
+                    properties.RemoveAt(0),
+                    value);
+            }
+            else
+            {
+                if (value is JsonElement)
+                {
+                    try
+                    {
+                        var text = JsonSerializer.Serialize(value);
+                        var newValue = JsonSerializer.Deserialize(
+                            text,
+                            typeof(T),
+                            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                        value = newValue;
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new DeltaException(
+                            $"Can't convert value to expected type ({typeof(T).FullName})",
+                            ex);
+                    }
+                }
+
+                var typedValue = value as T;
+
+                if (typedValue == null)
+                {
+                    throw new DeltaException(
+                        "The value isn't of the right type ; "
+                        + $"value is {value.GetType().FullName} but "
+                        + $"expecting {typeof(T).FullName}");
+                }
+                target[property] = typedValue;
+            }
+        }
+
+        private static void RecursiveInplaceOverrideOnObject(
+            object target,
+            IImmutableList<string> properties,
+            object value)
+        {
             var jsonProperty = properties.First();
             var property = GetRealProperty(jsonProperty);
             var propertyInfo = target.GetType().GetProperty(property);
@@ -114,7 +213,7 @@ namespace DeltaKustoIntegration.Parameterization
                         catch (Exception ex)
                         {
                             throw new DeltaException(
-                                $"Can't convert value to expected type ({propertyInfo.PropertyType})",
+                                $"Can't convert value to expected type ({propertyInfo.PropertyType.FullName})",
                                 ex);
                         }
                     }

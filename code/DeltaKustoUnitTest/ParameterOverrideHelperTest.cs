@@ -79,5 +79,34 @@ namespace DeltaKustoUnitTest
 
             Assert.Equal(newTenantId, main.TokenProvider!.Login!.TenantId);
         }
+
+        [Fact]
+        public void TestDictionarySubItem()
+        {
+            var main = new MainParameterization
+            {
+                TokenProvider = new TokenProviderParameterization
+                {
+                    TokenMap = new Dictionary<string, TokenMapParameterization>()
+                    {
+                        {
+                            "mine",
+                            new TokenMapParameterization
+                            {
+                                Token="abc"
+                            }
+                        }
+                    }
+                }
+            };
+            var before = main.TokenProvider!.TokenMap["mine"].Token;
+            var newToken = before + before;
+
+            ParameterOverrideHelper.InplaceOverride(
+                main,
+                $"[{{\"path\" : \"tokenProvider.tokenMap.mine.token\", \"value\":\"{newToken}\" }}]");
+
+            Assert.Equal(newToken, main.TokenProvider!.TokenMap["mine"].Token);
+        }
     }
 }

@@ -1,13 +1,14 @@
 ﻿using DeltaKustoLib;
 using Kusto.Language.Syntax;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace DeltaKustoIntegration.Parameterization
 {
     public class TokenProviderParameterization
     {
-        public TokenMapParameterization[]? TokenMap { get; set; }
+        public IDictionary<string, TokenMapParameterization>? TokenMap { get; set; }
 
         public ServicePrincipalLoginParameterization? Login { get; set; }
 
@@ -25,17 +26,18 @@ namespace DeltaKustoIntegration.Parameterization
             }
             if (TokenMap != null)
             {
-                if (TokenMap.Length == 0)
+                if (TokenMap.Count == 0)
                 {
                     throw new DeltaException(
                         "'tokenMap' can't be empty");
                 }
-                foreach (var map in TokenMap)
+                foreach (var map in TokenMap.Values)
                 {
                     map.Validate();
                 }
 
                 var duplicateClusterUris = TokenMap
+                    .Values
                     .GroupBy(tm => tm.ClusterUri!.ToLower())
                     .Select(g => new { ClusterUri = g.Key, Count = g.Count() })
                     .Where(o => o.Count > 1);
