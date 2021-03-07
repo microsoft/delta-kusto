@@ -99,17 +99,30 @@ namespace DeltaKustoIntegration.Parameterization
             {
                 try
                 {
-                    if(value is JsonElement)
+                    if (value is JsonElement)
                     {
-                        var text = JsonSerializer.Serialize(value);
-                        var newValue = JsonSerializer.Deserialize(
-                            text,
-                            propertyInfo.PropertyType,
-                            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                        try
+                        {
+                            var text = JsonSerializer.Serialize(value);
+                            var newValue = JsonSerializer.Deserialize(
+                                text,
+                                propertyInfo.PropertyType,
+                                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-                        value = newValue;
+                            value = newValue;
+                        }
+                        catch (Exception ex)
+                        {
+                            throw new DeltaException(
+                                $"Can't convert value to expected type ({propertyInfo.PropertyType})",
+                                ex);
+                        }
                     }
                     propertyInfo.GetSetMethod()!.Invoke(target, new object[] { value });
+                }
+                catch (DeltaException)
+                {
+                    throw;
                 }
                 catch (Exception ex)
                 {
