@@ -4,12 +4,12 @@
       "target": {
         "scripts": [
           {
-            "filePath": "EmptyCurrent/EmptyDelta/target.kql"
+            "filePath": "Functions/EmptyCurrent/OneFunctionDelta/target.kql"
           }
         ]
       },
       "action": {
-        "filePath": "outputs/empty-target/empty-delta.kql"
+        "filePath": "outputs/functions/empty-target/one-function-delta.kql"
       }
     }
   }
