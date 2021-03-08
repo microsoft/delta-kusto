@@ -5,7 +5,7 @@ using Xunit;
 
 namespace DeltaKustoFileIntegrationTest.EmptyTarget
 {
-    public class EmptyCurrentTest : IntegrationTestBase
+    public class FunctionEmptyCurrentTest : IntegrationTestBase
     {
         [Fact]
         public async Task EmptyDelta()

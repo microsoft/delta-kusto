@@ -1,0 +1,21 @@
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Xunit;
+
+namespace DeltaKustoFileIntegrationTest.EmptyTarget
+{
+    public class FunctionWithCurrentTest : IntegrationTestBase
+    {
+        [Fact]
+        public async Task EmptyBoth()
+        {
+            var parameters = await RunParametersAsync(
+                "Functions/WithCurrent/EmptyBoth/delta-params.json");
+            var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
+            var commands = await LoadScriptAsync(outputPath);
+
+            Assert.Empty(commands);
+        }
+    }
+}

@@ -9,7 +9,7 @@
         ]
       },
       "action": {
-        "filePath": "outputs/functions/empty-target/two-functions-delta.kql"
+        "filePath": "outputs/functions/empty-current/two-functions-delta.kql"
       }
     }
   }

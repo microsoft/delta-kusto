@@ -1,0 +1,23 @@
+﻿{
+  "jobs": {
+    "main": {
+      "current": {
+        "scripts": [
+          {
+            "filePath": "Functions/WithCurrent/EmptyBoth/current.kql"
+          }
+        ]
+      },
+      "target": {
+        "scripts": [
+          {
+            "filePath": "Functions/WithCurrent/EmptyBoth/target.kql"
+          }
+        ]
+      },
+      "action": {
+        "filePath": "outputs/functions/with-current/empty-both.kql"
+      }
+    }
+  }
+}
