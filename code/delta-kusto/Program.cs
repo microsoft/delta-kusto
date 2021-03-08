@@ -11,9 +11,9 @@ using System.Threading.Tasks;
 
 namespace delta_kusto
 {
-    class Program
+    public class Program
     {
-        static int Main(string[] args)
+        public static async Task<int> Main(string[] args)
         {
             //  Use CommandLineParser NuGet package to parse command line
             //  See https://github.com/commandlineparser/commandline
@@ -26,9 +26,9 @@ namespace delta_kusto
             {
                 var result = parser.ParseArguments<CommandLineOptions>(args);
 
-                result
+                await result
                     .WithNotParsed(errors => HandleParseError(result, errors))
-                    .WithParsedAsync(RunOptions);
+                    .WithParsedAsync(RunOptionsAsync);
 
                 return result.Tag == ParserResultType.Parsed
                     ? 0
@@ -77,7 +77,7 @@ namespace delta_kusto
             }
         }
 
-        private static async Task RunOptions(CommandLineOptions options)
+        private static async Task RunOptionsAsync(CommandLineOptions options)
         {
             var versionAttribute = typeof(Program)
                 .Assembly
