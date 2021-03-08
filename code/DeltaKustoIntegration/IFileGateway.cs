@@ -9,6 +9,8 @@ namespace DeltaKustoIntegration
     {
         Task<string> GetFileContentAsync(string filePath);
 
+        Task SetFileContentAsync(string filePath, string content);
+
         IAsyncEnumerable<(string path, string content)> GetFolderContentsAsync(
             string folderPath,
             IEnumerable<string>? extensions);

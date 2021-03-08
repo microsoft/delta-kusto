@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DeltaKustoLib;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,6 +15,18 @@ namespace DeltaKustoIntegration
             var text = await File.ReadAllTextAsync(filePath);
 
             return text;
+        }
+
+        async Task IFileGateway.SetFileContentAsync(string filePath, string content)
+        {
+            var directory = Path.GetDirectoryName(filePath);
+
+            if (directory != null)
+            {
+                EnsureDirectoryExists(directory);
+            }
+
+            await File.WriteAllTextAsync(filePath, content);
         }
 
         async IAsyncEnumerable<(string path, string content)> IFileGateway.GetFolderContentsAsync(
@@ -37,10 +50,18 @@ namespace DeltaKustoIntegration
             {
                 var scripts = fileGateway.GetFolderContentsAsync(directory, extensions);
 
-                await foreach(var script in scripts)
+                await foreach (var script in scripts)
                 {
                     yield return script;
                 }
+            }
+        }
+
+        private void EnsureDirectoryExists(string directoryPath)
+        {
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
             }
         }
 

@@ -85,7 +85,7 @@ namespace delta_kusto
             }
             else if (action.FilePath != null)
             {
-                throw new NotImplementedException();
+                return new OneFileActionProvider(_fileGateway, action.FilePath);
             }
             else if (action.FolderPath != null)
             {
