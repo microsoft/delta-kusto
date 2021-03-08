@@ -1,10 +1,10 @@
 ﻿{
   "jobs": {
     "main": {
-      "current": {
+      "target": {
         "scripts": [
           {
-            "filePath": "EmptyTarget/EmptyDelta/current.kql"
+            "filePath": "EmptyCurrent/EmptyDelta/target.kql"
           }
         ]
       },

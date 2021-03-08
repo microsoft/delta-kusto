@@ -5,13 +5,13 @@ using Xunit;
 
 namespace DeltaKustoFileIntegrationTest.EmptyTarget
 {
-    public class EmptyTargetTest : IntegrationTestBase
+    public class EmptyCurrentTest : IntegrationTestBase
     {
         [Fact]
         public async Task EmptyDelta()
         {
             var parameters = await RunParametersAsync(
-                "EmptyTarget/EmptyDelta/empty-delta-params.json");
+                "EmptyCurrent/EmptyDelta/empty-delta-params.json");
             var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
             var commands = await LoadScriptAsync(outputPath);
 
@@ -22,8 +22,8 @@ namespace DeltaKustoFileIntegrationTest.EmptyTarget
         public async Task OneFunctionDelta()
         {
             var parameters = await RunParametersAsync(
-                "EmptyTarget/OneFunctionDelta/delta-params.json");
-            var inputPath = parameters.Jobs!.First().Value.Current!.Scripts!.First().FilePath!;
+                "EmptyCurrent/OneFunctionDelta/delta-params.json");
+            var inputPath = parameters.Jobs!.First().Value.Target!.Scripts!.First().FilePath!;
             var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
             var inputCommands = await LoadScriptAsync(inputPath);
             var outputCommands = await LoadScriptAsync(outputPath);
