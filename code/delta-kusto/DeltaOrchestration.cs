@@ -24,24 +24,19 @@ namespace delta_kusto
         private readonly ITokenProviderFactory _tokenProviderFactory;
 
         public DeltaOrchestration(
-            IFileGateway fileGateway,
-            IKustoManagementGatewayFactory kustoManagementGatewayFactory,
-            ITokenProviderFactory tokenProviderFactory)
+            IFileGateway? fileGateway = null,
+            IKustoManagementGatewayFactory? kustoManagementGatewayFactory = null,
+            ITokenProviderFactory? tokenProviderFactory = null)
         {
-            _fileGateway = fileGateway;
-            _kustoManagementGatewayFactory = kustoManagementGatewayFactory;
-            _tokenProviderFactory = tokenProviderFactory;
+            _fileGateway = fileGateway ?? new FileGateway();
+            _kustoManagementGatewayFactory = kustoManagementGatewayFactory
+                ?? new KustoManagementGatewayFactory();
+            _tokenProviderFactory = tokenProviderFactory ?? new TokenProviderFactory();
         }
 
         public async Task ComputeDeltaAsync(string parameterFilePath)
         {
-            var parameterText = await _fileGateway.GetFileContentAsync(parameterFilePath);
-            var parameters = JsonSerializer.Deserialize<MainParameterization>(
-                parameterText,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-            parameters.Validate();
-
+            var parameters = await LoadParameterizationAsync(parameterFilePath);
             var tokenProvider = _tokenProviderFactory.CreateProvider(parameters.TokenProvider);
             var orderedJobs = parameters.Jobs.OrderBy(p => p.Value.Priority);
 
@@ -53,7 +48,7 @@ namespace delta_kusto
                 {
                     var currentDbProvider = CreateDatabaseProvider(job.Current, tokenProvider);
                     var targetDbProvider = CreateDatabaseProvider(job.Target, tokenProvider);
-                    var actionProvider = CreateActionProvider(job.Action, tokenProvider, job.Target!.Cluster);
+                    var actionProvider = CreateActionProvider(job.Action, tokenProvider, job.Target?.Cluster);
                     var currentDb = await currentDbProvider.RetrieveDatabaseAsync();
                     var targetDb = await targetDbProvider.RetrieveDatabaseAsync();
                     var deltaCommands = currentDb.ComputeDelta(targetDb);
@@ -65,6 +60,18 @@ namespace delta_kusto
                     throw new DeltaException($"Issue in running job '{jobName}'", ex);
                 }
             }
+        }
+
+        internal async Task<MainParameterization> LoadParameterizationAsync(string parameterFilePath)
+        {
+            var parameterText = await _fileGateway.GetFileContentAsync(parameterFilePath);
+            var parameters = JsonSerializer.Deserialize<MainParameterization>(
+                parameterText,
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+            parameters.Validate();
+
+            return parameters;
         }
 
         private IActionProvider CreateActionProvider(

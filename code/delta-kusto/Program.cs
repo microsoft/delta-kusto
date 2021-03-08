@@ -11,9 +11,9 @@ using System.Threading.Tasks;
 
 namespace delta_kusto
 {
-    public class Program
+    internal class Program
     {
-        public static async Task<int> Main(string[] args)
+        internal static async Task<int> Main(string[] args)
         {
             //  Use CommandLineParser NuGet package to parse command line
             //  See https://github.com/commandlineparser/commandline
@@ -92,10 +92,7 @@ namespace delta_kusto
             }
 
             //  Dependency injection
-            var orchestration = new DeltaOrchestration(
-                new FileGateway(),
-                new KustoManagementGatewayFactory(),
-                new TokenProviderFactory());
+            var orchestration = new DeltaOrchestration();
 
             await orchestration.ComputeDeltaAsync(options.ParameterFilePath);
         }
