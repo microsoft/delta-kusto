@@ -14,22 +14,31 @@ namespace DeltaKustoIntegration.Parameterization
 
         public TokenProviderParameterization? TokenProvider { get; set; }
 
-        public JobParameterization[] Jobs { get; set; } = new JobParameterization[0];
+        public IDictionary<string, JobParameterization> Jobs { get; set; } = new Dictionary<string, JobParameterization>();
 
         public void Validate()
         {
-            if (Jobs.Length == 0)
+            if (Jobs.Count == 0)
             {
                 throw new DeltaException("'jobs' must contain at least one job");
             }
-            foreach (var job in Jobs)
+            foreach (var pair in Jobs)
             {
-                job.Validate();
+                var (key, job) = pair;
+
+                try
+                {
+                    job.Validate();
+                }
+                catch (DeltaException ex)
+                {
+                    throw new DeltaException($"Issue with job '{key}' parameters", ex);
+                }
             }
 
             var clusterJobs = Jobs
-                .Where(j => (j.Current != null && j.Current.Cluster != null)
-                || (j.Target != null && j.Target.Cluster != null));
+                .Values
+                .Where(j => (j.Current?.Cluster != null) || (j.Target?.Cluster != null));
 
             if (clusterJobs.Any() && TokenProvider == null)
             {

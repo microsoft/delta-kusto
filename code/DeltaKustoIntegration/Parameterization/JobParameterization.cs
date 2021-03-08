@@ -4,6 +4,8 @@ namespace DeltaKustoIntegration.Parameterization
 {
     public class JobParameterization
     {
+        public int Priority { get; set; } = int.MaxValue;
+
         public SourceParameterization? Current { get; set; }
 
         public SourceParameterization? Target { get; set; }

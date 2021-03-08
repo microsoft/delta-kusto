@@ -43,17 +43,27 @@ namespace delta_kusto
             parameters.Validate();
 
             var tokenProvider = _tokenProviderFactory.CreateProvider(parameters.TokenProvider);
+            var orderedJobs = parameters.Jobs.OrderBy(p => p.Value.Priority);
 
-            foreach (var job in parameters.Jobs)
+            foreach (var jobPair in orderedJobs)
             {
-                var currentDbProvider = CreateDatabaseProvider(job.Current, tokenProvider);
-                var targetDbProvider = CreateDatabaseProvider(job.Target, tokenProvider);
-                var actionProvider = CreateActionProvider(job.Action, tokenProvider, job.Target!.Cluster);
-                var currentDb = await currentDbProvider.RetrieveDatabaseAsync();
-                var targetDb = await targetDbProvider.RetrieveDatabaseAsync();
-                var deltaCommands = currentDb.ComputeDelta(targetDb);
+                var (jobName, job) = jobPair;
 
-                await actionProvider.ProcessDeltaCommandsAsync(deltaCommands);
+                try
+                {
+                    var currentDbProvider = CreateDatabaseProvider(job.Current, tokenProvider);
+                    var targetDbProvider = CreateDatabaseProvider(job.Target, tokenProvider);
+                    var actionProvider = CreateActionProvider(job.Action, tokenProvider, job.Target!.Cluster);
+                    var currentDb = await currentDbProvider.RetrieveDatabaseAsync();
+                    var targetDb = await targetDbProvider.RetrieveDatabaseAsync();
+                    var deltaCommands = currentDb.ComputeDelta(targetDb);
+
+                    await actionProvider.ProcessDeltaCommandsAsync(deltaCommands);
+                }
+                catch (DeltaException ex)
+                {
+                    throw new DeltaException($"Issue in running job '{jobName}'", ex);
+                }
             }
         }
 
