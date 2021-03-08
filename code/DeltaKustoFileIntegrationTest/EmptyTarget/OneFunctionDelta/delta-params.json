@@ -1,0 +1,16 @@
+﻿{
+  "jobs": {
+    "main": {
+      "current": {
+        "scripts": [
+          {
+            "filePath": "EmptyTarget/OneFunctionDelta/current.kql"
+          }
+        ]
+      },
+      "action": {
+        "filePath": "outputs/empty-target/one-function-delta.kql"
+      }
+    }
+  }
+}

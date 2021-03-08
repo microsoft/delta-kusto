@@ -14,22 +14,21 @@ namespace DeltaKustoIntegration.Parameterization
 
         public void Validate()
         {
-            if (Current == null)
+            if (Target == null)
             {
-                throw new DeltaException("Parameter file doesn't contain 'current' parameters");
+                throw new DeltaException("Parameter file doesn't contain mandatory 'target' parameters");
             }
 
-            Current.Validate();
+            Target.Validate();
 
-            if (Target != null)
+            if (Current != null)
             {
-                Target.Validate();
+                Current.Validate();
             }
             if (Action != null)
             {
                 Action.Validate();
-                if (Action.UseTargetCluster
-                    && (Target == null || Target.Cluster == null))
+                if (Action.UseTargetCluster && Target?.Cluster == null)
                 {
                     throw new DeltaException(
                         "'action.useTargetCluster' can only be used "
