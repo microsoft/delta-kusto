@@ -26,6 +26,8 @@ namespace DeltaKustoIntegration.Action
                 var script = command.ToScript();
 
                 builder.Append(script);
+                builder.AppendLine();
+                builder.AppendLine();
             }
 
             await _fileGateway.SetFileContentAsync(_filePath, builder.ToString());

@@ -46,6 +46,12 @@
     <None Update="EmptyCurrent\EmptyDelta\target.kql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="EmptyCurrent\TwoFunctionsDelta\delta-params.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="EmptyCurrent\TwoFunctionsDelta\target.kql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="EmptyCurrent\OneFunctionDelta\delta-params.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

@@ -30,5 +30,18 @@ namespace DeltaKustoFileIntegrationTest.EmptyTarget
 
             Assert.True(inputCommands.SequenceEqual(outputCommands));
         }
+
+        [Fact]
+        public async Task TwoFunctionsDelta()
+        {
+            var parameters = await RunParametersAsync(
+                "EmptyCurrent/TwoFunctionsDelta/delta-params.json");
+            var inputPath = parameters.Jobs!.First().Value.Target!.Scripts!.First().FilePath!;
+            var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
+            var inputCommands = await LoadScriptAsync(inputPath);
+            var outputCommands = await LoadScriptAsync(outputPath);
+
+            Assert.True(inputCommands.SequenceEqual(outputCommands));
+        }
     }
 }
