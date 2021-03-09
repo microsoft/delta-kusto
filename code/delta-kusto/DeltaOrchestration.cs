@@ -69,6 +69,11 @@ namespace delta_kusto
                 parameterText,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
+            if(parameters==null)
+            {
+                throw new DeltaException($"File '{parameterFilePath}' doesn't contain valid parameters");
+            }
+
             parameters.Validate();
 
             return parameters;

@@ -13,6 +13,11 @@ namespace DeltaKustoLib.SchemaObjects
         {
             var schema = JsonSerializer.Deserialize<RootSchema>(json);
 
+            if (schema == null)
+            {
+                throw new DeltaException("JSON payload doesn't look like a JSON object");
+            }
+
             return schema;
         }
     }

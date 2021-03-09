@@ -26,6 +26,12 @@ namespace DeltaKustoIntegration.Parameterization
                 var overrideMap = JsonSerializer.Deserialize<SingleOverride[]>(
                     jsonOverrides,
                     new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                if (overrideMap == null)
+                {
+                    throw new DeltaException("JSON Payload must be an array of path-value objects");
+                }
+
                 var overrides = overrideMap
                     .Select(m => ValidateAndTransform(m));
 
@@ -135,20 +141,26 @@ namespace DeltaKustoIntegration.Parameterization
             {
                 if (value is JsonElement)
                 {
+                    var text = JsonSerializer.Serialize(value);
+
                     try
                     {
-                        var text = JsonSerializer.Serialize(value);
                         var newValue = JsonSerializer.Deserialize(
                             text,
                             typeof(T),
                             new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                        if (newValue == null)
+                        {
+                            throw new DeltaException("Can't convert");
+                        }
 
                         value = newValue;
                     }
                     catch (Exception ex)
                     {
                         throw new DeltaException(
-                            $"Can't convert value to expected type ({typeof(T).FullName})",
+                            $"Can't convert '{text}' to expected type {typeof(T).FullName}",
                             ex);
                     }
                 }
@@ -200,20 +212,26 @@ namespace DeltaKustoIntegration.Parameterization
                 {
                     if (value is JsonElement)
                     {
+                        var text = JsonSerializer.Serialize(value);
+
                         try
                         {
-                            var text = JsonSerializer.Serialize(value);
                             var newValue = JsonSerializer.Deserialize(
                                 text,
                                 propertyInfo.PropertyType,
                                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                            if (newValue == null)
+                            {
+                                throw new DeltaException("Can't convert");
+                            }
 
                             value = newValue;
                         }
                         catch (Exception ex)
                         {
                             throw new DeltaException(
-                                $"Can't convert value to expected type ({propertyInfo.PropertyType.FullName})",
+                                $"Can't convert '{text}' to expected type {propertyInfo.PropertyType.FullName}",
                                 ex);
                         }
                     }
