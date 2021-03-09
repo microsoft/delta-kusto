@@ -30,7 +30,7 @@ The green boxes (*current* and *target*) represent [sources](documentation/sourc
 * ADX Database
 * Kusto scripts (stand alone script file or a hierarchy of folders containing Kusto script files)
 
-Delta-Script computes the *delta* between the two sources.  The *delta* can be represented as a Kusto script containing the kusto commands required to run on the *current source* so it would be identical to *target source*.
+Delta-Script computes the *delta* between the two sources.  The *delta* can be represented as a Kusto script containing the kusto commands required to run on the *current source* so it would be identical to *target source*.   The delta script can be exported as a stand alone file or as a folder hierarchy of scripts for easier readability and git-diff.
 
 This *delta script* can either be applied directly to an ADX Database or saved as a Kusto script for human validation.  Human validation often are required, especially if `.drop` commands are issued (to prevent unwanted data lost).
 
@@ -38,7 +38,7 @@ Using different combinations of sources can enable different scenarios as we exp
 
 ### 1. ADX Database (current) to Kusto scripts (target)
 
-This is a typical CI / CD scenario:  take an ADX database and bring its content to the state of a target set of scripts.
+Typical CI / CD scenario:  take an ADX database and bring its content to the state of a target set of scripts.
 
 ![ADX to Script](documentation/adx-to-script.png)
 
@@ -52,15 +52,15 @@ Here we reverse the roles from the previous scenario.
 
 The *current* script could represent the last state of a production database and the *target* database could be the dev database.  The delta script will show the changes done in the dev environment.
 
-Basically, this scenario is useful to reverse engineer changes done *manually* to an environment.
+This scenario is useful to reverse engineer changes done *manually* to an environment.
 
 ### 3. Empty (current) to Kusto scripts (target)
 
-This is a special case of the previous scenario where the current script is empty or omitted (current source is optional).  
+This is a special case of the previous scenario where the current script is empty or omitted.  Indeed, the *current* source is optional (target is mandatory).  
 
 ![Empty to ADX](documentation/empty-to-adx.png)
 
-The delta script becomes a complete script to recreate the target database (delta scripts can be exported in a folder hierarchy for human readability and easy git-diff).
+The delta script becomes a complete script of the target database.
 
 ### 4. Kusto scripts (current) to Kusto scripts (target)
 
@@ -68,7 +68,7 @@ This is the *offline sync* scenario:  we take 2 set of scripts and generate the 
 
 ![Script to Script](documentation/script-to-script.png)
 
-For instance, the *current* scripts could represent the state of a database while the target scripts could represent the desired state for that database.  The delta script is computed *offline* in the sense that no *real* ADX database is consulted.
+For instance, the *current* scripts could represent the state of a database while the target scripts could represent the desired state for that database.  The delta script is computed *offline* in the sense that no *real* ADX database is involved.
 
 This scenario can be useful in highly controlled environment where the delta can be generated without access to the database.
 
