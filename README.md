@@ -25,40 +25,40 @@ The high-level view of delta-kusto is the following:
 
 ![Overview diagram](documentation/overview.png)
 
-The green boxes represent [sources](documentation/sources.md).  A source can be:
+The green boxes (*current* and *target*) represent [sources](documentation/sources.md).  A source can be:
 
 * ADX Database
-* Kusto scripts (either a Kusto script file or a hierarchy of folders containing Kusto scripts)
+* Kusto scripts (stand alone script file or a hierarchy of folders containing Kusto script files)
 
 Delta-Script computes the *delta* between the two sources.  The *delta* can be represented as a Kusto script containing the kusto commands required to run on the *current source* so it would be identical to *target source*.
 
-This *delta script* can either be applied directly to an ADX Database or saved as a Kusto script for human validation.  Human validation often are required, especially if `.drop` commands are issued (which could result in data lost).
+This *delta script* can either be applied directly to an ADX Database or saved as a Kusto script for human validation.  Human validation often are required, especially if `.drop` commands are issued (to prevent unwanted data lost).
 
-Using different combinations of sources can enable different scenarios.
+Using different combinations of sources can enable different scenarios as we explore in the next sub sections.
 
-### 1. ADX Database (current) to Kusto scripts (target)
+### 1. Empty (current) to Kusto scripts (target)
 
-This scenario is the most straightforward CI / CD scenario:  take an ADX database and bring its content to the state of a target set of scripts.
+The current source is actually optional (target is mandatory).  If it is ommited or if an empty script is provided, the delta script becomes a complete script to recreate the target database (delta scripts can be exported in a folder hierarchy for human readability and easy git-diff).
+
+### 2. ADX Database (current) to Kusto scripts (target)
+
+This is a typical CI / CD scenario:  take an ADX database and bring its content to the state of a target set of scripts.
 
 ![ADX to Script](documentation/adx-to-script.png)
 
 Delta Kusto can generate a delta script with the minimal command set to bring the database to the *state* of the target script.  For instance, if a table is missing in the database, the delta script will contain the corresponding `.create table` command.
 
-
-### 2. Kusto scripts (current) to ADX Database (target)
+### 3. Kusto scripts (current) to ADX Database (target)
 
 Here we reverse the roles from the previous scenario.
 
 ![Script to ADX](documentation/script-to-adx.png)
 
-Here are two use case for that scenario:
-
-1.  We start with an empty *current* script:  the delta script becomes a complete script to recreate the target database (delta scripts can be exported in a folder hierarchy for human readability and easy git-diff)
-1.  The *current* script could represent the last state of a production database and the *target* database could be the dev database.  In this case, the delta script will show the changes done in the dev environment.
+The *current* script could represent the last state of a production database and the *target* database could be the dev database.  The delta script will show the changes done in the dev environment.
 
 Basically, this scenario is useful to reverse engineer changes done *manually* to an environment.
 
-### 3. Kusto scripts (current) to Kusto scripts (target)
+### 4. Kusto scripts (current) to Kusto scripts (target)
 
 This is the *offline sync* scenario:  we take 2 set of scripts and generate the delta between them.
 
@@ -68,7 +68,7 @@ For instance, the *current* scripts could represent the state of a database whil
 
 This scenario can be useful in highly controlled environment where the delta can be generated without access to the database.
 
-### 3. ADX Database (current) to ADX Database (target)
+### 5. ADX Database (current) to ADX Database (target)
 
 This is the *Live Sync* scenario:  we want to bring an ADX database to the same state than another one.
 
