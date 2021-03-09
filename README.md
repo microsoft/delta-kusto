@@ -36,15 +36,7 @@ This *delta script* can either be applied directly to an ADX Database or saved a
 
 Using different combinations of sources can enable different scenarios as we explore in the next sub sections.
 
-### 1. Empty (current) to Kusto scripts (target)
-
-The current source is actually optional (target is mandatory).
-
-![Empty to ADX](documentation/empty-to-adx.png)
-
-If it is ommited or if an empty script is provided, the delta script becomes a complete script to recreate the target database (delta scripts can be exported in a folder hierarchy for human readability and easy git-diff).
-
-### 2. ADX Database (current) to Kusto scripts (target)
+### 1. ADX Database (current) to Kusto scripts (target)
 
 This is a typical CI / CD scenario:  take an ADX database and bring its content to the state of a target set of scripts.
 
@@ -52,7 +44,7 @@ This is a typical CI / CD scenario:  take an ADX database and bring its content 
 
 Delta Kusto can generate a delta script with the minimal command set to bring the database to the *state* of the target script.  For instance, if a table is missing in the database, the delta script will contain the corresponding `.create table` command.
 
-### 3. Kusto scripts (current) to ADX Database (target)
+### 2. Kusto scripts (current) to ADX Database (target)
 
 Here we reverse the roles from the previous scenario.
 
@@ -61,6 +53,14 @@ Here we reverse the roles from the previous scenario.
 The *current* script could represent the last state of a production database and the *target* database could be the dev database.  The delta script will show the changes done in the dev environment.
 
 Basically, this scenario is useful to reverse engineer changes done *manually* to an environment.
+
+### 3. Empty (current) to Kusto scripts (target)
+
+This is a special case of the previous scenario where the current script is empty or omitted (current source is optional).  
+
+![Empty to ADX](documentation/empty-to-adx.png)
+
+The delta script becomes a complete script to recreate the target database (delta scripts can be exported in a folder hierarchy for human readability and easy git-diff).
 
 ### 4. Kusto scripts (current) to Kusto scripts (target)
 
