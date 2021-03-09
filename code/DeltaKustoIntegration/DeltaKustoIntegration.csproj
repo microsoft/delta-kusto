@@ -17,4 +17,10 @@
     <ProjectReference Include="..\DeltaKustoLib\DeltaKustoLib.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="appsettings.tests.local.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
