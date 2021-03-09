@@ -3,7 +3,7 @@ name:  Run integration tests
 on:  workflow_dispatch
 
 env:
-  rg:  gram-parser
+  singleFilePath:  ~/bin/delta-single-file.exe
 
 jobs:
   build:
@@ -16,18 +16,28 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 5.0.x
+    # Copy local app-setting files
+    - name:  Copy app setting file
+      run: |
+        cp deployment/linux/appsettings.tests.local.json code/DeltaKustoFileIntegrationTest
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-restore
     - name: Install dependencies
       run: dotnet restore code
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-build
     - name: Build
       run: dotnet build code --configuration Release --no-restore
-    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
-    - name: Unit Tests
-      run: dotnet test code --configuration Release --no-restore --verbosity normal
     # See https://github.com/dotnet/designs/blob/main/accepted/2020/single-file/design.md#user-experience
     # & https://docs.microsoft.com/en-us/dotnet/core/deploying/single-file
+    # & https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-publish
     - name: Build single file executable
       run: |
-        dotnet publish code/delta-kusto -c release -r linux-x64 -p:PublishSingleFile=true \
-          -p:IncludeNativeLibrariesForSelfExtract=true -p:PublishTrimmed=true -p:PublishReadyToRun=true
+        dotnet publish code/delta-kusto -c release -r linux-x64 \
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
+          -p:PublishTrimmed=true -p:PublishReadyToRun=true \
+          -o $singleFilePath
+    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
+    - name: Unit Tests
+      run: dotnet test code/DeltaKustoUnitTest --configuration Release --no-build --verbosity normal
+    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
+    - name: File-based integration tests (out-of-proc)
+      run: dotnet test code/DeltaKustoFileIntegrationTest --configuration Release --no-build --verbosity normal

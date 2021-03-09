@@ -24,4 +24,4 @@ jobs:
       run: dotnet build code --configuration Release --no-restore
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
     - name: Unit Tests + File-base integration tests (in-proc)
-      run: dotnet test code --configuration Release --no-restore --verbosity normal
+      run: dotnet test code --configuration Release --no-build --verbosity normal
