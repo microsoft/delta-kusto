@@ -32,7 +32,8 @@ namespace DeltaKustoIntegration.Action
 
         private async Task ProcessDeltaCommandsAsync<CT>(
             IEnumerable<CommandBase> commands,
-            string folder) where CT : CommandBase
+            string folder)
+            where CT : CommandBase
         {
             var typedCommands = commands.OfType<CT>();
 
