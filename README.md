@@ -38,7 +38,11 @@ Using different combinations of sources can enable different scenarios as we exp
 
 ### 1. Empty (current) to Kusto scripts (target)
 
-The current source is actually optional (target is mandatory).  If it is ommited or if an empty script is provided, the delta script becomes a complete script to recreate the target database (delta scripts can be exported in a folder hierarchy for human readability and easy git-diff).
+The current source is actually optional (target is mandatory).
+
+![Empty to ADX](documentation/empty-to-adx.png)
+
+If it is ommited or if an empty script is provided, the delta script becomes a complete script to recreate the target database (delta scripts can be exported in a folder hierarchy for human readability and easy git-diff).
 
 ### 2. ADX Database (current) to Kusto scripts (target)
 
