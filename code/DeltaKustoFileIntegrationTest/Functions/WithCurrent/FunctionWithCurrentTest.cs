@@ -1,3 +1,4 @@
+using DeltaKustoLib.CommandModel;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -27,6 +28,21 @@ namespace DeltaKustoFileIntegrationTest.EmptyTarget
             var commands = await LoadScriptAsync(outputPath);
 
             Assert.Empty(commands);
+        }
+
+        [Fact]
+        public async Task TargetMore()
+        {
+            var parameters = await RunParametersAsync(
+                "Functions/WithCurrent/TargetMore/delta-params.json");
+            var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
+            var commands = await LoadScriptAsync(outputPath);
+
+            Assert.Single(commands);
+
+            var function = (CreateFunctionCommand)commands.First();
+
+            Assert.Equal("YourFunction", function.FunctionName);
         }
     }
 }

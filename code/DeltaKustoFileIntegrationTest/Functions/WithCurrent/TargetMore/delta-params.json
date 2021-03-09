@@ -1,0 +1,23 @@
+﻿{
+  "jobs": {
+    "main": {
+      "current": {
+        "scripts": [
+          {
+            "folderPath": "Functions/WithCurrent/TargetMore/Current"
+          }
+        ]
+      },
+      "target": {
+        "scripts": [
+          {
+            "folderPath": "Functions/WithCurrent/TargetMore/Target/"
+          }
+        ]
+      },
+      "action": {
+        "filePath": "outputs/functions/with-current/target-more.kql"
+      }
+    }
+  }
+}
