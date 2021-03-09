@@ -1,6 +1,6 @@
 name:  Continuous Build / Unit Test
 
-on:  push
+on:  workflow_dispatch
 
 env:
   rg:  gram-parser
@@ -25,3 +25,8 @@ jobs:
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
     - name: Unit Tests
       run: dotnet test code --configuration Release --no-restore --verbosity normal
+    # See https://github.com/dotnet/designs/blob/main/accepted/2020/single-file/design.md#user-experience
+    # & https://docs.microsoft.com/en-us/dotnet/core/deploying/single-file
+    - name: Build single file executable
+      run: dotnet publish code/delta-kusto -c release -r win-x64 -p:PublishSingleFile=true \
+          -p:IncludeNativeLibrariesForSelfExtract=true -p:PublishTrimmed=true -p:PublishReadyToRun=true
