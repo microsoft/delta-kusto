@@ -40,7 +40,9 @@ namespace DeltaKustoIntegration.Action
             string comment)
             where CT : CommandBase
         {
-            var typedCommands = commands.OfType<CT>();
+            var typedCommands = commands
+                .OfType<CT>()
+                .OrderBy(c => c.ObjectName);
 
             if (typedCommands.Any())
             {

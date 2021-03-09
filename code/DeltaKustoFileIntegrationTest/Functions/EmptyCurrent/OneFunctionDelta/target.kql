@@ -1,1 +1,2 @@
-﻿.create function MyFunction() { 42 }
+﻿//	Random comment
+.create function MyFunction() { 42 }

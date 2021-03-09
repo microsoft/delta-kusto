@@ -35,7 +35,9 @@ namespace DeltaKustoIntegration.Action
             string folder)
             where CT : CommandBase
         {
-            var typedCommands = commands.OfType<CT>();
+            var typedCommands = commands
+                .OfType<CT>()
+                .OrderBy(c => c.ObjectName);
 
             foreach (var command in typedCommands)
             {

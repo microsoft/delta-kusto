@@ -26,7 +26,7 @@ namespace DeltaKustoLib.CommandModel
             return commands;
         }
         public string ObjectName { get; }
-        
+
         public abstract string ObjectFriendlyTypeName { get; }
 
         public abstract bool Equals([AllowNull] CommandBase other);
@@ -100,7 +100,9 @@ namespace DeltaKustoLib.CommandModel
         {
             var lines = script
                 .Split('\n')
-                .Select(l => l.Trim());
+                .Select(l => l.Trim())
+                //  Remove comment lines
+                .Where(l => !l.StartsWith("//"));
             var currentCommandLines = new List<string>();
 
             foreach (var line in lines)
