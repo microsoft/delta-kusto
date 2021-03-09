@@ -1,0 +1,2 @@
+﻿.create function MyFunction() { 42 }
+

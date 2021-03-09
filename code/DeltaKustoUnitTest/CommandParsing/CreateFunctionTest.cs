@@ -16,7 +16,7 @@ namespace DeltaKustoUnitTest.CommandParsing
 
             var createFunctionCommand = (CreateFunctionCommand)command;
 
-            Assert.Equal("MyFunction", createFunctionCommand.FunctionName);
+            Assert.Equal("MyFunction", createFunctionCommand.ObjectName);
             Assert.Equal("42", createFunctionCommand.Body);
         }
 
@@ -29,7 +29,7 @@ namespace DeltaKustoUnitTest.CommandParsing
 
             var createFunctionCommand = (CreateFunctionCommand)command;
 
-            Assert.Equal("YourFunction", createFunctionCommand.FunctionName);
+            Assert.Equal("YourFunction", createFunctionCommand.ObjectName);
             Assert.Equal("72", createFunctionCommand.Body);
         }
 
@@ -45,7 +45,7 @@ namespace DeltaKustoUnitTest.CommandParsing
 
             var createFunctionCommand = (CreateFunctionCommand)command;
 
-            Assert.Equal(name, createFunctionCommand.FunctionName);
+            Assert.Equal(name, createFunctionCommand.ObjectName);
             Assert.Equal(body, createFunctionCommand.Body);
         }
 
@@ -64,7 +64,7 @@ namespace DeltaKustoUnitTest.CommandParsing
 
             var createFunctionCommand = (CreateFunctionCommand)command;
 
-            Assert.Equal(name, createFunctionCommand.FunctionName);
+            Assert.Equal(name, createFunctionCommand.ObjectName);
             Assert.Equal(body, createFunctionCommand.Body);
             Assert.Equal(folder, createFunctionCommand.Folder);
             Assert.Equal(docString, createFunctionCommand.DocString);
@@ -95,7 +95,7 @@ namespace DeltaKustoUnitTest.CommandParsing
 
             var createFunctionCommand = (CreateFunctionCommand)command;
 
-            Assert.Equal(name, createFunctionCommand.FunctionName);
+            Assert.Equal(name, createFunctionCommand.ObjectName);
             Assert.True(createFunctionCommand
                 .Parameters
                 .Zip(parameters, (p1, p2) => p1.Equals(p2))
@@ -144,7 +144,7 @@ namespace DeltaKustoUnitTest.CommandParsing
 
             var createFunctionCommand = (CreateFunctionCommand)command;
 
-            Assert.Equal(name, createFunctionCommand.FunctionName);
+            Assert.Equal(name, createFunctionCommand.ObjectName);
             Assert.True(createFunctionCommand
                 .Parameters
                 .Zip(parameters, (p1, p2) => new { p1, p2, predicate = p1.Equals(p2) })
@@ -186,7 +186,7 @@ namespace DeltaKustoUnitTest.CommandParsing
 
             var createFunctionCommand = (CreateFunctionCommand)command;
 
-            Assert.Equal(name, createFunctionCommand.FunctionName);
+            Assert.Equal(name, createFunctionCommand.ObjectName);
             Assert.Single(createFunctionCommand.Parameters);
             Assert.Equal("T", createFunctionCommand.Parameters.First().ParameterName);
             Assert.NotNull(createFunctionCommand.Parameters.First().ComplexType);
@@ -209,7 +209,7 @@ namespace DeltaKustoUnitTest.CommandParsing
 
             var createFunctionCommand = (CreateFunctionCommand)command;
 
-            Assert.Equal(name, createFunctionCommand.FunctionName);
+            Assert.Equal(name, createFunctionCommand.ObjectName);
             Assert.Equal(3, createFunctionCommand.Parameters.Count);
 
             var param1 = createFunctionCommand.Parameters[0];

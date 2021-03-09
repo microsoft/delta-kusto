@@ -11,6 +11,11 @@ namespace DeltaKustoLib.CommandModel
 {
     public abstract class CommandBase : IEquatable<CommandBase>
     {
+        protected CommandBase(string objectName)
+        {
+            ObjectName = objectName;
+        }
+
         public static IImmutableList<CommandBase> FromScript(string script)
         {
             var scripts = SplitCommandScripts(script);
@@ -20,6 +25,9 @@ namespace DeltaKustoLib.CommandModel
 
             return commands;
         }
+        public string ObjectName { get; }
+        
+        public abstract string ObjectFriendlyTypeName { get; }
 
         public abstract bool Equals([AllowNull] CommandBase other);
 
@@ -67,6 +75,8 @@ namespace DeltaKustoLib.CommandModel
                     case "CreateFunction":
                     case "CreateOrAlterFunction":
                         return CreateFunctionCommand.FromCode(customCommand);
+                    case "DropFunction":
+                        return DropFunctionCommand.FromCode(customCommand);
 
                     default:
                         throw new DeltaException(

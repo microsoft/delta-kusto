@@ -27,19 +27,15 @@ namespace DeltaKustoLib.KustoModel
         public static DatabaseModel FromCommands(
             IEnumerable<CommandBase> commands)
         {
-            var commandGroups = commands
-                .GroupBy(c => c.GetType())
-                .ToImmutableDictionary(g => g.Key);
+            ValidateCommandTypes(commands.Select(c => (c.GetType(), c.ObjectFriendlyTypeName)).Distinct());
 
-            ValidateCommandTypes(commandGroups.Select(c => c.Key));
+            var functions = commands
+                .OfType<CreateFunctionCommand>()
+                .ToImmutableArray();
 
-            var functions = commandGroups.ContainsKey(typeof(CreateFunctionCommand))
-                ? commandGroups[typeof(CreateFunctionCommand)].Cast<CreateFunctionCommand>()
-                : new CreateFunctionCommand[0];
+            ValidateDuplicates("Functions", functions);
 
-            ValidateDuplicates("Functions", functions, f => f.FunctionName);
-
-            return new DatabaseModel(functions.ToImmutableArray());
+            return new DatabaseModel(functions);
         }
 
         public static DatabaseModel FromDatabaseSchema(DatabaseSchema databaseSchema)
@@ -85,27 +81,28 @@ namespace DeltaKustoLib.KustoModel
                 : new TypedParameterModel(input.Name, input.CslType);
         }
 
-        private static void ValidateCommandTypes(IEnumerable<Type> commandTypes)
+        private static void ValidateCommandTypes(IEnumerable<(Type type, string friendlyName)> commandTypes)
         {
             var extraCommandTypes = commandTypes
-                .Except(INPUT_COMMANDS)
-                .ToArray();
+                .Select(p => p.type)
+                .Except(INPUT_COMMANDS);
 
             if (extraCommandTypes.Any())
             {
+                var typeToNameMap = commandTypes
+                    .ToImmutableDictionary(p => p.type, p => p.friendlyName);
+
                 throw new DeltaException(
                     "Unsupported command types:  "
-                    + $"{string.Join(", ", extraCommandTypes.Select(t => t.Name))}");
+                    + $"{string.Join(", ", extraCommandTypes.Select(t => typeToNameMap[t]))}");
             }
         }
 
-        private static void ValidateDuplicates<T>(
-            string objectName,
-            IEnumerable<T> functions,
-            Func<T, string> nameFinder)
+        private static void ValidateDuplicates<T>(string objectName, IEnumerable<T> dbObjects)
+            where T : CommandBase
         {
-            var functionDuplicates = functions
-                .GroupBy(f => nameFinder(f))
+            var functionDuplicates = dbObjects
+                .GroupBy(o => o.ObjectName)
                 .Where(g => g.Count() > 1)
                 .Select(g => new { Name = g.Key, Objects = g.ToArray(), Count = g.Count() });
 

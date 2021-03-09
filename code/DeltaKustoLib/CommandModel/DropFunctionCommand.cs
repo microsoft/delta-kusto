@@ -8,34 +8,35 @@ using System.Text;
 
 namespace DeltaKustoLib.CommandModel
 {
-    internal class DropFunctionCommand : CommandBase
+    public class DropFunctionCommand : CommandBase
     {
-        public string FunctionName { get; }
+        public override string ObjectFriendlyTypeName => ".drop function";
 
         public DropFunctionCommand(string functionName)
+            : base(functionName)
         {
-            FunctionName = functionName;
         }
 
-        internal static CommandBase FromCode(
-            string databaseName,
-            CustomCommand customCommand)
+        internal static CommandBase FromCode(CustomCommand customCommand)
         {
-            throw new NotSupportedException(".drop function not supported in this context");
+            var customNode = customCommand.GetUniqueImmediateDescendant<CustomNode>("Custom node");
+            var nameReference = customNode.GetUniqueImmediateDescendant<NameReference>("Name reference");
+
+            return new DropFunctionCommand(nameReference.Name.SimpleName);
         }
 
         public override bool Equals(CommandBase? other)
         {
             var otherFunction = other as CreateFunctionCommand;
             var areEqualed = otherFunction != null
-                && otherFunction.FunctionName == FunctionName;
+                && otherFunction.ObjectName == ObjectName;
 
             return areEqualed;
         }
 
         public override string ToScript()
         {
-            return $".drop function ['{FunctionName}']";
+            return $".drop function ['{ObjectName}']";
         }
     }
 }

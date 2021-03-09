@@ -89,7 +89,7 @@ namespace delta_kusto
             }
             else if (action.FolderPath != null)
             {
-                throw new NotImplementedException();
+                return new MultiFilesActionProvider(_fileGateway, action.FolderPath);
             }
             else if (action.UseTargetCluster == true)
             {

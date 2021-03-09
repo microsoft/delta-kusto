@@ -71,7 +71,7 @@ namespace DeltaKustoUnitTest.Delta
 
             Assert.Single(delta);
             Assert.IsType<CreateFunctionCommand>(delta[0]);
-            Assert.Equal("MyOtherFunction", ((CreateFunctionCommand)delta[0]).FunctionName);
+            Assert.Equal("MyOtherFunction", ((CreateFunctionCommand)delta[0]).ObjectName);
         }
 
         [Fact]
