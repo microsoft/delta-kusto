@@ -45,12 +45,12 @@ jobs:
     - name: File-based integration tests (out-of-proc)
       run: dotnet test code/DeltaKustoFileIntegrationTest --configuration Release --no-build --verbosity normal
 
-  windows:
+  # windows:
 
-    runs-on: windows-latest
+  #   runs-on: windows-latest
 
-    env:
-      singleFilePath:  bin/delta-single-file.exe
-      os:  windows
-      dotnetOs:  win-x64
+  #   env:
+  #     singleFilePath:  bin/delta-single-file.exe
+  #     os:  windows
+  #     dotnetOs:  win-x64
 
