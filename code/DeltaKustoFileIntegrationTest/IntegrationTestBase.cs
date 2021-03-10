@@ -19,12 +19,7 @@ namespace DeltaKustoFileIntegrationTest
 
         protected IntegrationTestBase()
         {
-            var builder = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddJsonFile("appsettings.local.json", optional: true, reloadOnChange: true);
-            var configuration = builder.Build();
-            var section = configuration.GetSection("exec-path");
-            var path = section.Value;
+            var path = Environment.GetEnvironmentVariable("deltaKustoSingleExecPath");
 
             _executablePath = string.IsNullOrWhiteSpace(path)
                 ? null

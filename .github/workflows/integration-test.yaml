@@ -19,10 +19,10 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 5.0.x
-    # Copy local app-setting files
-    - name:  Copy app setting file
-      run: |
-        cp deployment/appsettings.$os.json code/DeltaKustoFileIntegrationTest/appsettings.local.json
+    # # Copy local app-setting files
+    # - name:  Copy app setting file
+    #   run: |
+    #     cp deployment/appsettings.$os.json code/DeltaKustoFileIntegrationTest/appsettings.local.json
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-restore
     - name: Install dependencies
       run: dotnet restore code
@@ -41,6 +41,9 @@ jobs:
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
           -p:PublishTrimmed=true -p:PublishReadyToRun=true \
           -o $singleFilePath
+    # Set environment variable
+    - name: Set Exec path
+      run: deltaKustoSingleExecPath=$singleFilePath
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
     - name: File-based integration tests (out-of-proc)
       run: dotnet test code/DeltaKustoFileIntegrationTest --configuration Release --no-build --verbosity normal

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
@@ -33,6 +33,11 @@
     <ProjectReference Include="..\DeltaKustoFileIntegrationTest\DeltaKustoFileIntegrationTest.csproj" />
     <ProjectReference Include="..\DeltaKustoIntegration\DeltaKustoIntegration.csproj" />
     <ProjectReference Include="..\DeltaKustoLib\DeltaKustoLib.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Functions\" />
+    <Folder Include="Properties\" />
   </ItemGroup>
 
 </Project>
