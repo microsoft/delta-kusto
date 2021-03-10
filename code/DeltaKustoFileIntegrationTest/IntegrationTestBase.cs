@@ -1,7 +1,6 @@
 ﻿using delta_kusto;
 using DeltaKustoIntegration.Parameterization;
 using DeltaKustoLib.CommandModel;
-using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
