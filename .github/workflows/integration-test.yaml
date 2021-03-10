@@ -22,7 +22,7 @@ jobs:
     # Copy local app-setting files
     - name:  Copy app setting file
       run: |
-        cp deployment/appsettings.${{ os }}.json code/DeltaKustoFileIntegrationTest/appsettings.local.json
+        cp deployment/appsettings.$os.json code/DeltaKustoFileIntegrationTest/appsettings.local.json
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-restore
     - name: Install dependencies
       run: dotnet restore code
@@ -37,7 +37,7 @@ jobs:
     # & https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-publish
     - name: Build single file executable
       run: |
-        dotnet publish code/delta-kusto -c release -r ${{ dotnetOs }} \
+        dotnet publish code/delta-kusto -c release -r $dotnetOs \
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
           -p:PublishTrimmed=true -p:PublishReadyToRun=true \
           -o $singleFilePath
@@ -63,7 +63,7 @@ jobs:
     # Copy local app-setting files
     - name:  Copy app setting file
       run: |
-        cp deployment/appsettings.${{ os }}.json code/DeltaKustoFileIntegrationTest/appsettings.local.json
+        cp deployment/appsettings.$os.json code/DeltaKustoFileIntegrationTest/appsettings.local.json
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-restore
     - name: Install dependencies
       run: dotnet restore code
@@ -78,7 +78,7 @@ jobs:
     # & https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-publish
     - name: Build single file executable
       run: |
-        dotnet publish code/delta-kusto -c release -r ${{ dotnetOs }} \
+        dotnet publish code/delta-kusto -c release -r $dotnetOs \
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
           -p:PublishTrimmed=true -p:PublishReadyToRun=true \
           -o $singleFilePath
