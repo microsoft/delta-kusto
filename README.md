@@ -1,3 +1,5 @@
+[![Continuous Build / Unit Test](https://github.com/microsoft/delta-kusto/actions/workflows/continuous-build.yaml/badge.svg)](https://github.com/microsoft/delta-kusto/actions/workflows/continuous-build.yaml)
+
 ![delta-kusto](delta-kusto.png)
 
 # Delta-Kusto
