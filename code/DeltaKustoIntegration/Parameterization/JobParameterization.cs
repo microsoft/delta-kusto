@@ -28,7 +28,7 @@ namespace DeltaKustoIntegration.Parameterization
             if (Action != null)
             {
                 Action.Validate();
-                if (Action.UseTargetCluster && Target?.Cluster == null)
+                if (Action.UseTargetCluster && Target?.Database == null)
                 {
                     throw new DeltaException(
                         "'action.useTargetCluster' can only be used "

@@ -1,0 +1,29 @@
+﻿{
+  "tokenProvider": {
+    "login": {
+      "tenantId": "to-be-overriden",
+      "clientId": "to-be-overriden",
+      "secret": "to-be-overriden"
+    }
+  },
+  "jobs": {
+    "main": {
+      "current": {
+        "database": {
+          "clusterUri": "to-be-overriden",
+          "database": "to-be-overriden"
+        }
+      },
+      "target": {
+        "scripts": [
+          {
+            "filePath": "Functions/EmptyCurrent/EmptyDelta/target.kql"
+          }
+        ]
+      },
+      "action": {
+        "filePath": "outputs/functions/adx-to-file/from-empty-db/empty-delta.kql"
+      }
+    }
+  }
+}

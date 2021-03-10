@@ -36,8 +36,21 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Functions\" />
+    <Folder Include="Functions\FileToAdx\" />
+    <Folder Include="Functions\AdxToAdx\" />
     <Folder Include="Properties\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Functions\AdxToFile\FromEmptyDb\delta-params.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Functions\AdxToFile\FromEmptyDb\target.kql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Properties\launchSettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

@@ -3,7 +3,7 @@ using System;
 
 namespace DeltaKustoIntegration.Parameterization
 {
-    public class ClusterSourceParameterization
+    public class DatabaseSourceParameterization
     {
         public string? ClusterUri { get; set; } = null;
 
@@ -13,7 +13,7 @@ namespace DeltaKustoIntegration.Parameterization
         {
             if (ClusterUri == null)
             {
-                throw new DeltaException("'clusterUri' must be populated in a cluster source");
+                throw new DeltaException("'clusterUri' must be populated in a database source");
             }
             if (!Uri.TryCreate(ClusterUri!, UriKind.Absolute, out _))
             {
@@ -21,7 +21,7 @@ namespace DeltaKustoIntegration.Parameterization
             }
             if (Database == null)
             {
-                throw new DeltaException("'database' must be populated in a cluster source");
+                throw new DeltaException("'database' must be populated in a database source");
             }
             if (string.IsNullOrWhiteSpace(Database))
             {

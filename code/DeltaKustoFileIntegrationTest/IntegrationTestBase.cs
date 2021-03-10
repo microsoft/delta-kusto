@@ -6,7 +6,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -14,7 +16,64 @@ namespace DeltaKustoFileIntegrationTest
 {
     public abstract class IntegrationTestBase
     {
+        #region Inner Types
+        private class MainSettings
+        {
+            public IDictionary<string, ProjectSetting>? Profiles { get; set; }
+
+            public IDictionary<string, string> GetEnvironmentVariables()
+            {
+                if (Profiles == null)
+                {
+                    throw new InvalidOperationException("'profiles' element isn't present in 'launchSettings.json'");
+                }
+                if (Profiles.Count == 0)
+                {
+                    throw new InvalidOperationException(
+                        "No profile is configured within 'profiles' element isn't present "
+                        + "in 'launchSettings.json'");
+                }
+                var profile = Profiles.First().Value;
+
+                if (profile.EnvironmentVariables == null)
+                {
+                    throw new InvalidOperationException("'environmentVariables' element isn't present in 'launchSettings.json'");
+                }
+
+                return profile.EnvironmentVariables;
+            }
+        }
+
+        private class ProjectSetting
+        {
+            public IDictionary<string, string>? EnvironmentVariables { get; set; }
+        }
+        #endregion
+
         private readonly string? _executablePath;
+
+        static IntegrationTestBase()
+        {
+            var settingContent = File.ReadAllText("Properties\\launchSettings.json");
+            var mainSetting = JsonSerializer.Deserialize<MainSettings>(
+                settingContent,
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+
+            if (mainSetting == null)
+            {
+                throw new InvalidOperationException("Can't read 'launchSettings.json'");
+            }
+
+            var variables = mainSetting.GetEnvironmentVariables();
+
+            foreach (var variable in variables)
+            {
+                Environment.SetEnvironmentVariable(variable.Key, variable.Value);
+            }
+        }
 
         protected IntegrationTestBase()
         {
@@ -25,7 +84,7 @@ namespace DeltaKustoFileIntegrationTest
                 : path;
         }
 
-        protected async Task<int> RunMainAsync(params string[] args)
+        protected async virtual Task<int> RunMainAsync(params string[] args)
         {
             if (_executablePath == null)
             {
@@ -55,14 +114,14 @@ namespace DeltaKustoFileIntegrationTest
             }
         }
 
-        protected async Task RunSuccessfulMainAsync(params string[] args)
+        protected async virtual Task RunSuccessfulMainAsync(params string[] args)
         {
             var returnedValue = await RunMainAsync(args);
 
             Assert.Equal(0, returnedValue);
         }
 
-        protected async Task<MainParameterization> RunParametersAsync(string parameterFilePath)
+        protected async virtual Task<MainParameterization> RunParametersAsync(string parameterFilePath)
         {
             var returnedValue = await RunMainAsync("-p", parameterFilePath);
 
@@ -73,7 +132,7 @@ namespace DeltaKustoFileIntegrationTest
             return parameters;
         }
 
-        protected async Task<IImmutableList<CommandBase>> LoadScriptAsync(string scriptPath)
+        protected async virtual Task<IImmutableList<CommandBase>> LoadScriptAsync(string scriptPath)
         {
             var script = await File.ReadAllTextAsync(scriptPath);
             var commands = CommandBase.FromScript(script);

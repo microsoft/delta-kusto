@@ -48,7 +48,7 @@ namespace delta_kusto
                 {
                     var currentDbProvider = CreateDatabaseProvider(job.Current, tokenProvider);
                     var targetDbProvider = CreateDatabaseProvider(job.Target, tokenProvider);
-                    var actionProvider = CreateActionProvider(job.Action, tokenProvider, job.Target?.Cluster);
+                    var actionProvider = CreateActionProvider(job.Action, tokenProvider, job.Target?.Database);
                     var currentDb = await currentDbProvider.RetrieveDatabaseAsync();
                     var targetDb = await targetDbProvider.RetrieveDatabaseAsync();
                     var deltaCommands = currentDb.ComputeDelta(targetDb);
@@ -64,25 +64,34 @@ namespace delta_kusto
 
         internal async Task<MainParameterization> LoadParameterizationAsync(string parameterFilePath)
         {
-            var parameterText = await _fileGateway.GetFileContentAsync(parameterFilePath);
-            var parameters = JsonSerializer.Deserialize<MainParameterization>(
-                parameterText,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-            if(parameters==null)
+            try
             {
-                throw new DeltaException($"File '{parameterFilePath}' doesn't contain valid parameters");
+                var parameterText = await _fileGateway.GetFileContentAsync(parameterFilePath);
+                var parameters = JsonSerializer.Deserialize<MainParameterization>(
+                    parameterText,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                if (parameters == null)
+                {
+                    throw new DeltaException($"File '{parameterFilePath}' doesn't contain valid parameters");
+                }
+
+                parameters.Validate();
+
+                return parameters;
             }
-
-            parameters.Validate();
-
-            return parameters;
+            catch (JsonException ex)
+            {
+                throw new DeltaException(
+                    $"Issue reading the parameter file '{parameterFilePath}'",
+                    ex);
+            }
         }
 
         private IActionProvider CreateActionProvider(
             ActionParameterization? action,
             ITokenProvider? tokenProvider,
-            ClusterSourceParameterization? cluster)
+            DatabaseSourceParameterization? cluster)
         {
             if (action == null)
             {
@@ -116,7 +125,7 @@ namespace delta_kusto
             }
             else
             {
-                if (source.Cluster != null)
+                if (source.Database != null)
                 {
                     if (tokenProvider == null)
                     {
@@ -124,8 +133,8 @@ namespace delta_kusto
                     }
 
                     var kustoManagementGateway = _kustoManagementGatewayFactory.CreateGateway(
-                        source.Cluster.ClusterUri!,
-                        source.Cluster.Database!,
+                        source.Database.ClusterUri!,
+                        source.Database.Database!,
                         tokenProvider);
 
                     return new KustoDatabaseProvider(kustoManagementGateway);

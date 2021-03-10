@@ -38,7 +38,7 @@ namespace DeltaKustoIntegration.Parameterization
 
             var clusterJobs = Jobs
                 .Values
-                .Where(j => (j.Current?.Cluster != null) || (j.Target?.Cluster != null));
+                .Where(j => (j.Current?.Database != null) || (j.Target?.Database != null));
 
             if (clusterJobs.Any() && TokenProvider == null)
             {
