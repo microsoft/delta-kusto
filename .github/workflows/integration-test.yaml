@@ -63,7 +63,7 @@ jobs:
     # Copy local app-setting files
     - name:  Copy app setting file
       run: |
-        cp deployment/appsettings.$os.json code/DeltaKustoFileIntegrationTest/appsettings.local.json
+        cp deployment/appsettings.$(os).json code/DeltaKustoFileIntegrationTest/appsettings.local.json
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-restore
     - name: Install dependencies
       run: dotnet restore code
