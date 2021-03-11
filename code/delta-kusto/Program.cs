@@ -94,7 +94,7 @@ namespace delta_kusto
             //  Dependency injection
             var orchestration = new DeltaOrchestration();
 
-            await orchestration.ComputeDeltaAsync(options.ParameterFilePath);
+            await orchestration.ComputeDeltaAsync(options.ParameterFilePath, options.Overrides);
         }
 
         private static void HandleParseError(

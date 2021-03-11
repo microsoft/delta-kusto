@@ -34,9 +34,9 @@ namespace delta_kusto
             _tokenProviderFactory = tokenProviderFactory ?? new TokenProviderFactory();
         }
 
-        public async Task ComputeDeltaAsync(string parameterFilePath)
+        public async Task ComputeDeltaAsync(string parameterFilePath, string jsonOverrides)
         {
-            var parameters = await LoadParameterizationAsync(parameterFilePath);
+            var parameters = await LoadParameterizationAsync(parameterFilePath, jsonOverrides);
             var tokenProvider = _tokenProviderFactory.CreateProvider(parameters.TokenProvider);
             var orderedJobs = parameters.Jobs.OrderBy(p => p.Value.Priority);
 
@@ -62,7 +62,9 @@ namespace delta_kusto
             }
         }
 
-        internal async Task<MainParameterization> LoadParameterizationAsync(string parameterFilePath)
+        internal async Task<MainParameterization> LoadParameterizationAsync(
+            string parameterFilePath,
+            string jsonOverrides)
         {
             try
             {
@@ -75,6 +77,8 @@ namespace delta_kusto
                 {
                     throw new DeltaException($"File '{parameterFilePath}' doesn't contain valid parameters");
                 }
+
+                ParameterOverrideHelper.InplaceOverride(parameters, jsonOverrides);
 
                 parameters.Validate();
 

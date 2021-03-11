@@ -121,13 +121,25 @@ namespace DeltaKustoFileIntegrationTest
             Assert.Equal(0, returnedValue);
         }
 
-        protected async virtual Task<MainParameterization> RunParametersAsync(string parameterFilePath)
+        protected async virtual Task<MainParameterization> RunParametersAsync(
+            string parameterFilePath,
+            (string path, object value)[]? overrides = null)
         {
-            var returnedValue = await RunMainAsync("-p", parameterFilePath);
+            var jsonOverrides = overrides != null && overrides.Any()
+                ? JsonSerializer.Serialize(overrides.Select(o => new { o.path, o.value }))
+                : "";
+            var returnedValue = await RunMainAsync(
+                "-p",
+                parameterFilePath,
+                "-o",
+                jsonOverrides);
 
             Assert.Equal(0, returnedValue);
 
-            var parameters = await new DeltaOrchestration().LoadParameterizationAsync(parameterFilePath);
+            var orchestration = new DeltaOrchestration();
+            var parameters = await orchestration.LoadParameterizationAsync(
+                parameterFilePath,
+                jsonOverrides);
 
             return parameters;
         }

@@ -5,8 +5,13 @@ using Xunit;
 
 namespace DeltaKustoAdxIntegrationTest
 {
-    public class FunctionsAdxToAdxTest : AdxIntegrationTestBase
+    public class FunctionsAdxToFileTest : AdxIntegrationTestBase
     {
+        public FunctionsAdxToFileTest()
+            : base(true, false)
+        {
+        }
+
         [Fact]
         public async Task FromEmptyDb()
         {

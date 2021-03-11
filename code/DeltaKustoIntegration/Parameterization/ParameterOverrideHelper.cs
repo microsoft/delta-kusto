@@ -19,35 +19,39 @@ namespace DeltaKustoIntegration.Parameterization
             public object? Value { get; set; }
         }
         #endregion
+
         public static void InplaceOverride(object target, string jsonOverrides)
         {
-            try
+            if (!string.IsNullOrWhiteSpace(jsonOverrides))
             {
-                var overrideMap = JsonSerializer.Deserialize<SingleOverride[]>(
-                    jsonOverrides,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-                if (overrideMap == null)
+                try
                 {
-                    throw new DeltaException("JSON Payload must be an array of path-value objects");
+                    var overrideMap = JsonSerializer.Deserialize<SingleOverride[]>(
+                        jsonOverrides,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    if (overrideMap == null)
+                    {
+                        throw new DeltaException("JSON Payload must be an array of path-value objects");
+                    }
+
+                    var overrides = overrideMap
+                        .Select(m => ValidateAndTransform(m));
+
+                    InplaceOverride(target, overrides);
                 }
-
-                var overrides = overrideMap
-                    .Select(m => ValidateAndTransform(m));
-
-                InplaceOverride(target, overrides);
-            }
-            catch (DeltaException ex)
-            {
-                throw new DeltaException(
-                    $"Issue with the following JSON parameter override:  '{jsonOverrides}'",
-                    ex);
-            }
-            catch (JsonException ex)
-            {
-                throw new DeltaException(
-                    $"The following string doesn't represent a valid JSON object:  '{jsonOverrides}'",
-                    ex);
+                catch (DeltaException ex)
+                {
+                    throw new DeltaException(
+                        $"Issue with the following JSON parameter override:  '{jsonOverrides}'",
+                        ex);
+                }
+                catch (JsonException ex)
+                {
+                    throw new DeltaException(
+                        $"The following string doesn't represent a valid JSON object:  '{jsonOverrides}'",
+                        ex);
+                }
             }
         }
 
