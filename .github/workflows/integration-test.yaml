@@ -41,26 +41,24 @@ jobs:
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
           -p:PublishTrimmed=true -p:PublishReadyToRun=true \
           -o $singleFilePath
+    # Set environment variables
+    - name: Set environment variables
+      run: |
+        # Exec path
+        echo "deltaKustoSingleExecPath=$singleFilePath" >> $GITHUB_ENV
+        # ADX integration
+        echo "deltaKustoClusterUri=${{ secrets.CLUSTER_URI }}" >> $GITHUB_ENV
+        echo "deltaKustoCurrentDb=${{ secrets.CURRENT_DB }}" >> $GITHUB_ENV
+        echo "deltaKustoTargetDb=${{ secrets.TARGET_DB }}" >> $GITHUB_ENV
+        echo "deltaKustoTenantId=${{ secrets.TENANT_ID }}" >> $GITHUB_ENV
+        echo "deltaKustoSpId=${{ secrets.SP_ID }}" >> $GITHUB_ENV
+        echo "deltaKustoSpSecret=${{ secrets.SP_SECRET }}" >> $GITHUB_ENV
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
     - name: File-based integration tests (out-of-proc)
-      run: |
-        # Set environment variable exec path
-        deltaKustoSingleExecPath=$singleFilePath
-        # Run tests
-        dotnet test code/DeltaKustoFileIntegrationTest --configuration Release --no-build --verbosity normal
+      run: dotnet test code/DeltaKustoFileIntegrationTest --configuration Release --no-build --verbosity normal
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
     - name: ADX-based integration tests (out-of-proc)
-      run: |
-        # Set environment variables
-        deltaKustoSingleExecPath=$singleFilePath
-        deltaKustoClusterUri=${{ secrets.CLUSTER_URI }}
-        deltaKustoCurrentDb=${{ secrets.CURRENT_DB }}
-        deltaKustoTargetDb=${{ secrets.TARGET_DB }}
-        deltaKustoTenantId=${{ secrets.TENANT_ID }}
-        deltaKustoSpId=${{ secrets.SP_ID }}
-        deltaKustoSpSecret=${{ secrets.SP_SECRET }}
-        # Run tests
-        dotnet test code/DeltaKustoAdxIntegrationTest --configuration Release --no-build --verbosity normal
+      run: dotnet test code/DeltaKustoAdxIntegrationTest --configuration Release --no-build --verbosity normal
 
   # windows:
 

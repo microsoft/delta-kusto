@@ -31,7 +31,7 @@ namespace DeltaKustoAdxIntegrationTest
             _overrideCurrentDb = overrideCurrentDb;
             _overrideTargetDb = overrideTargetDb;
 
-            var q = Environment.GetEnvironmentVariables(EnvironmentVariableTarget.User);
+            var q = Environment.GetEnvironmentVariables();
 
             foreach (var k in q!.Keys.Cast<string>().Where(k => k.StartsWith("deltaKusto")))
             {
