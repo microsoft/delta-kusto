@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DeltaKustoIntegration.TokenProvider;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
