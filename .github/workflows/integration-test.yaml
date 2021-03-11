@@ -40,16 +40,14 @@ jobs:
         dotnet publish code/delta-kusto -c release -r $dotnetOs \
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
           -p:PublishTrimmed=true -p:PublishReadyToRun=true \
-          -o $singleFileExec
-    - name: ls -l
-      run:  ls -l
-    - name: ls -l delta-single-file.exe/
-      run:  ls -l delta-single-file.exe/
+          -o bin
+    - name: ls -l bin
+      run:  ls -l bin
     # Set environment variables
     - name: Set environment variables
       run: |
         # Exec path
-        echo "deltaKustoSingleExecPath=$(pwd)/$singleFileExec" >> $GITHUB_ENV
+        echo "deltaKustoSingleExecPath=$(pwd)/bin/$singleFileExec" >> $GITHUB_ENV
         # ADX integration
         echo "deltaKustoClusterUri=${{ secrets.CLUSTER_URI }}" >> $GITHUB_ENV
         echo "deltaKustoCurrentDb=${{ secrets.CURRENT_DB }}" >> $GITHUB_ENV
