@@ -58,7 +58,7 @@ jobs:
       run: dotnet test code/DeltaKustoFileIntegrationTest --configuration Release --no-build --verbosity normal
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
     - name: ADX-based integration tests (out-of-proc)
-      run: dotnet test code/DeltaKustoADXIntegrationTest --configuration Release --no-build --verbosity normal
+      run: dotnet test code/DeltaKustoAdxIntegrationTest --configuration Release --no-build --verbosity normal
 
   # windows:
 
