@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
-      singleFilePath:  ~/bin/delta-single-file.exe
+      singleFilePath:  /home/bin/delta-single-file.exe
       os:  linux
       dotnetOs:  linux-x64
 
