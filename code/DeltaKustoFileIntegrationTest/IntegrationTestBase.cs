@@ -54,24 +54,29 @@ namespace DeltaKustoFileIntegrationTest
 
         static IntegrationTestBase()
         {
-            var settingContent = File.ReadAllText("Properties\\launchSettings.json");
-            var mainSetting = JsonSerializer.Deserialize<MainSettings>(
-                settingContent,
-                new JsonSerializerOptions
+            const string PATH = "Properties\\launchSettings.json";
+
+            if (File.Exists(PATH))
+            {
+                var settingContent = File.ReadAllText(PATH);
+                var mainSetting = JsonSerializer.Deserialize<MainSettings>(
+                    settingContent,
+                    new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+
+                if (mainSetting == null)
                 {
-                    PropertyNameCaseInsensitive = true
-                });
+                    throw new InvalidOperationException("Can't read 'launchSettings.json'");
+                }
 
-            if (mainSetting == null)
-            {
-                throw new InvalidOperationException("Can't read 'launchSettings.json'");
-            }
+                var variables = mainSetting.GetEnvironmentVariables();
 
-            var variables = mainSetting.GetEnvironmentVariables();
-
-            foreach (var variable in variables)
-            {
-                Environment.SetEnvironmentVariable(variable.Key, variable.Value);
+                foreach (var variable in variables)
+                {
+                    Environment.SetEnvironmentVariable(variable.Key, variable.Value);
+                }
             }
         }
 
