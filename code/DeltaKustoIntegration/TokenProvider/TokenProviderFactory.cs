@@ -17,7 +17,10 @@ namespace DeltaKustoIntegration.TokenProvider
             {
                 if (parameterization.Login != null)
                 {
-                    throw new NotImplementedException();
+                    return new LoginTokenProvider(
+                        parameterization.Login!.TenantId!,
+                        parameterization.Login!.ClientId!,
+                        parameterization.Login!.Secret!);
                 }
                 else if (parameterization.TokenMap != null)
                 {
