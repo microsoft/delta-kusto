@@ -47,7 +47,7 @@ jobs:
         # Exec path
         deltaKustoSingleExecPath=$singleFilePath
         # ADX integration
-        deltaKustoClusterUri=${{ secrets.CLUSTER_ID }}
+        deltaKustoClusterUri=${{ secrets.CLUSTER_URI }}
         deltaKustoCurrentDb=${{ secrets.CURRENT_DB }}
         deltaKustoTargetDb=${{ secrets.TARGET_DB }}
         deltaKustoTenantId=${{ secrets.TENANT_ID }}
