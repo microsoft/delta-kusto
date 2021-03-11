@@ -47,12 +47,12 @@ jobs:
         # Exec path
         deltaKustoSingleExecPath=$singleFilePath
         # ADX integration
-        deltaKustoClusterUri=${{ CLUSTER_ID }}
-        deltaKustoCurrentDb=${{ CURRENT_DB }}
-        deltaKustoTargetDb=${{ TARGET_DB }}
-        deltaKustoTenantId=${{ TENANT_ID }}
-        deltaKustoSpId=${{ SP_ID }}
-        deltaKustoSpSecret=${{ SP_SECRET }}
+        deltaKustoClusterUri=${{ secrets.CLUSTER_ID }}
+        deltaKustoCurrentDb=${{ secrets.CURRENT_DB }}
+        deltaKustoTargetDb=${{ secrets.TARGET_DB }}
+        deltaKustoTenantId=${{ secrets.TENANT_ID }}
+        deltaKustoSpId=${{ secrets.SP_ID }}
+        deltaKustoSpSecret=${{ secrets.SP_SECRET }}
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
     - name: File-based integration tests (out-of-proc)
       run: dotnet test code/DeltaKustoFileIntegrationTest --configuration Release --no-build --verbosity normal
