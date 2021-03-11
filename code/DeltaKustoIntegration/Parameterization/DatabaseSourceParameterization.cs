@@ -11,14 +11,25 @@ namespace DeltaKustoIntegration.Parameterization
 
         internal void Validate()
         {
+            Uri? uri;
+            
             if (ClusterUri == null)
             {
                 throw new DeltaException("'clusterUri' must be populated in a database source");
             }
-            if (!Uri.TryCreate(ClusterUri!, UriKind.Absolute, out _))
+            if (!Uri.TryCreate(ClusterUri!, UriKind.Absolute, out uri))
             {
                 throw new DeltaException($"'clusterUri' is an invalid Uri:  '{ClusterUri}'");
             }
+            if (uri.Scheme != "https")
+            {
+                throw new DeltaException($"'clusterUri' should be https but isn't:  '{ClusterUri}'");
+            }
+            if (uri.LocalPath != "/")
+            {
+                throw new DeltaException($"'clusterUri' should be domain name only but isn't:  '{ClusterUri}'");
+            }
+
             if (Database == null)
             {
                 throw new DeltaException("'database' must be populated in a database source");

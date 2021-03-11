@@ -7,6 +7,6 @@ namespace DeltaKustoIntegration.TokenProvider
 {
     public interface ITokenProvider
     {
-        Task<string> GetTokenAsync(string clusterUri);
+        Task<string> GetTokenAsync(Uri clusterUri);
     }
 }

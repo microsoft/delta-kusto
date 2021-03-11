@@ -16,7 +16,7 @@ namespace DeltaKustoIntegration.TokenProvider
         private readonly string _clientId;
         private readonly string _secret;
 
-        private ConcurrentDictionary<string, string> _tokenCache = new ConcurrentDictionary<string, string>();
+        private ConcurrentDictionary<Uri, string> _tokenCache = new ConcurrentDictionary<Uri, string>();
 
         public LoginTokenProvider(string tenantId, string clientId, string secret)
         {
@@ -25,7 +25,7 @@ namespace DeltaKustoIntegration.TokenProvider
             _secret = secret;
         }
 
-        async Task<string> ITokenProvider.GetTokenAsync(string clusterUri)
+        async Task<string> ITokenProvider.GetTokenAsync(Uri clusterUri)
         {
             if (_tokenCache.ContainsKey(clusterUri))
             {
@@ -42,7 +42,7 @@ namespace DeltaKustoIntegration.TokenProvider
                         new FormUrlEncodedContent(new[] {
                             new KeyValuePair<string?, string?>("client_id", _clientId),
                             new KeyValuePair<string?, string?>("client_secret", _secret),
-                            new KeyValuePair<string?, string?>("resource", clusterUri),
+                            new KeyValuePair<string?, string?>("resource", clusterUri.ToString()),
                             new KeyValuePair<string?, string?>("grant_type", "client_credentials")
                         }));
                     var responseText = await response.Content.ReadAsStringAsync();

@@ -136,7 +136,7 @@ namespace delta_kusto
                     }
 
                     var kustoManagementGateway = _kustoManagementGatewayFactory.CreateGateway(
-                        source.Database.ClusterUri!,
+                        new Uri(source.Database.ClusterUri!),
                         source.Database.Database!,
                         tokenProvider);
 
