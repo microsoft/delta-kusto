@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace DeltaKustoIntegration.TokenProvider
@@ -32,32 +33,39 @@ namespace DeltaKustoIntegration.TokenProvider
             }
             else
             {
-                //  Implementation of https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-client-creds-grant-flow#first-case-access-token-request-with-a-shared-secret
+                clusterUri = "https://help.kusto.windows.net";
+                //  Implementation of https://docs.microsoft.com/en-us/azure/data-explorer/kusto/api/rest/request#examples
                 using (var client = new HttpClient())
                 {
-                    var loginUrl = $"https://login.microsoftonline.com/{_tenantId}/oauth2/v2.0/token";
-                    var content = $"client_id={_clientId}\n&"
-                        + $"scope={WebUtility.UrlEncode(clusterUri)}\n&"
-                        + $"client_secret={WebUtility.UrlEncode(_secret)}"
-                        + $"\n&grant_type=client_credentials";
-                    var request = new HttpRequestMessage(HttpMethod.Post, loginUrl)
-                    {
-                        Content = new StringContent(
-                            content,
-                            null,
-                            "application/x-www-form-urlencoded")
-                    };
-                    var response = await client.SendAsync(request);
+                    var loginUrl = $"https://login.microsoftonline.com/{_tenantId}/oauth2/token";
+                    var response = await client.PostAsync(
+                        loginUrl,
+                        new FormUrlEncodedContent(new[] {
+                            new KeyValuePair<string?, string?>("client_id", _clientId),
+                            new KeyValuePair<string?, string?>("client_secret", _secret),
+                            new KeyValuePair<string?, string?>("resource", "https://help.kusto.windows.net"),
+                            new KeyValuePair<string?, string?>("grant_type", "client_credentials")
+                        }));
+                    var responseText = await response.Content.ReadAsStringAsync();
 
                     if (response.StatusCode != HttpStatusCode.OK)
                     {
                         throw new DeltaException(
-                            $"Authentication failed for cluster URI '{clusterUri}':  {response.StatusCode}");
+                            $"Authentication failed for cluster URI '{clusterUri}' "
+                            + $"with status code '{response.StatusCode}' "
+                            + $"and payload {responseText}");
                     }
 
-                    var responseText = response.Content.ReadAsStringAsync();
+                    var tokenMap = JsonSerializer.Deserialize<IDictionary<string, string>>(responseText);
 
-                    throw new NotImplementedException();
+                    if (tokenMap == null || !tokenMap.ContainsKey("access_token"))
+                    {
+                        throw new DeltaException($"Can deserialize token in authentication response:"
+                            + $"  '{responseText}'");
+                    }
+                    var accessToken = tokenMap["access_token"];
+
+                    return accessToken;
                 }
             }
         }
