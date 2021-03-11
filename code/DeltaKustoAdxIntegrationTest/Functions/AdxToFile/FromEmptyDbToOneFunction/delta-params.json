@@ -17,12 +17,12 @@
       "target": {
         "scripts": [
           {
-            "filePath": "Functions/AdxToFile/FromEmptyDbToEmptyScript/target.kql"
+            "filePath": "Functions/AdxToFile/FromEmptyDbToOneFunction/target.kql"
           }
         ]
       },
       "action": {
-        "filePath": "outputs/functions/adx-to-file/from-empty-db-to-empty-script/empty-delta.kql"
+        "filePath": "outputs/functions/adx-to-file/from-empty-db-to-one-function/empty-delta.kql"
       }
     }
   }

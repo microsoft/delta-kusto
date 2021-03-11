@@ -42,6 +42,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Functions\AdxToFile\FromEmptyDbToTwoFunctions\delta-params.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Functions\AdxToFile\FromEmptyDbToTwoFunctions\target.kql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Functions\AdxToFile\FromEmptyDbToOneFunction\delta-params.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Functions\AdxToFile\FromEmptyDbToOneFunction\target.kql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Functions\AdxToFile\FromEmptyDbToEmptyScript\delta-params.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
