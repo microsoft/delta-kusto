@@ -1,5 +1,6 @@
 ﻿using delta_kusto;
 using DeltaKustoIntegration.Parameterization;
+using DeltaKustoLib;
 using DeltaKustoLib.CommandModel;
 using System;
 using System.Collections.Generic;
@@ -88,6 +89,15 @@ namespace DeltaKustoFileIntegrationTest
             _executablePath = string.IsNullOrWhiteSpace(path)
                 ? null
                 : path;
+
+            if (_executablePath != null)
+            {
+                if(!File.Exists(_executablePath))
+                {
+                    throw new DeltaException(
+                        $"Executable file doesn't exist at '{_executablePath}'");
+                }
+            }
         }
 
         protected async virtual Task<int> RunMainAsync(params string[] args)
