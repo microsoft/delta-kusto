@@ -40,7 +40,7 @@ jobs:
         dotnet publish code/delta-kusto -c release -r $dotnetOs \
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
           -p:PublishTrimmed=true -p:PublishReadyToRun=true \
-          -o ../$singleFileExec
+          -o $singleFileExec
     # Set environment variables
     - name: Set environment variables
       run: |
