@@ -91,7 +91,7 @@ namespace DeltaKustoAdxIntegrationTest
             adjustedOverrides = adjustedOverrides.Add(
                 ("tokenProvider.login.clientId", _servicePrincipalId));
             adjustedOverrides = adjustedOverrides.Add(
-                ("tokenProvider.login.tenantId", _servicePrincipalSecret));
+                ("tokenProvider.login.secret", _servicePrincipalSecret));
 
             if (_overrideCurrentDb)
             {
