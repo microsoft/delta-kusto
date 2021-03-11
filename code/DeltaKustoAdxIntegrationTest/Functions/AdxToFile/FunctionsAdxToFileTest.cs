@@ -13,7 +13,7 @@ namespace DeltaKustoAdxIntegrationTest
         }
 
         [Fact]
-        public async Task FromEmptyDb()
+        public async Task FromEmptyDbToEmptyScript()
         {
             var parameters = await RunParametersAsync(
                 "Functions/AdxToFile/FromEmptyDb/delta-params.json");
