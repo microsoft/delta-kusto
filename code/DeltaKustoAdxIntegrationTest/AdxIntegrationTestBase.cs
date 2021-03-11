@@ -31,6 +31,13 @@ namespace DeltaKustoAdxIntegrationTest
             _overrideCurrentDb = overrideCurrentDb;
             _overrideTargetDb = overrideTargetDb;
 
+            var q = Environment.GetEnvironmentVariables();
+
+            foreach(var k in q!.Keys)
+            {
+                Console.WriteLine($"Key {k}:  {q[k]}");
+            }
+
             var clusterUri = Environment.GetEnvironmentVariable("deltaKustoClusterUri");
             var currentDb = Environment.GetEnvironmentVariable("deltaKustoCurrentDb");
             var targetDb = Environment.GetEnvironmentVariable("deltaKustoTargetDb");
