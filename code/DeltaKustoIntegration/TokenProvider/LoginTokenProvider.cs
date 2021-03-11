@@ -1,9 +1,9 @@
 ﻿using DeltaKustoLib;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -16,7 +16,7 @@ namespace DeltaKustoIntegration.TokenProvider
         private readonly string _clientId;
         private readonly string _secret;
 
-        private IDictionary<string, string> _tokenCache = new Dictionary<string, string>();
+        private ConcurrentDictionary<string, string> _tokenCache = new ConcurrentDictionary<string, string>();
 
         public LoginTokenProvider(string tenantId, string clientId, string secret)
         {
@@ -33,7 +33,6 @@ namespace DeltaKustoIntegration.TokenProvider
             }
             else
             {
-                clusterUri = "https://help.kusto.windows.net";
                 //  Implementation of https://docs.microsoft.com/en-us/azure/data-explorer/kusto/api/rest/request#examples
                 using (var client = new HttpClient())
                 {
@@ -43,7 +42,7 @@ namespace DeltaKustoIntegration.TokenProvider
                         new FormUrlEncodedContent(new[] {
                             new KeyValuePair<string?, string?>("client_id", _clientId),
                             new KeyValuePair<string?, string?>("client_secret", _secret),
-                            new KeyValuePair<string?, string?>("resource", "https://help.kusto.windows.net"),
+                            new KeyValuePair<string?, string?>("resource", clusterUri),
                             new KeyValuePair<string?, string?>("grant_type", "client_credentials")
                         }));
                     var responseText = await response.Content.ReadAsStringAsync();
@@ -64,6 +63,8 @@ namespace DeltaKustoIntegration.TokenProvider
                             + $"  '{responseText}'");
                     }
                     var accessToken = tokenMap["access_token"];
+
+                    _tokenCache[clusterUri] = accessToken;
 
                     return accessToken;
                 }
