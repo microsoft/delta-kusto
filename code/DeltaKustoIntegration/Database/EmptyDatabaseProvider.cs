@@ -11,10 +11,7 @@ namespace DeltaKustoIntegration.Database
     {
         Task<DatabaseModel> IDatabaseProvider.RetrieveDatabaseAsync()
         {
-            var db = DatabaseModel.FromDatabaseSchema(new DatabaseSchema
-            {
-                Name = "empty-db"
-            });
+            var db = DatabaseModel.FromDatabaseSchema(new DatabaseSchema());
 
             return Task.FromResult(db);
         }

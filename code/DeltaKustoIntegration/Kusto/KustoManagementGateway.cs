@@ -2,6 +2,7 @@
 using DeltaKustoLib;
 using DeltaKustoLib.SchemaObjects;
 using System;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -52,10 +53,18 @@ namespace DeltaKustoIntegration.Kusto
                     throw new DeltaException(
                         $"'{body.csl}' command failed for cluster URI '{_clusterUri}' "
                         + $"with status code '{response.StatusCode}' "
-                        + $"and payload {responseText}");
+                        + $"and payload '{responseText}'");
                 }
 
-                throw new NotImplementedException();
+                var schema = DatabaseSchema.FromJson(responseText);
+
+                //if (rootSchema.Databases.Count != 1)
+                //{
+                //    throw new DeltaException(
+                //        $"Schema doesn't contain a database:  '{responseText}'");
+                //}
+
+                return schema;
             }
         }
     }
