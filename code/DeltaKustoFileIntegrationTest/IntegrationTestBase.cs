@@ -92,10 +92,11 @@ namespace DeltaKustoFileIntegrationTest
 
             if (_executablePath != null)
             {
-                if(!File.Exists(_executablePath))
+                if (!File.Exists(_executablePath))
                 {
                     throw new DeltaException(
-                        $"Executable file doesn't exist at '{_executablePath}'");
+                        $"Executable file doesn't exist at '{_executablePath}' ; "
+                        + $"current directory is:  {Directory.GetCurrentDirectory()}");
                 }
             }
         }
