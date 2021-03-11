@@ -41,24 +41,26 @@ jobs:
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
           -p:PublishTrimmed=true -p:PublishReadyToRun=true \
           -o $singleFilePath
-    # Set environment variables
-    - name: Set environment variables
+    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
+    - name: File-based integration tests (out-of-proc)
       run: |
-        # Exec path
+        # Set environment variable exec path
         deltaKustoSingleExecPath=$singleFilePath
-        # ADX integration
+        # Run tests
+        dotnet test code/DeltaKustoFileIntegrationTest --configuration Release --no-build --verbosity normal
+    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
+    - name: ADX-based integration tests (out-of-proc)
+      run: |
+        # Set environment variables
+        deltaKustoSingleExecPath=$singleFilePath
         deltaKustoClusterUri=${{ secrets.CLUSTER_URI }}
         deltaKustoCurrentDb=${{ secrets.CURRENT_DB }}
         deltaKustoTargetDb=${{ secrets.TARGET_DB }}
         deltaKustoTenantId=${{ secrets.TENANT_ID }}
         deltaKustoSpId=${{ secrets.SP_ID }}
         deltaKustoSpSecret=${{ secrets.SP_SECRET }}
-    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
-    - name: File-based integration tests (out-of-proc)
-      run: dotnet test code/DeltaKustoFileIntegrationTest --configuration Release --no-build --verbosity normal
-    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
-    - name: ADX-based integration tests (out-of-proc)
-      run: dotnet test code/DeltaKustoAdxIntegrationTest --configuration Release --no-build --verbosity normal
+        # Run tests
+        dotnet test code/DeltaKustoAdxIntegrationTest --configuration Release --no-build --verbosity normal
 
   # windows:
 
