@@ -1,12 +1,10 @@
 ﻿using DeltaKustoIntegration;
 using DeltaKustoIntegration.Action;
 using DeltaKustoIntegration.Database;
+using DeltaKustoIntegration.Kusto;
 using DeltaKustoIntegration.Parameterization;
 using DeltaKustoIntegration.TokenProvider;
 using DeltaKustoLib;
-using DeltaKustoLib.CommandModel;
-using DeltaKustoLib.KustoModel;
-using DeltaKustoLib.SchemaObjects;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;

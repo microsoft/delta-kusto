@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace DeltaKustoIntegration
+namespace DeltaKustoIntegration.Kusto
 {
     public interface IKustoManagementGatewayFactory
     {

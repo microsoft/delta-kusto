@@ -1,4 +1,5 @@
-﻿using DeltaKustoLib.KustoModel;
+﻿using DeltaKustoIntegration.Kusto;
+using DeltaKustoLib.KustoModel;
 using System;
 using System.Collections.Generic;
 using System.Text;

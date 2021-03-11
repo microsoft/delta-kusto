@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace DeltaKustoIntegration
+namespace DeltaKustoIntegration.Kusto
 {
     public class KustoManagementGatewayFactory : IKustoManagementGatewayFactory
     {
@@ -12,7 +12,7 @@ namespace DeltaKustoIntegration
             string database,
             ITokenProvider tokenProvider)
         {
-            throw new NotImplementedException();
+             throw new NotImplementedException();
         }
     }
 }

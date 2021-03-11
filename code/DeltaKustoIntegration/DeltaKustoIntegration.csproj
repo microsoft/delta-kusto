@@ -23,4 +23,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Kusto\" />
+  </ItemGroup>
+
 </Project>
