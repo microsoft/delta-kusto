@@ -16,6 +16,124 @@ namespace DeltaKustoIntegration.Kusto
     /// </summary>
     internal class KustoManagementGateway : IKustoManagementGateway
     {
+        #region Inner Types
+        private class ApiOutput<T>
+        {
+            public TableOutput<T>[]? Tables { get; set; }
+
+            public void Validate(string json)
+            {
+                if (Tables == null)
+                {
+                    throw new DeltaException(
+                        $"JSON payload doesn't contain a list of table "
+                        + $"({nameof(Tables)}):  '{json}'");
+                }
+
+                foreach (var table in Tables)
+                {
+                    table.Validate(json);
+                }
+            }
+
+            public T GetSingleElement()
+            {
+                return Tables![0].Rows![0][0];
+            }
+
+            public static ApiOutput<T> FromJson(string json)
+            {
+                var output = JsonSerializer.Deserialize<ApiOutput<T>>(json);
+
+                if (output == null)
+                {
+                    throw new DeltaException(
+                        $"JSON payload doesn't look like an API output:  '{json}'");
+                }
+
+                output.Validate(json);
+
+                return output;
+            }
+        }
+
+        private class TableOutput<T>
+        {
+            public string? TableName { get; set; }
+
+            public ColumnOutput[]? Columns { get; set; }
+
+            public T[][]? Rows { get; set; }
+
+            public void Validate(string json)
+            {
+                if (TableName == null)
+                {
+                    throw new DeltaException(
+                        $"JSON payload has a table without name "
+                        + $"({nameof(TableName)}):  '{json}'");
+                }
+                if (Columns == null)
+                {
+                    throw new DeltaException(
+                        $"Table '{TableName}' in JSON payload has no columns "
+                        + $"({nameof(Columns)}):  '{json}'");
+                }
+                if (Rows == null)
+                {
+                    throw new DeltaException(
+                        $"Table '{TableName}' in JSON payload has no rows "
+                        + $"({nameof(Rows)}):  '{json}'");
+                }
+
+                foreach (var column in Columns)
+                {
+                    column.Validate(json, TableName);
+                }
+                foreach (var row in Rows)
+                {
+                    if (row.Length != Columns.Length)
+                    {
+                        throw new DeltaException(
+                            $"Table '{TableName}' in JSON payload has a row with number of items "
+                            + $"different than columns descriptions:  '{json}'");
+                    }
+                }
+            }
+        }
+
+        private class ColumnOutput
+        {
+            public string? ColumnName { get; set; }
+
+            public string? DataType { get; set; }
+
+            public string? ColumnType { get; set; }
+
+            public void Validate(string json, string tableName)
+            {
+                if (ColumnName == null)
+                {
+                    throw new DeltaException(
+                        $"Table '{tableName}' in JSON payload has a column "
+                        + $"without name ({nameof(ColumnName)}):  '{json}'");
+                }
+                if (DataType == null)
+                {
+                    throw new DeltaException(
+                        $"Table '{tableName}' in JSON payload has column '{ColumnName}' "
+                        + $"without data type ({nameof(DataType)}):  '{json}'");
+                }
+                if (ColumnType == null)
+                {
+                    throw new DeltaException(
+                        $"Table '{tableName}' in JSON payload has column '{ColumnName}' "
+                        + $"without column type ({nameof(ColumnType)}):  '{json}'");
+                }
+            }
+        }
+        #endregion
+
         private readonly Uri _clusterUri;
         private readonly string _database;
         private readonly ITokenProvider _tokenProvider;
@@ -56,15 +174,17 @@ namespace DeltaKustoIntegration.Kusto
                         + $"and payload '{responseText}'");
                 }
 
-                var schema = DatabaseSchema.FromJson(responseText);
+                var output = ApiOutput<string>.FromJson(responseText);
+                var schemaText = output.GetSingleElement();
+                var rootSchema = RootSchema.FromJson(schemaText);
 
-                //if (rootSchema.Databases.Count != 1)
-                //{
-                //    throw new DeltaException(
-                //        $"Schema doesn't contain a database:  '{responseText}'");
-                //}
+                if (rootSchema.Databases.Count != 1)
+                {
+                    throw new DeltaException(
+                        $"Schema doesn't contain a database:  '{schemaText}'");
+                }
 
-                return schema;
+                return rootSchema.Databases.First().Value;
             }
         }
     }
