@@ -9,7 +9,6 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
-      singleFileExec:  delta-single-file.exe
       os:  linux
       dotnetOs:  linux-x64
 
@@ -41,13 +40,11 @@ jobs:
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
           -p:PublishTrimmed=true -p:PublishReadyToRun=true \
           -o bin
-    - name: ls -l bin
-      run:  ls -l bin
     # Set environment variables
     - name: Set environment variables
       run: |
         # Exec path
-        echo "deltaKustoSingleExecPath=$(pwd)/bin/$singleFileExec" >> $GITHUB_ENV
+        echo "deltaKustoSingleExecPath=$(pwd)/bin/delta-kusto" >> $GITHUB_ENV
         # ADX integration
         echo "deltaKustoClusterUri=${{ secrets.CLUSTER_URI }}" >> $GITHUB_ENV
         echo "deltaKustoCurrentDb=${{ secrets.CURRENT_DB }}" >> $GITHUB_ENV
