@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -112,7 +113,10 @@ namespace DeltaKustoFileIntegrationTest
                         (sender, data) => Console.WriteLine(data.Data);
                     process.Start();
 
-                    await process.WaitForExitAsync();
+                    //  Force the exec to execute within 5 seconds
+                    var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+                    await process.WaitForExitAsync(tokenSource.Token);
 
                     return process.ExitCode;
                 }
