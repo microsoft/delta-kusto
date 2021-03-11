@@ -12,7 +12,7 @@ namespace DeltaKustoIntegration.Kusto
             string database,
             ITokenProvider tokenProvider)
         {
-             throw new NotImplementedException();
+            return new KustoManagementGateway(clusterUri, database, tokenProvider);
         }
     }
 }
