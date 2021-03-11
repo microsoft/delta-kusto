@@ -41,12 +41,24 @@ jobs:
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
           -p:PublishTrimmed=true -p:PublishReadyToRun=true \
           -o $singleFilePath
-    # Set environment variable
-    - name: Set Exec path
-      run: deltaKustoSingleExecPath=$singleFilePath
+    # Set environment variables
+    - name: Set environment variables
+      run: |
+        # Exec path
+        deltaKustoSingleExecPath=$singleFilePath
+        # ADX integration
+        deltaKustoClusterUri=${{ CLUSTER_ID }}
+        deltaKustoCurrentDb=${{ CURRENT_DB }}
+        deltaKustoTargetDb=${{ TARGET_DB }}
+        deltaKustoTenantId=${{ TENANT_ID }}
+        deltaKustoSpId=${{ SP_ID }}
+        deltaKustoSpSecret=${{ SP_SECRET }}
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
     - name: File-based integration tests (out-of-proc)
       run: dotnet test code/DeltaKustoFileIntegrationTest --configuration Release --no-build --verbosity normal
+    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
+    - name: ADX-based integration tests (out-of-proc)
+      run: dotnet test code/DeltaKustoADXIntegrationTest --configuration Release --no-build --verbosity normal
 
   # windows:
 
