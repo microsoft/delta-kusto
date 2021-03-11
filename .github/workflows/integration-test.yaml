@@ -41,6 +41,10 @@ jobs:
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
           -p:PublishTrimmed=true -p:PublishReadyToRun=true \
           -o $singleFileExec
+    - name: ls -l
+      run:  ls -l
+    - name: ls -l delta-single-file.exe/
+      run:  ls -l delta-single-file.exe/
     # Set environment variables
     - name: Set environment variables
       run: |
