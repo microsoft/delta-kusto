@@ -327,26 +327,29 @@ namespace DeltaKustoIntegration.Kusto
 
         async Task IKustoManagementGateway.ExecuteCommandsAsync(IEnumerable<CommandBase> commands)
         {
-            var commandScripts = commands.Select(c => c.ToScript());
-            var fullScript = ".execute database script <|"
-                + Environment.NewLine
-                + string.Join(Environment.NewLine + Environment.NewLine, commandScripts);
-            var output = await ExecuteCommandAsync(fullScript);
-            var content = output.Tables![0].ProjectRows<string, string, string, Guid>(
-                "Result",
-                "Reason",
-                "CommandText",
-                "OperationId")
-                .Select(t => (result: t.Item1, reason: t.Item2, commandText: t.Item3, operationId: t.Item4));
-            var failedItems = content.Where(t => t.result != "Completed");
-
-            if (failedItems.Any())
+            if (commands.Any())
             {
-                var failedItem = failedItems.First();
+                var commandScripts = commands.Select(c => c.ToScript());
+                var fullScript = ".execute database script <|"
+                    + Environment.NewLine
+                    + string.Join(Environment.NewLine + Environment.NewLine, commandScripts);
+                var output = await ExecuteCommandAsync(fullScript);
+                var content = output.Tables![0].ProjectRows<string, string, string, Guid>(
+                    "Result",
+                    "Reason",
+                    "CommandText",
+                    "OperationId")
+                    .Select(t => (result: t.Item1, reason: t.Item2, commandText: t.Item3, operationId: t.Item4));
+                var failedItems = content.Where(t => t.result != "Completed");
 
-                throw new InvalidOperationException(
-                    $"Command failed to execute with reason '{failedItem.reason}':  "
-                    + $"'{failedItem.commandText}'.  Operation ID:  {failedItem.operationId}");
+                if (failedItems.Any())
+                {
+                    var failedItem = failedItems.First();
+
+                    throw new InvalidOperationException(
+                        $"Command failed to execute with reason '{failedItem.reason}':  "
+                        + $"'{failedItem.commandText}'.  Operation ID:  {failedItem.operationId}");
+                }
             }
         }
 

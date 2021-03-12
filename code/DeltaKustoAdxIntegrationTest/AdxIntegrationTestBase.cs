@@ -1,5 +1,6 @@
 ﻿using delta_kusto;
 using DeltaKustoFileIntegrationTest;
+using DeltaKustoIntegration.Database;
 using DeltaKustoIntegration.Kusto;
 using DeltaKustoIntegration.Parameterization;
 using DeltaKustoIntegration.TokenProvider;
@@ -117,14 +118,22 @@ namespace DeltaKustoAdxIntegrationTest
         {
             var script = await File.ReadAllTextAsync(scriptPath);
             var commands = CommandBase.FromScript(script);
+            var gateway = CreateKustoManagementGateway(_currentDb);
+
+            await EnsureCleanAsync();
+            await gateway.ExecuteCommandsAsync(commands);
+        }
+
+        private IKustoManagementGateway CreateKustoManagementGateway(string database)
+        {
             var gatewayFactory =
                 new KustoManagementGatewayFactory() as IKustoManagementGatewayFactory;
             var gateway = gatewayFactory.CreateGateway(
                 _clusterUri,
-                _currentDb,
+                database,
                 CreateTokenProvider());
 
-            await gateway.ExecuteCommandsAsync(commands);
+            return gateway;
         }
 
         private ITokenProvider CreateTokenProvider()
@@ -148,11 +157,23 @@ namespace DeltaKustoAdxIntegrationTest
         {
             if (!_isClean)
             {
-                //  Do not clean yet
-                await Task.CompletedTask;
+                await EnsureCleanDbAsync(_currentDb);
+                await EnsureCleanDbAsync(_targetDb);
 
                 _isClean = true;
             }
+        }
+
+        private async Task EnsureCleanDbAsync(string database)
+        {
+            var emptyDbProvider = (IDatabaseProvider)new EmptyDatabaseProvider();
+            var kustoGateway = CreateKustoManagementGateway(database);
+            var dbProvider = (IDatabaseProvider)new KustoDatabaseProvider(kustoGateway);
+            var emptyDb = await emptyDbProvider.RetrieveDatabaseAsync();
+            var db = await dbProvider.RetrieveDatabaseAsync();
+            var currentDeltaCommands = db.ComputeDelta(emptyDb);
+
+            await kustoGateway.ExecuteCommandsAsync(currentDeltaCommands);
         }
     }
 }
