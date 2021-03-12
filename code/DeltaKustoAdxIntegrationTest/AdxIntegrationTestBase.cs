@@ -1,6 +1,8 @@
 ﻿using delta_kusto;
 using DeltaKustoFileIntegrationTest;
+using DeltaKustoIntegration.Kusto;
 using DeltaKustoIntegration.Parameterization;
+using DeltaKustoIntegration.TokenProvider;
 using DeltaKustoLib.CommandModel;
 using System;
 using System.Collections.Generic;
@@ -18,7 +20,7 @@ namespace DeltaKustoAdxIntegrationTest
     {
         private readonly bool _overrideCurrentDb;
         private readonly bool _overrideTargetDb;
-        private readonly string _clusterUri;
+        private readonly Uri _clusterUri;
         private readonly string _currentDb;
         private readonly string _targetDb;
         private readonly string _tenantId;
@@ -63,7 +65,7 @@ namespace DeltaKustoAdxIntegrationTest
                 throw new ArgumentNullException(nameof(servicePrincipalSecret));
             }
 
-            _clusterUri = clusterUri;
+            _clusterUri = new Uri(clusterUri);
             _currentDb = currentDb;
             _targetDb = targetDb;
             _tenantId = tenantId;
@@ -109,6 +111,37 @@ namespace DeltaKustoAdxIntegrationTest
             }
 
             return base.RunParametersAsync(parameterFilePath, adjustedOverrides.ToArray());
+        }
+
+        protected async Task PrepareCurrentAsync(string scriptPath)
+        {
+            var script = await File.ReadAllTextAsync(scriptPath);
+            var commands = CommandBase.FromScript(script);
+            var gatewayFactory =
+                new KustoManagementGatewayFactory() as IKustoManagementGatewayFactory;
+            var gateway = gatewayFactory.CreateGateway(
+                _clusterUri,
+                _currentDb,
+                CreateTokenProvider());
+
+            await gateway.ExecuteCommandsAsync(commands);
+        }
+
+        private ITokenProvider CreateTokenProvider()
+        {
+            var tokenProviderFactory = new TokenProviderFactory() as ITokenProviderFactory;
+            var tokenProvider = tokenProviderFactory.CreateProvider(
+                new TokenProviderParameterization
+                {
+                    Login = new ServicePrincipalLoginParameterization
+                    {
+                        TenantId = _tenantId,
+                        ClientId = _servicePrincipalId,
+                        Secret = _servicePrincipalSecret
+                    }
+                });
+
+            return tokenProvider!;
         }
 
         private async Task EnsureCleanAsync()

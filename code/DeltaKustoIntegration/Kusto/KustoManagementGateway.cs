@@ -1,7 +1,9 @@
 ﻿using DeltaKustoIntegration.TokenProvider;
 using DeltaKustoLib;
+using DeltaKustoLib.CommandModel;
 using DeltaKustoLib.SchemaObjects;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -17,15 +19,15 @@ namespace DeltaKustoIntegration.Kusto
     internal class KustoManagementGateway : IKustoManagementGateway
     {
         #region Inner Types
-        private class ApiOutput<T>
+        private class ApiOutput
         {
-            public TableOutput<T>[]? Tables { get; set; }
+            public TableOutput[]? Tables { get; set; }
 
             public void Validate(string json)
             {
                 if (Tables == null)
                 {
-                    throw new DeltaException(
+                    throw new InvalidOperationException(
                         $"JSON payload doesn't contain a list of table "
                         + $"({nameof(Tables)}):  '{json}'");
                 }
@@ -36,18 +38,18 @@ namespace DeltaKustoIntegration.Kusto
                 }
             }
 
-            public T GetSingleElement()
+            public T GetSingleElement<T>()
             {
-                return Tables![0].Rows![0][0];
+                return Tables![0].GetSingleElement<T>();
             }
 
-            public static ApiOutput<T> FromJson(string json)
+            public static ApiOutput FromJson(string json)
             {
-                var output = JsonSerializer.Deserialize<ApiOutput<T>>(json);
+                var output = JsonSerializer.Deserialize<ApiOutput>(json);
 
                 if (output == null)
                 {
-                    throw new DeltaException(
+                    throw new InvalidOperationException(
                         $"JSON payload doesn't look like an API output:  '{json}'");
                 }
 
@@ -57,31 +59,31 @@ namespace DeltaKustoIntegration.Kusto
             }
         }
 
-        private class TableOutput<T>
+        private class TableOutput
         {
             public string? TableName { get; set; }
 
             public ColumnOutput[]? Columns { get; set; }
 
-            public T[][]? Rows { get; set; }
+            public JsonElement[][]? Rows { get; set; }
 
             public void Validate(string json)
             {
                 if (TableName == null)
                 {
-                    throw new DeltaException(
+                    throw new InvalidOperationException(
                         $"JSON payload has a table without name "
                         + $"({nameof(TableName)}):  '{json}'");
                 }
                 if (Columns == null)
                 {
-                    throw new DeltaException(
+                    throw new InvalidOperationException(
                         $"Table '{TableName}' in JSON payload has no columns "
                         + $"({nameof(Columns)}):  '{json}'");
                 }
                 if (Rows == null)
                 {
-                    throw new DeltaException(
+                    throw new InvalidOperationException(
                         $"Table '{TableName}' in JSON payload has no rows "
                         + $"({nameof(Rows)}):  '{json}'");
                 }
@@ -94,11 +96,174 @@ namespace DeltaKustoIntegration.Kusto
                 {
                     if (row.Length != Columns.Length)
                     {
-                        throw new DeltaException(
+                        throw new InvalidOperationException(
                             $"Table '{TableName}' in JSON payload has a row with number of items "
                             + $"different than columns descriptions:  '{json}'");
                     }
                 }
+            }
+
+            public T GetSingleElement<T>()
+            {
+                if (Rows!.Length == 0 || Rows![0].Length == 0)
+                {
+                    throw new InvalidOperationException(
+                        $"Table '{TableName}' doesn't have any element");
+                }
+
+                return (T)GetObject(Rows![0][0], typeof(T));
+            }
+
+            public IEnumerable<T1> ProjectRows<T1>(string columnName)
+            {
+                var rows = ProjectRows(new[] { (columnName, typeof(T1)) });
+
+                foreach (var row in rows)
+                {
+                    var item = (T1)row[0];
+
+                    yield return item;
+                }
+            }
+
+            public IEnumerable<(T1, T2)> ProjectRows<T1, T2>(
+                string columnName1,
+                string columnName2)
+            {
+                var rows = ProjectRows(new[]
+                {
+                    (columnName1, typeof(T1)),
+                    (columnName2, typeof(T2))
+                });
+
+                foreach (var row in rows)
+                {
+                    var item1 = (T1)row[0];
+                    var item2 = (T2)row[1];
+
+                    yield return (item1, item2);
+                }
+            }
+
+            public IEnumerable<(T1, T2, T3)> ProjectRows<T1, T2, T3>(
+                string columnName1,
+                string columnName2,
+                string columnName3)
+            {
+                var rows = ProjectRows(new[]
+                {
+                    (columnName1, typeof(T1)),
+                    (columnName2, typeof(T2)),
+                    (columnName3, typeof(T3))
+                });
+
+                foreach (var row in rows)
+                {
+                    var item1 = (T1)row[0];
+                    var item2 = (T2)row[1];
+                    var item3 = (T3)row[2];
+
+                    yield return (item1, item2, item3);
+                }
+            }
+
+            public IEnumerable<(T1, T2, T3, T4)> ProjectRows<T1, T2, T3, T4>(
+                string columnName1,
+                string columnName2,
+                string columnName3,
+                string columnName4)
+            {
+                var rows = ProjectRows(new[]
+                {
+                    (columnName1, typeof(T1)),
+                    (columnName2, typeof(T2)),
+                    (columnName3, typeof(T3)),
+                    (columnName4, typeof(T4))
+                });
+
+                foreach (var row in rows)
+                {
+                    var item1 = (T1)row[0];
+                    var item2 = (T2)row[1];
+                    var item3 = (T3)row[2];
+                    var item4 = (T4)row[3];
+
+                    yield return (item1, item2, item3, item4);
+                }
+            }
+
+            public IEnumerable<object[]> ProjectRows(params (string name, Type type)[] columnNameTypes)
+            {
+                var indexes = MapColumns(columnNameTypes);
+
+                foreach (var row in Rows!)
+                {
+                    var item = new object[indexes.Length];
+
+                    for (int i = 0; i != indexes.Length; ++i)
+                    {
+                        item[i] = GetObject(row[indexes[i]], columnNameTypes[i].type);
+                    }
+
+                    yield return item;
+                }
+            }
+
+            private object GetObject(JsonElement element, Type type)
+            {
+                if (type == typeof(string))
+                {
+                    return element.GetString()!;
+                }
+                else if (type == typeof(int))
+                {
+                    return element.GetInt32();
+                }
+                else if (type == typeof(Guid))
+                {
+                    return element.GetGuid();
+                }
+                else
+                {
+                    throw new NotSupportedException(
+                        $"Type '{type}' isn't supported for table columns");
+                }
+            }
+
+            private int[] MapColumns((string name, Type type)[] columnNameTypes)
+            {
+                var indexes = new int[columnNameTypes.Length];
+                var columnIndex = Columns!.Zip(
+                    Enumerable.Range(0, Columns!.Length),
+                    (c, i) => new { Name = c.ColumnName!, TypeName = c.ColumnType!, Index = i })
+                    .ToDictionary(c => c.Name);
+
+                for (int i = 0; i != columnNameTypes.Length; ++i)
+                {
+                    var columnName = columnNameTypes[i].name;
+                    var columnType = columnNameTypes[i].type;
+
+                    if (!columnIndex.ContainsKey(columnName))
+                    {
+                        throw new InvalidOperationException(
+                            $"Can't find column '{columnName}' "
+                            + $"in table '{TableName}' of Kusto result");
+                    }
+
+                    var column = columnIndex[columnName];
+
+                    if (string.Compare(column.TypeName, columnType.Name, true) != 0)
+                    {
+                        throw new InvalidOperationException(
+                            $"Type mismatch for column '{columnName}' "
+                            + $"in table '{TableName}' of Kusto result:  "
+                            + $"expected '{columnType.Name}' but is {column.TypeName}");
+                    }
+
+                    indexes[i] = column.Index;
+                }
+
+                return indexes;
             }
         }
 
@@ -114,19 +279,19 @@ namespace DeltaKustoIntegration.Kusto
             {
                 if (ColumnName == null)
                 {
-                    throw new DeltaException(
+                    throw new InvalidOperationException(
                         $"Table '{tableName}' in JSON payload has a column "
                         + $"without name ({nameof(ColumnName)}):  '{json}'");
                 }
                 if (DataType == null)
                 {
-                    throw new DeltaException(
+                    throw new InvalidOperationException(
                         $"Table '{tableName}' in JSON payload has column '{ColumnName}' "
                         + $"without data type ({nameof(DataType)}):  '{json}'");
                 }
                 if (ColumnType == null)
                 {
-                    throw new DeltaException(
+                    throw new InvalidOperationException(
                         $"Table '{tableName}' in JSON payload has column '{ColumnName}' "
                         + $"without column type ({nameof(ColumnType)}):  '{json}'");
                 }
@@ -147,6 +312,46 @@ namespace DeltaKustoIntegration.Kusto
 
         async Task<DatabaseSchema> IKustoManagementGateway.GetDatabaseSchemaAsync()
         {
+            var output = await ExecuteCommandAsync(".show database schema as json");
+            var schemaText = output.GetSingleElement<string>();
+            var rootSchema = RootSchema.FromJson(schemaText);
+
+            if (rootSchema.Databases.Count != 1)
+            {
+                throw new InvalidOperationException(
+                    $"Schema doesn't contain a database:  '{schemaText}'");
+            }
+
+            return rootSchema.Databases.First().Value;
+        }
+
+        async Task IKustoManagementGateway.ExecuteCommandsAsync(IEnumerable<CommandBase> commands)
+        {
+            var commandScripts = commands.Select(c => c.ToScript());
+            var fullScript = ".execute database script <|"
+                + Environment.NewLine
+                + string.Join(Environment.NewLine + Environment.NewLine, commandScripts);
+            var output = await ExecuteCommandAsync(fullScript);
+            var content = output.Tables![0].ProjectRows<string, string, string, Guid>(
+                "Result",
+                "Reason",
+                "CommandText",
+                "OperationId")
+                .Select(t => (result: t.Item1, reason: t.Item2, commandText: t.Item3, operationId: t.Item4));
+            var failedItems = content.Where(t => t.result != "Completed");
+
+            if (failedItems.Any())
+            {
+                var failedItem = failedItems.First();
+
+                throw new InvalidOperationException(
+                    $"Command failed to execute with reason '{failedItem.reason}':  "
+                    + $"'{failedItem.commandText}'.  Operation ID:  {failedItem.operationId}");
+            }
+        }
+
+        private async Task<ApiOutput> ExecuteCommandAsync(string commandScript)
+        {
             var token = await _tokenProvider.GetTokenAsync(_clusterUri);
 
             //  Implementation of https://docs.microsoft.com/en-us/azure/data-explorer/kusto/api/rest/request#examples
@@ -158,7 +363,7 @@ namespace DeltaKustoIntegration.Kusto
                 var body = new
                 {
                     db = _database,
-                    csl = ".show database schema as json"
+                    csl = commandScript
                 };
                 var bodyText = JsonSerializer.Serialize(body);
                 var response = await client.PostAsync(
@@ -168,23 +373,15 @@ namespace DeltaKustoIntegration.Kusto
 
                 if (response.StatusCode != HttpStatusCode.OK)
                 {
-                    throw new DeltaException(
+                    throw new InvalidOperationException(
                         $"'{body.csl}' command failed for cluster URI '{_clusterUri}' "
                         + $"with status code '{response.StatusCode}' "
                         + $"and payload '{responseText}'");
                 }
 
-                var output = ApiOutput<string>.FromJson(responseText);
-                var schemaText = output.GetSingleElement();
-                var rootSchema = RootSchema.FromJson(schemaText);
+                var output = ApiOutput.FromJson(responseText);
 
-                if (rootSchema.Databases.Count != 1)
-                {
-                    throw new DeltaException(
-                        $"Schema doesn't contain a database:  '{schemaText}'");
-                }
-
-                return rootSchema.Databases.First().Value;
+                return output;
             }
         }
     }
