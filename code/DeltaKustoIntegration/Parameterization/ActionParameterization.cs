@@ -25,20 +25,23 @@ namespace DeltaKustoIntegration.Parameterization
                     "When 'useTargetCluster' is set to true, "
                     + "'filePath' and 'folderPath' can't be populated");
             }
-            if (FilePath == null && FolderPath == null)
+            if (!UseTargetCluster)
             {
-                throw new DeltaException(
-                    "Either 'filePath' and 'folderPath' must be populated");
-            }
-            if (FilePath != null && string.IsNullOrWhiteSpace(FilePath))
-            {
-                throw new DeltaException(
-                    "If 'filePath' is specified, it must contain a valid path");
-            }
-            if (FolderPath != null && string.IsNullOrWhiteSpace(FolderPath))
-            {
-                throw new DeltaException(
-                    "If 'folderPath' is specified, it must contain a valid path");
+                if (FilePath == null && FolderPath == null)
+                {
+                    throw new DeltaException(
+                        "Either 'filePath' and 'folderPath' must be populated");
+                }
+                if (FilePath != null && string.IsNullOrWhiteSpace(FilePath))
+                {
+                    throw new DeltaException(
+                        "If 'filePath' is specified, it must contain a valid path");
+                }
+                if (FolderPath != null && string.IsNullOrWhiteSpace(FolderPath))
+                {
+                    throw new DeltaException(
+                        "If 'folderPath' is specified, it must contain a valid path");
+                }
             }
         }
     }

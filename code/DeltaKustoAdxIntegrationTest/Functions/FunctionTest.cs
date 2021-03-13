@@ -12,13 +12,8 @@ namespace DeltaKustoAdxIntegrationTest.Functions
 {
     public class FunctionsAdxToFileTest : AdxIntegrationTestBase
     {
-        public FunctionsAdxToFileTest()
-            : base(true, false)
-        {
-        }
-
         [Fact]
-        public async Task GenericAdxToFile()
+        public async Task AdxToFile()
         {
             await LoopThroughStateFilesAsync(async (fromFile, toFile) =>
             {
@@ -29,18 +24,38 @@ namespace DeltaKustoAdxIntegrationTest.Functions
                     + "_"
                     + Path.GetFileNameWithoutExtension(toFile)
                     + ".kql";
-                var overrides = new[]
-                {
-                    ("jobs.main.target.scripts", (object) new[]{ new { filePath = toFile } }),
-                    ("jobs.main.action.filePath", outputPath)
-                };
+                var overrides = CurrentDbOverrides
+                    .Append(("jobs.main.target.scripts", new[] { new { filePath = toFile } }))
+                    .Append(("jobs.main.action.filePath", outputPath));
                 var parameters = await RunParametersAsync(
                     "Functions/adx-to-file-params.json",
                     overrides);
                 var outputCommands = await LoadScriptAsync(outputPath);
                 var targetCommands = CommandBase.FromScript(
                     await File.ReadAllTextAsync(toFile));
-                var finalCommands = await ApplyCommandsToCurrent(outputCommands);
+                var finalCommands = await ApplyCommandsToCurrentAsync(outputCommands);
+
+                Assert.True(
+                    finalCommands.SequenceEqual(targetCommands),
+                    $"From {fromFile} to {toFile}");
+            });
+        }
+
+        [Fact]
+        public async Task AdxToAdx()
+        {
+            await LoopThroughStateFilesAsync(async (fromFile, toFile) =>
+            {
+                await PrepareCurrentAsync(fromFile);
+
+                var overrides = CurrentDbOverrides
+                    .Concat(TargetDbOverrides);
+                var parameters = await RunParametersAsync(
+                    "Functions/adx-to-adx-params.json",
+                    overrides);
+                var targetCommands = CommandBase.FromScript(
+                    await File.ReadAllTextAsync(toFile));
+                var finalCommands = await GetTargetCommandsAsync();
 
                 Assert.True(
                     finalCommands.SequenceEqual(targetCommands),
@@ -56,12 +71,13 @@ namespace DeltaKustoAdxIntegrationTest.Functions
             {
                 foreach (var toFile in stateFiles)
                 {
+                    await CleanDatabasesAsync();
                     await loopFunction(fromFile, toFile);
                 }
             }
         }
 
-        private async Task<IImmutableList<CommandBase>> ApplyCommandsToCurrent(
+        private async Task<IImmutableList<CommandBase>> ApplyCommandsToCurrentAsync(
             IEnumerable<CommandBase> outputCommands)
         {
             var gateway = CreateKustoManagementGateway(true);
@@ -75,6 +91,20 @@ namespace DeltaKustoAdxIntegrationTest.Functions
             var finalCommands = finalDb.ComputeDelta(emptyDb);
 
             return finalCommands;
+        }
+
+        private async Task<IImmutableList<CommandBase>> GetTargetCommandsAsync()
+        {
+            var gateway = CreateKustoManagementGateway(false);
+            var dbProvider = (IDatabaseProvider)new KustoDatabaseProvider(gateway);
+            var emptyProvider = (IDatabaseProvider)new EmptyDatabaseProvider();
+
+            //  Delta target with empty to get target
+            var targetDb = await dbProvider.RetrieveDatabaseAsync();
+            var emptyDb = await emptyProvider.RetrieveDatabaseAsync();
+            var targetCommands = targetDb.ComputeDelta(emptyDb);
+
+            return targetCommands;
         }
     }
 }

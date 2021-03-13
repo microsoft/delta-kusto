@@ -144,7 +144,7 @@ namespace DeltaKustoFileIntegrationTest
 
         protected async virtual Task<MainParameterization> RunParametersAsync(
             string parameterFilePath,
-            (string path, object value)[]? overrides = null)
+            IEnumerable<(string path, object value)>? overrides = null)
         {
             var jsonOverrides = overrides != null && overrides.Any()
                 ? JsonSerializer.Serialize(overrides.Select(o => new { o.path, o.value }))

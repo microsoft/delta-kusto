@@ -19,21 +19,15 @@ namespace DeltaKustoAdxIntegrationTest
 {
     public abstract class AdxIntegrationTestBase : IntegrationTestBase
     {
-        private readonly bool _overrideCurrentDb;
-        private readonly bool _overrideTargetDb;
         private readonly Uri _clusterUri;
         private readonly string _currentDb;
         private readonly string _targetDb;
         private readonly string _tenantId;
         private readonly string _servicePrincipalId;
         private readonly string _servicePrincipalSecret;
-        private bool _isClean = false;
 
-        protected AdxIntegrationTestBase(bool overrideCurrentDb, bool overrideTargetDb)
+        protected AdxIntegrationTestBase()
         {
-            _overrideCurrentDb = overrideCurrentDb;
-            _overrideTargetDb = overrideTargetDb;
-
             var clusterUri = Environment.GetEnvironmentVariable("deltaKustoClusterUri");
             var currentDb = Environment.GetEnvironmentVariable("deltaKustoCurrentDb");
             var targetDb = Environment.GetEnvironmentVariable("deltaKustoTargetDb");
@@ -72,46 +66,34 @@ namespace DeltaKustoAdxIntegrationTest
             _tenantId = tenantId;
             _servicePrincipalId = servicePrincipalId;
             _servicePrincipalSecret = servicePrincipalSecret;
+            CurrentDbOverrides = ImmutableArray<(string path, object value)>
+                .Empty
+                .Add(("jobs.main.current.database.clusterUri", _clusterUri))
+                .Add(("jobs.main.current.database.database", _currentDb));
+            TargetDbOverrides = ImmutableArray<(string path, object value)>
+                .Empty
+                .Add(("jobs.main.target.database.clusterUri", (object)_clusterUri))
+                .Add(("jobs.main.target.database.database", _currentDb));
         }
 
-        protected override async Task<int> RunMainAsync(params string[] args)
-        {
-            await EnsureCleanAsync();
+        protected IEnumerable<(string path, object value)> CurrentDbOverrides { get; }
 
-            return await base.RunMainAsync(args);
-        }
+        protected IEnumerable<(string path, object value)> TargetDbOverrides { get; }
 
         protected override Task<MainParameterization> RunParametersAsync(
             string parameterFilePath,
-            (string path, object value)[]? overrides = null)
+            IEnumerable<(string path, object value)>? overrides = null)
         {
             var adjustedOverrides = overrides != null
-                ? overrides.ToImmutableList()
+                ? overrides
                 : ImmutableList<(string path, object value)>.Empty;
 
-            adjustedOverrides = adjustedOverrides.Add(
-                ("tokenProvider.login.tenantId", _tenantId));
-            adjustedOverrides = adjustedOverrides.Add(
-                ("tokenProvider.login.clientId", _servicePrincipalId));
-            adjustedOverrides = adjustedOverrides.Add(
-                ("tokenProvider.login.secret", _servicePrincipalSecret));
+            adjustedOverrides = adjustedOverrides
+                .Append(("tokenProvider.login.tenantId", _tenantId))
+                .Append(("tokenProvider.login.clientId", _servicePrincipalId))
+                .Append(("tokenProvider.login.secret", _servicePrincipalSecret));
 
-            if (_overrideCurrentDb)
-            {
-                adjustedOverrides = adjustedOverrides.Add(
-                    ("jobs.main.current.database.clusterUri", _clusterUri));
-                adjustedOverrides = adjustedOverrides.Add(
-                    ("jobs.main.current.database.database", _currentDb));
-            }
-            if (_overrideTargetDb)
-            {
-                adjustedOverrides = adjustedOverrides.Add(
-                    ("jobs.main.target.database.clusterUri", _clusterUri));
-                adjustedOverrides = adjustedOverrides.Add(
-                    ("jobs.main.target.database.database", _targetDb));
-            }
-
-            return base.RunParametersAsync(parameterFilePath, adjustedOverrides.ToArray());
+            return base.RunParametersAsync(parameterFilePath, adjustedOverrides);
         }
 
         protected async Task PrepareCurrentAsync(string scriptPath)
@@ -120,7 +102,6 @@ namespace DeltaKustoAdxIntegrationTest
             var commands = CommandBase.FromScript(script);
             var gateway = CreateKustoManagementGateway(true);
 
-            await EnsureCleanAsync();
             await gateway.ExecuteCommandsAsync(commands);
         }
 
@@ -134,6 +115,13 @@ namespace DeltaKustoAdxIntegrationTest
                 CreateTokenProvider());
 
             return gateway;
+        }
+
+        protected async Task CleanDatabasesAsync()
+        {
+            await Task.WhenAll(
+                CleanDbAsync(true),
+                CleanDbAsync(false));
         }
 
         private ITokenProvider CreateTokenProvider()
@@ -153,18 +141,7 @@ namespace DeltaKustoAdxIntegrationTest
             return tokenProvider!;
         }
 
-        private async Task EnsureCleanAsync()
-        {
-            if (!_isClean)
-            {
-                await EnsureCleanDbAsync(true);
-                await EnsureCleanDbAsync(false);
-
-                _isClean = true;
-            }
-        }
-
-        private async Task EnsureCleanDbAsync(bool isCurrent)
+        private async Task CleanDbAsync(bool isCurrent)
         {
             var emptyDbProvider = (IDatabaseProvider)new EmptyDatabaseProvider();
             var kustoGateway = CreateKustoManagementGateway(isCurrent);
