@@ -31,9 +31,9 @@ namespace DeltaKustoAdxIntegrationTest
                     + ".kql";
                 var overrides = new[]
                 {
-                        ("jobs.main.target.scripts", (object) new[]{ new { filePath = toFile } }),
-                        ("jobs.main.action.filePath", outputPath)
-                    };
+                    ("jobs.main.target.scripts", (object) new[]{ new { filePath = toFile } }),
+                    ("jobs.main.action.filePath", outputPath)
+                };
                 var parameters = await RunParametersAsync(
                     "Functions/AdxToFile/delta-params.json",
                     overrides);
@@ -62,7 +62,7 @@ namespace DeltaKustoAdxIntegrationTest
         }
 
         private async Task<IImmutableList<CommandBase>> ApplyCommandsToCurrent(
-    IEnumerable<CommandBase> outputCommands)
+            IEnumerable<CommandBase> outputCommands)
         {
             var gateway = CreateKustoManagementGateway(true);
             var dbProvider = (IDatabaseProvider)new KustoDatabaseProvider(gateway);
