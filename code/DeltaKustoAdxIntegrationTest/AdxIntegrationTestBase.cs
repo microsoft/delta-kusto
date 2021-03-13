@@ -118,19 +118,19 @@ namespace DeltaKustoAdxIntegrationTest
         {
             var script = await File.ReadAllTextAsync(scriptPath);
             var commands = CommandBase.FromScript(script);
-            var gateway = CreateKustoManagementGateway(_currentDb);
+            var gateway = CreateKustoManagementGateway(true);
 
             await EnsureCleanAsync();
             await gateway.ExecuteCommandsAsync(commands);
         }
 
-        private IKustoManagementGateway CreateKustoManagementGateway(string database)
+        protected IKustoManagementGateway CreateKustoManagementGateway(bool isCurrent)
         {
             var gatewayFactory =
                 new KustoManagementGatewayFactory() as IKustoManagementGatewayFactory;
             var gateway = gatewayFactory.CreateGateway(
                 _clusterUri,
-                database,
+                isCurrent ? _currentDb : _targetDb,
                 CreateTokenProvider());
 
             return gateway;
@@ -157,17 +157,17 @@ namespace DeltaKustoAdxIntegrationTest
         {
             if (!_isClean)
             {
-                await EnsureCleanDbAsync(_currentDb);
-                await EnsureCleanDbAsync(_targetDb);
+                await EnsureCleanDbAsync(true);
+                await EnsureCleanDbAsync(false);
 
                 _isClean = true;
             }
         }
 
-        private async Task EnsureCleanDbAsync(string database)
+        private async Task EnsureCleanDbAsync(bool isCurrent)
         {
             var emptyDbProvider = (IDatabaseProvider)new EmptyDatabaseProvider();
-            var kustoGateway = CreateKustoManagementGateway(database);
+            var kustoGateway = CreateKustoManagementGateway(isCurrent);
             var dbProvider = (IDatabaseProvider)new KustoDatabaseProvider(kustoGateway);
             var emptyDb = await emptyDbProvider.RetrieveDatabaseAsync();
             var db = await dbProvider.RetrieveDatabaseAsync();

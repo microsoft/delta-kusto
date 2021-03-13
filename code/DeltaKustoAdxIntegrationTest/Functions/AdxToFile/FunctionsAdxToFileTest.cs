@@ -1,5 +1,9 @@
+using DeltaKustoIntegration.Database;
 using DeltaKustoLib.CommandModel;
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
@@ -14,54 +18,53 @@ namespace DeltaKustoAdxIntegrationTest
         }
 
         [Fact]
-        public async Task FromEmptyDbToEmptyScript()
+        public async Task GenericAdxToFile()
         {
-            var parameters = await RunParametersAsync(
-                "Functions/AdxToFile/FromEmptyDbToEmptyScript/delta-params.json");
-            var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
-            var commands = await LoadScriptAsync(outputPath);
+            var stateFiles = Directory.GetFiles("Functions/States");
 
-            Assert.Empty(commands);
+            foreach (var fromFile in stateFiles)
+            {
+                foreach (var toFile in stateFiles)
+                {
+                    await PrepareCurrentAsync(fromFile);
+
+                    var outputPath = "outputs/functions/adx-to-file/"
+                        + Path.GetFileNameWithoutExtension(fromFile)
+                        + "_"
+                        + Path.GetFileNameWithoutExtension(toFile)
+                        + ".kql";
+                    var overrides = new[]
+                    {
+                        ("jobs.main.target.scripts", (object) new[]{ new { filePath = toFile } }),
+                        ("jobs.main.action.filePath", outputPath)
+                    };
+                    var parameters = await RunParametersAsync(
+                        "Functions/AdxToFile/delta-params.json",
+                        overrides);
+                    var outputCommands = await LoadScriptAsync(outputPath);
+                    var targetCommands = CommandBase.FromScript(
+                        await File.ReadAllTextAsync(toFile));
+                    var finalCommands = await ApplyCommandsToCurrent(outputCommands);
+
+                    Assert.True(finalCommands.SequenceEqual(targetCommands));
+                }
+            }
         }
 
-        [Fact]
-        public async Task FromEmptyDbToOneFunction()
+        private async Task<IImmutableList<CommandBase>> ApplyCommandsToCurrent(
+            IEnumerable<CommandBase> outputCommands)
         {
-            var parameters = await RunParametersAsync(
-                "Functions/AdxToFile/FromEmptyDbToOneFunction/delta-params.json");
-            var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
-            var inputPath = parameters.Jobs!.First().Value.Target!.Scripts!.First().FilePath!;
-            var inputCommands = await LoadScriptAsync(inputPath);
-            var outputCommands = await LoadScriptAsync(outputPath);
+            var gateway = CreateKustoManagementGateway(true);
+            var dbProvider = (IDatabaseProvider)new KustoDatabaseProvider(gateway);
+            var emptyProvider = (IDatabaseProvider)new EmptyDatabaseProvider();
+            //  Apply delta to current
+            await gateway.ExecuteCommandsAsync(outputCommands);
 
-            Assert.True(inputCommands.SequenceEqual(outputCommands));
-        }
+            var finalDb = await dbProvider.RetrieveDatabaseAsync();
+            var emptyDb = await emptyProvider.RetrieveDatabaseAsync();
+            var finalCommands = finalDb.ComputeDelta(emptyDb);
 
-        [Fact]
-        public async Task FromEmptyDbToTwoFunctions()
-        {
-            var parameters = await RunParametersAsync(
-                "Functions/AdxToFile/FromEmptyDbToTwoFunctions/delta-params.json");
-            var inputPath = parameters.Jobs!.First().Value.Target!.Scripts!.First().FilePath!;
-            var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
-            var inputCommands = await LoadScriptAsync(inputPath);
-            var outputCommands = await LoadScriptAsync(outputPath);
-
-            Assert.True(inputCommands.SequenceEqual(outputCommands));
-        }
-
-        [Fact]
-        public async Task FromOneToNone()
-        {
-            await PrepareCurrentAsync("Functions/AdxToFile/FromOneToNone/current.kql");
-
-            var parameters = await RunParametersAsync(
-                "Functions/AdxToFile/FromOneToNone/delta-params.json");
-            var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
-            var outputCommands = await LoadScriptAsync(outputPath);
-
-            Assert.Single(outputCommands);
-            Assert.IsType<DropFunctionCommand>(outputCommands.First()!);
+            return finalCommands;
         }
     }
 }

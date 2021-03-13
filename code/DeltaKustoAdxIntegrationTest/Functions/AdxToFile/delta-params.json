@@ -17,12 +17,12 @@
       "target": {
         "scripts": [
           {
-            "filePath": "Functions/AdxToFile/FromEmptyDbToTwoFunctions/target.kql"
+            "filePath": "to-be-overriden"
           }
         ]
       },
       "action": {
-        "filePath": "outputs/functions/adx-to-file/from-empty-db-to-two-functions/empty-delta.kql"
+        "filePath": "to-be-overriden"
       }
     }
   }
