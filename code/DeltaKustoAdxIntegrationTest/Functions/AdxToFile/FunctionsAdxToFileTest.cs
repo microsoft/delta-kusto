@@ -46,7 +46,9 @@ namespace DeltaKustoAdxIntegrationTest
                         await File.ReadAllTextAsync(toFile));
                     var finalCommands = await ApplyCommandsToCurrent(outputCommands);
 
-                    Assert.True(finalCommands.SequenceEqual(targetCommands));
+                    Assert.True(
+                        finalCommands.SequenceEqual(targetCommands),
+                        $"From {fromFile} to {toFile}");
                 }
             }
         }
