@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace DeltaKustoAdxIntegrationTest
+namespace DeltaKustoAdxIntegrationTest.Functions
 {
     public class FunctionsAdxToFileTest : AdxIntegrationTestBase
     {
@@ -35,7 +35,7 @@ namespace DeltaKustoAdxIntegrationTest
                     ("jobs.main.action.filePath", outputPath)
                 };
                 var parameters = await RunParametersAsync(
-                    "Functions/AdxToFile/delta-params.json",
+                    "Functions/adx-to-file-params.json",
                     overrides);
                 var outputCommands = await LoadScriptAsync(outputPath);
                 var targetCommands = CommandBase.FromScript(

@@ -36,12 +36,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Functions\FileToAdx\" />
-    <Folder Include="Functions\AdxToAdx\" />
     <Folder Include="Properties\" />
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Functions\adx-to-file-params.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Functions\AdxToFile\delta-params.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
