@@ -96,11 +96,11 @@ namespace DeltaKustoAdxIntegrationTest
             return base.RunParametersAsync(parameterFilePath, adjustedOverrides);
         }
 
-        protected async Task PrepareCurrentAsync(string scriptPath)
+        protected async Task PrepareDbAsync(string scriptPath, bool isCurrent)
         {
             var script = await File.ReadAllTextAsync(scriptPath);
             var commands = CommandBase.FromScript(script);
-            var gateway = CreateKustoManagementGateway(true);
+            var gateway = CreateKustoManagementGateway(isCurrent);
 
             await gateway.ExecuteCommandsAsync(commands);
         }

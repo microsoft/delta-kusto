@@ -17,7 +17,7 @@ namespace DeltaKustoAdxIntegrationTest.Functions
         {
             await LoopThroughStateFilesAsync(async (fromFile, toFile) =>
             {
-                await PrepareCurrentAsync(fromFile);
+                await PrepareDbAsync(fromFile, true);
 
                 var outputPath = "outputs/functions/adx-to-file/"
                     + Path.GetFileNameWithoutExtension(fromFile)
@@ -46,10 +46,17 @@ namespace DeltaKustoAdxIntegrationTest.Functions
         {
             await LoopThroughStateFilesAsync(async (fromFile, toFile) =>
             {
-                await PrepareCurrentAsync(fromFile);
+                await PrepareDbAsync(fromFile, true);
+                await PrepareDbAsync(toFile, false);
 
+                var outputPath = "outputs/functions/adx-to-adx/"
+                    + Path.GetFileNameWithoutExtension(fromFile)
+                    + "_"
+                    + Path.GetFileNameWithoutExtension(toFile)
+                    + ".kql";
                 var overrides = CurrentDbOverrides
-                    .Concat(TargetDbOverrides);
+                    .Concat(TargetDbOverrides)
+                    .Append(("jobs.main.action.filePath", outputPath));
                 var parameters = await RunParametersAsync(
                     "Functions/adx-to-adx-params.json",
                     overrides);

@@ -47,7 +47,10 @@ namespace delta_kusto
                 {
                     var currentDbProvider = CreateDatabaseProvider(job.Current, tokenProvider);
                     var targetDbProvider = CreateDatabaseProvider(job.Target, tokenProvider);
-                    var actionProviders = CreateActionProvider(job.Action, tokenProvider, job.Target?.Database);
+                    var actionProviders = CreateActionProvider(
+                        job.Action!,
+                        tokenProvider,
+                        job.Target?.Database);
                     var currentDb = await currentDbProvider.RetrieveDatabaseAsync();
                     var targetDb = await targetDbProvider.RetrieveDatabaseAsync();
                     var deltaCommands = currentDb.ComputeDelta(targetDb);
@@ -95,30 +98,38 @@ namespace delta_kusto
         }
 
         private IImmutableList<IActionProvider> CreateActionProvider(
-            ActionParameterization? action,
+            ActionParameterization action,
             ITokenProvider? tokenProvider,
-            DatabaseSourceParameterization? cluster)
+            DatabaseSourceParameterization? database)
         {
             var builder = ImmutableArray<IActionProvider>.Empty.ToBuilder();
 
-            if (action == null)
+            if (action.FilePath != null)
+            {
+                builder.Add(new OneFileActionProvider(_fileGateway, action.FilePath));
+            }
+            if (action.FolderPath != null)
+            {
+                builder.Add(new MultiFilesActionProvider(_fileGateway, action.FolderPath));
+            }
+            if (action.PushToConsole)
             {
                 throw new NotImplementedException();
             }
-            else
+            if (action.PushToTargetCluster)
             {
-                if (action.FilePath != null)
+                if (tokenProvider == null)
                 {
-                    builder.Add(new OneFileActionProvider(_fileGateway, action.FilePath));
+                    throw new InvalidOperationException(
+                        $"{tokenProvider} can't be null at this point");
                 }
-                if (action.FolderPath != null)
-                {
-                    builder.Add(new MultiFilesActionProvider(_fileGateway, action.FolderPath));
-                }
-                if (action.PushToTargetCluster == true)
-                {
-                    throw new NotImplementedException();
-                }
+
+                var kustoManagementGateway = _kustoManagementGatewayFactory.CreateGateway(
+                    new Uri(database!.ClusterUri!),
+                    database!.Database!,
+                    tokenProvider);
+
+                builder.Add(new KustoActionProvider(kustoManagementGateway));
             }
             if (builder.Count() == 0)
             {
