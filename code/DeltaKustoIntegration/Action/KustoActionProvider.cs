@@ -19,10 +19,13 @@ namespace DeltaKustoIntegration.Action
 
         async Task IActionProvider.ProcessDeltaCommandsAsync(IEnumerable<CommandBase> commands)
         {
-            await _kustoManagementGateway.ExecuteCommandsAsync(
-                commands.OfType<DropFunctionCommand>());
-            await _kustoManagementGateway.ExecuteCommandsAsync(
-                commands.OfType<CreateFunctionCommand>());
+            //  Re-order the commands in the order we want them to execute
+            //  (essentially, drop before create)
+            var sortedCommands =
+                ((IEnumerable<CommandBase>)commands.OfType<DropFunctionCommand>())
+                .Concat(commands.OfType<CreateFunctionCommand>());
+
+            await _kustoManagementGateway.ExecuteCommandsAsync(sortedCommands);
         }
     }
 }

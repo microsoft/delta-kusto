@@ -46,8 +46,9 @@ namespace DeltaKustoAdxIntegrationTest.Functions
         {
             await LoopThroughStateFilesAsync(async (fromFile, toFile) =>
             {
-                await PrepareDbAsync(fromFile, true);
-                await PrepareDbAsync(toFile, false);
+                await Task.WhenAll(
+                    PrepareDbAsync(fromFile, true),
+                    PrepareDbAsync(toFile, false));
 
                 var outputPath = "outputs/functions/adx-to-adx/"
                     + Path.GetFileNameWithoutExtension(fromFile)
