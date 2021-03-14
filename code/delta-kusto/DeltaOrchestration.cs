@@ -47,12 +47,15 @@ namespace delta_kusto
                 {
                     var currentDbProvider = CreateDatabaseProvider(job.Current, tokenProvider);
                     var targetDbProvider = CreateDatabaseProvider(job.Target, tokenProvider);
-                    var actionProvider = CreateActionProvider(job.Action, tokenProvider, job.Target?.Database);
+                    var actionProviders = CreateActionProvider(job.Action, tokenProvider, job.Target?.Database);
                     var currentDb = await currentDbProvider.RetrieveDatabaseAsync();
                     var targetDb = await targetDbProvider.RetrieveDatabaseAsync();
                     var deltaCommands = currentDb.ComputeDelta(targetDb);
 
-                    await actionProvider.ProcessDeltaCommandsAsync(deltaCommands);
+                    foreach (var actionProvider in actionProviders)
+                    {
+                        await actionProvider.ProcessDeltaCommandsAsync(deltaCommands);
+                    }
                 }
                 catch (DeltaException ex)
                 {
@@ -91,31 +94,38 @@ namespace delta_kusto
             }
         }
 
-        private IActionProvider CreateActionProvider(
+        private IImmutableList<IActionProvider> CreateActionProvider(
             ActionParameterization? action,
             ITokenProvider? tokenProvider,
             DatabaseSourceParameterization? cluster)
         {
+            var builder = ImmutableArray<IActionProvider>.Empty.ToBuilder();
+
             if (action == null)
-            {
-                throw new NotImplementedException();
-            }
-            else if (action.FilePath != null)
-            {
-                return new OneFileActionProvider(_fileGateway, action.FilePath);
-            }
-            else if (action.FolderPath != null)
-            {
-                return new MultiFilesActionProvider(_fileGateway, action.FolderPath);
-            }
-            else if (action.UseTargetCluster == true)
             {
                 throw new NotImplementedException();
             }
             else
             {
+                if (action.FilePath != null)
+                {
+                    builder.Add(new OneFileActionProvider(_fileGateway, action.FilePath));
+                }
+                if (action.FolderPath != null)
+                {
+                    builder.Add(new MultiFilesActionProvider(_fileGateway, action.FolderPath));
+                }
+                if (action.PushToTargetCluster == true)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            if (builder.Count() == 0)
+            {
                 throw new InvalidOperationException("We should never get here");
             }
+
+            return builder.ToImmutable();
         }
 
         private IDatabaseProvider CreateDatabaseProvider(

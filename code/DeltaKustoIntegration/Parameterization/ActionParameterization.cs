@@ -10,38 +10,35 @@ namespace DeltaKustoIntegration.Parameterization
 
         public string? FolderPath { get; set; }
 
-        public bool UseTargetCluster { get; set; } = false;
+        public bool PushToConsole { get; set; } = false;
+        
+        public bool PushToTargetCluster { get; set; } = false;
 
         internal void Validate()
         {
+            if (FilePath == null && FolderPath == null && !PushToTargetCluster)
+            {
+                throw new DeltaException("No action defined");
+            }
             if (FilePath != null && FolderPath != null)
             {
                 throw new DeltaException(
                     "Both 'filePath' and 'folderPath' can't both be populated");
             }
-            if ((FilePath != null || FolderPath != null) && UseTargetCluster)
+            if (FilePath == null && FolderPath == null)
             {
                 throw new DeltaException(
-                    "When 'useTargetCluster' is set to true, "
-                    + "'filePath' and 'folderPath' can't be populated");
+                    "Either 'filePath' and 'folderPath' must be populated");
             }
-            if (!UseTargetCluster)
+            if (FilePath != null && string.IsNullOrWhiteSpace(FilePath))
             {
-                if (FilePath == null && FolderPath == null)
-                {
-                    throw new DeltaException(
-                        "Either 'filePath' and 'folderPath' must be populated");
-                }
-                if (FilePath != null && string.IsNullOrWhiteSpace(FilePath))
-                {
-                    throw new DeltaException(
-                        "If 'filePath' is specified, it must contain a valid path");
-                }
-                if (FolderPath != null && string.IsNullOrWhiteSpace(FolderPath))
-                {
-                    throw new DeltaException(
-                        "If 'folderPath' is specified, it must contain a valid path");
-                }
+                throw new DeltaException(
+                    "If 'filePath' is specified, it must contain a valid path");
+            }
+            if (FolderPath != null && string.IsNullOrWhiteSpace(FolderPath))
+            {
+                throw new DeltaException(
+                    "If 'folderPath' is specified, it must contain a valid path");
             }
         }
     }

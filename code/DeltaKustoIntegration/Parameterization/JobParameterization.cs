@@ -6,6 +6,8 @@ namespace DeltaKustoIntegration.Parameterization
     {
         public int Priority { get; set; } = int.MaxValue;
 
+        public bool FailIfDrops { get; set; } = false;
+
         public SourceParameterization? Current { get; set; }
 
         public SourceParameterization? Target { get; set; }
@@ -16,7 +18,13 @@ namespace DeltaKustoIntegration.Parameterization
         {
             if (Target == null)
             {
-                throw new DeltaException("Parameter file doesn't contain mandatory 'target' parameters");
+                throw new DeltaException(
+                    "Parameter file doesn't contain mandatory 'target' parameter");
+            }
+            if (Action == null)
+            {
+                throw new DeltaException(
+                    "Parameter file doesn't contain mandatory 'action' parameter");
             }
 
             Target.Validate();
@@ -25,15 +33,12 @@ namespace DeltaKustoIntegration.Parameterization
             {
                 Current.Validate();
             }
-            if (Action != null)
+            Action.Validate();
+            if (Action.PushToTargetCluster && Target?.Database == null)
             {
-                Action.Validate();
-                if (Action.UseTargetCluster && Target?.Database == null)
-                {
-                    throw new DeltaException(
-                        "'action.useTargetCluster' can only be used "
-                        + "in conjonction with 'target.cluster'");
-                }
+                throw new DeltaException(
+                    "'action.useTargetCluster' can only be used "
+                    + "in conjonction with 'target.cluster'");
             }
         }
     }
