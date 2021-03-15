@@ -73,7 +73,7 @@ namespace DeltaKustoAdxIntegrationTest
             TargetDbOverrides = ImmutableArray<(string path, object value)>
                 .Empty
                 .Add(("jobs.main.target.database.clusterUri", (object)_clusterUri))
-                .Add(("jobs.main.target.database.database", _currentDb));
+                .Add(("jobs.main.target.database.database", _targetDb));
         }
 
         protected IEnumerable<(string path, object value)> CurrentDbOverrides { get; }

@@ -31,6 +31,12 @@ namespace DeltaKustoLib.CommandModel
             bool? skipValidation)
             : base(functionName)
         {
+            if (functionBody.Trim().StartsWith('{'))
+            {
+                throw new ArgumentException(
+                    $"Body should start with curly braces:  '{functionBody}'",
+                    nameof(functionBody));
+            }
             Parameters = parameters.ToImmutableArray();
             Body = functionBody.Trim();
             Folder = folder;

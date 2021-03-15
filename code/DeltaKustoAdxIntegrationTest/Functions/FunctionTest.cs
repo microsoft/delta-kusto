@@ -21,7 +21,7 @@ namespace DeltaKustoAdxIntegrationTest.Functions
 
                 var outputPath = "outputs/functions/adx-to-file/"
                     + Path.GetFileNameWithoutExtension(fromFile)
-                    + "_"
+                    + "_2_"
                     + Path.GetFileNameWithoutExtension(toFile)
                     + ".kql";
                 var overrides = CurrentDbOverrides
@@ -33,7 +33,46 @@ namespace DeltaKustoAdxIntegrationTest.Functions
                 var outputCommands = await LoadScriptAsync(outputPath);
                 var targetCommands = CommandBase.FromScript(
                     await File.ReadAllTextAsync(toFile));
-                var finalCommands = await ApplyCommandsToCurrentAsync(outputCommands);
+
+                await ApplyCommandsAsync(outputCommands, true);
+
+                var finalCommands = await FetchDbCommandsAsync(true);
+
+                Assert.True(
+                    finalCommands.SequenceEqual(targetCommands),
+                    $"From {fromFile} to {toFile}");
+            });
+        }
+
+        [Fact]
+        public async Task FileToAdx()
+        {
+            await LoopThroughStateFilesAsync(async (fromFile, toFile) =>
+            {
+                await PrepareDbAsync(toFile, false);
+
+                var outputPath = "outputs/functions/adx-to-file/"
+                    + Path.GetFileNameWithoutExtension(fromFile)
+                    + "_2_"
+                    + Path.GetFileNameWithoutExtension(toFile)
+                    + ".kql";
+                var overrides = TargetDbOverrides
+                    .Append(("jobs.main.current.scripts", new[] { new { filePath = fromFile } }))
+                    .Append(("jobs.main.action.filePath", outputPath));
+                var parameters = await RunParametersAsync(
+                    "Functions/file-to-adx-params.json",
+                    overrides);
+                var outputCommands = await LoadScriptAsync(outputPath);
+                var currentCommands = CommandBase.FromScript(
+                    await File.ReadAllTextAsync(fromFile));
+                var targetCommands = CommandBase.FromScript(
+                    await File.ReadAllTextAsync(toFile));
+                
+                await ApplyCommandsAsync(
+                    currentCommands.Concat(outputCommands),
+                    true);
+
+                var finalCommands = await FetchDbCommandsAsync(true);
 
                 Assert.True(
                     finalCommands.SequenceEqual(targetCommands),
@@ -52,7 +91,7 @@ namespace DeltaKustoAdxIntegrationTest.Functions
 
                 var outputPath = "outputs/functions/adx-to-adx/"
                     + Path.GetFileNameWithoutExtension(fromFile)
-                    + "_"
+                    + "_2_"
                     + Path.GetFileNameWithoutExtension(toFile)
                     + ".kql";
                 var overrides = CurrentDbOverrides
@@ -85,17 +124,22 @@ namespace DeltaKustoAdxIntegrationTest.Functions
             }
         }
 
-        private async Task<IImmutableList<CommandBase>> ApplyCommandsToCurrentAsync(
-            IEnumerable<CommandBase> outputCommands)
+        private async Task ApplyCommandsAsync(IEnumerable<CommandBase> commands, bool isCurrent)
         {
-            var gateway = CreateKustoManagementGateway(true);
+            var gateway = CreateKustoManagementGateway(isCurrent);
+            
+            //  Apply commands to the db
+            await gateway.ExecuteCommandsAsync(commands);
+        }
+
+        private async Task<IImmutableList<CommandBase>> FetchDbCommandsAsync(bool isCurrent)
+        {
+            var gateway = CreateKustoManagementGateway(isCurrent);
             var dbProvider = (IDatabaseProvider)new KustoDatabaseProvider(gateway);
             var emptyProvider = (IDatabaseProvider)new EmptyDatabaseProvider();
-            //  Apply delta to current
-            await gateway.ExecuteCommandsAsync(outputCommands);
-
             var finalDb = await dbProvider.RetrieveDatabaseAsync();
             var emptyDb = await emptyProvider.RetrieveDatabaseAsync();
+            //  Use the delta from an empty db to get 
             var finalCommands = finalDb.ComputeDelta(emptyDb);
 
             return finalCommands;

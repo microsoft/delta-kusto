@@ -81,7 +81,10 @@ namespace DeltaKustoIntegration.Parameterization
             }
         }
 
-        private static void RecursiveInplaceOverride(object target, IImmutableList<string> properties, object value)
+        private static void RecursiveInplaceOverride(
+            object target,
+            IImmutableList<string> properties,
+            object value)
         {
             var isDictonary = target.GetType().IsGenericType
                 && target.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>);
