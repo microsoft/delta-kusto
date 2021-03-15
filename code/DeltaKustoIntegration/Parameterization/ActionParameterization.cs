@@ -12,11 +12,11 @@ namespace DeltaKustoIntegration.Parameterization
 
         public bool PushToConsole { get; set; } = false;
         
-        public bool PushToTargetCluster { get; set; } = false;
+        public bool PushToCurrentCluster { get; set; } = false;
 
         internal void Validate()
         {
-            if (FilePath == null && FolderPath == null && !PushToTargetCluster)
+            if (FilePath == null && FolderPath == null && !PushToCurrentCluster)
             {
                 throw new DeltaException("No action defined");
             }

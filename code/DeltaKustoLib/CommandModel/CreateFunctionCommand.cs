@@ -38,6 +38,7 @@ namespace DeltaKustoLib.CommandModel
                     nameof(functionBody));
             }
             Parameters = parameters.ToImmutableArray();
+            ValidateNoTableParameterAfterScalar(functionName, Parameters);
             Body = functionBody.Trim();
             Folder = folder;
             DocString = docString;
@@ -294,6 +295,32 @@ namespace DeltaKustoLib.CommandModel
                 }
 
                 return (folder, docString, skipValidation);
+            }
+        }
+
+        private void ValidateNoTableParameterAfterScalar(
+            string functionName,
+            IImmutableList<TypedParameterModel> parameters)
+        {
+            //  This implements the rule cited in a note in https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/functions/user-defined-functions#input-arguments
+            //  "When using both tabular input arguments and scalar input arguments, put all tabular input arguments before the scalar input arguments."
+            if (parameters.Count() > 2)
+            {
+                var skipEnd = parameters.Take(parameters.Count - 1);
+                var skipBeginning = parameters.Skip(1);
+                var zipped = skipEnd.Zip(skipBeginning, (p1, p2) => (current: p1, next: p2));
+                var violation = zipped
+                    .Where(p => p.current.ComplexType == null && p.next.ComplexType != null);
+                var firstViolation = violation.FirstOrDefault();
+
+                if (violation.Any())
+                {
+                    throw new DeltaException(
+                        $"In function parameters, table types should preceed scalar parameters.  "
+                        + $"This rule isn't respected in function '{functionName}':  "
+                        + $"parameter '{firstViolation.next.ParameterName}' is a table parameter "
+                        + $"and follows '{firstViolation.current.ParameterName}' which is a scalar");
+                }
             }
         }
     }

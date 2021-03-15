@@ -1,0 +1,2 @@
+﻿.create function MyFunction(a:(b:double, c:bool), d:int, e:string) { 42 }
+

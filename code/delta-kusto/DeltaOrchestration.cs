@@ -50,7 +50,7 @@ namespace delta_kusto
                     var actionProviders = CreateActionProvider(
                         job.Action!,
                         tokenProvider,
-                        job.Target?.Database);
+                        job.Current?.Database);
                     var currentDb = await currentDbProvider.RetrieveDatabaseAsync();
                     var targetDb = await targetDbProvider.RetrieveDatabaseAsync();
                     var deltaCommands = currentDb.ComputeDelta(targetDb);
@@ -116,7 +116,7 @@ namespace delta_kusto
             {
                 throw new NotImplementedException();
             }
-            if (action.PushToTargetCluster)
+            if (action.PushToCurrentCluster)
             {
                 if (tokenProvider == null)
                 {
