@@ -205,7 +205,18 @@ namespace DeltaKustoIntegration.Parameterization
 
                 if (newTarget == null)
                 {
-                    throw new DeltaException($"Property '{jsonProperty}' is null");
+                    newTarget = propertyInfo
+                        .PropertyType
+                        .GetConstructor(new Type[0])
+                        ?.Invoke(null);
+
+                    if (newTarget == null)
+                    {
+                        throw new InvalidOperationException(
+                            $"Failed constructor on type '{newTarget}'");
+                    }
+
+                    propertyInfo.GetSetMethod()!.Invoke(target, new[] { newTarget });
                 }
 
                 RecursiveInplaceOverride(

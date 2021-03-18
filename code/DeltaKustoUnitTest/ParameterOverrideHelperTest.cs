@@ -157,6 +157,24 @@ namespace DeltaKustoUnitTest
 
             Assert.Equal(newTenantId, main.TokenProvider!.Login!.TenantId);
         }
+
+        [Fact]
+        public void TestSimplePropertyInNonExistingNodePath()
+        {
+            var main = new MainParameterization
+            {
+                TokenProvider = new TokenProviderParameterization
+                {
+                }
+            };
+            var newTenantId = "hello-world";
+
+            ParameterOverrideHelper.InplaceOverride(
+                main,
+                $"[{{\"path\" : \"tokenProvider.login.tenantId\", \"value\":\"{newTenantId}\" }}]");
+
+            Assert.Equal(newTenantId, main.TokenProvider!.Login!.TenantId);
+        }
         #endregion
     }
 }
