@@ -23,6 +23,7 @@ namespace DeltaKustoUnitTest
             Assert.Equal(!before, main.SendTelemetryOptIn);
         }
 
+        #region Expected errors
         [Fact]
         public void TestSinglePropertyWrongType()
         {
@@ -54,9 +55,11 @@ namespace DeltaKustoUnitTest
             {
             }
         }
+        #endregion
 
+        #region Existing properties
         [Fact]
-        public void TestPropertyPath()
+        public void TestExistingPropertyPath()
         {
             var main = new MainParameterization
             {
@@ -81,7 +84,7 @@ namespace DeltaKustoUnitTest
         }
 
         [Fact]
-        public void TestDictionarySubItem()
+        public void TestExistingDictionarySubItem()
         {
             var main = new MainParameterization
             {
@@ -133,5 +136,80 @@ namespace DeltaKustoUnitTest
 
             Assert.Equal(newToken, main.TokenProvider!.TokenMap["mine"].Token);
         }
+        #endregion
+
+        #region Non-existing properties
+        [Fact]
+        public void TestNonExistingSimplePropertyPath()
+        {
+            var main = new MainParameterization
+            {
+                TokenProvider = new TokenProviderParameterization
+                {
+                    Login = new ServicePrincipalLoginParameterization()
+                }
+            };
+            var newTenantId = "hello-world";
+
+            ParameterOverrideHelper.InplaceOverride(
+                main,
+                $"[{{\"path\" : \"tokenProvider.login.tenantId\", \"value\":\"{newTenantId}\" }}]");
+
+            Assert.Equal(newTenantId, main.TokenProvider!.Login!.TenantId);
+        }
+
+        [Fact]
+        public void TestSimplePropertyInNonExistingNodePath()
+        {
+            var main = new MainParameterization
+            {
+                TokenProvider = new TokenProviderParameterization
+                {
+                }
+            };
+            var newTenantId = "hello-world";
+
+            ParameterOverrideHelper.InplaceOverride(
+                main,
+                $"[{{\"path\" : \"tokenProvider.login.tenantId\", \"value\":\"{newTenantId}\" }}]");
+
+            Assert.Equal(newTenantId, main.TokenProvider!.Login!.TenantId);
+        }
+
+        [Fact]
+        public void TestNonExistingDictionarySubItem()
+        {
+            var main = new MainParameterization
+            {
+                TokenProvider = new TokenProviderParameterization
+                {
+                    TokenMap = new Dictionary<string, TokenMapParameterization>()
+                }
+            };
+            var newToken = "Hello world";
+
+            ParameterOverrideHelper.InplaceOverride(
+                main,
+                $"[{{\"path\" : \"tokenProvider.tokenMap.mine.token\", \"value\":\"{newToken}\" }}]");
+
+            Assert.Equal(newToken, main.TokenProvider!.TokenMap["mine"].Token);
+        }
+
+        [Fact]
+        public void TestNonExistingEntireDictionarySubItem()
+        {
+            var main = new MainParameterization
+            {
+                TokenProvider = new TokenProviderParameterization()
+            };
+            var newToken = "Hello world";
+
+            ParameterOverrideHelper.InplaceOverride(
+                main,
+                $"[{{\"path\" : \"tokenProvider.tokenMap.mine.token\", \"value\":\"{newToken}\" }}]");
+
+            Assert.Equal(newToken, main.TokenProvider!.TokenMap!["mine"].Token);
+        }
+        #endregion
     }
 }

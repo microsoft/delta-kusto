@@ -14,7 +14,7 @@ namespace DeltaKustoIntegration.Parameterization
 
         public TokenProviderParameterization? TokenProvider { get; set; }
 
-        public IDictionary<string, JobParameterization> Jobs { get; set; } = new Dictionary<string, JobParameterization>();
+        public Dictionary<string, JobParameterization> Jobs { get; set; } = new Dictionary<string, JobParameterization>();
 
         public void Validate()
         {

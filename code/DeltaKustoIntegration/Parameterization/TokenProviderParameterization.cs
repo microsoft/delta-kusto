@@ -8,7 +8,7 @@ namespace DeltaKustoIntegration.Parameterization
 {
     public class TokenProviderParameterization
     {
-        public IDictionary<string, TokenMapParameterization>? TokenMap { get; set; }
+        public Dictionary<string, TokenMapParameterization>? TokenMap { get; set; }
 
         public ServicePrincipalLoginParameterization? Login { get; set; }
 
