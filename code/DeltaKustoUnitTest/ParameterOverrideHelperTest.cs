@@ -113,7 +113,7 @@ namespace DeltaKustoUnitTest
         }
 
         [Fact]
-        public void TestExistingWholeDictionary()
+        public void TestWholeDictionary()
         {
             var main = new MainParameterization
             {
@@ -174,6 +174,41 @@ namespace DeltaKustoUnitTest
                 $"[{{\"path\" : \"tokenProvider.login.tenantId\", \"value\":\"{newTenantId}\" }}]");
 
             Assert.Equal(newTenantId, main.TokenProvider!.Login!.TenantId);
+        }
+
+        [Fact]
+        public void TestNonExistingDictionarySubItem()
+        {
+            var main = new MainParameterization
+            {
+                TokenProvider = new TokenProviderParameterization
+                {
+                    TokenMap = new Dictionary<string, TokenMapParameterization>()
+                }
+            };
+            var newToken = "Hello world";
+
+            ParameterOverrideHelper.InplaceOverride(
+                main,
+                $"[{{\"path\" : \"tokenProvider.tokenMap.mine.token\", \"value\":\"{newToken}\" }}]");
+
+            Assert.Equal(newToken, main.TokenProvider!.TokenMap["mine"].Token);
+        }
+
+        [Fact]
+        public void TestNonExistingEntireDictionarySubItem()
+        {
+            var main = new MainParameterization
+            {
+                TokenProvider = new TokenProviderParameterization()
+            };
+            var newToken = "Hello world";
+
+            ParameterOverrideHelper.InplaceOverride(
+                main,
+                $"[{{\"path\" : \"tokenProvider.tokenMap.mine.token\", \"value\":\"{newToken}\" }}]");
+
+            Assert.Equal(newToken, main.TokenProvider!.TokenMap!["mine"].Token);
         }
         #endregion
     }

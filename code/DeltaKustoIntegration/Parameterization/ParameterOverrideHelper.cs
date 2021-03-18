@@ -121,7 +121,7 @@ namespace DeltaKustoIntegration.Parameterization
         private static void RecursiveInplaceOverrideOnDictionary<T>(
             IDictionary<string, T> target,
             IImmutableList<string> properties,
-            object value) where T : class
+            object value) where T : class, new()
         {
             var property = properties.First();
 
@@ -129,7 +129,7 @@ namespace DeltaKustoIntegration.Parameterization
             {
                 if (!target.ContainsKey(property))
                 {
-                    throw new DeltaException($"Property '{property}' doesn't exist on object");
+                    target[property] = new T();
                 }
 
                 var newTarget = target[property];
