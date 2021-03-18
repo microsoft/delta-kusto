@@ -13,6 +13,8 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace delta_kusto
 {
@@ -73,10 +75,11 @@ namespace delta_kusto
         {
             try
             {
+                var deserializer = new DeserializerBuilder()
+                    .WithNamingConvention(CamelCaseNamingConvention.Instance)
+                    .Build();
                 var parameterText = await _fileGateway.GetFileContentAsync(parameterFilePath);
-                var parameters = JsonSerializer.Deserialize<MainParameterization>(
-                    parameterText,
-                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                var parameters = deserializer.Deserialize<MainParameterization>(parameterText);
 
                 if (parameters == null)
                 {
