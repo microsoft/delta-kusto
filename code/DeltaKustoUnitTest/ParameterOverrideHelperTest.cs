@@ -13,14 +13,14 @@ namespace DeltaKustoUnitTest
         public void TestSingleProperty()
         {
             var main = new MainParameterization();
-            var before = main.SendTelemetryOptIn;
+            var before = main.SendErrorOptIn;
             var value = (!before).ToString().ToLower();
 
             ParameterOverrideHelper.InplaceOverride(
                 main,
-                $"[{{\"path\" : \"sendTelemetryOptIn\", \"value\":{value} }}]");
+                $"[{{\"path\" : \"sendErrorOptIn\", \"value\":{value} }}]");
 
-            Assert.Equal(!before, main.SendTelemetryOptIn);
+            Assert.Equal(!before, main.SendErrorOptIn);
         }
 
         #region Expected errors
