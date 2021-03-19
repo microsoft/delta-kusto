@@ -347,8 +347,11 @@ namespace DeltaKustoIntegration.Kusto
                     var failedItem = failedItems.First();
 
                     throw new InvalidOperationException(
-                        $"Command failed to execute with reason '{failedItem.reason}':  "
-                        + $"'{failedItem.commandText}'.  Operation ID:  {failedItem.operationId}");
+                        $"Command failed to execute with reason '{failedItem.reason}'.  "
+                        + $"Operation ID:  {failedItem.operationId}.  "
+                        + $"Cluster URI:  {_clusterUri}.  "
+                        + $"Database:  {_database}.  "
+                        + $"Command:  '{failedItem.commandText}'.");
                 }
             }
         }
