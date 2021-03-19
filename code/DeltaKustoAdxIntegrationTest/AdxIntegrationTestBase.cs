@@ -193,6 +193,7 @@ namespace DeltaKustoAdxIntegrationTest
             {
                 foreach (var toFile in stateFiles)
                 {
+                    Console.WriteLine($"Current loop:  ({fromFile}, {toFile})");
                     await CleanDatabasesAsync();
                     await loopFunction(fromFile, toFile);
                 }
@@ -246,10 +247,21 @@ namespace DeltaKustoAdxIntegrationTest
         protected async Task PrepareDbAsync(string scriptPath, bool isCurrent)
         {
             var script = await File.ReadAllTextAsync(scriptPath);
-            var commands = CommandBase.FromScript(script);
-            var gateway = CreateKustoManagementGateway(isCurrent);
 
-            await gateway.ExecuteCommandsAsync(commands);
+            try
+            {
+                var commands = CommandBase.FromScript(script);
+                var gateway = CreateKustoManagementGateway(isCurrent);
+
+                await gateway.ExecuteCommandsAsync(commands);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException(
+                    $"Failure during PrepareDb.  isCurrent={isCurrent}.  "
+                    + $"Script = '{script.Replace("\n", "\\n").Replace("\r", "\\r")}'",
+                    ex);
+            }
         }
 
         private IKustoManagementGateway CreateKustoManagementGateway(bool isCurrent)

@@ -102,7 +102,7 @@ namespace delta_kusto
         {
             var success = true;
 
-            Console.WriteLine($"{deltaCommands} commands in delta");
+            Console.WriteLine($"{deltaCommands.Count()} commands in delta");
             if (deltaCommands.AllDropCommands.Any())
             {
                 Console.WriteLine("Delta contains drop commands:");
