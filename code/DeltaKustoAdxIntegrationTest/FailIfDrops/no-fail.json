@@ -1,0 +1,30 @@
+﻿{
+  "failIfDrops": false,
+  "tokenProvider": {
+    "login": {
+      "tenantId": "to-be-overriden",
+      "clientId": "to-be-overriden",
+      "secret": "to-be-overriden"
+    }
+  },
+  "jobs": {
+    "main": {
+      "current": {
+        "scripts": [
+          {
+            "filePath": "FailIfDrops/source.kql"
+          }
+        ]
+      },
+      "target": {
+        "database": {
+          "clusterUri": "to-be-overriden",
+          "database": "to-be-overriden"
+        }
+      },
+      "action": {
+        "filePath": "outputs/fail-if-drops/no-fail.kql"
+      }
+    }
+  }
+}

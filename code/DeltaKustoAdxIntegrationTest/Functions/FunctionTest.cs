@@ -13,6 +13,7 @@ namespace DeltaKustoAdxIntegrationTest.Functions
     public class FunctionsAdxToFileTest : AdxIntegrationTestBase
     {
         private const string STATES_FOLDER_PATH = "Functions/States";
+
         [Fact]
         public async Task AdxToFile()
         {
