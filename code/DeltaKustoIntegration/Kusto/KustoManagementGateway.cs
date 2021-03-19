@@ -347,13 +347,17 @@ namespace DeltaKustoIntegration.Kusto
                     var failedItem = failedItems.First();
                     var failedItemCommand =
                         failedItem.commandText.Replace("\n", "\\n").Replace("\r", "\\r");
+                    var allCommands = string.Join(
+                        ", ",
+                        content.Select(i => $"({i.result}:  '{i.commandText}')"));
 
                     throw new InvalidOperationException(
                         $"Command failed to execute with reason '{failedItem.reason}'.  "
                         + $"Operation ID:  {failedItem.operationId}.  "
                         + $"Cluster URI:  {_clusterUri}.  "
                         + $"Database:  {_database}.  "
-                        + $"Command:  '{failedItemCommand}'.");
+                        + $"Command:  '{failedItemCommand}'.  "
+                        + $"All commands:  {allCommands}");
                 }
             }
         }
