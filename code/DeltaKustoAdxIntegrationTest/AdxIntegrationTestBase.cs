@@ -259,6 +259,7 @@ namespace DeltaKustoAdxIntegrationTest
             {
                 throw new InvalidOperationException(
                     $"Failure during PrepareDb.  isCurrent={isCurrent}.  "
+                    + $"Script path = '{scriptPath}'"
                     + $"Script = '{script.Replace("\n", "\\n").Replace("\r", "\\r")}'",
                     ex);
             }
