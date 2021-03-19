@@ -18,7 +18,9 @@ namespace DeltaKustoIntegration.Action
             _filePath = filePath;
         }
 
-        async Task IActionProvider.ProcessDeltaCommandsAsync(ActionCommandCollection commands)
+        async Task IActionProvider.ProcessDeltaCommandsAsync(
+            bool doNotProcessIfDrops,
+            ActionCommandCollection commands)
         {
             var builder = new StringBuilder();
 

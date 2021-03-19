@@ -20,54 +20,106 @@ namespace delta_kusto
 {
     internal class DeltaOrchestration
     {
+        private readonly bool _verbose;
         private readonly IFileGateway _fileGateway;
         private readonly IKustoManagementGatewayFactory _kustoManagementGatewayFactory;
         private readonly ITokenProviderFactory _tokenProviderFactory;
 
         public DeltaOrchestration(
+            bool verbose = false,
             IFileGateway? fileGateway = null,
             IKustoManagementGatewayFactory? kustoManagementGatewayFactory = null,
             ITokenProviderFactory? tokenProviderFactory = null)
         {
+            _verbose = verbose;
             _fileGateway = fileGateway ?? new FileGateway();
             _kustoManagementGatewayFactory = kustoManagementGatewayFactory
                 ?? new KustoManagementGatewayFactory();
             _tokenProviderFactory = tokenProviderFactory ?? new TokenProviderFactory();
         }
 
-        public async Task ComputeDeltaAsync(string parameterFilePath, string jsonOverrides)
+        public async Task<bool> ComputeDeltaAsync(string parameterFilePath, string jsonOverrides)
         {
+            Console.WriteLine($"Loading parameters at '{parameterFilePath}'");
+
             var parameters = await LoadParameterizationAsync(parameterFilePath, jsonOverrides);
             var tokenProvider = _tokenProviderFactory.CreateProvider(parameters.TokenProvider);
             var orderedJobs = parameters.Jobs.OrderBy(p => p.Value.Priority);
+            var success = true;
+
+            Console.WriteLine($"{orderedJobs.Count()} jobs");
 
             foreach (var jobPair in orderedJobs)
             {
                 var (jobName, job) = jobPair;
+                var jobSuccess = await ProcessJobAsync(parameters, tokenProvider, jobName, job);
 
-                try
+                success = success && jobSuccess;
+            }
+
+            return success;
+        }
+
+        private async Task<bool> ProcessJobAsync(
+            MainParameterization parameters,
+            ITokenProvider? tokenProvider,
+            string jobName,
+            JobParameterization job)
+        {
+            Console.WriteLine($"Job {jobName}");
+            try
+            {
+                var currentDbProvider = CreateDatabaseProvider(job.Current, tokenProvider);
+                var targetDbProvider = CreateDatabaseProvider(job.Target, tokenProvider);
+                var actionProviders = CreateActionProvider(
+                    job.Action!,
+                    tokenProvider,
+                    job.Current?.Database);
+                var currentDb = await currentDbProvider.RetrieveDatabaseAsync();
+                var targetDb = await targetDbProvider.RetrieveDatabaseAsync();
+                var deltaCommands =
+                    new ActionCommandCollection(currentDb.ComputeDelta(targetDb));
+                var jobSuccess = ReportOnDeltaCommands(parameters, deltaCommands);
+
+                foreach (var actionProvider in actionProviders)
                 {
-                    var currentDbProvider = CreateDatabaseProvider(job.Current, tokenProvider);
-                    var targetDbProvider = CreateDatabaseProvider(job.Target, tokenProvider);
-                    var actionProviders = CreateActionProvider(
-                        job.Action!,
-                        tokenProvider,
-                        job.Current?.Database);
-                    var currentDb = await currentDbProvider.RetrieveDatabaseAsync();
-                    var targetDb = await targetDbProvider.RetrieveDatabaseAsync();
-                    var deltaCommands =
-                        new ActionCommandCollection(currentDb.ComputeDelta(targetDb));
-
-                    foreach (var actionProvider in actionProviders)
-                    {
-                        await actionProvider.ProcessDeltaCommandsAsync(deltaCommands);
-                    }
+                    await actionProvider.ProcessDeltaCommandsAsync(
+                        parameters.FailIfDrops,
+                        deltaCommands);
                 }
-                catch (DeltaException ex)
+
+                return jobSuccess;
+            }
+            catch (DeltaException ex)
+            {
+                throw new DeltaException($"Issue in running job '{jobName}'", ex);
+            }
+        }
+
+        private static bool ReportOnDeltaCommands(
+            MainParameterization parameters,
+            ActionCommandCollection deltaCommands)
+        {
+            var success = true;
+
+            Console.WriteLine($"{deltaCommands} commands in delta");
+            if (deltaCommands.AllDropCommands.Any())
+            {
+                Console.WriteLine("Delta contains drop commands:");
+                foreach (var command in deltaCommands.AllDropCommands)
                 {
-                    throw new DeltaException($"Issue in running job '{jobName}'", ex);
+                    Console.WriteLine("  " + command.ToScript());
+                }
+                Console.WriteLine();
+                if (parameters.FailIfDrops)
+                {
+                    Console.Error.WriteLine("Drop commands forces failure");
+                    success = false;
                 }
             }
+            Console.WriteLine("Processing delta commands");
+
+            return success;
         }
 
         internal async Task<MainParameterization> LoadParameterizationAsync(

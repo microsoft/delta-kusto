@@ -9,7 +9,9 @@ namespace DeltaKustoIntegration.Action
 {
     public class ConsoleActionProvider : IActionProvider
     {
-        Task IActionProvider.ProcessDeltaCommandsAsync(ActionCommandCollection commands)
+        Task IActionProvider.ProcessDeltaCommandsAsync(
+            bool doNotProcessIfDrops,
+            ActionCommandCollection commands)
         {
             throw new NotImplementedException();
         }

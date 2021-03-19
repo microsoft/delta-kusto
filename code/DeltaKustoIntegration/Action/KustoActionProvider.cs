@@ -17,15 +17,14 @@ namespace DeltaKustoIntegration.Action
             _kustoManagementGateway = kustoManagementGateway;
         }
 
-        async Task IActionProvider.ProcessDeltaCommandsAsync(ActionCommandCollection commands)
+        async Task IActionProvider.ProcessDeltaCommandsAsync(
+            bool doNotProcessIfDrops,
+            ActionCommandCollection commands)
         {
-            //  Re-order the commands in the order we want them to execute
-            //  (essentially, drop before create)
-            var sortedCommands =
-                ((IEnumerable<CommandBase>)commands.OfType<DropFunctionCommand>())
-                .Concat(commands.OfType<CreateFunctionCommand>());
-
-            await _kustoManagementGateway.ExecuteCommandsAsync(sortedCommands);
+            if (!doNotProcessIfDrops || !commands.AllDropCommands.Any())
+            {
+                await _kustoManagementGateway.ExecuteCommandsAsync(commands);
+            }
         }
     }
 }

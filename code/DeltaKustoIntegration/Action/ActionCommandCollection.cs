@@ -24,7 +24,8 @@ namespace DeltaKustoIntegration.Action
                 .OrderBy(d => d.Folder)
                 .ThenBy(d => d.ObjectName)
                 .ToImmutableArray();
-            _allCommands = ((IEnumerable<CommandBase>)DropFunctionCommands)
+            AllDropCommands = DropFunctionCommands;
+            _allCommands = AllDropCommands
                 .Concat(CreateFunctionCommands);
         }
 
@@ -42,7 +43,7 @@ namespace DeltaKustoIntegration.Action
         }
         #endregion
 
-        public bool ContainsDropCommands => DropFunctionCommands.Any();
+        public IEnumerable<CommandBase> AllDropCommands { get; }
 
         public IImmutableList<DropFunctionCommand> DropFunctionCommands { get; }
         

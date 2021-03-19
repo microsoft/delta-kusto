@@ -20,7 +20,9 @@ namespace DeltaKustoIntegration.Action
             _folderPath = folderPath;
         }
 
-        async Task IActionProvider.ProcessDeltaCommandsAsync(ActionCommandCollection commands)
+        async Task IActionProvider.ProcessDeltaCommandsAsync(
+            bool doNotProcessIfDrops,
+            ActionCommandCollection commands)
         {
             await ProcessDeltaCommandsAsync(commands.DropFunctionCommands, "functions/drop");
             await ProcessDeltaCommandsAsync(commands.CreateFunctionCommands, "functions/create");
