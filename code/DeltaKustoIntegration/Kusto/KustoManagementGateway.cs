@@ -351,7 +351,7 @@ namespace DeltaKustoIntegration.Kusto
                         + $"Operation ID:  {failedItem.operationId}.  "
                         + $"Cluster URI:  {_clusterUri}.  "
                         + $"Database:  {_database}.  "
-                        + $"Command:  '{failedItem.commandText}'.");
+                        + $"Command:  '{failedItem.commandText.Replace("\n", "\\n")}'.");
                 }
             }
         }
