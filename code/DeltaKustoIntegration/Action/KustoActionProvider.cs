@@ -17,7 +17,7 @@ namespace DeltaKustoIntegration.Action
             _kustoManagementGateway = kustoManagementGateway;
         }
 
-        async Task IActionProvider.ProcessDeltaCommandsAsync(IEnumerable<CommandBase> commands)
+        async Task IActionProvider.ProcessDeltaCommandsAsync(ActionCommandCollection commands)
         {
             //  Re-order the commands in the order we want them to execute
             //  (essentially, drop before create)

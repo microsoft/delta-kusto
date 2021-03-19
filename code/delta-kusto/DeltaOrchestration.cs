@@ -55,7 +55,8 @@ namespace delta_kusto
                         job.Current?.Database);
                     var currentDb = await currentDbProvider.RetrieveDatabaseAsync();
                     var targetDb = await targetDbProvider.RetrieveDatabaseAsync();
-                    var deltaCommands = currentDb.ComputeDelta(targetDb);
+                    var deltaCommands =
+                        new ActionCommandCollection(currentDb.ComputeDelta(targetDb));
 
                     foreach (var actionProvider in actionProviders)
                     {

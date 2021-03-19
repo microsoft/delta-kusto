@@ -18,17 +18,17 @@ namespace DeltaKustoIntegration.Action
             _filePath = filePath;
         }
 
-        async Task IActionProvider.ProcessDeltaCommandsAsync(IEnumerable<CommandBase> commands)
+        async Task IActionProvider.ProcessDeltaCommandsAsync(ActionCommandCollection commands)
         {
             var builder = new StringBuilder();
 
-            ProcessDeltaCommands<DropFunctionCommand>(
+            ProcessDeltaCommands(
                 builder,
-                commands,
+                commands.DropFunctionCommands,
                 "Drop functions");
-            ProcessDeltaCommands<CreateFunctionCommand>(
+            ProcessDeltaCommands(
                 builder,
-                commands,
+                commands.CreateFunctionCommands,
                 "Create functions");
 
             await _fileGateway.SetFileContentAsync(_filePath, builder.ToString());
@@ -36,15 +36,11 @@ namespace DeltaKustoIntegration.Action
 
         private void ProcessDeltaCommands<CT>(
             StringBuilder builder,
-            IEnumerable<CommandBase> commands,
+            IEnumerable<CT> commands,
             string comment)
             where CT : CommandBase
         {
-            var typedCommands = commands
-                .OfType<CT>()
-                .OrderBy(c => c.ObjectName);
-
-            if (typedCommands.Any())
+            if (commands.Any())
             {
                 builder.Append("//  ");
                 builder.Append(comment);
@@ -52,7 +48,7 @@ namespace DeltaKustoIntegration.Action
                 builder.AppendLine();
             }
 
-            foreach (var command in typedCommands)
+            foreach (var command in commands)
             {
                 var script = command.ToScript();
 

@@ -20,26 +20,18 @@ namespace DeltaKustoIntegration.Action
             _folderPath = folderPath;
         }
 
-        async Task IActionProvider.ProcessDeltaCommandsAsync(IEnumerable<CommandBase> commands)
+        async Task IActionProvider.ProcessDeltaCommandsAsync(ActionCommandCollection commands)
         {
-            await ProcessDeltaCommandsAsync<DropFunctionCommand>(
-                commands,
-                "functions/drop");
-            await ProcessDeltaCommandsAsync<CreateFunctionCommand>(
-                commands,
-                "functions/create");
+            await ProcessDeltaCommandsAsync(commands.DropFunctionCommands, "functions/drop");
+            await ProcessDeltaCommandsAsync(commands.CreateFunctionCommands, "functions/create");
         }
 
         private async Task ProcessDeltaCommandsAsync<CT>(
-            IEnumerable<CommandBase> commands,
+            IEnumerable<CT> commands,
             string folder)
             where CT : CommandBase
         {
-            var typedCommands = commands
-                .OfType<CT>()
-                .OrderBy(c => c.ObjectName);
-
-            foreach (var command in typedCommands)
+            foreach (var command in commands)
             {
                 var fileName = command.ObjectName + ".kql";
                 var script = command.ToScript();
