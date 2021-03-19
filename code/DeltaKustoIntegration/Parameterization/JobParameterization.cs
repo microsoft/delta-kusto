@@ -6,8 +6,6 @@ namespace DeltaKustoIntegration.Parameterization
     {
         public int Priority { get; set; } = int.MaxValue;
 
-        public bool FailIfDrops { get; set; } = false;
-
         public SourceParameterization? Current { get; set; }
 
         public SourceParameterization? Target { get; set; }
