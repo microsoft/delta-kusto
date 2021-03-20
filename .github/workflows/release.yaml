@@ -15,7 +15,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: gh
-      run:  gh repo list
+      run:  |
+        gh auth login --with-token ${{ secrets.GITHUB_TOKEN }}
+        gh repo list
     - name: Patch version
       id:  patch-version
       run: python3 deployment/patch-version.py code/delta-kusto/delta-kusto.csproj ${{ github.run_number }}
