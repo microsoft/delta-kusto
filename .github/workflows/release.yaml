@@ -14,15 +14,30 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name:  Output full version
-      run:  |
-        echo "Branch:  ${{ github.ref }}"
     - name: Patch version
       id:  patch-version
       run: python3 deployment/patch-version.py code/delta-kusto/delta-kusto.csproj ${{ github.run_number }}
     - name:  Output full version
       run:  |
         echo "Full version:  ${{ steps.patch-version.outputs.full-version }}"
+    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-restore
+    - name: Install dependencies
+      run: dotnet restore code
+    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-build
+    - name: Build
+      run: dotnet build code --configuration Release --no-restore
+    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
+    - name: Unit Tests
+      run: dotnet test code/DeltaKustoUnitTest --configuration Release --no-build --verbosity normal
+    # See https://github.com/dotnet/designs/blob/main/accepted/2020/single-file/design.md#user-experience
+    # & https://docs.microsoft.com/en-us/dotnet/core/deploying/single-file
+    # & https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-publish
+    - name: Build single file executable
+      run: |
+        dotnet publish code/delta-kusto -c release -r $dotnetOs \
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
+          -p:PublishTrimmed=true -p:PublishReadyToRun=true \
+          -o bin
     # - name: Tag
     #   run: |
     #     git tag test
