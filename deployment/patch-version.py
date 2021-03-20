@@ -27,10 +27,6 @@ else:
     print('XML content:')
     print(document.toxml())
 
-    #   Set GeneratePackageOnBuild to true
-    generate=document.getElementsByTagName('GeneratePackageOnBuild')[0]
-    generate.firstChild.nodeValue = "true"
-
     #   Add patch to the version
     version=document.getElementsByTagName('Version')[0]
     version.firstChild.nodeValue += "." + patchNumber
