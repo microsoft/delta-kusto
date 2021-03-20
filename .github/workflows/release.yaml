@@ -14,7 +14,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Tag
-      run: |
-        git tag test
-        git push --tags
+    - name: Patch version
+      id:  patch-version
+      run: python3 deployment/patch-version.py code/delta-kusto/delta-kusto.csproj ${{ github.run_number }}
+    - name:  Output full version
+      run:  echo "Full version:  ${{ steps.patch-version.outputs.full-version }}"
+    # - name: Tag
+    #   run: |
+    #     git tag test
+    #     git push --tags
