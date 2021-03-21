@@ -40,7 +40,9 @@ namespace DeltaKustoAdxIntegrationTest.Functions
             try
             {
                 //  The "Main" will return non-zero which will throw an exception
-                await RunParametersAsync("FailIfDrops/no-fail.json", overrides);
+                var parameters = await RunParametersAsync("FailIfDrops/no-fail.json", overrides);
+
+                Assert.True(parameters.FailIfDrops);
                 Assert.False(true, "Should have thrown by now");
             }
             catch (InvalidOperationException)
