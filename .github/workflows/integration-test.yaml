@@ -54,10 +54,19 @@ jobs:
         echo "deltaKustoSpSecret=${{ secrets.SP_SECRET }}" >> $GITHUB_ENV
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
     - name: File-based integration tests (out-of-proc)
-      run: dotnet test code/DeltaKustoFileIntegrationTest --configuration Release --no-build --verbosity normal
+      run: |
+        # Disable parallelization of tests
+        dotnet test code/DeltaKustoFileIntegrationTest \
+        --configuration Release --no-build --verbosity normal \
+        -p:ParallelizeTestCollections=false
+
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
     - name: ADX-based integration tests (out-of-proc)
-      run: dotnet test code/DeltaKustoAdxIntegrationTest --configuration Release --no-build --verbosity normal
+      run: |
+        # Disable parallelization of tests
+        dotnet test code/DeltaKustoAdxIntegrationTest \
+        --configuration Release --no-build --verbosity normal \
+        -p:ParallelizeTestCollections=false
 
   # windows:
 
