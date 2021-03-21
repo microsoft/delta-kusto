@@ -92,9 +92,15 @@ namespace delta_kusto
             }
 
             //  Dependency injection
-            var orchestration = new DeltaOrchestration();
+            var orchestration = new DeltaOrchestration(options.Verbose);
+            var success = await orchestration.ComputeDeltaAsync(
+                options.ParameterFilePath,
+                options.Overrides);
 
-            await orchestration.ComputeDeltaAsync(options.ParameterFilePath, options.Overrides);
+            if (!success)
+            {
+                throw new DeltaException("Failure due to drop commands");
+            }
         }
 
         private static void HandleParseError(

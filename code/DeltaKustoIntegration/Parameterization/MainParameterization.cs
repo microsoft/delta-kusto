@@ -10,7 +10,9 @@ namespace DeltaKustoIntegration.Parameterization
     {
         public string Schema { get; set; } = "Temp-URI!";
 
-        public bool SendTelemetryOptIn { get; set; } = false;
+        public bool SendErrorOptIn { get; set; } = false;
+
+        public bool FailIfDrops { get; set; } = false;
 
         public TokenProviderParameterization? TokenProvider { get; set; }
 

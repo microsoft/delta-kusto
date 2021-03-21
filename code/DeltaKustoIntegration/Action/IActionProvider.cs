@@ -8,6 +8,6 @@ namespace DeltaKustoIntegration.Action
 {
     public interface IActionProvider
     {
-        Task ProcessDeltaCommandsAsync(IEnumerable<CommandBase> commands);
+        Task ProcessDeltaCommandsAsync(bool doNotProcessIfDrops, ActionCommandCollection commands);
     }
 }

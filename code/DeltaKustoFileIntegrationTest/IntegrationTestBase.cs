@@ -155,7 +155,10 @@ namespace DeltaKustoFileIntegrationTest
                 "-o",
                 jsonOverrides);
 
-            Assert.Equal(0, returnedValue);
+            if (returnedValue != 0)
+            {
+                throw new InvalidOperationException($"Main returned {returnedValue}");
+            }
 
             var orchestration = new DeltaOrchestration();
             var parameters = await orchestration.LoadParameterizationAsync(

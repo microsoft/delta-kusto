@@ -187,10 +187,13 @@ namespace DeltaKustoAdxIntegrationTest
         {
             var stateFiles = Directory.GetFiles(folderPath);
 
+            Console.WriteLine($"State files:  [{string.Join(", ", stateFiles)}]");
+
             foreach (var fromFile in stateFiles)
             {
                 foreach (var toFile in stateFiles)
                 {
+                    Console.WriteLine($"Current loop:  ({fromFile}, {toFile})");
                     await CleanDatabasesAsync();
                     await loopFunction(fromFile, toFile);
                 }
@@ -234,13 +237,32 @@ namespace DeltaKustoAdxIntegrationTest
             return base.RunParametersAsync(parameterFilePath, adjustedOverrides);
         }
 
-        private async Task PrepareDbAsync(string scriptPath, bool isCurrent)
+        protected async Task CleanDatabasesAsync()
+        {
+            await Task.WhenAll(
+                CleanDbAsync(true),
+                CleanDbAsync(false));
+        }
+
+        protected async Task PrepareDbAsync(string scriptPath, bool isCurrent)
         {
             var script = await File.ReadAllTextAsync(scriptPath);
-            var commands = CommandBase.FromScript(script);
-            var gateway = CreateKustoManagementGateway(isCurrent);
 
-            await gateway.ExecuteCommandsAsync(commands);
+            try
+            {
+                var commands = CommandBase.FromScript(script);
+                var gateway = CreateKustoManagementGateway(isCurrent);
+
+                await gateway.ExecuteCommandsAsync(commands);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException(
+                    $"Failure during PrepareDb.  isCurrent={isCurrent}.  "
+                    + $"Script path = '{scriptPath}'.  "
+                    + $"Script = '{script.Replace("\n", "\\n").Replace("\r", "\\r")}'",
+                    ex);
+            }
         }
 
         private IKustoManagementGateway CreateKustoManagementGateway(bool isCurrent)
@@ -253,13 +275,6 @@ namespace DeltaKustoAdxIntegrationTest
                 CreateTokenProvider());
 
             return gateway;
-        }
-
-        private async Task CleanDatabasesAsync()
-        {
-            await Task.WhenAll(
-                CleanDbAsync(true),
-                CleanDbAsync(false));
         }
 
         private ITokenProvider CreateTokenProvider()

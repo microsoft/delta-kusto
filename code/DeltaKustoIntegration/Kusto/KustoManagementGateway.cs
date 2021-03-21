@@ -345,12 +345,25 @@ namespace DeltaKustoIntegration.Kusto
                 if (failedItems.Any())
                 {
                     var failedItem = failedItems.First();
+                    var failedItemCommand = PackageString(failedItem.commandText);
+                    var allCommands = string.Join(
+                        ", ",
+                        content.Select(i => $"({i.result}:  '{PackageString(i.commandText)}')"));
 
                     throw new InvalidOperationException(
-                        $"Command failed to execute with reason '{failedItem.reason}':  "
-                        + $"'{failedItem.commandText}'.  Operation ID:  {failedItem.operationId}");
+                        $"Command failed to execute with reason '{failedItem.reason}'.  "
+                        + $"Operation ID:  {failedItem.operationId}.  "
+                        + $"Cluster URI:  {_clusterUri}.  "
+                        + $"Database:  {_database}.  "
+                        + $"Command:  '{failedItemCommand}'.  "
+                        + $"All commands:  {allCommands}");
                 }
             }
+        }
+
+        private static string PackageString(string text)
+        {
+            return text.Replace("\n", "\\n").Replace("\r", "\\r");
         }
 
         private async Task<ApiOutput> ExecuteCommandAsync(string commandScript)
