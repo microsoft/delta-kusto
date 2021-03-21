@@ -9,6 +9,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DeltaKustoIntegration.Kusto
@@ -299,6 +300,8 @@ namespace DeltaKustoIntegration.Kusto
         }
         #endregion
 
+        private static SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
+
         private readonly Uri _clusterUri;
         private readonly string _database;
         private readonly ITokenProvider _tokenProvider;
@@ -382,6 +385,10 @@ namespace DeltaKustoIntegration.Kusto
                     csl = commandScript
                 };
                 var bodyText = JsonSerializer.Serialize(body);
+                await _semaphoreSlim.WaitAsync();
+
+                try
+                {
                 var response = await client.PostAsync(
                     managementUrl,
                     new StringContent(bodyText, null, "application/json"));
@@ -398,6 +405,11 @@ namespace DeltaKustoIntegration.Kusto
                 var output = ApiOutput.FromJson(responseText);
 
                 return output;
+                }
+                finally
+                {
+                    _semaphoreSlim.Release();
+                }
             }
         }
     }
