@@ -1,8 +1,6 @@
 ﻿using CommandLine;
 using CommandLine.Text;
-using DeltaKustoIntegration;
 using DeltaKustoLib;
-using Kusto.Language.Parsing;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,6 +13,8 @@ namespace delta_kusto
     {
         internal static async Task<int> Main(string[] args)
         {
+            var activationTask = ApiClient.ActivateAsync();
+
             //  Use CommandLineParser NuGet package to parse command line
             //  See https://github.com/commandlineparser/commandline
             var parser = new Parser(with =>

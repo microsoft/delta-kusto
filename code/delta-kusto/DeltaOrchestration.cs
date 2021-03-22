@@ -43,21 +43,33 @@ namespace delta_kusto
             Console.WriteLine($"Loading parameters at '{parameterFilePath}'");
 
             var parameters = await LoadParameterizationAsync(parameterFilePath, jsonOverrides);
-            var tokenProvider = _tokenProviderFactory.CreateProvider(parameters.TokenProvider);
-            var orderedJobs = parameters.Jobs.OrderBy(p => p.Value.Priority);
-            var success = true;
 
-            Console.WriteLine($"{orderedJobs.Count()} jobs");
-
-            foreach (var jobPair in orderedJobs)
+            try
             {
-                var (jobName, job) = jobPair;
-                var jobSuccess = await ProcessJobAsync(parameters, tokenProvider, jobName, job);
+                var tokenProvider = _tokenProviderFactory.CreateProvider(parameters.TokenProvider);
+                var orderedJobs = parameters.Jobs.OrderBy(p => p.Value.Priority);
+                var success = true;
 
-                success = success && jobSuccess;
+                Console.WriteLine($"{orderedJobs.Count()} jobs");
+
+                foreach (var jobPair in orderedJobs)
+                {
+                    var (jobName, job) = jobPair;
+                    var jobSuccess = await ProcessJobAsync(parameters, tokenProvider, jobName, job);
+
+                    success = success && jobSuccess;
+                }
+
+                return success;
             }
-
-            return success;
+            catch (Exception ex)
+            {
+                if (parameters.SendErrorOptIn)
+                {
+                    await ApiClient.RegisterExceptionAsync(ex);
+                }
+                throw;
+            }
         }
 
         private async Task<bool> ProcessJobAsync(

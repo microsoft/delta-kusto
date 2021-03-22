@@ -113,6 +113,8 @@ namespace DeltaKustoFileIntegrationTest
             {
                 using (var process = new Process())
                 {
+                    //  Disable API calls for tests
+                    process.StartInfo.EnvironmentVariables.Add("disable-api-calls", "true");
                     process.StartInfo.FileName = _executablePath;
                     foreach (var arg in args)
                     {
