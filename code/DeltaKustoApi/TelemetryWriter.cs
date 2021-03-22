@@ -19,7 +19,10 @@ namespace DeltaKustoApi
         }
         #endregion
 
-        public static Task WriteTelemetryAsync<T>(T input, HttpRequest request)
+        public static Task WriteTelemetryAsync<T>(
+            string rootFolder,
+            T input,
+            HttpRequest request)
             where T : new()
         {
             var ipAddress = request.HttpContext.Connection.RemoteIpAddress?.ToString()
