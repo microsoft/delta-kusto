@@ -18,9 +18,18 @@ namespace DeltaKustoApi.Controllers.Activation
             _logger = logger;
         }
 
-        public Task<ActivationOutput> PostAsync(ActivationInput input)
+        public async Task<ActivationOutput> PostAsync(ActivationInput input)
         {
-            throw new NotImplementedException();
+            try
+            {
+                await TelemetryWriter.WriteTelemetryAsync(input, Request);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+            }
+
+            return new ActivationOutput();
         }
     }
 }

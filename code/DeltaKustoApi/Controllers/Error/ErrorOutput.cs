@@ -2,6 +2,6 @@
 {
     public class ErrorOutput
     {
-        public ApiInfo ApiInfo { get; set; }
+        public ApiInfo ApiInfo { get; set; } = new ApiInfo();
     }
 }

@@ -7,8 +7,8 @@ namespace DeltaKustoApi.Controllers
 {
     public class ClientInfo
     {
-        public string ClientVersion { get; set; }
+        public string ClientVersion { get; set; } = "";
 
-        public string OS { get; set; }
+        public string OS { get; set; } = "";
     }
 }

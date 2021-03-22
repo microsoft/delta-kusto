@@ -2,6 +2,6 @@
 {
     public class ActivationInput
     {
-        public ClientInfo ClientInfo { get; set; }
+        public ClientInfo ClientInfo { get; set; } = new ClientInfo();
     }
 }

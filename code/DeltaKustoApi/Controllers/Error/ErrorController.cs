@@ -18,9 +18,18 @@ namespace DeltaKustoApi.Controllers.Error
             _logger = logger;
         }
 
-        public Task<ErrorOutput> PostAsync(ErrorInput input)
+        public async Task<ErrorOutput> PostAsync(ErrorInput input)
         {
-            throw new NotImplementedException();
+            try
+            {
+                await TelemetryWriter.WriteTelemetryAsync(input, Request);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+            }
+
+            return new ErrorOutput();
         }
     }
 }
