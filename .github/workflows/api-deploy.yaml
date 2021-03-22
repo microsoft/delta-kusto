@@ -31,5 +31,7 @@ jobs:
     # Deploy Web App
     - name: Deploy
       run: |
+        ls -l
+        ls -l web-app
         cd web-app
         az webapp up --name "delta-kusto-api-dev-delta-kusto-pnctkmukjvu34" --plan "app-plan-delta-kusto-pnctkmukjvu34"
