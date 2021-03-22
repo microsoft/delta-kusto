@@ -22,7 +22,7 @@ namespace DeltaKustoApi.Controllers.Error
         {
             try
             {
-                await TelemetryWriter.WriteTelemetryAsync(input, Request);
+                await TelemetryWriter.WriteTelemetryAsync("activations", input, Request);
             }
             catch (Exception ex)
             {
