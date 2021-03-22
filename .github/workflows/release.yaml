@@ -6,6 +6,7 @@ on:  workflow_dispatch
 jobs:
   linux:
 
+    # Eventually, this should be multi-platform ; see https://stackoverflow.com/questions/57498605/github-actions-share-workspace-artifacts-between-jobs
     runs-on: ubuntu-latest
     
     env:

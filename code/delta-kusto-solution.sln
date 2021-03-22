@@ -13,7 +13,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeltaKustoIntegration", "De
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeltaKustoFileIntegrationTest", "DeltaKustoFileIntegrationTest\DeltaKustoFileIntegrationTest.csproj", "{E8F95050-A8D1-4CED-9B6B-4AD45C83983B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeltaKustoAdxIntegrationTest", "DeltaKustoAdxIntegrationTest\DeltaKustoAdxIntegrationTest.csproj", "{7D31BC18-A159-47CC-B148-B5EC19DE0C98}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DeltaKustoAdxIntegrationTest", "DeltaKustoAdxIntegrationTest\DeltaKustoAdxIntegrationTest.csproj", "{7D31BC18-A159-47CC-B148-B5EC19DE0C98}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DeltaKustoApi", "DeltaKustoApi\DeltaKustoApi.csproj", "{FF2347E5-7B1A-45A3-B924-99C4BC22036E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,6 +47,10 @@ Global
 		{7D31BC18-A159-47CC-B148-B5EC19DE0C98}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7D31BC18-A159-47CC-B148-B5EC19DE0C98}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7D31BC18-A159-47CC-B148-B5EC19DE0C98}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FF2347E5-7B1A-45A3-B924-99C4BC22036E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF2347E5-7B1A-45A3-B924-99C4BC22036E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF2347E5-7B1A-45A3-B924-99C4BC22036E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF2347E5-7B1A-45A3-B924-99C4BC22036E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
