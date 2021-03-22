@@ -3,7 +3,7 @@ name:  API Azure Infra
 on:  workflow_dispatch
 
 env:
-  rg:  gram-parser
+  rg:  ---
 
 jobs:
   deploy:
@@ -18,5 +18,5 @@ jobs:
     # Deploy
     - name: Deploy
       run: |
-        cd deployment
+        cd deployment/api
         bash deploy-api-infra.sh ${{ secrets.api_rg }}
