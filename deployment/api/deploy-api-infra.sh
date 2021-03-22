@@ -16,4 +16,4 @@ echo
 echo "Deploying ARM template"
 
 az deployment group create -n "deploy-$(uuidgen)" -g $rg \
-    --template-file gram-parser-infra.json
+    --template-file api-infra-deploy.json
