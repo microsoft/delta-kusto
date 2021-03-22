@@ -82,7 +82,7 @@
             "type": "Microsoft.Web/sites",
             "apiVersion": "2020-06-01",
             "copy": {
-                "name": "function-app-loop",
+                "name": "web-app-loop",
                 "count": "[length(variables('Web Apps'))]",
                 "mode": "parallel"
             },
@@ -91,7 +91,6 @@
             "tags": {
                 "env": "[variables('Web Apps')[copyIndex()].env]"
             },
-            "kind": "functionapp",
             "dependsOn": [
                 "[resourceId('Microsoft.Web/serverfarms', variables('App Plan'))]",
                 "[resourceId('Microsoft.Storage/storageAccounts', variables('Storage Account'))]"
