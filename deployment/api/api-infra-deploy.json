@@ -8,7 +8,16 @@
         "Suffix": "[concat('gram-parser-', variables('Unique ID'))]",
         "App Insights": "[concat('app-monitor-', variables('Suffix'))]",
         "Log Analytics": "[concat('infra-monitor-', variables('Suffix'))]",
+        "Storage Account": "[concat('storage', variables('Suffix'))]",
         "App Plan": "[concat('app-plan-', variables('Suffix'))]",
+        "Function Apps": [
+            {
+                "name": "[concat('delta-kusto-api-dev-', variables('Suffix'))]"
+            },
+            {
+                "name": "[concat('delta-kusto-api-prod-', variables('Suffix'))]"
+            }
+        ],
         "Front Door": "[concat('front-door-', variables('Suffix'))]"
     },
     "resources": [
@@ -40,6 +49,16 @@
             ]
         },
         {
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2019-06-01",
+            "name": "[variables('Storage Account')]",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "Standard_LRS"
+            },
+            "kind": "Storage"
+        },
+        {
             "type": "Microsoft.Web/serverfarms",
             "apiVersion": "2018-02-01",
             "name": "[variables('App Plan')]",
@@ -52,6 +71,57 @@
             "kind": "linux",
             "properties": {
                 "computeMode": "Dynamic"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2020-06-01",
+            "copy": {
+                "name": "function-app-loop",
+                "count": "[length(variables('Function Apps'))]",
+                "mode": "parallel"
+            },
+            "name": "[variables('Function Apps')[copyIndex()].name]",
+            "location": "[resourceGroup().location]",
+            "kind": "functionapp",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', variables('App Plan'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('Storage Account'))]"
+            ],
+            "properties": {
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('App Plan'))]",
+                "siteConfig": {
+                    "appSettings": [
+                        {
+                            "name": "AzureWebJobsStorage",
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('Storage Account'), ';EndpointSuffix=', environment().suffixes.storage, ';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('Storage Account')), '2019-06-01').keys[0].value)]"
+                        },
+                        {
+                            "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('Storage Account'), ';EndpointSuffix=', environment().suffixes.storage, ';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('Storage Account')), '2019-06-01').keys[0].value)]"
+                        },
+                        {
+                            "name": "WEBSITE_CONTENTSHARE",
+                            "value": "[toLower(variables('Function Apps')[copyIndex()].name)]"
+                        },
+                        {
+                            "name": "FUNCTIONS_EXTENSION_VERSION",
+                            "value": "~2"
+                        },
+                        {
+                            "name": "WEBSITE_NODE_DEFAULT_VERSION",
+                            "value": "~10"
+                        },
+                        {
+                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                            "value": "[reference(resourceId('microsoft.insights/components', variables('App Insights')), '2020-02-02-preview').InstrumentationKey]"
+                        },
+                        {
+                            "name": "FUNCTIONS_WORKER_RUNTIME",
+                            "value": "dotnet"
+                        }
+                    ]
+                }
             }
         }
         /*
