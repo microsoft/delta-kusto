@@ -31,11 +31,6 @@ jobs:
     # Deploy Web App
     - name: Deploy
       run: |
-        ls -l
-    - name: Deploy
-      run: |
-        ls -l web-app
-    - name: Deploy
-      run: |
         cd web-app
-        az webapp up --name "delta-kusto-api-dev-delta-kusto-pnctkmukjvu34" --plan "app-plan-delta-kusto-pnctkmukjvu34"
+        az webapp up -r "DOTNETCORE|3.1" \
+        --name "delta-kusto-api-dev-delta-kusto-pnctkmukjvu34" --plan "app-plan-delta-kusto-pnctkmukjvu34"
