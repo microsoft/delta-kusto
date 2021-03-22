@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
@@ -18,10 +20,12 @@ namespace delta_kusto
         {
             if (_doApiCalls)
             {
-                await PostAsync("/activation", new
-                {
-                    ClientInfo = _clientInfo
-                });
+                await PostAsync(
+                    "/activation",
+                    new
+                    {
+                        ClientInfo = _clientInfo
+                    });
             }
         }
 
@@ -29,8 +33,28 @@ namespace delta_kusto
         {
             if (_doApiCalls)
             {
-                await PostAsync("/error", new { });
+                await PostAsync(
+                    "/error", new
+                    {
+                        ClientInfo = _clientInfo,
+                        Source = ex.Source ?? string.Empty,
+                        Exceptions = CreateExceptions(ex).ToArray()
+                    });
             }
+        }
+
+        private static IEnumerable<object> CreateExceptions(Exception ex)
+        {
+            var head = new
+            {
+                Message = ex.Message,
+                ExceptionType = ex.GetType().FullName,
+                StackTrace = ex.StackTrace
+            };
+
+            return ex.InnerException != null
+                ? CreateExceptions(ex.InnerException).Prepend(head)
+                : new[] { head };
         }
 
         private static bool ComputeDoApiCalls()
