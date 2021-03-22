@@ -10,5 +10,7 @@ namespace DeltaKustoApi.Controllers
         public string ClientVersion { get; set; } = "";
 
         public string OS { get; set; } = "";
+        
+        public string OsVersion { get; set; } = "";
     }
 }
