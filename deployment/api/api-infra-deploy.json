@@ -9,6 +9,7 @@
         "App Insights": "[concat('app-monitor-', variables('Suffix'))]",
         "Log Analytics": "[concat('infra-monitor-', variables('Suffix'))]",
         "Storage Account": "[concat('storage', variables('Unique ID'))]",
+        "API Telemetry Container": "api-telemetry",
         "App Plan": "[concat('app-plan-', variables('Suffix'))]",
         "Web Apps": [
             {
@@ -58,7 +59,23 @@
             "sku": {
                 "name": "Standard_LRS"
             },
-            "kind": "Storage"
+            "kind": "Storage",
+            "properties": {
+                "isHnsEnabled": true
+            },
+            "resources": [
+                {
+                    "apiVersion": "2019-06-01",
+                    "type": "blobServices/containers",
+                    "name": "[concat('default/', variables('API Telemetry Container'))]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('Storage Account'))]"
+                    ],
+                    "properties": {
+                        "publicAccess": "None"
+                    }
+                }
+            ]
         },
         {
             "type": "Microsoft.Web/serverfarms",
@@ -98,7 +115,20 @@
             "properties": {
                 "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('App Plan'))]",
                 "siteConfig": {
-                    "appSettings": []
+                    "appSettings": [
+                        {
+                            "name": "storage-account-name",
+                            "value": "[variables('Storage Account')]"
+                        },
+                        {
+                            "name": "telemetry-container-name",
+                            "value": "[variables('API Telemetry Container')]"
+                        },
+                        {
+                            "name": "env",
+                            "value": "[variables('Web Apps')[copyIndex()].env]"
+                        }
+                    ]
                 }
             }
         }
