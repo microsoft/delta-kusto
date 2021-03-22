@@ -29,9 +29,10 @@ jobs:
     - name: Azure Login
       run: az login --service-principal -u ${{ secrets.deploy_sp_id }} -p ${{ secrets.deploy_sp_secret }} --tenant ${{ secrets.tenant_id }}
     # Deploy Web App
+    #-r "DOTNETCORE|3.1" \
     - name: Deploy
       run: |
         cd web-app
-        az webapp up -r "DOTNETCORE|3.1" \
-        --os-type "Linux"
+        az webapp up \
+        --os-type linux
         --name "delta-kusto-api-dev-delta-kusto-pnctkmukjvu34" --plan "app-plan-delta-kusto-pnctkmukjvu34"
