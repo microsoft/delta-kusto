@@ -33,4 +33,5 @@ jobs:
       run: |
         cd web-app
         az webapp up -r "DOTNETCORE|3.1" \
+        --os-type "Linux"
         --name "delta-kusto-api-dev-delta-kusto-pnctkmukjvu34" --plan "app-plan-delta-kusto-pnctkmukjvu34"
