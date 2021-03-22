@@ -23,7 +23,10 @@ namespace DeltaKustoApi.Controllers.Root
         {
             var info = new RootInfo
             {
-                ApiVersion = ApiVersion.FullVersion
+                ApiInfo = new ApiInfo
+                {
+                    ApiVersion = ApiVersion.FullVersion
+                }
             };
 
             return info;

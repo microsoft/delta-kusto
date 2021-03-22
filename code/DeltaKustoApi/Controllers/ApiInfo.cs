@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace DeltaKustoApi.Controllers.Root
+namespace DeltaKustoApi.Controllers
 {
-    public class RootInfo
+    public class ApiInfo
     {
-        public ApiInfo ApiInfo { get; set; }
+        public string ApiVersion { get; set; }
     }
 }
