@@ -5,10 +5,10 @@
     },
     "variables": {
         "Unique ID": "[uniqueString(concat(resourceGroup().id, 'kusto-x'))]",
-        "Suffix": "[concat('gram-parser-', variables('Unique ID'))]",
+        "Suffix": "[concat('delta-kusto-', variables('Unique ID'))]",
         "App Insights": "[concat('app-monitor-', variables('Suffix'))]",
         "Log Analytics": "[concat('infra-monitor-', variables('Suffix'))]",
-        "Storage Account": "[concat('storage', variables('Suffix'))]",
+        "Storage Account": "[concat('storage', variables('Unique ID'))]",
         "App Plan": "[concat('app-plan-', variables('Suffix'))]",
         "Function Apps": [
             {
