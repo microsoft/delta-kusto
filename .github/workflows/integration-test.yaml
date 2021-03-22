@@ -50,8 +50,8 @@ jobs:
         echo "deltaKustoCurrentDb=${{ secrets.CURRENT_DB }}" >> $GITHUB_ENV
         echo "deltaKustoTargetDb=${{ secrets.TARGET_DB }}" >> $GITHUB_ENV
         echo "deltaKustoTenantId=${{ secrets.TENANT_ID }}" >> $GITHUB_ENV
-        echo "deltaKustoSpId=${{ secrets.SP_ID }}" >> $GITHUB_ENV
-        echo "deltaKustoSpSecret=${{ secrets.SP_SECRET }}" >> $GITHUB_ENV
+        echo "deltaKustoSpId=${{ secrets.KUSTO_SP_ID }}" >> $GITHUB_ENV
+        echo "deltaKustoSpSecret=${{ secrets.KUSTO_SP_SECRET }}" >> $GITHUB_ENV
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
     - name: File-based integration tests (out-of-proc)
       run: |
