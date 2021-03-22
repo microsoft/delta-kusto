@@ -1,0 +1,397 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+    },
+    "variables": {
+        "Unique ID": "[uniqueString(concat(resourceGroup().id, 'kusto-x'))]",
+        "Suffix": "[concat('delta-kusto-', variables('Unique ID'))]",
+        "App Insights": "[concat('app-monitor-', variables('Suffix'))]",
+        "Log Analytics": "[concat('infra-monitor-', variables('Suffix'))]",
+        "Storage Account": "[concat('storage', variables('Unique ID'))]",
+        "App Plan": "[concat('app-plan-', variables('Suffix'))]",
+        "Web Apps": [
+            {
+                "name": "[concat('delta-kusto-api-dev-', variables('Suffix'))]",
+                "env": "dev"
+            },
+            {
+                "name": "[concat('delta-kusto-api-prod-', variables('Suffix'))]",
+                "env": "prod"
+            }
+        ],
+        "Front Door": "[concat('front-door-', variables('Suffix'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Insights/components",
+            "name": "[variables('App Insights')]",
+            "apiVersion": "2015-05-01",
+            "location": "[resourceGroup().location]",
+            "tags": {
+            },
+            "kind": "web",
+            "properties": {
+                "Application_Type": "web"
+            },
+            "dependsOn": [
+            ]
+        },
+        {
+            "type": "Microsoft.OperationalInsights/workspaces",
+            "name": "[variables('Log Analytics')]",
+            "apiVersion": "2015-11-01-preview",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "sku": {
+                    "name": "PerGB2018"
+                }
+            },
+            "dependsOn": [
+            ]
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2019-06-01",
+            "name": "[variables('Storage Account')]",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "Standard_LRS"
+            },
+            "kind": "Storage"
+        },
+        {
+            "type": "Microsoft.Web/serverfarms",
+            "apiVersion": "2018-02-01",
+            "name": "[variables('App Plan')]",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [],
+            "sku": {
+                "name": "B1",
+                "tier": "Basic",
+                "size": "B1",
+                "family": "B",
+                "capacity": 1
+            },
+            "kind": "linux",
+            "properties": {
+                "computeMode": "Dynamic"
+            }
+        },
+        {
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2020-06-01",
+            "copy": {
+                "name": "web-app-loop",
+                "count": "[length(variables('Web Apps'))]",
+                "mode": "parallel"
+            },
+            "name": "[variables('Web Apps')[copyIndex()].name]",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "env": "[variables('Web Apps')[copyIndex()].env]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/serverfarms', variables('App Plan'))]",
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('Storage Account'))]"
+            ],
+            "properties": {
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('App Plan'))]",
+                "siteConfig": {
+                    "appSettings": []
+                }
+            }
+        }
+        /*
+        ,
+        {
+            "apiVersion": "2020-05-01",
+            "type": "Microsoft.Network/frontDoors",
+            "name": "[variables('Front Door')]",
+            "location": "global",
+            "dependsOn": [
+                "[resourceId('Microsoft.Web/sites', variables('Apps Config')[0].name)]",
+                "[resourceId('Microsoft.Web/sites', variables('Apps Config')[1].name)]",
+                "[resourceId('Microsoft.Web/sites', variables('Apps Config')[2].name)]"
+            ],
+            "properties": {
+                "healthProbeSettings": [
+                    {
+                        "name": "healthProbeSettings",
+                        "properties": {
+                            "path": "/",
+                            "protocol": "Https",
+                            "intervalInSeconds": 120
+                        }
+                    }
+                ],
+                "loadBalancingSettings": [
+                    {
+                        "name": "loadBalancingSettings",
+                        "properties": {
+                            "sampleSize": 4,
+                            "successfulSamplesRequired": 2
+                        }
+                    }
+                ],
+                "backendPools": [
+                    {
+                        "name": "dev-web-app",
+                        "properties": {
+                            "backends": [
+                                {
+                                    "address": "[reference(resourceId('Microsoft.Web/sites', variables('Apps Config')[0].name), '2019-08-01').hostNames[0]]",
+                                    "backendHostHeader": "[reference(resourceId('Microsoft.Web/sites', variables('Apps Config')[0].name), '2019-08-01').hostNames[0]]",
+                                    "httpsPort": 443,
+                                    "httpPort": 80,
+                                    "weight": 100,
+                                    "priority": 1
+                                }
+                            ],
+                            "loadBalancingSettings": {
+                                "id": "[resourceId('Microsoft.Network/frontDoors/loadBalancingSettings', variables('Front Door'), 'loadBalancingSettings')]"
+                            },
+                            "healthProbeSettings": {
+                                "id": "[resourceId('Microsoft.Network/frontDoors/healthProbeSettings', variables('Front Door'), 'healthProbeSettings')]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "staging-web-app",
+                        "properties": {
+                            "backends": [
+                                {
+                                    "address": "[reference(resourceId('Microsoft.Web/sites', variables('Apps Config')[1].name), '2019-08-01').hostNames[0]]",
+                                    "backendHostHeader": "[reference(resourceId('Microsoft.Web/sites', variables('Apps Config')[1].name), '2019-08-01').hostNames[0]]",
+                                    "httpsPort": 443,
+                                    "httpPort": 80,
+                                    "weight": 100,
+                                    "priority": 1
+                                }
+                            ],
+                            "loadBalancingSettings": {
+                                "id": "[resourceId('Microsoft.Network/frontDoors/loadBalancingSettings', variables('Front Door'), 'loadBalancingSettings')]"
+                            },
+                            "healthProbeSettings": {
+                                "id": "[resourceId('Microsoft.Network/frontDoors/healthProbeSettings', variables('Front Door'), 'healthProbeSettings')]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "prod-web-app",
+                        "properties": {
+                            "backends": [
+                                {
+                                    "address": "[reference(resourceId('Microsoft.Web/sites', variables('Apps Config')[2].name), '2019-08-01').hostNames[0]]",
+                                    "backendHostHeader": "[reference(resourceId('Microsoft.Web/sites', variables('Apps Config')[2].name), '2019-08-01').hostNames[0]]",
+                                    "httpsPort": 443,
+                                    "httpPort": 80,
+                                    "weight": 100,
+                                    "priority": 1
+                                }
+                            ],
+                            "loadBalancingSettings": {
+                                "id": "[resourceId('Microsoft.Network/frontDoors/loadBalancingSettings', variables('Front Door'), 'loadBalancingSettings')]"
+                            },
+                            "healthProbeSettings": {
+                                "id": "[resourceId('Microsoft.Network/frontDoors/healthProbeSettings', variables('Front Door'), 'healthProbeSettings')]"
+                            }
+                        }
+                    }
+                ],
+                "frontendEndpoints": [
+                    {
+                        "name": "defaultFrontendEndpoint",
+                        "properties": {
+                            "hostName": "[concat(variables('Front Door'), '.azurefd.net')]",
+                            "sessionAffinityEnabledState": "Disabled",
+                            "sessionAffinityTtlSeconds": 0
+                        }
+                    },
+                    {
+                        "name": "devFrontendEndpoint",
+                        "properties": {
+                            "hostName": "dev.gram-parser.vincentlauzon.com",
+                            "sessionAffinityEnabledState": "Disabled",
+                            "sessionAffinityTtlSeconds": 0
+                        }
+                    },
+                    {
+                        "name": "stagingFrontendEndpoint",
+                        "properties": {
+                            "hostName": "staging.gram-parser.vincentlauzon.com",
+                            "sessionAffinityEnabledState": "Disabled",
+                            "sessionAffinityTtlSeconds": 0
+                        }
+                    },
+                    {
+                        "name": "prodFrontendEndpoint",
+                        "properties": {
+                            "hostName": "gram-parser.vincentlauzon.com",
+                            "sessionAffinityEnabledState": "Disabled",
+                            "sessionAffinityTtlSeconds": 0
+                        }
+                    }
+                ],
+                "routingRules": [
+                    {
+                        "name": "devRoutingRule",
+                        "properties": {
+                            "frontendEndpoints": [
+                                {
+                                    "id": "[resourceId('Microsoft.Network/frontDoors/frontendEndpoints', variables('Front Door'), 'devFrontendEndpoint')]"
+                                }
+                            ],
+                            "acceptedProtocols": [
+                                "Http",
+                                "Https"
+                            ],
+                            "patternsToMatch": [
+                                "/*"
+                            ],
+                            "routeConfiguration": {
+                                "@odata.type": "#Microsoft.Azure.FrontDoor.Models.FrontdoorForwardingConfiguration",
+                                "forwardingProtocol": "HttpsOnly",
+                                "backendPool": {
+                                    "id": "[resourceId('Microsoft.Network/frontDoors/backendPools', variables('Front Door'), 'dev-web-app')]"
+                                }
+                            },
+                            "rulesEngine": {
+                                "id": "[resourceId('Microsoft.Network/frontdoors/rulesengines', variables('Front Door'), variables('Web App Rule Engine'))]"
+                            },
+                            "enabledState": "Enabled"
+                        }
+                    },
+                    {
+                        "name": "stagingRoutingRule",
+                        "properties": {
+                            "frontendEndpoints": [
+                                {
+                                    "id": "[resourceId('Microsoft.Network/frontDoors/frontendEndpoints', variables('Front Door'), 'stagingFrontendEndpoint')]"
+                                }
+                            ],
+                            "acceptedProtocols": [
+                                "Http",
+                                "Https"
+                            ],
+                            "patternsToMatch": [
+                                "/*"
+                            ],
+                            "routeConfiguration": {
+                                "@odata.type": "#Microsoft.Azure.FrontDoor.Models.FrontdoorForwardingConfiguration",
+                                "forwardingProtocol": "HttpsOnly",
+                                "backendPool": {
+                                    "id": "[resourceId('Microsoft.Network/frontDoors/backendPools', variables('Front Door'), 'staging-web-app')]"
+                                }
+                            },
+                            "rulesEngine": {
+                                "id": "[resourceId('Microsoft.Network/frontdoors/rulesengines', variables('Front Door'), variables('Web App Rule Engine'))]"
+                            },
+                            "enabledState": "Enabled"
+                        }
+                    },
+                    {
+                        "name": "prodRoutingRule",
+                        "properties": {
+                            "frontendEndpoints": [
+                                {
+                                    "id": "[resourceId('Microsoft.Network/frontDoors/frontendEndpoints', variables('Front Door'), 'prodFrontendEndpoint')]"
+                                }
+                            ],
+                            "acceptedProtocols": [
+                                "Http",
+                                "Https"
+                            ],
+                            "patternsToMatch": [
+                                "/*"
+                            ],
+                            "routeConfiguration": {
+                                "@odata.type": "#Microsoft.Azure.FrontDoor.Models.FrontdoorForwardingConfiguration",
+                                "forwardingProtocol": "HttpsOnly",
+                                "backendPool": {
+                                    "id": "[resourceId('Microsoft.Network/frontDoors/backendPools', variables('Front Door'), 'prod-web-app')]"
+                                }
+                            },
+                            "rulesEngine": {
+                                "id": "[resourceId('Microsoft.Network/frontdoors/rulesengines', variables('Front Door'), variables('Web App Rule Engine'))]"
+                            },
+                            "enabledState": "Enabled"
+                        }
+                    }
+                ],
+                "enabledState": "Enabled"
+            },
+            "resources": [
+                {
+                    "type": "providers/diagnosticSettings",
+                    "apiVersion": "2017-05-01-preview",
+                    "name": "microsoft.insights/send-to-la",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Network/frontdoors', variables('Front Door'))]",
+                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('Log Analytics'))]"
+                    ],
+                    "properties": {
+                        "name": "send-to-la",
+                        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('Log Analytics'))]",
+                        "logs": [
+                            {
+                                "category": "FrontdoorAccessLog",
+                                "enabled": true
+                            },
+                            {
+                                "category": "FrontdoorWebApplicationFirewallLog",
+                                "enabled": true
+                            }
+                        ],
+                        "metrics": [
+                            {
+                                "category": "AllMetrics",
+                                "enabled": true
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "rulesengines",
+                    "apiVersion": "2020-05-01",
+                    "name": "[variables('Web App Rule Engine')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Network/frontdoors', variables('Front Door'))]"
+                    ],
+                    "properties": {
+                        "rules": [
+                            {
+                                "priority": 0,
+                                "name": "redirectToHttps",
+                                "matchProcessingBehavior": "Continue",
+                                "action": {
+                                    "requestHeaderActions": [],
+                                    "responseHeaderActions": [],
+                                    "routeConfigurationOverride": {
+                                        "@odata.type": "#Microsoft.Azure.FrontDoor.Models.FrontdoorRedirectConfiguration",
+                                        "redirectProtocol": "HttpsOnly",
+                                        "redirectType": "Found"
+                                    }
+                                },
+                                "matchConditions": [
+                                    {
+                                        "rulesEngineMatchValue": [
+                                            "HTTP"
+                                        ],
+                                        "rulesEngineMatchVariable": "RequestScheme",
+                                        "rulesEngineOperator": "Equal",
+                                        "transforms": [],
+                                        "negateCondition": false
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+        */
+    ],
+    "outputs": {
+    }
+}

@@ -1,0 +1,22 @@
+name:  API Azure Infra
+
+on:  workflow_dispatch
+
+env:
+  rg:  ---
+
+jobs:
+  deploy:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    # Login
+    - name: Azure Login
+      run: az login --service-principal -u ${{ secrets.deploy_sp_id }} -p ${{ secrets.deploy_sp_secret }} --tenant ${{ secrets.tenant_id }}
+    # Deploy
+    - name: Deploy
+      run: |
+        cd deployment/api
+        bash deploy-api-infra.sh ${{ secrets.api_rg }}
