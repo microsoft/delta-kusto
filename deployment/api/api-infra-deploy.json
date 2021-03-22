@@ -12,10 +12,12 @@
         "App Plan": "[concat('app-plan-', variables('Suffix'))]",
         "Function Apps": [
             {
-                "name": "[concat('delta-kusto-api-dev-', variables('Suffix'))]"
+                "name": "[concat('delta-kusto-api-dev-', variables('Suffix'))]",
+                "env": "dev"
             },
             {
-                "name": "[concat('delta-kusto-api-prod-', variables('Suffix'))]"
+                "name": "[concat('delta-kusto-api-prod-', variables('Suffix'))]",
+                "env": "prod"
             }
         ],
         "Front Door": "[concat('front-door-', variables('Suffix'))]"
@@ -83,6 +85,9 @@
             },
             "name": "[variables('Function Apps')[copyIndex()].name]",
             "location": "[resourceGroup().location]",
+            "tags": {
+                "env": "[variables('Function Apps')[copyIndex()].env]"
+            },
             "kind": "functionapp",
             "dependsOn": [
                 "[resourceId('Microsoft.Web/serverfarms', variables('App Plan'))]",
