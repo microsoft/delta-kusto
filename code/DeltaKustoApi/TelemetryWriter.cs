@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace DeltaKustoApi
@@ -28,6 +29,12 @@ namespace DeltaKustoApi
                 ClientIpAddress = ipAddress,
                 Input = input
             };
+            var telemetryTextLine = JsonSerializer.Serialize(
+                telemetry,
+                new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
 
             throw new NotImplementedException();
         }
