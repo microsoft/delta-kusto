@@ -10,7 +10,7 @@
         "Log Analytics": "[concat('infra-monitor-', variables('Suffix'))]",
         "Storage Account": "[concat('storage', variables('Unique ID'))]",
         "App Plan": "[concat('app-plan-', variables('Suffix'))]",
-        "Function Apps": [
+        "Web Apps": [
             {
                 "name": "[concat('delta-kusto-api-dev-', variables('Suffix'))]",
                 "env": "dev"
@@ -67,8 +67,11 @@
             "location": "[resourceGroup().location]",
             "dependsOn": [],
             "sku": {
-                "name": "Y1",
-                "tier": "Dynamic"
+                "name": "B1",
+                "tier": "Basic",
+                "size": "B1",
+                "family": "B",
+                "capacity": 1
             },
             "kind": "linux",
             "properties": {
@@ -80,13 +83,13 @@
             "apiVersion": "2020-06-01",
             "copy": {
                 "name": "function-app-loop",
-                "count": "[length(variables('Function Apps'))]",
+                "count": "[length(variables('Web Apps'))]",
                 "mode": "parallel"
             },
-            "name": "[variables('Function Apps')[copyIndex()].name]",
+            "name": "[variables('Web Apps')[copyIndex()].name]",
             "location": "[resourceGroup().location]",
             "tags": {
-                "env": "[variables('Function Apps')[copyIndex()].env]"
+                "env": "[variables('Web Apps')[copyIndex()].env]"
             },
             "kind": "functionapp",
             "dependsOn": [
@@ -96,36 +99,7 @@
             "properties": {
                 "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('App Plan'))]",
                 "siteConfig": {
-                    "appSettings": [
-                        {
-                            "name": "AzureWebJobsStorage",
-                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('Storage Account'), ';EndpointSuffix=', environment().suffixes.storage, ';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('Storage Account')), '2019-06-01').keys[0].value)]"
-                        },
-                        {
-                            "name": "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING",
-                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', variables('Storage Account'), ';EndpointSuffix=', environment().suffixes.storage, ';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('Storage Account')), '2019-06-01').keys[0].value)]"
-                        },
-                        {
-                            "name": "WEBSITE_CONTENTSHARE",
-                            "value": "[toLower(variables('Function Apps')[copyIndex()].name)]"
-                        },
-                        {
-                            "name": "FUNCTIONS_EXTENSION_VERSION",
-                            "value": "~2"
-                        },
-                        {
-                            "name": "WEBSITE_NODE_DEFAULT_VERSION",
-                            "value": "~10"
-                        },
-                        {
-                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
-                            "value": "[reference(resourceId('microsoft.insights/components', variables('App Insights')), '2020-02-02-preview').InstrumentationKey]"
-                        },
-                        {
-                            "name": "FUNCTIONS_WORKER_RUNTIME",
-                            "value": "dotnet"
-                        }
-                    ]
+                    "appSettings": []
                 }
             }
         }
