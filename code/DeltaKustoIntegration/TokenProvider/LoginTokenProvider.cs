@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DeltaKustoIntegration.TokenProvider
@@ -37,6 +38,7 @@ namespace DeltaKustoIntegration.TokenProvider
                 using (var client = new HttpClient())
                 {
                     var loginUrl = $"https://login.microsoftonline.com/{_tenantId}/oauth2/token";
+                    var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(2));
                     var response = await client.PostAsync(
                         loginUrl,
                         new FormUrlEncodedContent(new[] {
@@ -44,8 +46,9 @@ namespace DeltaKustoIntegration.TokenProvider
                             new KeyValuePair<string?, string?>("client_secret", _secret),
                             new KeyValuePair<string?, string?>("resource", clusterUri.ToString()),
                             new KeyValuePair<string?, string?>("grant_type", "client_credentials")
-                        }));
-                    var responseText = await response.Content.ReadAsStringAsync();
+                        }),
+                        tokenSource.Token);
+                    var responseText = await response.Content.ReadAsStringAsync(tokenSource.Token);
 
                     if (response.StatusCode != HttpStatusCode.OK)
                     {
