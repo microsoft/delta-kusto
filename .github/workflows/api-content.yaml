@@ -35,7 +35,7 @@ jobs:
     - name: Find Web App
       id:  find-web-app
       run: |
-        $wa = $(az webapp list -g delta-kusto --query "[?tags.env=='dev'].name" -o tsv)
+        wa=$(az webapp list -g $rg --query "[?tags.env=='dev'].name" -o tsv)
         echo ##[set-output name=webAppName;]%s
     # Deploy Web App
     - name: Deploy
