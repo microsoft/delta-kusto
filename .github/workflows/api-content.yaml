@@ -34,5 +34,5 @@ jobs:
       run: |
         cd code/DeltaKustoApi
         az webapp up \
-        --os-type linux
-        --name "delta-kusto-api-dev-delta-kusto-pnctkmukjvu34" --plan "app-plan-delta-kusto-pnctkmukjvu34"
+        --os-type linux \
+        -n "delta-kusto-api-dev-delta-kusto-pnctkmukjvu34" --plan "app-plan-delta-kusto-pnctkmukjvu34"
