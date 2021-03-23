@@ -46,6 +46,10 @@ namespace delta_kusto
 
                 return 1;
             }
+            finally
+            {
+                await activationTask;
+            }
         }
 
         private static void DisplayGenericException(Exception ex, string tab = "")
