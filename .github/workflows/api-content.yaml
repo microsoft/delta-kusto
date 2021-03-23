@@ -37,7 +37,7 @@ jobs:
       run: |
         wa=$(az webapp list -g $rg --query "[?tags.env=='dev'].name" -o tsv)
         echo "Found Web App:  $wa"
-        echo '::set-output name=webAppName::$wa'
+        echo "::set-output name=webAppName::$wa"
     # Deploy Web App
     - name: Deploy
       run: |
@@ -45,4 +45,4 @@ jobs:
         az webapp up \
         --os-type linux \
         -r "DOTNET|5.0" \
-        -n "${{ steps.find-web-app.outputs.webAppName }}"
+        -n ${{ steps.find-web-app.outputs.webAppName }}
