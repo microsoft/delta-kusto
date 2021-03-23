@@ -104,7 +104,8 @@ namespace delta_kusto
                         url,
                         new StringContent(bodyText, null, "application/json"),
                         tokenSource.Token);
-                    var responseText = await response.Content.ReadAsStringAsync();
+                    var responseText =
+                        await response.Content.ReadAsStringAsync(tokenSource.Token);
 
                     if (response.StatusCode != HttpStatusCode.OK)
                     {
