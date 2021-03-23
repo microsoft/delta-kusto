@@ -54,11 +54,20 @@ jobs:
       run:  |
         echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
     # See https://cli.github.com/manual/gh_release
-    - name: Create release
+    - name: Create full version release
       run:  |
         gh release create ${{ steps.patch-version.outputs.full-version }}
+    - name: Create patch version release
+      run:  |
+        gh release create ${{ steps.patch-version.outputs.patch-version }}
+    - name: Create minor version release
+      run:  |
+        gh release create ${{ steps.patch-version.outputs.minor-version }}
+    - name: Create minor version release
+      run:  |
+        gh release create ${{ steps.patch-version.outputs.major-version }}
     # See https://cli.github.com/manual/gh_release
-    - name: Upload exec to release
+    - name: Upload exec to full version release
       run:  |
         za="delta-kusto-${{ steps.patch-version.outputs.full-version }}-linux.tar.gz"
         echo "Zip archive:  $za"
