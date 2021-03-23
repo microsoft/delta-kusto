@@ -32,7 +32,7 @@ jobs:
     #-r "DOTNETCORE|3.1" \
     - name: Deploy
       run: |
-        cd code/DeltaKustoApi
+        cd web-app
         az webapp up \
         --os-type linux \
         -n "delta-kusto-api-dev-delta-kusto-pnctkmukjvu34" --plan "app-plan-delta-kusto-pnctkmukjvu34"
