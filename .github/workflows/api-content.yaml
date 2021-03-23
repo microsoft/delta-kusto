@@ -25,14 +25,15 @@ jobs:
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-publish
     - name: .NET Publish Web App
       run: dotnet publish code/DeltaKustoApi --configuration Release --no-build --output web-app
-    # # Zip published folder
-    # - name: Zip Published app
-    #   run: |
-    #     cd web-app
-    #     zip api.zip *
     # Login
     - name: Azure Login
       run: az login --service-principal -u ${{ secrets.deploy_sp_id }} -p ${{ secrets.deploy_sp_secret }} --tenant ${{ secrets.tenant_id }}
+    # Find Web App resource
+    - name: Find Web App
+      id:  find-web-app
+      run: |
+        $wa = $(az webapp list -g delta-kusto --query "[?tags.env=='dev'].name" -o tsv)
+        echo ##[set-output name=webAppName;]%s
     # Deploy Web App
     - name: Deploy
       run: |
@@ -40,10 +41,4 @@ jobs:
         az webapp up \
         --os-type linux \
         -r "DOTNET|5.0" \
-        -n "delta-kusto-api-dev-delta-kusto-pnctkmukjvu34"
-    # - name: Deploy
-    #   run: |
-    #     az webapp deployment source config-zip \
-    #     --src web-app/api.zip \
-    #     -n "delta-kusto-api-dev-delta-kusto-pnctkmukjvu34" \
-    #     -g delta-kusto
+        -n ${{ steps.find-web-app.outputs.webAppName }}"
