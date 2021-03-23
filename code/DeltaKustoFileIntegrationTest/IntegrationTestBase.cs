@@ -105,6 +105,8 @@ namespace DeltaKustoFileIntegrationTest
         {
             if (_executablePath == null)
             {
+                Environment.SetEnvironmentVariable("disable-api-calls", "true");
+
                 var returnedValue = await Program.Main(args);
 
                 return returnedValue;
@@ -113,6 +115,8 @@ namespace DeltaKustoFileIntegrationTest
             {
                 using (var process = new Process())
                 {
+                    //  Disable API calls for tests
+                    process.StartInfo.EnvironmentVariables.Add("disable-api-calls", "true");
                     process.StartInfo.FileName = _executablePath;
                     foreach (var arg in args)
                     {

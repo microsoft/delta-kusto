@@ -21,10 +21,7 @@ namespace DeltaKustoApi.Controllers.Root
         [HttpGet]
         public RootInfo Get()
         {
-            var info = new RootInfo
-            {
-                ApiVersion = ApiVersion.FullVersion
-            };
+            var info = new RootInfo();
 
             return info;
         }

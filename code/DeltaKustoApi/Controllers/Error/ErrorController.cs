@@ -5,20 +5,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace DeltaKustoApi.Controllers.Activation
+namespace DeltaKustoApi.Controllers.Error
 {
     [ApiController]
     [Route("[controller]")]
-    public class ActivationController : ControllerBase
+    public class ErrorController : ControllerBase
     {
-        private readonly ILogger<ActivationController> _logger;
+        private readonly ILogger<ErrorController> _logger;
 
-        public ActivationController(ILogger<ActivationController> logger)
+        public ErrorController(ILogger<ErrorController> logger)
         {
             _logger = logger;
         }
 
-        public async Task<ActivationOutput> PostAsync(ActivationInput input)
+        public async Task<ErrorOutput> PostAsync(ErrorInput input)
         {
             try
             {
@@ -29,7 +29,7 @@ namespace DeltaKustoApi.Controllers.Activation
                 _logger.LogError(ex.Message);
             }
 
-            return new ActivationOutput();
+            return new ErrorOutput();
         }
     }
 }

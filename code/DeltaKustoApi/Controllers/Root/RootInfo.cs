@@ -7,6 +7,6 @@ namespace DeltaKustoApi.Controllers.Root
 {
     public class RootInfo
     {
-        public string ApiVersion { get; set; }
+        public ApiInfo ApiInfo { get; set; } = new ApiInfo();
     }
 }

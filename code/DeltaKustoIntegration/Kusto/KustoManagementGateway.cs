@@ -9,6 +9,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DeltaKustoIntegration.Kusto
@@ -382,10 +383,12 @@ namespace DeltaKustoIntegration.Kusto
                     csl = commandScript
                 };
                 var bodyText = JsonSerializer.Serialize(body);
+                var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(2));
                 var response = await client.PostAsync(
                     managementUrl,
-                    new StringContent(bodyText, null, "application/json"));
-                var responseText = await response.Content.ReadAsStringAsync();
+                    new StringContent(bodyText, null, "application/json"),
+                    tokenSource.Token);
+                var responseText = await response.Content.ReadAsStringAsync(tokenSource.Token);
 
                 if (response.StatusCode != HttpStatusCode.OK)
                 {

@@ -21,7 +21,7 @@ namespace DeltaKustoIntegration
         {
             var directory = Path.GetDirectoryName(filePath);
 
-            if (directory != null)
+            if (!string.IsNullOrWhiteSpace(directory))
             {
                 EnsureDirectoryExists(directory);
             }
