@@ -36,7 +36,8 @@ jobs:
       id:  find-web-app
       run: |
         wa=$(az webapp list -g $rg --query "[?tags.env=='dev'].name" -o tsv)
-        echo ##[set-output name=webAppName;]%s
+        echo "Found Web App:  '$wa'"
+        echo ##[set-output name=webAppName;$wa]%s
     # Deploy Web App
     - name: Deploy
       run: |
