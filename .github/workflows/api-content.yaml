@@ -1,6 +1,11 @@
 name:  API Content
 
-on:  workflow_dispatch
+on:
+  workflow_dispatch
+  push:
+    branches:
+      - api-staging
+      - api-prod
 
 env:
   rg:  ${{ secrets.API_RG }}
@@ -11,11 +16,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Test branch
-      run: |
-        echo ${GITHUB_REF}
-        echo ${GITHUB_REF#refs/heads/}
     - uses: actions/checkout@v2
+    - name: Define environment
+      id:  define-env
+      run: |
+        branch=$(echo ${GITHUB_REF#refs/heads/})
+        echo "Current branch is '$branch'"
+        if [ "$branch" = "api-prod" ]
+        then
+          targetEnv="prod"
+        else
+          targetEnv="staging"
+        fi
+        echo "Target environment (targetEnv) '$targetEnv'"
+        echo "##[set-output name=targetEnv;]$targetEnv"
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
@@ -39,7 +53,7 @@ jobs:
     - name: Find Web App
       id:  find-web-app
       run: |
-        wa=$(az webapp list -g $rg --query "[?tags.env=='dev'].name" -o tsv)
+        wa=$(az webapp list -g $rg --query "[?tags.env=='${{ steps.define-env.outputs.targetEnv }}'].name" -o tsv)
         echo "Found Web App:  $wa"
         echo "::set-output name=webAppName::$wa"
     # Deploy Web App

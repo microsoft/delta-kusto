@@ -13,8 +13,8 @@
         "App Plan": "[concat('app-plan-', variables('Suffix'))]",
         "Web Apps": [
             {
-                "name": "[concat('delta-kusto-api-dev-', variables('Suffix'))]",
-                "env": "dev"
+                "name": "[concat('delta-kusto-api-staging-', variables('Suffix'))]",
+                "env": "staging"
             },
             {
                 "name": "[concat('delta-kusto-api-prod-', variables('Suffix'))]",
