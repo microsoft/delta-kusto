@@ -48,6 +48,9 @@ jobs:
     - name: Tags
       run: |
         git tag ${{ steps.patch-version.outputs.full-version }}
+        git tag ${{ steps.patch-version.outputs.patch-version }}
+        git tag ${{ steps.patch-version.outputs.minor-version }}
+        git tag ${{ steps.patch-version.outputs.major-version }}
         git push --tags
     # See https://cli.github.com/manual/gh_auth
     - name: Authentication gh CLI
