@@ -39,7 +39,7 @@ namespace DeltaKustoApi
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase
                 });
 
-            throw new NotImplementedException();
+            return Task.CompletedTask;
         }
     }
 }
