@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Http;
 using System.Reflection;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace delta_kusto
@@ -98,9 +99,11 @@ namespace delta_kusto
                 using (var client = new HttpClient())
                 {
                     var url = new Uri(new Uri(ROOT_URL), urlSuffix);
+                    var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(2));
                     var response = await client.PostAsync(
                         url,
-                        new StringContent(bodyText, null, "application/json"));
+                        new StringContent(bodyText, null, "application/json"),
+                        tokenSource.Token);
                     var responseText = await response.Content.ReadAsStringAsync();
 
                     if (response.StatusCode != HttpStatusCode.OK)

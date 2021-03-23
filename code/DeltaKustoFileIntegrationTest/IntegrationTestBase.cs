@@ -105,6 +105,8 @@ namespace DeltaKustoFileIntegrationTest
         {
             if (_executablePath == null)
             {
+                Environment.SetEnvironmentVariable("disable-api-calls", "true");
+
                 var returnedValue = await Program.Main(args);
 
                 return returnedValue;
