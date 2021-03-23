@@ -39,6 +39,7 @@ jobs:
         cd web-app
         az webapp up \
         --os-type linux \
+        -r "DOTNET|5.0" \
         -n "delta-kusto-api-dev-delta-kusto-pnctkmukjvu34"
     # - name: Deploy
     #   run: |
