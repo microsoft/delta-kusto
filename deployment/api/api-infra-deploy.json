@@ -92,7 +92,7 @@
             },
             "kind": "linux",
             "properties": {
-                "computeMode": "Dynamic"
+                 "reserved": true
             }
         },
         {
