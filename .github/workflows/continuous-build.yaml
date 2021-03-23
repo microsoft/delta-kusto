@@ -3,7 +3,7 @@ name:  Continuous Build / Unit Test
 on:
   push:
     branches-ignore:
-    - api-*
+    - api/*
 
 env:
   rg:  gram-parser

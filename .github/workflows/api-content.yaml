@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - api-*
+      - api/*
 
 env:
   rg:  ${{ secrets.API_RG }}
