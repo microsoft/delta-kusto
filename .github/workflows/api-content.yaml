@@ -1,11 +1,11 @@
 name:  API Content
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - api-staging
       - api-prod
-  workflow_dispatch
 
 env:
   rg:  ${{ secrets.API_RG }}
