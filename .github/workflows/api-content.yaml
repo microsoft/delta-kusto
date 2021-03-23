@@ -3,7 +3,7 @@ name:  API Content
 on:  workflow_dispatch
 
 env:
-  rg:  ${{ API_RG }}
+  rg:  ${{ secrets.API_RG }}
 
 jobs:
   deploy:
