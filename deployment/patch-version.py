@@ -29,14 +29,31 @@ else:
 
     #   Add patch to the version
     version=document.getElementsByTagName('Version')[0]
-    version.firstChild.nodeValue += "." + patchNumber
-    fullVersion = version.firstChild.nodeValue
+    patchVersion = version.firstChild.nodeValue
+    version.firstChild.nodeValue = patchVersion + "." + patchNumber
+    versionParts = patchVersion.split('.')
+    if len(versionParts)!=3:
+        print("The project version should have three parts, e.g. 1.2.3 but doesn't:  " % patchVersion)
 
-    #   Output project
-    print('Project content:')
-    print(document.toxml())
-    writeXml(document, path)
+        exit(1)
+    else:
+        fullVersion = version.firstChild.nodeValue
 
-    #   Output variable
-    print('Set the full version in GitHub Action output:  %s' % fullVersion)
-    print('##[set-output name=full-version;]%s' % fullVersion)
+        #   Partial versions
+        minorVersion = versionParts[0] + '.' + versionParts[1]
+        majorVersion = versionParts[0]
+
+        #   Output project
+        print('Project content:')
+        print(document.toxml())
+        writeXml(document, path)
+
+        #   Output variable
+        print('Set the full version in GitHub Action output:  %s' % fullVersion)
+        print('##[set-output name=full-version;]%s' % fullVersion)
+        print('Set the patch version in GitHub Action output:  %s' % patchVersion)
+        print('##[set-output name=patch-version;]%s' % patchVersion)
+        print('Set the major version in GitHub Action output:  %s' % minorVersion)
+        print('##[set-output name=minor-version;]%s' % minorVersion)
+        print('Set the minor version in GitHub Action output:  %s' % majorVersion)
+        print('##[set-output name=major-version;]%s' % majorVersion)
