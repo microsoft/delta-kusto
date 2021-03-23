@@ -4,20 +4,29 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DeltaKustoIntegration
 {
     public class FileGateway : IFileGateway
     {
-        async Task<string> IFileGateway.GetFileContentAsync(string filePath)
+        async Task<string> IFileGateway.GetFileContentAsync(
+            string filePath,
+            CancellationToken? ct)
         {
-            var text = await File.ReadAllTextAsync(filePath);
+            var text = await File.ReadAllTextAsync(
+                filePath,
+                Encoding.UTF8,
+                ct ?? new CancellationTokenSource(TimeSpan.FromSeconds(2)).Token);
 
             return text;
         }
 
-        async Task IFileGateway.SetFileContentAsync(string filePath, string content)
+        async Task IFileGateway.SetFileContentAsync(
+            string filePath,
+            string content,
+            CancellationToken? ct)
         {
             var directory = Path.GetDirectoryName(filePath);
 
@@ -26,12 +35,16 @@ namespace DeltaKustoIntegration
                 EnsureDirectoryExists(directory);
             }
 
-            await File.WriteAllTextAsync(filePath, content);
+            await File.WriteAllTextAsync(
+                filePath,
+                content,
+                ct ?? new CancellationTokenSource(TimeSpan.FromSeconds(2)).Token);
         }
 
         async IAsyncEnumerable<(string path, string content)> IFileGateway.GetFolderContentsAsync(
             string folderPath,
-            IEnumerable<string>? extensions)
+            IEnumerable<string>? extensions,
+            CancellationToken? ct)
         {
             var fileGateway = (IFileGateway)this;
             var directories = Directory.GetDirectories(folderPath);
