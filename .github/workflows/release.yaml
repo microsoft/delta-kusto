@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - release/*
+      - release/prod/*
 
 jobs:
   linux:
@@ -18,10 +18,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: gh
-      run:  |
-        echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
-        gh repo list
     - name: Patch version
       id:  patch-version
       run: python3 deployment/patch-version.py code/delta-kusto/delta-kusto.csproj ${{ github.run_number }}
@@ -48,7 +44,16 @@ jobs:
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
           -p:PublishTrimmed=true -p:PublishReadyToRun=true \
           -o bin
-    # - name: Tag
-    #   run: |
-    #     git tag test
-    #     git push --tags
+    # See https://dev.to/neshaz/a-tutorial-for-tagging-releases-in-git-147e
+    - name: Tags
+      run: |
+        git tag ${{ steps.patch-version.outputs.full-version }}
+        git push --tags
+    # See https://cli.github.com/manual/gh_auth
+    - name: Authentication gh CLI
+      run:  |
+        echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+    # See https://cli.github.com/manual/gh_release
+    - name: Create release
+      run:  |
+        gh release create ${{ steps.patch-version.outputs.full-version }}
