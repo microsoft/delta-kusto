@@ -1,4 +1,4 @@
-name:  API Content Deployment
+name:  API Content
 
 on:  workflow_dispatch
 

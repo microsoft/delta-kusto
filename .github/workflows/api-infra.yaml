@@ -1,4 +1,4 @@
-name:  API Azure Infra
+name:  API Infra
 
 on:  workflow_dispatch
 
