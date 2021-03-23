@@ -11,6 +11,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Test branch
+      run: |
+      echo ${GITHUB_REF}
+      echo ${GITHUB_REF#refs/heads/}
     - uses: actions/checkout@v2
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
