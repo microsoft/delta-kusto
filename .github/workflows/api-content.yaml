@@ -3,7 +3,7 @@ name:  API Content
 on:  workflow_dispatch
 
 env:
-  rg:  ---
+  rg:  ${{ API_RG }}
 
 jobs:
   deploy:
@@ -25,25 +25,24 @@ jobs:
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-publish
     - name: .NET Publish Web App
       run: dotnet publish code/DeltaKustoApi --configuration Release --no-build --output web-app
-    # Zip published folder
-    - name: Zip published app
-      run: |
-        cd web-app
-        zip api.zip *
+    # # Zip published folder
+    # - name: Zip Published app
+    #   run: |
+    #     cd web-app
+    #     zip api.zip *
     # Login
     - name: Azure Login
       run: az login --service-principal -u ${{ secrets.deploy_sp_id }} -p ${{ secrets.deploy_sp_secret }} --tenant ${{ secrets.tenant_id }}
     # Deploy Web App
-    # - name: Deploy
-    #   run: |
-    #     cd web-app
-    #     az webapp up \
-    #     --os-type linux \
-    #     -r "DOTNETCORE|3.1" \
-    #     -n "delta-kusto-api-dev-delta-kusto-pnctkmukjvu34" --plan "app-plan-delta-kusto-pnctkmukjvu34"
     - name: Deploy
       run: |
-        az webapp deployment source config-zip \
-        --src web-app/api.zip \
-        -n "delta-kusto-api-dev-delta-kusto-pnctkmukjvu34" \
-        -g delta-kusto
+        cd web-app
+        az webapp up \
+        --os-type linux \
+        -n "delta-kusto-api-dev-delta-kusto-pnctkmukjvu34"
+    # - name: Deploy
+    #   run: |
+    #     az webapp deployment source config-zip \
+    #     --src web-app/api.zip \
+    #     -n "delta-kusto-api-dev-delta-kusto-pnctkmukjvu34" \
+    #     -g delta-kusto
