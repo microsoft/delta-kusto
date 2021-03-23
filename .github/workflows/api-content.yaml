@@ -45,4 +45,4 @@ jobs:
         az webapp up \
         --os-type linux \
         -r "DOTNET|5.0" \
-        -n ${{ steps.find-web-app.outputs.webAppName }}"
+        -n ${{ steps.find-web-app.outputs.webAppName }}
