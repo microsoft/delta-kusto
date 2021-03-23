@@ -17,8 +17,6 @@ jobs:
       dotnetOs:  linux-x64
 
     steps:
-    - name:  tes
-      run:  az version
     - uses: actions/checkout@v2
     - name: Patch version
       id:  patch-version
@@ -60,6 +58,9 @@ jobs:
       run:  |
         gh release create ${{ steps.patch-version.outputs.full-version }}
     # See https://cli.github.com/manual/gh_release
-    - name: Create release
+    - name: Upload exec to release
       run:  |
-        gh release create ${{ steps.patch-version.outputs.full-version }}
+        za="delta-kusto-${{ steps.patch-version.outputs.full-version }}-linux.tar.gz"
+        echo "Zip archive:  $za"
+        tar -czvf $za bin/delta-kusto
+        gh release upload ${{ steps.patch-version.outputs.full-version }} $za
