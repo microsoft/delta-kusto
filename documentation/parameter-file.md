@@ -2,49 +2,43 @@
 
 Delta Kusto requires a parameter file...
 
+Examples?
+
 ## Format
 
-[Item 1](#item1)
-
 ```yaml
-asdfasdf
-asdf
-asdfas
-dfasd
-fasdf
-asdf
-asdf
-asdf
-asdf
-asdf
-asdf
-asdf
-asdf
-asdf
-asdf
-asd
-fasdf
-asdf
-asdwqerqwer
-qwe
-ffdt
-ft
-tj
-ujk7y
-ujkyu
-kyu
-ky
-uky
-ukyu
-kyu
-kyuky
-uk
-yuk
-yuk
-yuk
-
+schema:  "string"
+sendErrorOptIn:  "boolean"
+failIfDrops:  "boolean"
+jobs: 
+  myJob:
+    priority:  "integer"
+    current:
+        database:
+            clusterUri:  "string"
+            database:  "string"
+        scripts:
+            -   filePath:  "string"
+                folderPath:  "string"
+                extensions:
+                - "string"
+    target:  "same as current"
+    action:
+        filePath:  "string"
+        folderPath:  "string"
+        pushToConsole:  "boolean"
+        pushToCurrentCluster:  "boolean"
+tokenProvider:
+    tokenMap:
+        myToken:
+            clusterUri:  "string"
+            token:  "string"
+    login:
+        tenantId:  "string"
+        clientId:  "string"
+        secret:  "string"
 ```
 
 ## Property Values
 
-###  Item 1 <a name="item1" />
+###  Item 1
