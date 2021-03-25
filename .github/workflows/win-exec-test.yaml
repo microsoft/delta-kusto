@@ -49,7 +49,7 @@ jobs:
       run: |
         # Disable parallelization of tests
         # See https://xunit.net/docs/running-tests-in-parallel
-        dotnet test code/DeltaKustoFileIntegrationTest \
+        dotnet test code/DeltaKustoFileIntegrationTest/DeltaKustoFileIntegrationTest.csproj \
         --configuration Release --no-build --verbosity normal \
         -p:ParallelizeTestCollections=false
 
