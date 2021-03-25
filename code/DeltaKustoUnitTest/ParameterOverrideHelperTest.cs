@@ -90,11 +90,11 @@ namespace DeltaKustoUnitTest
             {
                 TokenProvider = new TokenProviderParameterization
                 {
-                    Tokens = new Dictionary<string, TokenMapParameterization>()
+                    Tokens = new Dictionary<string, TokenParameterization>()
                     {
                         {
                             "mine",
-                            new TokenMapParameterization
+                            new TokenParameterization
                             {
                                 Token="abc"
                             }
@@ -119,11 +119,11 @@ namespace DeltaKustoUnitTest
             {
                 TokenProvider = new TokenProviderParameterization
                 {
-                    Tokens = new Dictionary<string, TokenMapParameterization>()
+                    Tokens = new Dictionary<string, TokenParameterization>()
                     {
                         {
                             "mine",
-                            new TokenMapParameterization()
+                            new TokenParameterization()
                         }
                     }
                 }
@@ -183,7 +183,7 @@ namespace DeltaKustoUnitTest
             {
                 TokenProvider = new TokenProviderParameterization
                 {
-                    Tokens = new Dictionary<string, TokenMapParameterization>()
+                    Tokens = new Dictionary<string, TokenParameterization>()
                 }
             };
             var newToken = "Hello world";

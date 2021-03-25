@@ -3,7 +3,7 @@ using System;
 
 namespace DeltaKustoIntegration.Parameterization
 {
-    public class TokenMapParameterization
+    public class TokenParameterization
     {
         public string? ClusterUri { get; set; }
         
