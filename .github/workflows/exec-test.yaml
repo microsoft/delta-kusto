@@ -2,7 +2,6 @@ name:  Exec tests
 
 on:  workflow_dispatch
 
-
 jobs:
   linux:
 
@@ -48,6 +47,7 @@ jobs:
         ls -l $(pwd)/bin/
     - name: printf3
       run: |
+        echo "$(pwd)/bin/$(exec)"
         ls -l $(pwd)/bin/$(exec)
     # Set environment variables
     - name: Set environment variables
