@@ -20,14 +20,14 @@ jobs:
     - uses: actions/download-artifact@master
       with:
         name: linux-assets
-        path: linux
+        path: linux-assets
     - name:  printf
       run:  ls -l linux
     # See https://dev.to/neshaz/a-tutorial-for-tagging-releases-in-git-147e
     - name: Tags / re-Tags
       run: |
         # Retrieve content of full-version from artefact
-        fullVersion=$(cat linux/bin/full-version.txt)
+        fullVersion=$(cat linux-assets/full-version.txt)
         git tag $fullVersion
         # git tag -f ${{ steps.patch-version.outputs.patch-version }}
         # git tag -f ${{ steps.patch-version.outputs.minor-version }}
@@ -40,9 +40,8 @@ jobs:
     # See https://cli.github.com/manual/gh_release
     - name: Create full version release
       run:  |
-        za="bin/delta-kusto-${{ steps.patch-version.outputs.full-version }}-linux.tar.gz"
-        cp bin/delta-kusto.tar.gz $za
-        gh release create ${{ steps.patch-version.outputs.full-version }} $za
+        gh release create ${{ steps.patch-version.outputs.full-version }} \
+          linux-assets/delta-kusto-linux.tar.gz
     # - name: Create patch version release
     #   run:  |
     #     za="bin/delta-kusto-${{ steps.patch-version.outputs.patch-version }}-linux.tar.gz"
@@ -96,13 +95,17 @@ jobs:
           -p:PublishTrimmed=true -p:PublishReadyToRun=true \
           -o bin
     - name: Zip executable
-      run:  tar -czvf bin/delta-kusto.tar.gz bin/delta-kusto
+      run:  tar -czvf bin/delta-kusto-linux.tar.gz bin/delta-kusto
+    - name: Create artefact directory
+      run:  mkdir linux-assets
     # Output variables can't be shared accross jobs, so we push it to artefacts
     - name: Push full version to file
-      run:  echo ${{ steps.patch-version.outputs.full-version }} >> bin/full-version.txt
+      run:  echo ${{ steps.patch-version.outputs.full-version }} >> linux-assets/full-version.txt
+    - name: Copy binary into artefact
+      run:  mv bin/*.gz linux-assets
     # Push archive + version to a sharable artefact
     # See https://stackoverflow.com/questions/57498605/github-actions-share-workspace-artifacts-between-jobs
     - uses: actions/upload-artifact@master
       with:
         name: linux-assets
-        path: bin
+        path: linux-assets
