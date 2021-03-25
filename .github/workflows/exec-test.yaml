@@ -39,21 +39,18 @@ jobs:
           -o bin
     - name: printf
       run: |
-        ls -l bin
-        ls -l $(pwd)/bin/
-        ls -l $(pwd)/bin/$(exec)
+        echo "Name:  $(env.exec)"
     - name: printf2
       run: |
-        ls -l $(pwd)/bin/
+        echo "$(pwd)/bin/$(env.exec)"
     - name: printf3
       run: |
-        echo "$(pwd)/bin/$(exec)"
-        ls -l $(pwd)/bin/$(exec)
+        ls -l $(pwd)/bin/$(env.exec)
     # Set environment variables
     - name: Set environment variables
       run: |
         # Exec path
-        echo "deltaKustoSingleExecPath=$(pwd)/bin/$(exec)" >> $GITHUB_ENV
+        echo "deltaKustoSingleExecPath=$(pwd)/bin/$(env.exec)" >> $GITHUB_ENV
         # ADX integration
         echo "deltaKustoClusterUri=${{ secrets.CLUSTER_URI }}" >> $GITHUB_ENV
         echo "deltaKustoCurrentDb=${{ secrets.CURRENT_DB }}" >> $GITHUB_ENV
