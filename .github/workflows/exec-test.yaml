@@ -37,15 +37,6 @@ jobs:
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
           -p:PublishTrimmed=true -p:PublishReadyToRun=true \
           -o bin
-    - name: printf
-      run: |
-        echo "Name:  $exec"
-    - name: printf2
-      run: |
-        echo "$(pwd)/bin/$exec"
-    - name: printf3
-      run: |
-        ls -l $(pwd)/bin/$exec
     # Set environment variables
     - name: Set environment variables
       run: |
