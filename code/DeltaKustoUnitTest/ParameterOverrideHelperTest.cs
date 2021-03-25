@@ -90,7 +90,7 @@ namespace DeltaKustoUnitTest
             {
                 TokenProvider = new TokenProviderParameterization
                 {
-                    TokenMap = new Dictionary<string, TokenMapParameterization>()
+                    Tokens = new Dictionary<string, TokenMapParameterization>()
                     {
                         {
                             "mine",
@@ -102,14 +102,14 @@ namespace DeltaKustoUnitTest
                     }
                 }
             };
-            var before = main.TokenProvider!.TokenMap["mine"].Token;
+            var before = main.TokenProvider!.Tokens["mine"].Token;
             var newToken = before + before;
 
             ParameterOverrideHelper.InplaceOverride(
                 main,
                 $"[{{\"path\" : \"tokenProvider.tokenMap.mine.token\", \"value\":\"{newToken}\" }}]");
 
-            Assert.Equal(newToken, main.TokenProvider!.TokenMap["mine"].Token);
+            Assert.Equal(newToken, main.TokenProvider!.Tokens["mine"].Token);
         }
 
         [Fact]
@@ -119,7 +119,7 @@ namespace DeltaKustoUnitTest
             {
                 TokenProvider = new TokenProviderParameterization
                 {
-                    TokenMap = new Dictionary<string, TokenMapParameterization>()
+                    Tokens = new Dictionary<string, TokenMapParameterization>()
                     {
                         {
                             "mine",
@@ -134,7 +134,7 @@ namespace DeltaKustoUnitTest
                 main,
                 $"[{{\"path\" : \"tokenProvider.tokenMap.mine\", \"value\":{{ \"token\": \"{newToken}\" }} }}]");
 
-            Assert.Equal(newToken, main.TokenProvider!.TokenMap["mine"].Token);
+            Assert.Equal(newToken, main.TokenProvider!.Tokens["mine"].Token);
         }
         #endregion
 
@@ -183,7 +183,7 @@ namespace DeltaKustoUnitTest
             {
                 TokenProvider = new TokenProviderParameterization
                 {
-                    TokenMap = new Dictionary<string, TokenMapParameterization>()
+                    Tokens = new Dictionary<string, TokenMapParameterization>()
                 }
             };
             var newToken = "Hello world";
@@ -192,7 +192,7 @@ namespace DeltaKustoUnitTest
                 main,
                 $"[{{\"path\" : \"tokenProvider.tokenMap.mine.token\", \"value\":\"{newToken}\" }}]");
 
-            Assert.Equal(newToken, main.TokenProvider!.TokenMap["mine"].Token);
+            Assert.Equal(newToken, main.TokenProvider!.Tokens["mine"].Token);
         }
 
         [Fact]
@@ -208,7 +208,7 @@ namespace DeltaKustoUnitTest
                 main,
                 $"[{{\"path\" : \"tokenProvider.tokenMap.mine.token\", \"value\":\"{newToken}\" }}]");
 
-            Assert.Equal(newToken, main.TokenProvider!.TokenMap!["mine"].Token);
+            Assert.Equal(newToken, main.TokenProvider!.Tokens!["mine"].Token);
         }
         #endregion
     }

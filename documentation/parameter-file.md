@@ -16,7 +16,7 @@ jobs:
   myJob:
     priority:  "integer"
     current:
-        database:
+        adx:
             clusterUri:  "string"
             database:  "string"
         scripts:
@@ -31,7 +31,7 @@ jobs:
         pushToConsole:  "boolean"
         pushToCurrentCluster:  "boolean"
 tokenProvider:
-    tokenMap:
+    tokens:
         myToken:
             clusterUri:  "string"
             token:  "string"
@@ -59,4 +59,76 @@ The reason the `jobs` are in a dictionary is to faciliate the overriding of valu
 
 ### Job object
 
+Name|Type|Required|Default|Value
+-|-|-|-|-
+priority|integer|No|Infinity|Number to determine the priority of the job.  Lowest priority runs first.  By default, jobs could run in any order.
+current|object|No|Empty source|Current state, [Source object](#source-object).  If not specified, an empty database is assumed.
+target|object|Yes|N/A|Destination state, [Source object](#source-object).
+action|object|Yes|N/A|Actions to do with the delta.  [Action object](#action-object).
+
 ### Token Provider object
+
+Name|Type|Required|Default|Value
+-|-|-|-|-
+tokens|dictionary|No|N/A|Dictionary mapping a token *name* to a [Token object](#token-object).
+login|object|No|N/A|[Login object](#login-object).
+
+Although both properties are not required, one (and only one) of them must be provided if the token provider object is provided.
+
+### Source object
+
+This object is used to configure both `current` and `target` property in a job.
+
+Name|Type|Required|Default|Value
+-|-|-|-|-
+adx|object|No|N/A|Configure the source as an Azure Data Explorer (ADX) database.  [ADX source object](#adx-source-object).
+scripts|object|No|N/A|Configure the source as one or many KQL scripts.  [Scripts source object](#scripts-source-object).
+
+### ADX source object
+
+Name|Type|Required|Default|Value
+-|-|-|-|-
+clusterUri|string|Yes|N/A|Cluster URI of the ADX Cluster.
+database|string|Yes|N/A|Database name
+
+### Scripts source object
+
+Name|Type|Required|Default|Value
+-|-|-|-|-
+filePath|string|No|N/A|Target a specific script file.
+folderPath|string|No|N/A|Target an entire folder (and sub folders)
+extensions|string collection|No|N/A|Filters the files present in the folder (and sub folders) specified by `folderPath` by extensions.
+
+Although all properties are not required, only the following combinations are possible:
+
+* `filePath` alone
+* `folderPath` alone
+* `folderPath` with `extensions`
+
+### Action object
+
+Name|Type|Required|Default|Value
+-|-|-|-|-
+filePath|string|No|N/A|Specify a file path to export all Kusto delta commands
+folderPath|string|No|N/A|Specify a folder path to export all Kusto delta commands.  Commands will be pushed in a folder structure by type (e.g. all functions will be under a *functions* folder)
+pushToConsole|boolean|No|false|If `true`, the delta commands are *printed* on the console during execution.
+pushToCurrentCluster|boolean|No|false|If `true`, the commands are executed on the *current* cluster.  For this to work, the current source of the [Job object](#job-object) must be an [ADX source object](#adx-source-object).
+
+Although all properties are not required, at least one must be non-empty or true.  Both `filePath` and `folderPath` can't both be specified.  Either `filePath` and `folderPath` can be specified with none of, one of or both `pushToConsole` and `pushToCurrentCluster`.
+
+### Token object
+
+Name|Type|Required|Default|Value
+-|-|-|-|-
+clusterUri|string|Yes|N/A|Cluster URI where to use this token
+token|string|Yes|N/A|Value of the bearer token
+
+Token object is used in order not to have to provide a principal secret.  Authentication can be done outside Delta Kusto with only the produced token passed to it.
+
+### Login object
+
+Name|Type|Required|Default|Value
+-|-|-|-|-
+tenantId|string|Yes|N/A|Azure AD Tenant ID
+clientId|string|Yes|N/A|Client ID, also known as *Application ID*, of a Azure AD Service Principal
+secret|string|Yes|N/A|Secret associated to an Azure AD Service Principal

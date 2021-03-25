@@ -9,7 +9,7 @@
   "jobs": {
     "main": {
       "current": {
-        "database": {
+        "adx": {
           "clusterUri": "to-be-overriden",
           "database": "to-be-overriden"
         }

@@ -6,25 +6,25 @@ namespace DeltaKustoIntegration.Parameterization
 {
     public class SourceParameterization
     {
-        public DatabaseSourceParameterization? Database { get; set; } = null;
+        public AdxSourceParameterization? Adx { get; set; } = null;
 
         public SourceFileParametrization[]? Scripts { get; set; } = null;
 
         internal void Validate()
         {
-            if (Database != null && Scripts != null)
+            if (Adx != null && Scripts != null)
             {
                 throw new DeltaException(
-                    "Both 'database' and 'scripts' can't both be populated in a source");
+                    "Both 'adx' and 'scripts' can't both be populated in a source");
             }
-            if (Database == null && Scripts == null)
+            if (Adx == null && Scripts == null)
             {
                 throw new DeltaException(
-                    "Either 'database' or 'scripts' must be populated in a source");
+                    "Either 'adx' or 'scripts' must be populated in a source");
             }
-            if (Database != null)
+            if (Adx != null)
             {
-                Database.Validate();
+                Adx.Validate();
             }
             else if(!Scripts!.Any())
             {

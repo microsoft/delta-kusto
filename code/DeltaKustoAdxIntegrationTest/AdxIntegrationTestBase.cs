@@ -68,12 +68,12 @@ namespace DeltaKustoAdxIntegrationTest
             _servicePrincipalSecret = servicePrincipalSecret;
             CurrentDbOverrides = ImmutableArray<(string path, object value)>
                 .Empty
-                .Add(("jobs.main.current.database.clusterUri", _clusterUri))
-                .Add(("jobs.main.current.database.database", _currentDb));
+                .Add(("jobs.main.current.adx.clusterUri", _clusterUri))
+                .Add(("jobs.main.current.adx.database", _currentDb));
             TargetDbOverrides = ImmutableArray<(string path, object value)>
                 .Empty
-                .Add(("jobs.main.target.database.clusterUri", (object)_clusterUri))
-                .Add(("jobs.main.target.database.database", _targetDb));
+                .Add(("jobs.main.target.adx.clusterUri", (object)_clusterUri))
+                .Add(("jobs.main.target.adx.database", _targetDb));
         }
 
         protected IEnumerable<(string path, object value)> CurrentDbOverrides { get; }
