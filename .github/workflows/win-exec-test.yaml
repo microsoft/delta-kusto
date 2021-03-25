@@ -27,6 +27,9 @@ jobs:
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
           -p:PublishTrimmed=true -p:PublishReadyToRun=true \
           -o bin
+    - name: printf
+      shell:  bash
+      run:  ls -l bin
     # Set environment variables
     - name: Set environment variables
       shell:  bash
