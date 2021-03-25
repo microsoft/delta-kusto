@@ -16,16 +16,19 @@ jobs:
     - linux
     runs-on: ubuntu-latest
     steps:
+    # Retrieve asset
     - uses: actions/download-artifact@master
       with:
-        name: linux-asset
+        name: linux-assets
         path: linux
     - name:  printf
       run:  ls -l linux
     # See https://dev.to/neshaz/a-tutorial-for-tagging-releases-in-git-147e
     - name: Tags / re-Tags
       run: |
-        git tag ${{ steps.patch-version.outputs.full-version }}
+        # Retrieve content of full-version from artefact
+        fullVersion=$(cat linux/bin/full-version.txt)
+        git tag $fullVersion
         # git tag -f ${{ steps.patch-version.outputs.patch-version }}
         # git tag -f ${{ steps.patch-version.outputs.minor-version }}
         # git tag -f ${{ steps.patch-version.outputs.major-version }}
@@ -94,8 +97,12 @@ jobs:
           -o bin
     - name: Zip executable
       run:  tar -czvf bin/delta-kusto.tar.gz bin/delta-kusto
+    # Output variables can't be shared accross jobs, so we push it to artefacts
+    - name: Push full version to file
+      run:  echo ${{ steps.patch-version.outputs.full-version }} >> bin/full-version.txt
+    # Push archive + version to a sharable artefact
     # See https://stackoverflow.com/questions/57498605/github-actions-share-workspace-artifacts-between-jobs
     - uses: actions/upload-artifact@master
       with:
-        name: linux-asset
-        path: bin/delta-kusto.tar.gz
+        name: linux-assets
+        path: bin
