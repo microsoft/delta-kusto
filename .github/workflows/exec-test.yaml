@@ -68,11 +68,11 @@ jobs:
         -p:ParallelizeTestCollections=false
 
   windows:
-
-    runs-on: windows-latest
     # This creates a dependency with the previous job so they do not run in parallel
     # (which would wreck the integration tests)
     needs:  linux
+
+    runs-on: windows-latest
     
     env:
       dotnetOs:  win-x64
