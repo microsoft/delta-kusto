@@ -17,7 +17,7 @@
         ]
       },
       "target": {
-        "database": {
+        "adx": {
           "clusterUri": "to-be-overriden",
           "database": "to-be-overriden"
         }

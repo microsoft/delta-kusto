@@ -86,7 +86,7 @@ namespace delta_kusto
                 var actionProviders = CreateActionProvider(
                     job.Action!,
                     tokenProvider,
-                    job.Current?.Database);
+                    job.Current?.Adx);
                 var currentDb = await currentDbProvider.RetrieveDatabaseAsync();
                 var targetDb = await targetDbProvider.RetrieveDatabaseAsync();
                 var deltaCommands =
@@ -168,7 +168,7 @@ namespace delta_kusto
         private IImmutableList<IActionProvider> CreateActionProvider(
             ActionParameterization action,
             ITokenProvider? tokenProvider,
-            DatabaseSourceParameterization? database)
+            AdxSourceParameterization? database)
         {
             var builder = ImmutableArray<IActionProvider>.Empty.ToBuilder();
 
@@ -217,7 +217,7 @@ namespace delta_kusto
             }
             else
             {
-                if (source.Database != null)
+                if (source.Adx != null)
                 {
                     if (tokenProvider == null)
                     {
@@ -225,8 +225,8 @@ namespace delta_kusto
                     }
 
                     var kustoManagementGateway = _kustoManagementGatewayFactory.CreateGateway(
-                        new Uri(source.Database.ClusterUri!),
-                        source.Database.Database!,
+                        new Uri(source.Adx.ClusterUri!),
+                        source.Adx.Database!,
                         tokenProvider);
 
                     return new KustoDatabaseProvider(kustoManagementGateway);

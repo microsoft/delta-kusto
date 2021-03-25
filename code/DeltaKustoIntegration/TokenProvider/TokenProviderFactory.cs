@@ -22,7 +22,7 @@ namespace DeltaKustoIntegration.TokenProvider
                         parameterization.Login!.ClientId!,
                         parameterization.Login!.Secret!);
                 }
-                else if (parameterization.TokenMap != null)
+                else if (parameterization.Tokens != null)
                 {
                     throw new NotImplementedException();
                 }
