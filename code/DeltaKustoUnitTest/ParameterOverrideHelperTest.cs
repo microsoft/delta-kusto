@@ -107,7 +107,7 @@ namespace DeltaKustoUnitTest
 
             ParameterOverrideHelper.InplaceOverride(
                 main,
-                $"[{{\"path\" : \"tokenProvider.tokenMap.mine.token\", \"value\":\"{newToken}\" }}]");
+                $"[{{\"path\" : \"tokenProvider.tokens.mine.token\", \"value\":\"{newToken}\" }}]");
 
             Assert.Equal(newToken, main.TokenProvider!.Tokens["mine"].Token);
         }
@@ -132,7 +132,7 @@ namespace DeltaKustoUnitTest
 
             ParameterOverrideHelper.InplaceOverride(
                 main,
-                $"[{{\"path\" : \"tokenProvider.tokenMap.mine\", \"value\":{{ \"token\": \"{newToken}\" }} }}]");
+                $"[{{\"path\" : \"tokenProvider.tokens.mine\", \"value\":{{ \"token\": \"{newToken}\" }} }}]");
 
             Assert.Equal(newToken, main.TokenProvider!.Tokens["mine"].Token);
         }
@@ -190,7 +190,7 @@ namespace DeltaKustoUnitTest
 
             ParameterOverrideHelper.InplaceOverride(
                 main,
-                $"[{{\"path\" : \"tokenProvider.tokenMap.mine.token\", \"value\":\"{newToken}\" }}]");
+                $"[{{\"path\" : \"tokenProvider.tokens.mine.token\", \"value\":\"{newToken}\" }}]");
 
             Assert.Equal(newToken, main.TokenProvider!.Tokens["mine"].Token);
         }
@@ -206,7 +206,7 @@ namespace DeltaKustoUnitTest
 
             ParameterOverrideHelper.InplaceOverride(
                 main,
-                $"[{{\"path\" : \"tokenProvider.tokenMap.mine.token\", \"value\":\"{newToken}\" }}]");
+                $"[{{\"path\" : \"tokenProvider.tokens.mine.token\", \"value\":\"{newToken}\" }}]");
 
             Assert.Equal(newToken, main.TokenProvider!.Tokens!["mine"].Token);
         }

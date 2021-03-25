@@ -17,19 +17,19 @@ namespace DeltaKustoIntegration.Parameterization
             if (Tokens != null && Login != null)
             {
                 throw new DeltaException(
-                    "Both 'tokenMap' and 'login' can't both be populated in token provider");
+                    "Both 'tokens' and 'login' can't both be populated in token provider");
             }
             if (Tokens == null && Login == null)
             {
                 throw new DeltaException(
-                    "Either 'tokenMap' or 'login' must be populated in a source");
+                    "Either 'tokens' or 'login' must be populated in a source");
             }
             if (Tokens != null)
             {
                 if (Tokens.Count == 0)
                 {
                     throw new DeltaException(
-                        "'tokenMap' can't be empty");
+                        "'tokens' can't be empty");
                 }
                 foreach (var map in Tokens.Values)
                 {
@@ -49,7 +49,7 @@ namespace DeltaKustoIntegration.Parameterization
                         duplicateClusterUris.Select(o => $"'{o.ClusterUri}' ({o.Count})"));
 
                     throw new DeltaException(
-                        "The following cluster uris are duplicated in 'tokenMap':  "
+                        "The following cluster uris are duplicated in 'tokens':  "
                         + duplicateClusterUris);
                 }
             }
