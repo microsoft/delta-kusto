@@ -38,6 +38,11 @@ jobs:
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
           -p:PublishTrimmed=true -p:PublishReadyToRun=true \
           -o bin
+    - name: printf
+      run: |
+        ls -l bin
+        ls -l $(pwd)/bin/
+        ls -l $(pwd)/bin/$(exec)
     # Set environment variables
     - name: Set environment variables
       run: |
