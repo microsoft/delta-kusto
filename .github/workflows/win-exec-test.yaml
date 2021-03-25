@@ -17,26 +17,15 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 5.0.x
-    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-restore
-    - name: Install dependencies
-      run: dotnet restore code
-    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-build
-    - name: Build
-      run: dotnet build code --configuration Release --no-restore
-    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
-    - name: Unit Tests
-      run: |
-        dotnet test code/DeltaKustoUnitTest --configuration Release \
-        --no-build --verbosity normal
     # See https://github.com/dotnet/designs/blob/main/accepted/2020/single-file/design.md#user-experience
     # & https://docs.microsoft.com/en-us/dotnet/core/deploying/single-file
     # & https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-publish
-  #   - name: Build single file executable
-  #     run: |
-  #       dotnet publish code/delta-kusto -c release -r $dotnetOs \
-  #         -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
-  #         -p:PublishTrimmed=true -p:PublishReadyToRun=true \
-  #         -o bin
+    - name: Build single file executable
+      run: |
+        dotnet publish code/delta-kusto -c release -r $dotnetOs `
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true `
+          -p:PublishTrimmed=true -p:PublishReadyToRun=true `
+          -o bin
   #   # Set environment variables
   #   - name: Set environment variables
   #     run: |
