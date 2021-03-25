@@ -20,7 +20,7 @@ namespace DeltaKustoAdxIntegrationTest
 {
     public abstract class AdxIntegrationTestBase : IntegrationTestBase
     {
-        private static readonly TimeSpan TIME_OUT = TimeSpan.FromSeconds(10);
+        private static readonly TimeSpan TIME_OUT = TimeSpan.FromSeconds(90);
 
         private readonly Uri _clusterUri;
         private readonly string _currentDb;
