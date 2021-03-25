@@ -43,6 +43,12 @@ jobs:
         ls -l bin
         ls -l $(pwd)/bin/
         ls -l $(pwd)/bin/$(exec)
+    - name: printf2
+      run: |
+        ls -l $(pwd)/bin/
+    - name: printf3
+      run: |
+        ls -l $(pwd)/bin/$(exec)
     # Set environment variables
     - name: Set environment variables
       run: |
