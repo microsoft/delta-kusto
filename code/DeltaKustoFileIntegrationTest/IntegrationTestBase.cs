@@ -127,14 +127,23 @@ namespace DeltaKustoFileIntegrationTest
                     process.ErrorDataReceived +=
                         (sender, data) => Console.WriteLine(data.Data);
                     Console.WriteLine($"Start process '{_executablePath}'");
-                    process.Start();
 
-                    //  Force the exec to execute within 5 seconds
-                    var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+                    var started = process.Start();
 
-                    await process.WaitForExitAsync(tokenSource.Token);
+                    if (started)
+                    {
+                        //  Force the exec to execute within 5 seconds
+                        var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
-                    return process.ExitCode;
+                        await process.WaitForExitAsync(tokenSource.Token);
+
+                        return process.ExitCode;
+                    }
+                    else
+                    {
+                        throw new InvalidProgramException(
+                            $"Can't start process '{_executablePath}'");
+                    }
                 }
             }
         }
