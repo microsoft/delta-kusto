@@ -8,8 +8,8 @@ jobs:
     runs-on: windows-latest
     
     env:
-      # os:  linux
       dotnetOs:  win-x64
+      exec:  delta-kusto.exe
 
     steps:
     - uses: actions/checkout@v2
@@ -43,7 +43,7 @@ jobs:
       shell:  bash
       run: |
         # Exec path
-        echo "deltaKustoSingleExecPath=$(pwd)/bin/delta-kusto.exe" >> $GITHUB_ENV
+        echo "deltaKustoSingleExecPath=$(pwd)/bin/$(exec)" >> $GITHUB_ENV
         # ADX integration
         echo "deltaKustoClusterUri=${{ secrets.CLUSTER_URI }}" >> $GITHUB_ENV
         echo "deltaKustoCurrentDb=${{ secrets.CURRENT_DB }}" >> $GITHUB_ENV
