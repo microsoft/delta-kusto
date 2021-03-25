@@ -27,35 +27,38 @@ jobs:
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
           -p:PublishTrimmed=true -p:PublishReadyToRun=true \
           -o bin
-  #   # Set environment variables
-  #   - name: Set environment variables
-  #     run: |
-  #       # Exec path
-  #       echo "deltaKustoSingleExecPath=$(pwd)/bin/delta-kusto" >> $GITHUB_ENV
-  #       # ADX integration
-  #       echo "deltaKustoClusterUri=${{ secrets.CLUSTER_URI }}" >> $GITHUB_ENV
-  #       echo "deltaKustoCurrentDb=${{ secrets.CURRENT_DB }}" >> $GITHUB_ENV
-  #       echo "deltaKustoTargetDb=${{ secrets.TARGET_DB }}" >> $GITHUB_ENV
-  #       echo "deltaKustoTenantId=${{ secrets.TENANT_ID }}" >> $GITHUB_ENV
-  #       echo "deltaKustoSpId=${{ secrets.KUSTO_SP_ID }}" >> $GITHUB_ENV
-  #       echo "deltaKustoSpSecret=${{ secrets.KUSTO_SP_SECRET }}" >> $GITHUB_ENV
-  #   # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
-  #   - name: File-based integration tests (out-of-proc)
-  #     run: |
-  #       # Disable parallelization of tests
-  #       # See https://xunit.net/docs/running-tests-in-parallel
-  #       dotnet test code/DeltaKustoFileIntegrationTest \
-  #       --configuration Release --no-build --verbosity normal \
-  #       -p:ParallelizeTestCollections=false
+    # Set environment variables
+    - name: Set environment variables
+      shell:  bash
+      run: |
+        # Exec path
+        echo "deltaKustoSingleExecPath=$(pwd)/bin/delta-kusto" >> $GITHUB_ENV
+        # ADX integration
+        echo "deltaKustoClusterUri=${{ secrets.CLUSTER_URI }}" >> $GITHUB_ENV
+        echo "deltaKustoCurrentDb=${{ secrets.CURRENT_DB }}" >> $GITHUB_ENV
+        echo "deltaKustoTargetDb=${{ secrets.TARGET_DB }}" >> $GITHUB_ENV
+        echo "deltaKustoTenantId=${{ secrets.TENANT_ID }}" >> $GITHUB_ENV
+        echo "deltaKustoSpId=${{ secrets.KUSTO_SP_ID }}" >> $GITHUB_ENV
+        echo "deltaKustoSpSecret=${{ secrets.KUSTO_SP_SECRET }}" >> $GITHUB_ENV
+    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
+    - name: File-based integration tests (out-of-proc)
+      shell:  bash
+      run: |
+        # Disable parallelization of tests
+        # See https://xunit.net/docs/running-tests-in-parallel
+        dotnet test code/DeltaKustoFileIntegrationTest \
+        --configuration Release --no-build --verbosity normal \
+        -p:ParallelizeTestCollections=false
 
-  #   # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
-  #   - name: ADX-based integration tests (out-of-proc)
-  #     run: |
-  #       # Disable parallelization of tests
-  #       # See https://xunit.net/docs/running-tests-in-parallel
-  #       dotnet test code/DeltaKustoAdxIntegrationTest \
-  #       --configuration Release --no-build --verbosity normal \
-  #       -p:ParallelizeTestCollections=false
+    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
+    - name: ADX-based integration tests (out-of-proc)
+      shell:  bash
+      run: |
+        # Disable parallelization of tests
+        # See https://xunit.net/docs/running-tests-in-parallel
+        dotnet test code/DeltaKustoAdxIntegrationTest \
+        --configuration Release --no-build --verbosity normal \
+        -p:ParallelizeTestCollections=false
 
 
   # #   runs-on: windows-latest
