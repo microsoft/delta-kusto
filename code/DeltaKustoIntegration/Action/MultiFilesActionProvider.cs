@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DeltaKustoIntegration.Action
@@ -22,15 +23,23 @@ namespace DeltaKustoIntegration.Action
 
         async Task IActionProvider.ProcessDeltaCommandsAsync(
             bool doNotProcessIfDrops,
-            ActionCommandCollection commands)
+            ActionCommandCollection commands,
+            CancellationToken ct)
         {
-            await ProcessDeltaCommandsAsync(commands.DropFunctionCommands, "functions/drop");
-            await ProcessDeltaCommandsAsync(commands.CreateFunctionCommands, "functions/create");
+            await ProcessDeltaCommandsAsync(
+                commands.DropFunctionCommands,
+                "functions/drop",
+                ct);
+            await ProcessDeltaCommandsAsync(
+                commands.CreateFunctionCommands,
+                "functions/create",
+                ct);
         }
 
         private async Task ProcessDeltaCommandsAsync<CT>(
             IEnumerable<CT> commands,
-            string folder)
+            string folder,
+            CancellationToken ct)
             where CT : CommandBase
         {
             foreach (var command in commands)
@@ -39,7 +48,7 @@ namespace DeltaKustoIntegration.Action
                 var script = command.ToScript();
                 var fullPath = Path.Combine(_folderPath, folder, fileName);
 
-                await _fileGateway.SetFileContentAsync(fullPath, script);
+                await _fileGateway.SetFileContentAsync(fullPath, script, ct);
             }
         }
     }

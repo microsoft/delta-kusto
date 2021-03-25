@@ -3,6 +3,7 @@ using DeltaKustoLib.KustoModel;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DeltaKustoIntegration.Database
@@ -16,9 +17,10 @@ namespace DeltaKustoIntegration.Database
             _kustoManagementGateway = kustoManagementGateway;
         }
 
-        async Task<DatabaseModel> IDatabaseProvider.RetrieveDatabaseAsync()
+        async Task<DatabaseModel> IDatabaseProvider.RetrieveDatabaseAsync(
+            CancellationToken ct)
         {
-            var databaseSchema = await _kustoManagementGateway.GetDatabaseSchemaAsync();
+            var databaseSchema = await _kustoManagementGateway.GetDatabaseSchemaAsync(ct);
 
             return DatabaseModel.FromDatabaseSchema(databaseSchema);
         }

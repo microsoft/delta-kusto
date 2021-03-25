@@ -311,9 +311,10 @@ namespace DeltaKustoIntegration.Kusto
             _tokenProvider = tokenProvider;
         }
 
-        async Task<DatabaseSchema> IKustoManagementGateway.GetDatabaseSchemaAsync()
+        async Task<DatabaseSchema> IKustoManagementGateway.GetDatabaseSchemaAsync(
+            CancellationToken ct)
         {
-            var output = await ExecuteCommandAsync(".show database schema as json");
+            var output = await ExecuteCommandAsync(".show database schema as json", ct);
             var schemaText = output.GetSingleElement<string>();
             var rootSchema = RootSchema.FromJson(schemaText);
 
@@ -326,7 +327,9 @@ namespace DeltaKustoIntegration.Kusto
             return rootSchema.Databases.First().Value;
         }
 
-        async Task IKustoManagementGateway.ExecuteCommandsAsync(IEnumerable<CommandBase> commands)
+        async Task IKustoManagementGateway.ExecuteCommandsAsync(
+            IEnumerable<CommandBase> commands,
+            CancellationToken ct)
         {
             if (commands.Any())
             {
@@ -334,7 +337,7 @@ namespace DeltaKustoIntegration.Kusto
                 var fullScript = ".execute database script <|"
                     + Environment.NewLine
                     + string.Join(Environment.NewLine + Environment.NewLine, commandScripts);
-                var output = await ExecuteCommandAsync(fullScript);
+                var output = await ExecuteCommandAsync(fullScript, ct);
                 var content = output.Tables![0].ProjectRows<string, string, string, Guid>(
                     "Result",
                     "Reason",
@@ -367,9 +370,11 @@ namespace DeltaKustoIntegration.Kusto
             return text.Replace("\n", "\\n").Replace("\r", "\\r");
         }
 
-        private async Task<ApiOutput> ExecuteCommandAsync(string commandScript)
+        private async Task<ApiOutput> ExecuteCommandAsync(
+            string commandScript,
+            CancellationToken ct)
         {
-            var token = await _tokenProvider.GetTokenAsync(_clusterUri);
+            var token = await _tokenProvider.GetTokenAsync(_clusterUri, ct);
 
             //  Implementation of https://docs.microsoft.com/en-us/azure/data-explorer/kusto/api/rest/request#examples
             using (var client = new HttpClient())
@@ -383,12 +388,11 @@ namespace DeltaKustoIntegration.Kusto
                     csl = commandScript
                 };
                 var bodyText = JsonSerializer.Serialize(body);
-                var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(2));
                 var response = await client.PostAsync(
                     managementUrl,
                     new StringContent(bodyText, null, "application/json"),
-                    tokenSource.Token);
-                var responseText = await response.Content.ReadAsStringAsync(tokenSource.Token);
+                    ct);
+                var responseText = await response.Content.ReadAsStringAsync(ct);
 
                 if (response.StatusCode != HttpStatusCode.OK)
                 {

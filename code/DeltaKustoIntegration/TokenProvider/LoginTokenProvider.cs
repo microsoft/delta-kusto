@@ -26,7 +26,9 @@ namespace DeltaKustoIntegration.TokenProvider
             _secret = secret;
         }
 
-        async Task<string> ITokenProvider.GetTokenAsync(Uri clusterUri)
+        async Task<string> ITokenProvider.GetTokenAsync(
+            Uri clusterUri,
+            CancellationToken ct)
         {
             if (_tokenCache.ContainsKey(clusterUri))
             {
@@ -38,7 +40,6 @@ namespace DeltaKustoIntegration.TokenProvider
                 using (var client = new HttpClient())
                 {
                     var loginUrl = $"https://login.microsoftonline.com/{_tenantId}/oauth2/token";
-                    var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(2));
                     var response = await client.PostAsync(
                         loginUrl,
                         new FormUrlEncodedContent(new[] {
@@ -47,8 +48,8 @@ namespace DeltaKustoIntegration.TokenProvider
                             new KeyValuePair<string?, string?>("resource", clusterUri.ToString()),
                             new KeyValuePair<string?, string?>("grant_type", "client_credentials")
                         }),
-                        tokenSource.Token);
-                    var responseText = await response.Content.ReadAsStringAsync(tokenSource.Token);
+                        ct);
+                    var responseText = await response.Content.ReadAsStringAsync(ct);
 
                     if (response.StatusCode != HttpStatusCode.OK)
                     {

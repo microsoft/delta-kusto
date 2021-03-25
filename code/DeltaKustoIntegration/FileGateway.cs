@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,12 +14,12 @@ namespace DeltaKustoIntegration
     {
         async Task<string> IFileGateway.GetFileContentAsync(
             string filePath,
-            CancellationToken? ct)
+            CancellationToken ct)
         {
             var text = await File.ReadAllTextAsync(
                 filePath,
                 Encoding.UTF8,
-                ct ?? new CancellationTokenSource(TimeSpan.FromSeconds(2)).Token);
+                ct);
 
             return text;
         }
@@ -26,7 +27,7 @@ namespace DeltaKustoIntegration
         async Task IFileGateway.SetFileContentAsync(
             string filePath,
             string content,
-            CancellationToken? ct)
+            CancellationToken ct)
         {
             var directory = Path.GetDirectoryName(filePath);
 
@@ -38,13 +39,14 @@ namespace DeltaKustoIntegration
             await File.WriteAllTextAsync(
                 filePath,
                 content,
-                ct ?? new CancellationTokenSource(TimeSpan.FromSeconds(2)).Token);
+                ct);
         }
 
         async IAsyncEnumerable<(string path, string content)> IFileGateway.GetFolderContentsAsync(
             string folderPath,
             IEnumerable<string>? extensions,
-            CancellationToken? ct)
+            [EnumeratorCancellation]
+            CancellationToken ct)
         {
             var fileGateway = (IFileGateway)this;
             var directories = Directory.GetDirectories(folderPath);
@@ -54,14 +56,14 @@ namespace DeltaKustoIntegration
             {
                 if (HasExtension(file, extensions))
                 {
-                    var script = await fileGateway.GetFileContentAsync(file);
+                    var script = await fileGateway.GetFileContentAsync(file, ct);
 
                     yield return (file, script);
                 }
             }
             foreach (var directory in directories)
             {
-                var scripts = fileGateway.GetFolderContentsAsync(directory, extensions);
+                var scripts = fileGateway.GetFolderContentsAsync(directory, extensions, ct);
 
                 await foreach (var script in scripts)
                 {

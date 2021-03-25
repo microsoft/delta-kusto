@@ -101,7 +101,9 @@ namespace DeltaKustoFileIntegrationTest
             }
         }
 
-        protected async virtual Task<int> RunMainAsync(params string[] args)
+        protected async virtual Task<int> RunMainAsync(
+            CancellationToken ct,
+            params string[] args)
         {
             if (_executablePath == null)
             {
@@ -132,10 +134,7 @@ namespace DeltaKustoFileIntegrationTest
 
                     if (started)
                     {
-                        //  Force the exec to execute within 5 seconds
-                        var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-
-                        await process.WaitForExitAsync(tokenSource.Token);
+                        await process.WaitForExitAsync(ct);
 
                         return process.ExitCode;
                     }
@@ -148,21 +147,25 @@ namespace DeltaKustoFileIntegrationTest
             }
         }
 
-        protected async virtual Task RunSuccessfulMainAsync(params string[] args)
+        protected async virtual Task RunSuccessfulMainAsync(
+            CancellationToken ct,
+            params string[] args)
         {
-            var returnedValue = await RunMainAsync(args);
+            var returnedValue = await RunMainAsync(ct, args);
 
             Assert.Equal(0, returnedValue);
         }
 
         protected async virtual Task<MainParameterization> RunParametersAsync(
             string parameterFilePath,
+            CancellationToken ct,
             IEnumerable<(string path, object value)>? overrides = null)
         {
             var jsonOverrides = overrides != null && overrides.Any()
                 ? JsonSerializer.Serialize(overrides.Select(o => new { o.path, o.value }))
                 : "";
             var returnedValue = await RunMainAsync(
+                ct,
                 "-p",
                 parameterFilePath,
                 "-o",
@@ -176,7 +179,8 @@ namespace DeltaKustoFileIntegrationTest
             var orchestration = new DeltaOrchestration();
             var parameters = await orchestration.LoadParameterizationAsync(
                 parameterFilePath,
-                jsonOverrides);
+                jsonOverrides,
+                ct);
 
             return parameters;
         }

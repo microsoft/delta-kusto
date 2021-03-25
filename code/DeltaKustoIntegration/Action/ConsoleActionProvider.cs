@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DeltaKustoIntegration.Action
@@ -11,7 +12,8 @@ namespace DeltaKustoIntegration.Action
     {
         Task IActionProvider.ProcessDeltaCommandsAsync(
             bool doNotProcessIfDrops,
-            ActionCommandCollection commands)
+            ActionCommandCollection commands,
+            CancellationToken ct)
         {
             throw new NotImplementedException();
         }

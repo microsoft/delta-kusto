@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DeltaKustoIntegration.Database
@@ -23,10 +24,11 @@ namespace DeltaKustoIntegration.Database
             _scripts = scripts.ToImmutableArray();
         }
 
-        async Task<DatabaseModel> IDatabaseProvider.RetrieveDatabaseAsync()
+        async Task<DatabaseModel> IDatabaseProvider.RetrieveDatabaseAsync(
+            CancellationToken ct)
         {
             var scriptTasks = _scripts
-                .Select(s => LoadScriptsAsync(s));
+                .Select(s => LoadScriptsAsync(s, ct));
 
             await Task.WhenAll(scriptTasks);
 
@@ -39,11 +41,15 @@ namespace DeltaKustoIntegration.Database
             return database;
         }
 
-        private async Task<IEnumerable<string>> LoadScriptsAsync(SourceFileParametrization fileParametrization)
+        private async Task<IEnumerable<string>> LoadScriptsAsync(
+            SourceFileParametrization fileParametrization,
+            CancellationToken ct)
         {
             if (fileParametrization.FilePath != null)
             {
-                var script = await _fileGateway.GetFileContentAsync(fileParametrization.FilePath);
+                var script = await _fileGateway.GetFileContentAsync(
+                    fileParametrization.FilePath,
+                    ct);
 
                 return new[] { script };
             }
@@ -51,7 +57,8 @@ namespace DeltaKustoIntegration.Database
             {
                 var scripts = _fileGateway.GetFolderContentsAsync(
                     fileParametrization.FolderPath,
-                    fileParametrization.Extensions);
+                    fileParametrization.Extensions,
+                    ct);
                 var contents = (await scripts.ToEnumerableAsync())
                     .Select(t => t.content);
 

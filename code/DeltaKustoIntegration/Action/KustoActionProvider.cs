@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DeltaKustoIntegration.Action
@@ -19,11 +20,12 @@ namespace DeltaKustoIntegration.Action
 
         async Task IActionProvider.ProcessDeltaCommandsAsync(
             bool doNotProcessIfDrops,
-            ActionCommandCollection commands)
+            ActionCommandCollection commands,
+            CancellationToken ct)
         {
             if (!doNotProcessIfDrops || !commands.AllDropCommands.Any())
             {
-                await _kustoManagementGateway.ExecuteCommandsAsync(commands);
+                await _kustoManagementGateway.ExecuteCommandsAsync(commands, ct);
             }
         }
     }

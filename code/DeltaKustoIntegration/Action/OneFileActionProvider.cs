@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DeltaKustoIntegration.Action
@@ -20,7 +21,8 @@ namespace DeltaKustoIntegration.Action
 
         async Task IActionProvider.ProcessDeltaCommandsAsync(
             bool doNotProcessIfDrops,
-            ActionCommandCollection commands)
+            ActionCommandCollection commands,
+            CancellationToken ct)
         {
             var builder = new StringBuilder();
 
@@ -33,7 +35,10 @@ namespace DeltaKustoIntegration.Action
                 commands.CreateFunctionCommands,
                 "Create functions");
 
-            await _fileGateway.SetFileContentAsync(_filePath, builder.ToString());
+            await _fileGateway.SetFileContentAsync(
+                _filePath,
+                builder.ToString(),
+                ct);
         }
 
         private void ProcessDeltaCommands<CT>(

@@ -5,15 +5,32 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace delta_kusto
 {
     internal class Program
     {
+        private readonly CancellationToken _ct;
+
+        public Program(CancellationToken ct)
+        {
+            _ct = ct;
+        }
+
         internal static async Task<int> Main(string[] args)
         {
-            var activationTask = ApiClient.ActivateAsync();
+            var tokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+            var ct = tokenSource.Token;
+            var programContext = new Program(ct);
+
+            return await programContext.RunAsync(args);
+        }
+
+        internal async Task<int> RunAsync(string[] args)
+        {
+            var activationTask = ApiClient.ActivateAsync(_ct);
 
             //  Use CommandLineParser NuGet package to parse command line
             //  See https://github.com/commandlineparser/commandline
@@ -52,7 +69,7 @@ namespace delta_kusto
             }
         }
 
-        private static void DisplayGenericException(Exception ex, string tab = "")
+        private void DisplayGenericException(Exception ex, string tab = "")
         {
             Console.Error.WriteLine($"{tab}Exception encountered:  {ex.GetType().FullName} ; {ex.Message}");
             if (ex.InnerException != null)
@@ -61,7 +78,7 @@ namespace delta_kusto
             }
         }
 
-        private static void DisplayDeltaException(DeltaException ex, string tab = "")
+        private void DisplayDeltaException(DeltaException ex, string tab = "")
         {
             Console.Error.WriteLine($"{tab}Error:  {ex.Message}");
             if (!string.IsNullOrWhiteSpace(ex.Script))
@@ -81,7 +98,7 @@ namespace delta_kusto
             }
         }
 
-        private static async Task RunOptionsAsync(CommandLineOptions options)
+        private async Task RunOptionsAsync(CommandLineOptions options)
         {
             var versionAttribute = typeof(Program)
                 .Assembly
@@ -99,7 +116,8 @@ namespace delta_kusto
             var orchestration = new DeltaOrchestration(options.Verbose);
             var success = await orchestration.ComputeDeltaAsync(
                 options.ParameterFilePath,
-                options.Overrides);
+                options.Overrides,
+                _ct);
 
             if (!success)
             {
@@ -107,7 +125,7 @@ namespace delta_kusto
             }
         }
 
-        private static void HandleParseError(
+        private void HandleParseError(
             ParserResult<CommandLineOptions> result,
             IEnumerable<Error> errors)
         {

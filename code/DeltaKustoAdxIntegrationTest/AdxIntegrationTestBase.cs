@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -19,6 +20,8 @@ namespace DeltaKustoAdxIntegrationTest
 {
     public abstract class AdxIntegrationTestBase : IntegrationTestBase
     {
+        private static readonly TimeSpan TIME_OUT = TimeSpan.FromSeconds(10);
+
         private readonly Uri _clusterUri;
         private readonly string _currentDb;
         private readonly string _targetDb;
@@ -82,11 +85,15 @@ namespace DeltaKustoAdxIntegrationTest
 
         protected async Task TestAdxToFile(string statesFolderPath, string outputFolder)
         {
+            var cancellationToken = new CancellationTokenSource(TIME_OUT);
+            var ct = cancellationToken.Token;
+
             await LoopThroughStateFilesAsync(
                 statesFolderPath,
+                ct,
                 async (fromFile, toFile) =>
                 {
-                    await PrepareDbAsync(fromFile, true);
+                    await PrepareDbAsync(fromFile, true, ct);
 
                     var outputPath = outputFolder
                         + Path.GetFileNameWithoutExtension(fromFile)
@@ -98,14 +105,15 @@ namespace DeltaKustoAdxIntegrationTest
                         .Append(("jobs.main.action.filePath", outputPath));
                     var parameters = await RunParametersAsync(
                         "adx-to-file-params.json",
+                        ct,
                         overrides);
                     var outputCommands = await LoadScriptAsync(outputPath);
                     var targetCommands = CommandBase.FromScript(
                         await File.ReadAllTextAsync(toFile));
 
-                    await ApplyCommandsAsync(outputCommands, true);
+                    await ApplyCommandsAsync(outputCommands, true, ct);
 
-                    var finalCommands = await FetchDbCommandsAsync(true);
+                    var finalCommands = await FetchDbCommandsAsync(true, ct);
 
                     Assert.True(
                         finalCommands.SequenceEqual(targetCommands),
@@ -115,11 +123,15 @@ namespace DeltaKustoAdxIntegrationTest
 
         protected async Task TestFileToAdx(string statesFolderPath, string outputFolder)
         {
+            var cancellationToken = new CancellationTokenSource(TIME_OUT);
+            var ct = cancellationToken.Token;
+
             await LoopThroughStateFilesAsync(
                 statesFolderPath,
+                ct,
                 async (fromFile, toFile) =>
                 {
-                    await PrepareDbAsync(toFile, false);
+                    await PrepareDbAsync(toFile, false, ct);
 
                     var outputPath = outputFolder
                         + Path.GetFileNameWithoutExtension(fromFile)
@@ -131,6 +143,7 @@ namespace DeltaKustoAdxIntegrationTest
                         .Append(("jobs.main.action.filePath", outputPath));
                     var parameters = await RunParametersAsync(
                         "file-to-adx-params.json",
+                        ct,
                         overrides);
                     var outputCommands = await LoadScriptAsync(outputPath);
                     var currentCommands = CommandBase.FromScript(
@@ -140,9 +153,10 @@ namespace DeltaKustoAdxIntegrationTest
 
                     await ApplyCommandsAsync(
                         currentCommands.Concat(outputCommands),
-                        true);
+                        true,
+                        ct);
 
-                    var finalCommands = await FetchDbCommandsAsync(true);
+                    var finalCommands = await FetchDbCommandsAsync(true, ct);
 
                     Assert.True(
                         finalCommands.SequenceEqual(targetCommands),
@@ -152,13 +166,17 @@ namespace DeltaKustoAdxIntegrationTest
 
         protected async Task TestAdxToAdx(string statesFolderPath, string outputFolder)
         {
+            var cancellationToken = new CancellationTokenSource(TIME_OUT);
+            var ct = cancellationToken.Token;
+
             await LoopThroughStateFilesAsync(
                 statesFolderPath,
+                ct,
                 async (fromFile, toFile) =>
                 {
                     await Task.WhenAll(
-                        PrepareDbAsync(fromFile, true),
-                        PrepareDbAsync(toFile, false));
+                        PrepareDbAsync(fromFile, true, ct),
+                        PrepareDbAsync(toFile, false, ct));
 
                     var outputPath = outputFolder
                         + Path.GetFileNameWithoutExtension(fromFile)
@@ -170,10 +188,11 @@ namespace DeltaKustoAdxIntegrationTest
                         .Append(("jobs.main.action.filePath", outputPath));
                     var parameters = await RunParametersAsync(
                         "adx-to-adx-params.json",
+                        ct,
                         overrides);
                     var targetCommands = CommandBase.FromScript(
                         await File.ReadAllTextAsync(toFile));
-                    var finalCommands = await FetchDbCommandsAsync(false);
+                    var finalCommands = await FetchDbCommandsAsync(false, ct);
 
                     Assert.True(
                         finalCommands.SequenceEqual(targetCommands),
@@ -183,6 +202,7 @@ namespace DeltaKustoAdxIntegrationTest
 
         private async Task LoopThroughStateFilesAsync(
             string folderPath,
+            CancellationToken ct,
             Func<string, string, Task> loopFunction)
         {
             var stateFiles = Directory.GetFiles(folderPath);
@@ -194,27 +214,32 @@ namespace DeltaKustoAdxIntegrationTest
                 foreach (var toFile in stateFiles)
                 {
                     Console.WriteLine($"Current loop:  ({fromFile}, {toFile})");
-                    await CleanDatabasesAsync();
+                    await CleanDatabasesAsync(ct);
                     await loopFunction(fromFile, toFile);
                 }
             }
         }
 
-        private async Task ApplyCommandsAsync(IEnumerable<CommandBase> commands, bool isCurrent)
+        private async Task ApplyCommandsAsync(
+            IEnumerable<CommandBase> commands,
+            bool isCurrent,
+            CancellationToken ct)
         {
             var gateway = CreateKustoManagementGateway(isCurrent);
 
             //  Apply commands to the db
-            await gateway.ExecuteCommandsAsync(commands);
+            await gateway.ExecuteCommandsAsync(commands, ct);
         }
 
-        private async Task<IImmutableList<CommandBase>> FetchDbCommandsAsync(bool isCurrent)
+        private async Task<IImmutableList<CommandBase>> FetchDbCommandsAsync(
+            bool isCurrent,
+            CancellationToken ct)
         {
             var gateway = CreateKustoManagementGateway(isCurrent);
             var dbProvider = (IDatabaseProvider)new KustoDatabaseProvider(gateway);
             var emptyProvider = (IDatabaseProvider)new EmptyDatabaseProvider();
-            var finalDb = await dbProvider.RetrieveDatabaseAsync();
-            var emptyDb = await emptyProvider.RetrieveDatabaseAsync();
+            var finalDb = await dbProvider.RetrieveDatabaseAsync(ct);
+            var emptyDb = await emptyProvider.RetrieveDatabaseAsync(ct);
             //  Use the delta from an empty db to get 
             var finalCommands = finalDb.ComputeDelta(emptyDb);
 
@@ -223,6 +248,7 @@ namespace DeltaKustoAdxIntegrationTest
 
         protected override Task<MainParameterization> RunParametersAsync(
             string parameterFilePath,
+            CancellationToken ct,
             IEnumerable<(string path, object value)>? overrides = null)
         {
             var adjustedOverrides = overrides != null
@@ -234,17 +260,20 @@ namespace DeltaKustoAdxIntegrationTest
                 .Append(("tokenProvider.login.clientId", _servicePrincipalId))
                 .Append(("tokenProvider.login.secret", _servicePrincipalSecret));
 
-            return base.RunParametersAsync(parameterFilePath, adjustedOverrides);
+            return base.RunParametersAsync(parameterFilePath, ct, adjustedOverrides);
         }
 
-        protected async Task CleanDatabasesAsync()
+        protected async Task CleanDatabasesAsync(CancellationToken ct)
         {
             await Task.WhenAll(
-                CleanDbAsync(true),
-                CleanDbAsync(false));
+                CleanDbAsync(true, ct),
+                CleanDbAsync(false, ct));
         }
 
-        protected async Task PrepareDbAsync(string scriptPath, bool isCurrent)
+        protected async Task PrepareDbAsync(
+            string scriptPath,
+            bool isCurrent,
+            CancellationToken ct)
         {
             var script = await File.ReadAllTextAsync(scriptPath);
 
@@ -253,7 +282,7 @@ namespace DeltaKustoAdxIntegrationTest
                 var commands = CommandBase.FromScript(script);
                 var gateway = CreateKustoManagementGateway(isCurrent);
 
-                await gateway.ExecuteCommandsAsync(commands);
+                await gateway.ExecuteCommandsAsync(commands, ct);
             }
             catch (Exception ex)
             {
@@ -294,16 +323,16 @@ namespace DeltaKustoAdxIntegrationTest
             return tokenProvider!;
         }
 
-        private async Task CleanDbAsync(bool isCurrent)
+        private async Task CleanDbAsync(bool isCurrent, CancellationToken ct)
         {
             var emptyDbProvider = (IDatabaseProvider)new EmptyDatabaseProvider();
             var kustoGateway = CreateKustoManagementGateway(isCurrent);
             var dbProvider = (IDatabaseProvider)new KustoDatabaseProvider(kustoGateway);
-            var emptyDb = await emptyDbProvider.RetrieveDatabaseAsync();
-            var db = await dbProvider.RetrieveDatabaseAsync();
+            var emptyDb = await emptyDbProvider.RetrieveDatabaseAsync(ct);
+            var db = await dbProvider.RetrieveDatabaseAsync(ct);
             var currentDeltaCommands = db.ComputeDelta(emptyDb);
 
-            await kustoGateway.ExecuteCommandsAsync(currentDeltaCommands);
+            await kustoGateway.ExecuteCommandsAsync(currentDeltaCommands, ct);
         }
     }
 }

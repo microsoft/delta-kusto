@@ -7,7 +7,8 @@ namespace DeltaKustoIntegration.TokenProvider
 {
     public class TokenProviderFactory : ITokenProviderFactory
     {
-        ITokenProvider? ITokenProviderFactory.CreateProvider(TokenProviderParameterization? parameterization)
+        ITokenProvider? ITokenProviderFactory.CreateProvider(
+            TokenProviderParameterization? parameterization)
         {
             if (parameterization == null)
             {

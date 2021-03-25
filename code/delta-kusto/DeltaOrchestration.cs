@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -38,11 +39,17 @@ namespace delta_kusto
             _tokenProviderFactory = tokenProviderFactory ?? new TokenProviderFactory();
         }
 
-        public async Task<bool> ComputeDeltaAsync(string parameterFilePath, string jsonOverrides)
+
+
+        public async Task<bool> ComputeDeltaAsync(
+            string parameterFilePath,
+            string jsonOverrides,
+            CancellationToken ct)
         {
             Console.WriteLine($"Loading parameters at '{parameterFilePath}'");
 
-            var parameters = await LoadParameterizationAsync(parameterFilePath, jsonOverrides);
+            var parameters =
+                await LoadParameterizationAsync(parameterFilePath, jsonOverrides, ct);
 
             try
             {
@@ -55,7 +62,12 @@ namespace delta_kusto
                 foreach (var jobPair in orderedJobs)
                 {
                     var (jobName, job) = jobPair;
-                    var jobSuccess = await ProcessJobAsync(parameters, tokenProvider, jobName, job);
+                    var jobSuccess = await ProcessJobAsync(
+                        parameters,
+                        tokenProvider,
+                        jobName,
+                        job,
+                        ct);
 
                     success = success && jobSuccess;
                 }
@@ -66,7 +78,7 @@ namespace delta_kusto
             {
                 if (parameters.SendErrorOptIn)
                 {
-                    await ApiClient.RegisterExceptionAsync(ex);
+                    await ApiClient.RegisterExceptionAsync(ex, ct);
                 }
                 throw;
             }
@@ -76,7 +88,8 @@ namespace delta_kusto
             MainParameterization parameters,
             ITokenProvider? tokenProvider,
             string jobName,
-            JobParameterization job)
+            JobParameterization job,
+            CancellationToken ct)
         {
             Console.WriteLine($"Job {jobName}");
             try
@@ -87,8 +100,8 @@ namespace delta_kusto
                     job.Action!,
                     tokenProvider,
                     job.Current?.Adx);
-                var currentDb = await currentDbProvider.RetrieveDatabaseAsync();
-                var targetDb = await targetDbProvider.RetrieveDatabaseAsync();
+                var currentDb = await currentDbProvider.RetrieveDatabaseAsync(ct);
+                var targetDb = await targetDbProvider.RetrieveDatabaseAsync(ct);
                 var deltaCommands =
                     new ActionCommandCollection(currentDb.ComputeDelta(targetDb));
                 var jobSuccess = ReportOnDeltaCommands(parameters, deltaCommands);
@@ -97,7 +110,8 @@ namespace delta_kusto
                 {
                     await actionProvider.ProcessDeltaCommandsAsync(
                         parameters.FailIfDrops,
-                        deltaCommands);
+                        deltaCommands,
+                        ct);
                 }
 
                 return jobSuccess;
@@ -136,14 +150,15 @@ namespace delta_kusto
 
         internal async Task<MainParameterization> LoadParameterizationAsync(
             string parameterFilePath,
-            string jsonOverrides)
+            string jsonOverrides,
+            CancellationToken ct)
         {
             try
             {
                 var deserializer = new DeserializerBuilder()
                     .WithNamingConvention(CamelCaseNamingConvention.Instance)
                     .Build();
-                var parameterText = await _fileGateway.GetFileContentAsync(parameterFilePath);
+                var parameterText = await _fileGateway.GetFileContentAsync(parameterFilePath, ct);
                 var parameters = deserializer.Deserialize<MainParameterization>(parameterText);
 
                 if (parameters == null)

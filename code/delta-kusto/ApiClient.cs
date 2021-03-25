@@ -17,7 +17,7 @@ namespace delta_kusto
         private static readonly bool _doApiCalls = ComputeDoApiCalls();
         private static readonly object _clientInfo = CreateClientInfo();
 
-        public static async Task ActivateAsync()
+        public static async Task ActivateAsync(CancellationToken ct)
         {
             if (_doApiCalls)
             {
@@ -26,11 +26,12 @@ namespace delta_kusto
                     new
                     {
                         ClientInfo = _clientInfo
-                    });
+                    },
+                    ct);
             }
         }
 
-        public static async Task RegisterExceptionAsync(Exception ex)
+        public static async Task RegisterExceptionAsync(Exception ex, CancellationToken ct)
         {
             if (_doApiCalls)
             {
@@ -40,7 +41,8 @@ namespace delta_kusto
                         ClientInfo = _clientInfo,
                         Source = ex.Source ?? string.Empty,
                         Exceptions = CreateExceptions(ex).ToArray()
-                    });
+                    },
+                    ct);
             }
         }
 
@@ -85,7 +87,10 @@ namespace delta_kusto
             return version;
         }
 
-        private static async Task PostAsync(string urlSuffix, object telemetry)
+        private static async Task PostAsync(
+            string urlSuffix,
+            object telemetry,
+            CancellationToken ct)
         {
             try
             {
@@ -99,13 +104,12 @@ namespace delta_kusto
                 using (var client = new HttpClient())
                 {
                     var url = new Uri(new Uri(ROOT_URL), urlSuffix);
-                    var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(2));
                     var response = await client.PostAsync(
                         url,
                         new StringContent(bodyText, null, "application/json"),
-                        tokenSource.Token);
+                        ct);
                     var responseText =
-                        await response.Content.ReadAsStringAsync(tokenSource.Token);
+                        await response.Content.ReadAsStringAsync(ct);
 
                     if (response.StatusCode != HttpStatusCode.OK)
                     {
