@@ -22,7 +22,7 @@ jobs:
         name: linux-assets
         path: linux-assets
     - name:  printf
-      run:  ls -l linux
+      run:  ls -l linux-assets
     # See https://dev.to/neshaz/a-tutorial-for-tagging-releases-in-git-147e
     - name: Tags / re-Tags
       run: |
