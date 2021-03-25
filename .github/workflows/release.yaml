@@ -34,7 +34,7 @@ jobs:
     - name: Unit Tests
       run: |
         dotnet test code/DeltaKustoUnitTest --configuration Release --no-build \
-          --verbosity normal --blame-hang-timeout 10s
+          --verbosity normal
     # See https://github.com/dotnet/designs/blob/main/accepted/2020/single-file/design.md#user-experience
     # & https://docs.microsoft.com/en-us/dotnet/core/deploying/single-file
     # & https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-publish
@@ -44,13 +44,15 @@ jobs:
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
           -p:PublishTrimmed=true -p:PublishReadyToRun=true \
           -o bin
+    - name: Zip executable
+      run:  tar -czvf bin/delta-kusto.tar.gz bin/delta-kusto
     # See https://dev.to/neshaz/a-tutorial-for-tagging-releases-in-git-147e
-    - name: Tags
+    - name: Tags / re-Tags
       run: |
-        git tag ${{ steps.patch-version.outputs.full-version }}
-        git tag ${{ steps.patch-version.outputs.patch-version }}
-        git tag ${{ steps.patch-version.outputs.minor-version }}
-        git tag ${{ steps.patch-version.outputs.major-version }}
+        git tag -f ${{ steps.patch-version.outputs.full-version }}
+        git tag -f ${{ steps.patch-version.outputs.patch-version }}
+        git tag -f ${{ steps.patch-version.outputs.minor-version }}
+        git tag -f ${{ steps.patch-version.outputs.major-version }}
         git push --tags
     # See https://cli.github.com/manual/gh_auth
     - name: Authentication gh CLI
@@ -59,20 +61,21 @@ jobs:
     # See https://cli.github.com/manual/gh_release
     - name: Create full version release
       run:  |
-        gh release create ${{ steps.patch-version.outputs.full-version }}
+        za="bin/delta-kusto-${{ steps.patch-version.outputs.full-version }}-linux.tar.gz"
+        cp bin/delta-kusto.tar.gz $za
+        gh release create ${{ steps.patch-version.outputs.full-version }} $za
     - name: Create patch version release
       run:  |
+        za="bin/delta-kusto-${{ steps.patch-version.outputs.patch-version }}-linux.tar.gz"
+        cp bin/delta-kusto.tar.gz $za
         gh release create ${{ steps.patch-version.outputs.patch-version }}
     - name: Create minor version release
       run:  |
+        za="bin/delta-kusto-${{ steps.patch-version.outputs.minor-version }}-linux.tar.gz"
+        cp bin/delta-kusto.tar.gz $za
         gh release create ${{ steps.patch-version.outputs.minor-version }}
     - name: Create minor version release
       run:  |
+        za="bin/delta-kusto-${{ steps.patch-version.outputs.major-version }}-linux.tar.gz"
+        cp bin/delta-kusto.tar.gz $za
         gh release create ${{ steps.patch-version.outputs.major-version }}
-    # See https://cli.github.com/manual/gh_release
-    - name: Upload exec to full version release
-      run:  |
-        za="delta-kusto-${{ steps.patch-version.outputs.full-version }}-linux.tar.gz"
-        echo "Zip archive:  $za"
-        tar -czvf $za bin/delta-kusto
-        gh release upload ${{ steps.patch-version.outputs.full-version }} $za
