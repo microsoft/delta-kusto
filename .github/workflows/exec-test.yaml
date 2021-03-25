@@ -32,7 +32,7 @@ jobs:
     - name: Unit Tests
       run: |
         dotnet test code/DeltaKustoUnitTest --configuration Release \
-        --no-build --verbosity normal --blame-hang-timeout 2s
+        --no-build --verbosity normal
     # See https://github.com/dotnet/designs/blob/main/accepted/2020/single-file/design.md#user-experience
     # & https://docs.microsoft.com/en-us/dotnet/core/deploying/single-file
     # & https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-publish
@@ -61,8 +61,7 @@ jobs:
         # See https://xunit.net/docs/running-tests-in-parallel
         dotnet test code/DeltaKustoFileIntegrationTest \
         --configuration Release --no-build --verbosity normal \
-        -p:ParallelizeTestCollections=false \
-        --blame-hang-timeout 4s
+        -p:ParallelizeTestCollections=false
 
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
     - name: ADX-based integration tests (out-of-proc)
@@ -71,8 +70,7 @@ jobs:
         # See https://xunit.net/docs/running-tests-in-parallel
         dotnet test code/DeltaKustoAdxIntegrationTest \
         --configuration Release --no-build --verbosity normal \
-        -p:ParallelizeTestCollections=false \
-        --blame-hang-timeout 10s
+        -p:ParallelizeTestCollections=false
 
   # windows:
 
