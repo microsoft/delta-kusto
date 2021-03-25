@@ -49,11 +49,11 @@ jobs:
     # See https://dev.to/neshaz/a-tutorial-for-tagging-releases-in-git-147e
     - name: Tags / re-Tags
       run: |
-        git tag -f ${{ steps.patch-version.outputs.full-version }}
-        git tag -f ${{ steps.patch-version.outputs.patch-version }}
-        git tag -f ${{ steps.patch-version.outputs.minor-version }}
-        git tag -f ${{ steps.patch-version.outputs.major-version }}
-        git push --tags
+        git tag ${{ steps.patch-version.outputs.full-version }}
+        # git tag -f ${{ steps.patch-version.outputs.patch-version }}
+        # git tag -f ${{ steps.patch-version.outputs.minor-version }}
+        # git tag -f ${{ steps.patch-version.outputs.major-version }}
+        git push --tags #-f
     # See https://cli.github.com/manual/gh_auth
     - name: Authentication gh CLI
       run:  |
@@ -64,18 +64,18 @@ jobs:
         za="bin/delta-kusto-${{ steps.patch-version.outputs.full-version }}-linux.tar.gz"
         cp bin/delta-kusto.tar.gz $za
         gh release create ${{ steps.patch-version.outputs.full-version }} $za
-    - name: Create patch version release
-      run:  |
-        za="bin/delta-kusto-${{ steps.patch-version.outputs.patch-version }}-linux.tar.gz"
-        cp bin/delta-kusto.tar.gz $za
-        gh release create ${{ steps.patch-version.outputs.patch-version }}
-    - name: Create minor version release
-      run:  |
-        za="bin/delta-kusto-${{ steps.patch-version.outputs.minor-version }}-linux.tar.gz"
-        cp bin/delta-kusto.tar.gz $za
-        gh release create ${{ steps.patch-version.outputs.minor-version }}
-    - name: Create minor version release
-      run:  |
-        za="bin/delta-kusto-${{ steps.patch-version.outputs.major-version }}-linux.tar.gz"
-        cp bin/delta-kusto.tar.gz $za
-        gh release create ${{ steps.patch-version.outputs.major-version }}
+    # - name: Create patch version release
+    #   run:  |
+    #     za="bin/delta-kusto-${{ steps.patch-version.outputs.patch-version }}-linux.tar.gz"
+    #     cp bin/delta-kusto.tar.gz $za
+    #     gh release create ${{ steps.patch-version.outputs.patch-version }}
+    # - name: Create minor version release
+    #   run:  |
+    #     za="bin/delta-kusto-${{ steps.patch-version.outputs.minor-version }}-linux.tar.gz"
+    #     cp bin/delta-kusto.tar.gz $za
+    #     gh release create ${{ steps.patch-version.outputs.minor-version }}
+    # - name: Create minor version release
+    #   run:  |
+    #     za="bin/delta-kusto-${{ steps.patch-version.outputs.major-version }}-linux.tar.gz"
+    #     cp bin/delta-kusto.tar.gz $za
+    #     gh release create ${{ steps.patch-version.outputs.major-version }}
