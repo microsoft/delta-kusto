@@ -107,7 +107,7 @@ jobs:
       shell:  bash
       run: |
         # Exec path
-        echo "deltaKustoSingleExecPath=$(pwd)/bin/$(exec)" >> $GITHUB_ENV
+        echo "deltaKustoSingleExecPath=$(pwd)/bin/$exec" >> $GITHUB_ENV
         # ADX integration
         echo "deltaKustoClusterUri=${{ secrets.CLUSTER_URI }}" >> $GITHUB_ENV
         echo "deltaKustoCurrentDb=${{ secrets.CURRENT_DB }}" >> $GITHUB_ENV
