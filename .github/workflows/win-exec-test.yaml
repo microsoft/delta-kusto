@@ -22,9 +22,9 @@ jobs:
     # & https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-publish
     - name: Build single file executable
       run: |
-        dotnet publish code/delta-kusto -c release -r $dotnetOs `
-          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true `
-          -p:PublishTrimmed=true -p:PublishReadyToRun=true `
+        dotnet publish code/delta-kusto -c release -r $dotnetOs \
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
+          -p:PublishTrimmed=true -p:PublishReadyToRun=true \
           -o bin
   #   # Set environment variables
   #   - name: Set environment variables
