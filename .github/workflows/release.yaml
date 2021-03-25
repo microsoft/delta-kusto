@@ -16,13 +16,13 @@ jobs:
     - linux
     runs-on: ubuntu-latest
     steps:
+    # We do not need the source code but we need git for tags & release
+    - uses: actions/checkout@v2
     # Retrieve asset
     - uses: actions/download-artifact@master
       with:
         name: linux-assets
         path: linux-assets
-    - name:  printf
-      run:  ls -l linux-assets
     # See https://dev.to/neshaz/a-tutorial-for-tagging-releases-in-git-147e
     - name: Tags / re-Tags
       run: |
