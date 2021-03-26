@@ -117,8 +117,8 @@
                 "siteConfig": {
                     "appSettings": [
                         {
-                            "name": "storageAccountName",
-                            "value": "[variables('Storage Account')]"
+                            "name": "storageConnectionString",
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('Storage Account'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('Storage Account')), '2019-06-01').keys[0].value,';')]"
                         },
                         {
                             "name": "telemetryContainerName",
