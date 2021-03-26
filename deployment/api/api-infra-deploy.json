@@ -203,27 +203,6 @@
                                 "id": "[resourceId('Microsoft.Network/frontDoors/healthProbeSettings', variables('Front Door'), 'healthProbeSettings')]"
                             }
                         }
-                    },
-                    {
-                        "name": "prod-web-app",
-                        "properties": {
-                            "backends": [
-                                {
-                                    "address": "[reference(resourceId('Microsoft.Web/sites', variables('Web Apps')[2].name), '2019-08-01').hostNames[0]]",
-                                    "backendHostHeader": "[reference(resourceId('Microsoft.Web/sites', variables('Web Apps')[2].name), '2019-08-01').hostNames[0]]",
-                                    "httpsPort": 443,
-                                    "httpPort": 80,
-                                    "weight": 100,
-                                    "priority": 1
-                                }
-                            ],
-                            "loadBalancingSettings": {
-                                "id": "[resourceId('Microsoft.Network/frontDoors/loadBalancingSettings', variables('Front Door'), 'loadBalancingSettings')]"
-                            },
-                            "healthProbeSettings": {
-                                "id": "[resourceId('Microsoft.Network/frontDoors/healthProbeSettings', variables('Front Door'), 'healthProbeSettings')]"
-                            }
-                        }
                     }
                 ],
                 "frontendEndpoints": [
