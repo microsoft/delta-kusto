@@ -120,7 +120,6 @@ jobs:
     # Push archive + version to a sharable artefact
     # See https://stackoverflow.com/questions/57498605/github-actions-share-workspace-artifacts-between-jobs
     - uses: actions/upload-artifact@master
-      shell:  bash
       with:
         name: $assetsName
         path: $assetsName
@@ -179,7 +178,6 @@ jobs:
     # Push archive + version to a sharable artefact
     # See https://stackoverflow.com/questions/57498605/github-actions-share-workspace-artifacts-between-jobs
     - uses: actions/upload-artifact@master
-      shell:  bash
       with:
         name: $assetsName
         path: $assetsName
