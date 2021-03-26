@@ -92,7 +92,7 @@
             },
             "kind": "linux",
             "properties": {
-                 "reserved": true
+                "reserved": true
             }
         },
         {
@@ -131,18 +131,15 @@
                     ]
                 }
             }
-        }
-        /*
-        ,
+        },
         {
             "apiVersion": "2020-05-01",
             "type": "Microsoft.Network/frontDoors",
             "name": "[variables('Front Door')]",
             "location": "global",
             "dependsOn": [
-                "[resourceId('Microsoft.Web/sites', variables('Apps Config')[0].name)]",
-                "[resourceId('Microsoft.Web/sites', variables('Apps Config')[1].name)]",
-                "[resourceId('Microsoft.Web/sites', variables('Apps Config')[2].name)]"
+                "[resourceId('Microsoft.Web/sites', variables('Web Apps')[0].name)]",
+                "[resourceId('Microsoft.Web/sites', variables('Web Apps')[1].name)]"
             ],
             "properties": {
                 "healthProbeSettings": [
@@ -170,8 +167,8 @@
                         "properties": {
                             "backends": [
                                 {
-                                    "address": "[reference(resourceId('Microsoft.Web/sites', variables('Apps Config')[0].name), '2019-08-01').hostNames[0]]",
-                                    "backendHostHeader": "[reference(resourceId('Microsoft.Web/sites', variables('Apps Config')[0].name), '2019-08-01').hostNames[0]]",
+                                    "address": "[reference(resourceId('Microsoft.Web/sites', variables('Web Apps')[0].name), '2019-08-01').hostNames[0]]",
+                                    "backendHostHeader": "[reference(resourceId('Microsoft.Web/sites', variables('Web Apps')[0].name), '2019-08-01').hostNames[0]]",
                                     "httpsPort": 443,
                                     "httpPort": 80,
                                     "weight": 100,
@@ -191,8 +188,8 @@
                         "properties": {
                             "backends": [
                                 {
-                                    "address": "[reference(resourceId('Microsoft.Web/sites', variables('Apps Config')[1].name), '2019-08-01').hostNames[0]]",
-                                    "backendHostHeader": "[reference(resourceId('Microsoft.Web/sites', variables('Apps Config')[1].name), '2019-08-01').hostNames[0]]",
+                                    "address": "[reference(resourceId('Microsoft.Web/sites', variables('Web Apps')[1].name), '2019-08-01').hostNames[0]]",
+                                    "backendHostHeader": "[reference(resourceId('Microsoft.Web/sites', variables('Web Apps')[1].name), '2019-08-01').hostNames[0]]",
                                     "httpsPort": 443,
                                     "httpPort": 80,
                                     "weight": 100,
@@ -212,8 +209,8 @@
                         "properties": {
                             "backends": [
                                 {
-                                    "address": "[reference(resourceId('Microsoft.Web/sites', variables('Apps Config')[2].name), '2019-08-01').hostNames[0]]",
-                                    "backendHostHeader": "[reference(resourceId('Microsoft.Web/sites', variables('Apps Config')[2].name), '2019-08-01').hostNames[0]]",
+                                    "address": "[reference(resourceId('Microsoft.Web/sites', variables('Web Apps')[2].name), '2019-08-01').hostNames[0]]",
+                                    "backendHostHeader": "[reference(resourceId('Microsoft.Web/sites', variables('Web Apps')[2].name), '2019-08-01').hostNames[0]]",
                                     "httpsPort": 443,
                                     "httpPort": 80,
                                     "weight": 100,
@@ -286,9 +283,6 @@
                                     "id": "[resourceId('Microsoft.Network/frontDoors/backendPools', variables('Front Door'), 'dev-web-app')]"
                                 }
                             },
-                            "rulesEngine": {
-                                "id": "[resourceId('Microsoft.Network/frontdoors/rulesengines', variables('Front Door'), variables('Web App Rule Engine'))]"
-                            },
                             "enabledState": "Enabled"
                         }
                     },
@@ -313,9 +307,6 @@
                                 "backendPool": {
                                     "id": "[resourceId('Microsoft.Network/frontDoors/backendPools', variables('Front Door'), 'staging-web-app')]"
                                 }
-                            },
-                            "rulesEngine": {
-                                "id": "[resourceId('Microsoft.Network/frontdoors/rulesengines', variables('Front Door'), variables('Web App Rule Engine'))]"
                             },
                             "enabledState": "Enabled"
                         }
@@ -342,9 +333,6 @@
                                     "id": "[resourceId('Microsoft.Network/frontDoors/backendPools', variables('Front Door'), 'prod-web-app')]"
                                 }
                             },
-                            "rulesEngine": {
-                                "id": "[resourceId('Microsoft.Network/frontdoors/rulesengines', variables('Front Door'), variables('Web App Rule Engine'))]"
-                            },
                             "enabledState": "Enabled"
                         }
                     }
@@ -352,75 +340,8 @@
                 "enabledState": "Enabled"
             },
             "resources": [
-                {
-                    "type": "providers/diagnosticSettings",
-                    "apiVersion": "2017-05-01-preview",
-                    "name": "microsoft.insights/send-to-la",
-                    "dependsOn": [
-                        "[resourceId('Microsoft.Network/frontdoors', variables('Front Door'))]",
-                        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('Log Analytics'))]"
-                    ],
-                    "properties": {
-                        "name": "send-to-la",
-                        "workspaceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('Log Analytics'))]",
-                        "logs": [
-                            {
-                                "category": "FrontdoorAccessLog",
-                                "enabled": true
-                            },
-                            {
-                                "category": "FrontdoorWebApplicationFirewallLog",
-                                "enabled": true
-                            }
-                        ],
-                        "metrics": [
-                            {
-                                "category": "AllMetrics",
-                                "enabled": true
-                            }
-                        ]
-                    }
-                },
-                {
-                    "type": "rulesengines",
-                    "apiVersion": "2020-05-01",
-                    "name": "[variables('Web App Rule Engine')]",
-                    "dependsOn": [
-                        "[resourceId('Microsoft.Network/frontdoors', variables('Front Door'))]"
-                    ],
-                    "properties": {
-                        "rules": [
-                            {
-                                "priority": 0,
-                                "name": "redirectToHttps",
-                                "matchProcessingBehavior": "Continue",
-                                "action": {
-                                    "requestHeaderActions": [],
-                                    "responseHeaderActions": [],
-                                    "routeConfigurationOverride": {
-                                        "@odata.type": "#Microsoft.Azure.FrontDoor.Models.FrontdoorRedirectConfiguration",
-                                        "redirectProtocol": "HttpsOnly",
-                                        "redirectType": "Found"
-                                    }
-                                },
-                                "matchConditions": [
-                                    {
-                                        "rulesEngineMatchValue": [
-                                            "HTTP"
-                                        ],
-                                        "rulesEngineMatchVariable": "RequestScheme",
-                                        "rulesEngineOperator": "Equal",
-                                        "transforms": [],
-                                        "negateCondition": false
-                                    }
-                                ]
-                            }
-                        ]
-                    }
-                }
             ]
         }
-        */
     ],
     "outputs": {
     }
