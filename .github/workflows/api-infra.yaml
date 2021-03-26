@@ -1,6 +1,13 @@
 name:  API Infra
 
-on:  workflow_dispatch
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - deployment/api/api-infra-deploy.json
+      - .github/workflows/api-infra.yaml
 
 env:
   rg:  ---

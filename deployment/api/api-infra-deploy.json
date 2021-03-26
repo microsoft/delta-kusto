@@ -163,7 +163,7 @@
                 ],
                 "backendPools": [
                     {
-                        "name": "dev-web-app",
+                        "name": "staging-web-app",
                         "properties": {
                             "backends": [
                                 {
@@ -184,7 +184,7 @@
                         }
                     },
                     {
-                        "name": "staging-web-app",
+                        "name": "prod-web-app",
                         "properties": {
                             "backends": [
                                 {
@@ -207,7 +207,7 @@
                 ],
                 "frontendEndpoints": [
                     {
-                        "name": "defaultFrontendEndpoint",
+                        "name": "prodFrontendEndpoint",
                         "properties": {
                             "hostName": "[concat(variables('Front Door'), '.azurefd.net')]",
                             "sessionAffinityEnabledState": "Disabled",
@@ -215,7 +215,7 @@
                         }
                     },
                     {
-                        "name": "staging",
+                        "name": "stagingFrontendEndpoint",
                         "properties": {
                             "hostName": "[concat('staging.', variables('Front Door'), '.azurefd.net')]",
                             "sessionAffinityEnabledState": "Disabled",
@@ -224,31 +224,6 @@
                     }
                 ],
                 "routingRules": [
-                    {
-                        "name": "devRoutingRule",
-                        "properties": {
-                            "frontendEndpoints": [
-                                {
-                                    "id": "[resourceId('Microsoft.Network/frontDoors/frontendEndpoints', variables('Front Door'), 'devFrontendEndpoint')]"
-                                }
-                            ],
-                            "acceptedProtocols": [
-                                "Http",
-                                "Https"
-                            ],
-                            "patternsToMatch": [
-                                "/*"
-                            ],
-                            "routeConfiguration": {
-                                "@odata.type": "#Microsoft.Azure.FrontDoor.Models.FrontdoorForwardingConfiguration",
-                                "forwardingProtocol": "HttpsOnly",
-                                "backendPool": {
-                                    "id": "[resourceId('Microsoft.Network/frontDoors/backendPools', variables('Front Door'), 'dev-web-app')]"
-                                }
-                            },
-                            "enabledState": "Enabled"
-                        }
-                    },
                     {
                         "name": "stagingRoutingRule",
                         "properties": {
