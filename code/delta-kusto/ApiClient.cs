@@ -17,7 +17,7 @@ namespace delta_kusto
         private static readonly bool _doApiCalls = ComputeDoApiCalls();
         private static readonly object _clientInfo = CreateClientInfo();
 
-        public static async Task ActivateAsync(CancellationToken ct)
+        public static async Task<int> ActivateAsync(CancellationToken ct)
         {
             if (_doApiCalls)
             {
@@ -28,6 +28,12 @@ namespace delta_kusto
                         ClientInfo = _clientInfo
                     },
                     ct);
+
+                return 1;
+            }
+            else
+            {
+                return 0;
             }
         }
 

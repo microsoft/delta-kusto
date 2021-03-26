@@ -30,7 +30,7 @@ namespace delta_kusto
 
         internal async Task<int> RunAsync(string[] args)
         {
-            var activationTask = ApiClient.ActivateAsync(_ct);
+            var activation = await ApiClient.ActivateAsync(_ct);
 
             //  Use CommandLineParser NuGet package to parse command line
             //  See https://github.com/commandlineparser/commandline
@@ -62,10 +62,6 @@ namespace delta_kusto
                 DisplayGenericException(ex);
 
                 return 1;
-            }
-            finally
-            {
-                await activationTask;
             }
         }
 

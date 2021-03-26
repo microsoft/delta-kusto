@@ -8,6 +8,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Serilog.Core;
+using Serilog.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,12 +36,21 @@ namespace DeltaKustoApi
 
             //  Dependency injection
             //  Serilog
+            var connectionString = Environment.GetEnvironmentVariable("storageConnectionString");
+            var container = Environment.GetEnvironmentVariable("telemetryContainerName");
             var logger = new LoggerConfiguration()
                 .WriteTo
-                .AzureBlobStorage(connectionString)
+                .AzureBlobStorage(
+                    connectionString,
+                    LogEventLevel.Verbose,
+                    container,
+                    "{yyyy}-{MM}-{dd}-log.txt",
+                    blobSizeLimitBytes:200000000)
+                    //writeInBatches:true,
+                    //period:TimeSpan.FromSeconds(5))
                 .CreateLogger();
 
-            services.TryAddSingleton<Logger>(logger);
+            services.TryAddSingleton(new TelemetryWriter(logger));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -27,7 +27,7 @@ namespace DeltaKustoApi
             _logger = logger;
         }
 
-        public Task WriteTelemetryAsync<T>(
+        public void PostTelemetry<T>(
             string rootFolder,
             T input,
             HttpRequest request)
@@ -48,8 +48,6 @@ namespace DeltaKustoApi
                 });
 
             _logger.Information(telemetryTextLine);
-
-            return Task.CompletedTask;
         }
     }
 }
