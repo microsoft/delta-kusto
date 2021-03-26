@@ -28,16 +28,6 @@ jobs:
       with:
         name: windows-assets
         path: windows-assets
-    # # See https://dev.to/neshaz/a-tutorial-for-tagging-releases-in-git-147e
-    # - name: Tags / re-Tags
-    #   run: |
-    #     # Retrieve content of full-version from artefact
-    #     fullVersion=$(cat linux-assets/full-version.txt)
-    #     git tag $fullVersion
-    #     # git tag -f ${{ steps.patch-version.outputs.patch-version }}
-    #     # git tag -f ${{ steps.patch-version.outputs.minor-version }}
-    #     # git tag -f ${{ steps.patch-version.outputs.major-version }}
-    #     git push --tags #-f
     # See https://cli.github.com/manual/gh_auth
     - name: Authentication gh CLI
       run:  |
@@ -48,24 +38,9 @@ jobs:
         # Retrieve content of full-version from artefact
         fullVersion=$(cat linux-assets/full-version.txt)
         # Create the release
-        gh release create $fullVersion \
+        gh release create -d $fullVersion \
           linux-assets/delta-kusto-linux.tar.gz \
           windows-assets/delta-kusto-windows.tar.gz
-    # - name: Create patch version release
-    #   run:  |
-    #     za="bin/delta-kusto-${{ steps.patch-version.outputs.patch-version }}-linux.tar.gz"
-    #     cp bin/delta-kusto.tar.gz $za
-    #     gh release create ${{ steps.patch-version.outputs.patch-version }}
-    # - name: Create minor version release
-    #   run:  |
-    #     za="bin/delta-kusto-${{ steps.patch-version.outputs.minor-version }}-linux.tar.gz"
-    #     cp bin/delta-kusto.tar.gz $za
-    #     gh release create ${{ steps.patch-version.outputs.minor-version }}
-    # - name: Create minor version release
-    #   run:  |
-    #     za="bin/delta-kusto-${{ steps.patch-version.outputs.major-version }}-linux.tar.gz"
-    #     cp bin/delta-kusto.tar.gz $za
-    #     gh release create ${{ steps.patch-version.outputs.major-version }}
 
   # Linux job, builds the Linux asset
   linux:
