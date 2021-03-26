@@ -8,7 +8,7 @@
         "Suffix": "[concat('delta-kusto-', variables('Unique ID'))]",
         "App Insights": "[concat('app-monitor-', variables('Suffix'))]",
         "Log Analytics": "[concat('infra-monitor-', variables('Suffix'))]",
-        "Storage Account": "[concat('storage', variables('Unique ID'))]",
+        "Storage Account": "[concat('deltakusto', variables('Unique ID'))]",
         "API Telemetry Container": "api-telemetry",
         "App Plan": "[concat('app-plan-', variables('Suffix'))]",
         "Web Apps": [
