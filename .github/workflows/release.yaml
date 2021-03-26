@@ -14,6 +14,7 @@ jobs:
     # (which would wreck the integration tests)
     needs:
     - linux
+    - windows
     runs-on: ubuntu-latest
     steps:
     # We do not need the source code but we need git for tags & release
