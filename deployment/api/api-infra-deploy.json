@@ -2,6 +2,9 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
+        "frontDoorName":{
+            "type": "string"
+        }
     },
     "variables": {
         "Unique ID": "[uniqueString(concat(resourceGroup().id, 'kusto-x'))]",
@@ -21,7 +24,8 @@
                 "env": "prod"
             }
         ],
-        "Front Door": "[concat('front-door-', variables('Suffix'))]"
+        "Default Front Door": "[concat('front-door-', variables('Suffix'))]",
+        "Front Door": "[if(equals(length(parameters('frontDoorName')), 0), variables('Default Front Door'), parameters('frontDoorName'))]"
     },
     "resources": [
         {
