@@ -122,8 +122,8 @@ jobs:
     # See https://stackoverflow.com/questions/57498605/github-actions-share-workspace-artifacts-between-jobs
     - uses: actions/upload-artifact@master
       with:
-        name: env.assetsName
-        path: env.assetsName
+        name: ${{ env.assetsName }}
+        path: ${{ env.assetsName }}
 
   # Windows job, builds the Windows asset
   windows:
@@ -180,5 +180,5 @@ jobs:
     # See https://stackoverflow.com/questions/57498605/github-actions-share-workspace-artifacts-between-jobs
     - uses: actions/upload-artifact@master
       with:
-        name: env.assetsName
-        path: env.assetsName
+        name: ${{ env.assetsName }}
+        path: ${{ env.assetsName }}
