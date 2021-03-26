@@ -1,11 +1,12 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Serilog.Core;
 using System;
 using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace DeltaKustoApi
 {
-    internal class TelemetryWriter
+    public class TelemetryWriter
     {
         #region Inner Types
         private class TelemetryInfo<T>
@@ -19,7 +20,14 @@ namespace DeltaKustoApi
         }
         #endregion
 
-        public static Task WriteTelemetryAsync<T>(
+        private readonly Logger _logger;
+
+        public TelemetryWriter(Logger logger)
+        {
+            _logger = logger;
+        }
+
+        public Task WriteTelemetryAsync<T>(
             string rootFolder,
             T input,
             HttpRequest request)
@@ -38,6 +46,8 @@ namespace DeltaKustoApi
                 {
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase
                 });
+
+            _logger.Information(telemetryTextLine);
 
             return Task.CompletedTask;
         }
