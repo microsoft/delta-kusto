@@ -163,27 +163,6 @@
                 ],
                 "backendPools": [
                     {
-                        "name": "staging-web-app",
-                        "properties": {
-                            "backends": [
-                                {
-                                    "address": "[reference(resourceId('Microsoft.Web/sites', variables('Web Apps')[0].name), '2019-08-01').hostNames[0]]",
-                                    "backendHostHeader": "[reference(resourceId('Microsoft.Web/sites', variables('Web Apps')[0].name), '2019-08-01').hostNames[0]]",
-                                    "httpsPort": 443,
-                                    "httpPort": 80,
-                                    "weight": 100,
-                                    "priority": 1
-                                }
-                            ],
-                            "loadBalancingSettings": {
-                                "id": "[resourceId('Microsoft.Network/frontDoors/loadBalancingSettings', variables('Front Door'), 'loadBalancingSettings')]"
-                            },
-                            "healthProbeSettings": {
-                                "id": "[resourceId('Microsoft.Network/frontDoors/healthProbeSettings', variables('Front Door'), 'healthProbeSettings')]"
-                            }
-                        }
-                    },
-                    {
                         "name": "prod-web-app",
                         "properties": {
                             "backends": [
@@ -216,30 +195,6 @@
                     }
                 ],
                 "routingRules": [
-                    {
-                        "name": "stagingRoutingRule",
-                        "properties": {
-                            "frontendEndpoints": [
-                                {
-                                    "id": "[resourceId('Microsoft.Network/frontDoors/frontendEndpoints', variables('Front Door'), 'defaultFrontendEndpoint')]"
-                                }
-                            ],
-                            "acceptedProtocols": [
-                                "Https"
-                            ],
-                            "patternsToMatch": [
-                                "/staging/*"
-                            ],
-                            "routeConfiguration": {
-                                "@odata.type": "#Microsoft.Azure.FrontDoor.Models.FrontdoorForwardingConfiguration",
-                                "forwardingProtocol": "HttpsOnly",
-                                "backendPool": {
-                                    "id": "[resourceId('Microsoft.Network/frontDoors/backendPools', variables('Front Door'), 'staging-web-app')]"
-                                }
-                            },
-                            "enabledState": "Enabled"
-                        }
-                    },
                     {
                         "name": "prodRoutingRule",
                         "properties": {
