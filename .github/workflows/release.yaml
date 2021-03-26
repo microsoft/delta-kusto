@@ -40,7 +40,10 @@ jobs:
     # See https://cli.github.com/manual/gh_release
     - name: Create full version release
       run:  |
-        gh release create ${{ steps.patch-version.outputs.full-version }} \
+        # Retrieve content of full-version from artefact
+        fullVersion=$(cat linux-assets/full-version.txt)
+        # Create the release
+        gh release create $fullVersion \
           linux-assets/delta-kusto-linux.tar.gz
     # - name: Create patch version release
     #   run:  |
