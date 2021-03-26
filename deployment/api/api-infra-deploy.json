@@ -215,25 +215,9 @@
                         }
                     },
                     {
-                        "name": "devFrontendEndpoint",
+                        "name": "staging",
                         "properties": {
-                            "hostName": "dev.gram-parser.vincentlauzon.com",
-                            "sessionAffinityEnabledState": "Disabled",
-                            "sessionAffinityTtlSeconds": 0
-                        }
-                    },
-                    {
-                        "name": "stagingFrontendEndpoint",
-                        "properties": {
-                            "hostName": "staging.gram-parser.vincentlauzon.com",
-                            "sessionAffinityEnabledState": "Disabled",
-                            "sessionAffinityTtlSeconds": 0
-                        }
-                    },
-                    {
-                        "name": "prodFrontendEndpoint",
-                        "properties": {
-                            "hostName": "gram-parser.vincentlauzon.com",
+                            "hostName": "[concat('staging.', variables('Front Door'), '.azurefd.net')]",
                             "sessionAffinityEnabledState": "Disabled",
                             "sessionAffinityTtlSeconds": 0
                         }
