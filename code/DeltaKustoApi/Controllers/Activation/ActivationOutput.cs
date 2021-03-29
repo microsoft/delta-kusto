@@ -4,6 +4,6 @@
     {
         public ApiInfo ApiInfo { get; set; } = new ApiInfo();
 
-        public string[] HighestAvailableClientVersions { get; set; } = new string[0];
+        public string[] AvailableClientVersions { get; set; } = new string[0];
     }
 }

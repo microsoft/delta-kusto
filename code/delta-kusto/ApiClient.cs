@@ -31,7 +31,7 @@ namespace delta_kusto
         {
             public ApiInfo ApiInfo { get; set; } = new ApiInfo();
 
-            public string[] HighestAvailableClientVersions { get; set; } = new string[0];
+            public string[] AvailableClientVersions { get; set; } = new string[0];
         }
 
         private class ErrorInput
@@ -104,7 +104,7 @@ namespace delta_kusto
                     },
                     ct);
 
-                return output?.HighestAvailableClientVersions;
+                return output?.AvailableClientVersions;
             }
             else
             {

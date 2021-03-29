@@ -45,7 +45,15 @@ namespace delta_kusto
 
         internal async Task<int> RunAsync(string[] args)
         {
-            var activation = await ApiClient.ActivateAsync(_ct);
+            var availableClientVersions = await ApiClient.ActivateAsync(_ct);
+
+            Console.WriteLine("Client Activated");
+            if (availableClientVersions != null && availableClientVersions.Any())
+            {
+                Console.WriteLine(
+                    "Newer clients available:  "
+                    + string.Join(", ", availableClientVersions));
+            }
 
             //  Use CommandLineParser NuGet package to parse command line
             //  See https://github.com/commandlineparser/commandline
