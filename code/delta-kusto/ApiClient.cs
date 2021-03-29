@@ -12,59 +12,118 @@ namespace delta_kusto
 {
     internal static class ApiClient
     {
+        #region Inner Types
+        private class ClientInfo
+        {
+            public string ClientVersion { get; set; } = "";
+
+            public string OS { get; set; } = Environment.OSVersion.Platform.ToString();
+
+            public string OsVersion { get; set; } = Environment.OSVersion.VersionString;
+        }
+
+        private class ApiInfo
+        {
+            public string ApiVersion { get; set; } = string.Empty;
+        }
+
+        private class ActivationOutput
+        {
+            public ApiInfo ApiInfo { get; set; } = new ApiInfo();
+
+            public string[] HighestAvailableClientVersions { get; set; } = new string[0];
+        }
+
+        private class ErrorInput
+        {
+            public ErrorInput(Exception ex)
+            {
+                Source = ex.Source ?? string.Empty;
+                Exceptions = ExceptionInfo.FromException(ex);
+            }
+
+            public ClientInfo ClientInfo { get; set; } = new ClientInfo();
+
+            public string Source { get; set; }
+
+            public ExceptionInfo[] Exceptions { get; set; }
+        }
+
+        private class ExceptionInfo
+        {
+            private ExceptionInfo(Exception ex)
+            {
+                Message = ex.Message;
+                ExceptionType = ex.GetType().FullName ?? string.Empty;
+                StackTrace = ex.StackTrace ?? string.Empty;
+            }
+
+            internal static ExceptionInfo[] FromException(Exception ex)
+            {
+                var list = new List<ExceptionInfo>();
+                Exception? current = ex;
+
+                while (current != null)
+                {
+                    list.Add(new ExceptionInfo(current));
+                    current = ex.InnerException;
+                }
+
+                return list.ToArray();
+            }
+
+            public string Message { get; set; }
+
+            public string ExceptionType { get; set; }
+
+            public string StackTrace { get; set; }
+        }
+
+        private class ErrorOutput
+        {
+            public ApiInfo ApiInfo { get; set; } = new ApiInfo();
+
+            public Guid OperationID { get; set; } = Guid.NewGuid();
+        }
+        #endregion
+
         private const string DEFAULT_ROOT_URL = "https://delta-kusto.azurefd.net/";
 
         private static readonly string ROOT_URL = ComputeRootUrl();
         private static readonly bool _doApiCalls = ComputeDoApiCalls();
-        private static readonly object _clientInfo = CreateClientInfo();
 
-        public static async Task<int> ActivateAsync(CancellationToken ct)
+        public static async Task<string[]?> ActivateAsync(CancellationToken ct)
         {
             if (_doApiCalls)
             {
-                await PostAsync(
+                var output = await PostAsync<ActivationOutput>(
                     "/activation",
                     new
                     {
-                        ClientInfo = _clientInfo
+                        ClientInfo = new ClientInfo()
                     },
                     ct);
 
-                return 1;
+                return output?.HighestAvailableClientVersions;
             }
             else
             {
-                return 0;
+                return null;
             }
         }
 
-        public static async Task RegisterExceptionAsync(Exception ex, CancellationToken ct)
+        public static async Task<Guid?> RegisterExceptionAsync(Exception ex, CancellationToken ct)
         {
             if (_doApiCalls)
             {
-                await PostAsync(
-                    "/error", new
-                    {
-                        ClientInfo = _clientInfo,
-                        Source = ex.Source ?? string.Empty,
-                        Exceptions = CreateExceptions(ex).ToArray()
-                    },
-                    ct);
+                var output = await PostAsync<ErrorOutput>("/error", new ErrorInput(ex), ct);
+
+                return output?.OperationID;
             }
-        }
-
-        private static IEnumerable<object> CreateExceptions(Exception ex)
-        {
-            var head = new
+            else
             {
-                Message = ex.Message,
-                ExceptionType = ex.GetType().FullName,
-                StackTrace = ex.StackTrace
-            };
-
-            return ex.InnerException != null
-                ? CreateExceptions(ex.InnerException).Prepend(head)
-                : new[] { head };
+                return null;
+            }
         }
 
         private static string ComputeRootUrl()
@@ -77,32 +136,11 @@ namespace delta_kusto
             return Environment.GetEnvironmentVariable("disable-api-calls") != "true";
         }
 
-        private static object CreateClientInfo()
-        {
-            return new
-            {
-                ClientVersion = GetAssemblyVersion(),
-                OS = Environment.OSVersion.Platform.ToString(),
-                OsVersion = Environment.OSVersion.Version.ToString()
-            };
-        }
-
-        private static string GetAssemblyVersion()
-        {
-            var versionAttribute = typeof(ApiClient)
-                .Assembly
-                .GetCustomAttribute<AssemblyInformationalVersionAttribute>();
-            var version = versionAttribute == null
-                ? "<VERSION MISSING>"
-                : versionAttribute!.InformationalVersion;
-
-            return version;
-        }
-
-        private static async Task PostAsync(
+        private static async Task<T?> PostAsync<T>(
             string urlSuffix,
             object telemetry,
             CancellationToken ct)
+            where T : class
         {
             try
             {
@@ -125,12 +163,22 @@ namespace delta_kusto
 
                     if (response.StatusCode != HttpStatusCode.OK)
                     {
+                        var output = JsonSerializer.Deserialize<T>(
+                            responseText,
+                            new JsonSerializerOptions
+                            {
+                                PropertyNameCaseInsensitive = true
+                            });
+
+                        return output!;
                     }
                 }
             }
             catch
             {
             }
+
+            return null;
         }
     }
 }

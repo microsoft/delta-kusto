@@ -22,20 +22,20 @@ namespace DeltaKustoApi.Controllers.Error
             _telemetryWriter = telemetryWriter;
         }
 
-        public async Task<ErrorOutput> PostAsync(ErrorInput input)
+        public ErrorOutput Post(ErrorInput input)
         {
             try
             {
-                _telemetryWriter.PostTelemetry("activations", input, Request);
+                _telemetryWriter.PostTelemetry(input, Request);
+         
+                return new ErrorOutput();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
+             
+                return new ErrorOutput();
             }
-
-            await Task.CompletedTask;
-
-            return new ErrorOutput();
         }
     }
 }

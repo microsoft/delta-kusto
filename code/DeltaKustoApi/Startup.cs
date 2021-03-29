@@ -44,7 +44,7 @@ namespace DeltaKustoApi
                     connectionString,
                     LogEventLevel.Verbose,
                     container,
-                    "{yyyy}-{MM}-{dd}-log.txt",
+                    "raw-telemetry/{yyyy}-{MM}-{dd}-log.txt",
                     blobSizeLimitBytes: 200000000))
                     //writeInBatches:true,
                     //period:TimeSpan.FromSeconds(5)))

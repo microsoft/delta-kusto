@@ -19,6 +19,21 @@ namespace delta_kusto
             _ct = ct;
         }
 
+        public static string AssemblyVersion
+        {
+            get
+            {
+                var versionAttribute = typeof(Program)
+                    .Assembly
+                    .GetCustomAttribute<AssemblyInformationalVersionAttribute>();
+                var version = versionAttribute == null
+                    ? "<VERSION MISSING>"
+                    : versionAttribute!.InformationalVersion;
+
+                return version;
+            }
+        }
+
         internal static async Task<int> Main(string[] args)
         {
             var tokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(1));
@@ -96,12 +111,7 @@ namespace delta_kusto
 
         private async Task RunOptionsAsync(CommandLineOptions options)
         {
-            var versionAttribute = typeof(Program)
-                .Assembly
-                .GetCustomAttribute<AssemblyInformationalVersionAttribute>();
-            var version = versionAttribute == null
-                ? "<VERSION MISSING>"
-                : versionAttribute!.InformationalVersion;
+            string version = AssemblyVersion;
             Console.WriteLine($"delta-kusto { version }");
             if (options.Verbose)
             {

@@ -28,7 +28,6 @@ namespace DeltaKustoApi
         }
 
         public void PostTelemetry<T>(
-            string rootFolder,
             T input,
             HttpRequest request)
             where T : new()

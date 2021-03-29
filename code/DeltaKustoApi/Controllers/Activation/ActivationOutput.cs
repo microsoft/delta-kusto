@@ -4,8 +4,6 @@
     {
         public ApiInfo ApiInfo { get; set; } = new ApiInfo();
 
-        public string HighestAvailableClientVersion { get; set; } = "";
-
-        public bool ClientVersionIsSupported { get; set; }
+        public string[] HighestAvailableClientVersions { get; set; } = new string[0];
     }
 }

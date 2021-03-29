@@ -26,14 +26,16 @@ namespace DeltaKustoApi.Controllers.Activation
         {
             try
             {
-                _telemetryWriter.PostTelemetry("activations", input, Request);
+                _telemetryWriter.PostTelemetry(input, Request);
+
+                return new ActivationOutput();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-            }
 
-            return new ActivationOutput();
+                return new ActivationOutput();
+            }
         }
     }
 }
