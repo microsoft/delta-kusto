@@ -12,8 +12,9 @@ namespace delta_kusto
 {
     internal static class ApiClient
     {
-        private const string ROOT_URL = "http://localhost:8770";
+        private const string DEFAULT_ROOT_URL = "https://delta-kusto.azurefd.net/";
 
+        private static readonly string ROOT_URL = ComputeRootUrl();
         private static readonly bool _doApiCalls = ComputeDoApiCalls();
         private static readonly object _clientInfo = CreateClientInfo();
 
@@ -64,6 +65,11 @@ namespace delta_kusto
             return ex.InnerException != null
                 ? CreateExceptions(ex.InnerException).Prepend(head)
                 : new[] { head };
+        }
+
+        private static string ComputeRootUrl()
+        {
+            return Environment.GetEnvironmentVariable("api-url") ?? DEFAULT_ROOT_URL;
         }
 
         private static bool ComputeDoApiCalls()

@@ -1,6 +1,13 @@
 name:  API Infra
 
-on:  workflow_dispatch
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - deployment/api/api-infra-deploy.json
+      - .github/workflows/api-infra.yaml
 
 env:
   rg:  ---
@@ -19,4 +26,4 @@ jobs:
     - name: Deploy
       run: |
         cd deployment/api
-        bash deploy-api-infra.sh ${{ secrets.api_rg }}
+        bash deploy-api-infra.sh ${{ secrets.api_rg }} ${{ secrets.api_front_door }}
