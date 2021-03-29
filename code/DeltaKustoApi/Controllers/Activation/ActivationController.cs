@@ -22,7 +22,7 @@ namespace DeltaKustoApi.Controllers.Activation
             _telemetryWriter = telemetryWriter;
         }
 
-        public async Task<ActivationOutput> PostAsync(ActivationInput input)
+        public ActivationOutput PostAsync(ActivationInput input)
         {
             try
             {
@@ -32,8 +32,6 @@ namespace DeltaKustoApi.Controllers.Activation
             {
                 _logger.LogError(ex.Message);
             }
-
-            await Task.CompletedTask;
 
             return new ActivationOutput();
         }
