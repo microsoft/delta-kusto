@@ -40,14 +40,14 @@ namespace DeltaKustoApi
             var container = Environment.GetEnvironmentVariable("telemetryContainerName");
             var logger = new LoggerConfiguration()
                 .WriteTo
-                .AzureBlobStorage(
+                .Async(c => c.AzureBlobStorage(
                     connectionString,
                     LogEventLevel.Verbose,
                     container,
                     "{yyyy}-{MM}-{dd}-log.txt",
-                    blobSizeLimitBytes:200000000)
+                    blobSizeLimitBytes: 200000000))
                     //writeInBatches:true,
-                    //period:TimeSpan.FromSeconds(5))
+                    //period:TimeSpan.FromSeconds(5)))
                 .CreateLogger();
 
             services.TryAddSingleton(new TelemetryWriter(logger));
