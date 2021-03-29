@@ -18,12 +18,19 @@
 
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.8.0" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="5.0.0" />
     <PackageReference Include="YamlDotNet" Version="9.1.4" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\DeltaKustoIntegration\DeltaKustoIntegration.csproj" />
     <ProjectReference Include="..\DeltaKustoLib\DeltaKustoLib.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Properties\launchSettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>
