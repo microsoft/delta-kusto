@@ -15,7 +15,7 @@ namespace delta_kusto
         #region Inner Types
         private class ClientInfo
         {
-            public string ClientVersion { get; set; } = "";
+            public string ClientVersion { get; set; } = Program.AssemblyVersion;
 
             public string OS { get; set; } = Environment.OSVersion.Platform.ToString();
 
