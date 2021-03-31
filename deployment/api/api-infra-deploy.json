@@ -2,7 +2,7 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-        "frontDoorName":{
+        "frontDoorName": {
             "type": "string"
         }
     },
@@ -104,6 +104,39 @@
                     ],
                     "properties": {
                         "publicAccess": "None"
+                    }
+                },
+                {
+                    "apiVersion": "2019-06-01",
+                    "type": "Microsoft.Storage/storageAccounts/managementPolicies",
+                    "name": "api-telemetry-raw",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('Blob Storage Account'))]"
+                    ],
+                    "properties": {
+                        "policy": {
+                            "rules": [
+                                {
+                                    "name": "cool-logs",
+                                    "enabled": true,
+                                    "type": "Lifecycle",
+                                    "definition": {
+                                        "filters": {
+                                            "prefixMatch": [
+                                                "[concat(variables('API Telemetry Container'), '/raw-telemetry')]"
+                                            ]
+                                        },
+                                        "actions": {
+                                            "baseBlob": {
+                                                "tierToCool": {
+                                                    "daysAfterModificationGreaterThan": 1
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
                     }
                 }
             ]
