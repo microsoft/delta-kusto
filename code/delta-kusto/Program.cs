@@ -45,16 +45,6 @@ namespace delta_kusto
 
         internal async Task<int> RunAsync(string[] args)
         {
-            var availableClientVersions = await ApiClient.ActivateAsync(_ct);
-
-            Console.WriteLine("Client Activated");
-            if (availableClientVersions != null && availableClientVersions.Any())
-            {
-                Console.WriteLine(
-                    "Newer clients available:  "
-                    + string.Join(", ", availableClientVersions));
-            }
-
             //  Use CommandLineParser NuGet package to parse command line
             //  See https://github.com/commandlineparser/commandline
             var parser = new Parser(with =>
@@ -120,7 +110,20 @@ namespace delta_kusto
         private async Task RunOptionsAsync(CommandLineOptions options)
         {
             string version = AssemblyVersion;
+
             Console.WriteLine($"delta-kusto { version }");
+            Console.WriteLine();
+
+            var availableClientVersions = await ApiClient.ActivateAsync(_ct);
+
+            Console.WriteLine("Client Activated");
+            if (availableClientVersions != null && availableClientVersions.Any())
+            {
+                Console.WriteLine(
+                    "Newer clients available:  "
+                    + string.Join(", ", availableClientVersions));
+            }
+
             if (options.Verbose)
             {
                 Console.WriteLine("Verbose output enabled");
