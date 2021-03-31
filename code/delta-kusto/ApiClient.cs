@@ -96,34 +96,42 @@ namespace delta_kusto
         {
             if (_doApiCalls)
             {
-                var output = await PostAsync<ActivationOutput>(
-                    "/activation",
-                    new
-                    {
-                        ClientInfo = new ClientInfo()
-                    },
-                    ct);
+                try
+                {
+                    var output = await PostAsync<ActivationOutput>(
+                        "/activation",
+                        new
+                        {
+                            ClientInfo = new ClientInfo()
+                        },
+                        ct);
 
-                return output?.AvailableClientVersions;
+                    return output?.AvailableClientVersions;
+                }
+                catch
+                {
+                }
             }
-            else
-            {
-                return null;
-            }
+
+            return null;
         }
 
         public static async Task<Guid?> RegisterExceptionAsync(Exception ex, CancellationToken ct)
         {
             if (_doApiCalls)
             {
-                var output = await PostAsync<ErrorOutput>("/error", new ErrorInput(ex), ct);
+                try
+                {
+                    var output = await PostAsync<ErrorOutput>("/error", new ErrorInput(ex), ct);
 
-                return output?.OperationID;
+                    return output?.OperationID;
+                }
+                catch
+                {
+                }
             }
-            else
-            {
-                return null;
-            }
+
+            return null;
         }
 
         private static string ComputeRootUrl()
@@ -161,7 +169,7 @@ namespace delta_kusto
                     var responseText =
                         await response.Content.ReadAsStringAsync(ct);
 
-                    if (response.StatusCode != HttpStatusCode.OK)
+                    if (response.StatusCode == HttpStatusCode.OK)
                     {
                         var output = JsonSerializer.Deserialize<T>(
                             responseText,
