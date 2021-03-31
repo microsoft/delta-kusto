@@ -97,7 +97,7 @@
                                     "definition": {
                                         "filters": {
                                             "blobTypes": [
-                                                "blobTypes"
+                                                "blockBlob"
                                             ],
                                             "prefixMatch": [
                                                 "[concat(variables('API Telemetry Container'), '/raw-telemetry')]"
