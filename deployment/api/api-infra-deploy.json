@@ -79,6 +79,42 @@
                     "properties": {
                         "publicAccess": "None"
                     }
+                },
+                {
+                    "apiVersion": "2019-06-01",
+                    "type": "managementPolicies",
+                    "name": "api-telemetry-raw",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('Lake Storage Account'))]"
+                    ],
+                    "properties": {
+                        "policy": {
+                            "rules": [
+                                {
+                                    "name": "cool-logs",
+                                    "enabled": true,
+                                    "type": "Lifecycle",
+                                    "definition": {
+                                        "filters": {
+                                            "blobTypes": [
+                                                "blobTypes"
+                                            ],
+                                            "prefixMatch": [
+                                                "[concat(variables('API Telemetry Container'), '/raw-telemetry')]"
+                                            ]
+                                        },
+                                        "actions": {
+                                            "baseBlob": {
+                                                "tierToCool": {
+                                                    "daysAfterModificationGreaterThan": 1
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
                 }
             ]
         },
@@ -104,39 +140,6 @@
                     ],
                     "properties": {
                         "publicAccess": "None"
-                    }
-                },
-                {
-                    "apiVersion": "2019-06-01",
-                    "type": "managementPolicies",
-                    "name": "api-telemetry-raw",
-                    "dependsOn": [
-                        "[resourceId('Microsoft.Storage/storageAccounts', variables('Blob Storage Account'))]"
-                    ],
-                    "properties": {
-                        "policy": {
-                            "rules": [
-                                {
-                                    "name": "cool-logs",
-                                    "enabled": true,
-                                    "type": "Lifecycle",
-                                    "definition": {
-                                        "filters": {
-                                            "prefixMatch": [
-                                                "[concat(variables('API Telemetry Container'), '/raw-telemetry')]"
-                                            ]
-                                        },
-                                        "actions": {
-                                            "baseBlob": {
-                                                "tierToCool": {
-                                                    "daysAfterModificationGreaterThan": 1
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
                     }
                 }
             ]
