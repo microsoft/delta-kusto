@@ -36,18 +36,19 @@ namespace DeltaKustoApi
 
             //  Dependency injection
             //  Serilog
-            var connectionString = Environment.GetEnvironmentVariable("storageConnectionString");
-            var container = Environment.GetEnvironmentVariable("telemetryContainerName");
+            string? connectionString = GetEnvironmentVariable("storageConnectionString");
+            var container = GetEnvironmentVariable("telemetryContainerName");
+            var environment = GetEnvironmentVariable("env");
             var logger = new LoggerConfiguration()
                 .WriteTo
                 .Async(c => c.AzureBlobStorage(
                     connectionString,
                     LogEventLevel.Verbose,
                     container,
-                    "raw-telemetry/{yyyy}-{MM}-{dd}-log.txt",
-                    blobSizeLimitBytes: 200000000))
-                    //writeInBatches:true,
-                    //period:TimeSpan.FromSeconds(5)))
+                    $"raw-telemetry/{environment}/{{yyyy}}-{{MM}}-{{dd}}-log.txt",
+                    blobSizeLimitBytes: 200 * 1024 * 1024))
+                //writeInBatches:true,
+                //period:TimeSpan.FromSeconds(5)))
                 .CreateLogger();
 
             services.TryAddSingleton(new TelemetryWriter(logger));
@@ -71,6 +72,18 @@ namespace DeltaKustoApi
             {
                 endpoints.MapControllers();
             });
+        }
+
+        private static string GetEnvironmentVariable(string variable)
+        {
+            var variableValue = Environment.GetEnvironmentVariable(variable);
+
+            if (string.IsNullOrWhiteSpace(variableValue))
+            {
+                throw new ArgumentNullException(variable);
+            }
+
+            return variableValue;
         }
     }
 }
