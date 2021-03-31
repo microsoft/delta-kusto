@@ -83,7 +83,7 @@
                 {
                     "apiVersion": "2019-06-01",
                     "type": "managementPolicies",
-                    "name": "api-telemetry-raw",
+                    "name": "default",
                     "dependsOn": [
                         "[resourceId('Microsoft.Storage/storageAccounts', variables('Lake Storage Account'))]"
                     ],
@@ -91,7 +91,7 @@
                         "policy": {
                             "rules": [
                                 {
-                                    "name": "cool-logs",
+                                    "name": "api-telemetry-raw",
                                     "enabled": true,
                                     "type": "Lifecycle",
                                     "definition": {
