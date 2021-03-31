@@ -78,7 +78,9 @@ namespace delta_kusto
             {
                 if (parameters.SendErrorOptIn)
                 {
-                    await ApiClient.RegisterExceptionAsync(ex, ct);
+                    var operationID = await ApiClient.RegisterExceptionAsync(ex, ct);
+
+                    Console.WriteLine($"Exception registered with Operation ID '{operationID}'");
                 }
                 throw;
             }

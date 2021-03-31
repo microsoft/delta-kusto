@@ -12,24 +12,30 @@ namespace DeltaKustoApi.Controllers.Error
     public class ErrorController : ControllerBase
     {
         private readonly ILogger<ErrorController> _logger;
+        private readonly TelemetryWriter _telemetryWriter;
 
-        public ErrorController(ILogger<ErrorController> logger)
+        public ErrorController(
+            ILogger<ErrorController> logger,
+            TelemetryWriter telemetryWriter)
         {
             _logger = logger;
+            _telemetryWriter = telemetryWriter;
         }
 
-        public async Task<ErrorOutput> PostAsync(ErrorInput input)
+        public ErrorOutput Post(ErrorInput input)
         {
             try
             {
-                await TelemetryWriter.WriteTelemetryAsync("activations", input, Request);
+                _telemetryWriter.PostTelemetry(input, Request);
+         
+                return new ErrorOutput();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
+             
+                return new ErrorOutput();
             }
-
-            return new ErrorOutput();
         }
     }
 }

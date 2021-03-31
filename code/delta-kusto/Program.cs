@@ -19,6 +19,21 @@ namespace delta_kusto
             _ct = ct;
         }
 
+        public static string AssemblyVersion
+        {
+            get
+            {
+                var versionAttribute = typeof(Program)
+                    .Assembly
+                    .GetCustomAttribute<AssemblyInformationalVersionAttribute>();
+                var version = versionAttribute == null
+                    ? "<VERSION MISSING>"
+                    : versionAttribute!.InformationalVersion;
+
+                return version;
+            }
+        }
+
         internal static async Task<int> Main(string[] args)
         {
             var tokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(1));
@@ -30,7 +45,15 @@ namespace delta_kusto
 
         internal async Task<int> RunAsync(string[] args)
         {
-            var activationTask = ApiClient.ActivateAsync(_ct);
+            var availableClientVersions = await ApiClient.ActivateAsync(_ct);
+
+            Console.WriteLine("Client Activated");
+            if (availableClientVersions != null && availableClientVersions.Any())
+            {
+                Console.WriteLine(
+                    "Newer clients available:  "
+                    + string.Join(", ", availableClientVersions));
+            }
 
             //  Use CommandLineParser NuGet package to parse command line
             //  See https://github.com/commandlineparser/commandline
@@ -62,10 +85,6 @@ namespace delta_kusto
                 DisplayGenericException(ex);
 
                 return 1;
-            }
-            finally
-            {
-                await activationTask;
             }
         }
 
@@ -100,12 +119,7 @@ namespace delta_kusto
 
         private async Task RunOptionsAsync(CommandLineOptions options)
         {
-            var versionAttribute = typeof(Program)
-                .Assembly
-                .GetCustomAttribute<AssemblyInformationalVersionAttribute>();
-            var version = versionAttribute == null
-                ? "<VERSION MISSING>"
-                : versionAttribute!.InformationalVersion;
+            string version = AssemblyVersion;
             Console.WriteLine($"delta-kusto { version }");
             if (options.Verbose)
             {

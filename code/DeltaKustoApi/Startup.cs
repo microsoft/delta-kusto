@@ -3,9 +3,12 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using Serilog;
+using Serilog.Core;
+using Serilog.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,12 +28,30 @@ namespace DeltaKustoApi
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
             services.AddControllers();
             //services.AddSwaggerGen(c =>
             //{
             //    c.SwaggerDoc("v1", new OpenApiInfo { Title = "DeltaKustoApi", Version = "v1" });
             //});
+
+            //  Dependency injection
+            //  Serilog
+            string? connectionString = GetEnvironmentVariable("storageConnectionString");
+            var container = GetEnvironmentVariable("telemetryContainerName");
+            var environment = GetEnvironmentVariable("env");
+            var logger = new LoggerConfiguration()
+                .WriteTo
+                .Async(c => c.AzureBlobStorage(
+                    connectionString,
+                    LogEventLevel.Verbose,
+                    container,
+                    $"raw-telemetry/{environment}/{{yyyy}}-{{MM}}-{{dd}}-log.txt",
+                    blobSizeLimitBytes: 200 * 1024 * 1024))
+                //writeInBatches:true,
+                //period:TimeSpan.FromSeconds(5)))
+                .CreateLogger();
+
+            services.TryAddSingleton(new TelemetryWriter(logger));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -51,6 +72,18 @@ namespace DeltaKustoApi
             {
                 endpoints.MapControllers();
             });
+        }
+
+        private static string GetEnvironmentVariable(string variable)
+        {
+            var variableValue = Environment.GetEnvironmentVariable(variable);
+
+            if (string.IsNullOrWhiteSpace(variableValue))
+            {
+                throw new ArgumentNullException(variable);
+            }
+
+            return variableValue;
         }
     }
 }

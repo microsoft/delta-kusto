@@ -12,24 +12,30 @@ namespace DeltaKustoApi.Controllers.Activation
     public class ActivationController : ControllerBase
     {
         private readonly ILogger<ActivationController> _logger;
+        private readonly TelemetryWriter _telemetryWriter;
 
-        public ActivationController(ILogger<ActivationController> logger)
+        public ActivationController(
+            ILogger<ActivationController> logger,
+            TelemetryWriter telemetryWriter)
         {
             _logger = logger;
+            _telemetryWriter = telemetryWriter;
         }
 
-        public async Task<ActivationOutput> PostAsync(ActivationInput input)
+        public ActivationOutput PostAsync(ActivationInput input)
         {
             try
             {
-                await TelemetryWriter.WriteTelemetryAsync("activations", input, Request);
+                _telemetryWriter.PostTelemetry(input, Request);
+
+                return new ActivationOutput();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-            }
 
-            return new ActivationOutput();
+                return new ActivationOutput();
+            }
         }
     }
 }
