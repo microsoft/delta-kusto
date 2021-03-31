@@ -21,7 +21,7 @@ jobs:
       run: |
         branch=$(echo ${GITHUB_REF#refs/heads/})
         echo "Current branch is '$branch'"
-        if [ "$branch" = "api-prod" ]
+        if [ "$branch" = "api/prod" ]
         then
           targetEnv="prod"
         else
