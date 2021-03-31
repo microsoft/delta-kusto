@@ -108,7 +108,7 @@
                 },
                 {
                     "apiVersion": "2019-06-01",
-                    "type": "Microsoft.Storage/storageAccounts/managementPolicies",
+                    "type": "managementPolicies",
                     "name": "api-telemetry-raw",
                     "dependsOn": [
                         "[resourceId('Microsoft.Storage/storageAccounts', variables('Blob Storage Account'))]"
