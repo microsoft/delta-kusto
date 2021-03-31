@@ -46,9 +46,9 @@ namespace DeltaKustoApi
                     LogEventLevel.Verbose,
                     container,
                     $"raw-telemetry/{environment}/{{yyyy}}-{{MM}}-{{dd}}-log.txt",
-                    blobSizeLimitBytes: 200 * 1024 * 1024))
-                //writeInBatches:true,
-                //period:TimeSpan.FromSeconds(5)))
+                    blobSizeLimitBytes: 200 * 1024 * 1024,
+                    writeInBatches: true,
+                    period: TimeSpan.FromSeconds(10)))
                 .CreateLogger();
 
             services.TryAddSingleton(new TelemetryWriter(logger));
