@@ -11,7 +11,8 @@
         "Suffix": "[concat('delta-kusto-', variables('Unique ID'))]",
         "App Insights": "[concat('app-monitor-', variables('Suffix'))]",
         "Log Analytics": "[concat('infra-monitor-', variables('Suffix'))]",
-        "Storage Account": "[concat('deltakusto', variables('Unique ID'))]",
+        "Lake Storage Account": "[concat('deltakustolake', variables('Unique ID'))]",
+        "Blob Storage Account": "[concat('deltakustoblob', variables('Unique ID'))]",
         "API Telemetry Container": "api-telemetry",
         "App Plan": "[concat('app-plan-', variables('Suffix'))]",
         "Web Apps": [
@@ -58,7 +59,7 @@
         {
             "type": "Microsoft.Storage/storageAccounts",
             "apiVersion": "2019-06-01",
-            "name": "[variables('Storage Account')]",
+            "name": "[variables('Lake Storage Account')]",
             "location": "[resourceGroup().location]",
             "sku": {
                 "name": "Standard_LRS"
@@ -73,7 +74,33 @@
                     "type": "blobServices/containers",
                     "name": "[concat('default/', variables('API Telemetry Container'))]",
                     "dependsOn": [
-                        "[resourceId('Microsoft.Storage/storageAccounts', variables('Storage Account'))]"
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('Lake Storage Account'))]"
+                    ],
+                    "properties": {
+                        "publicAccess": "None"
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2019-06-01",
+            "name": "[variables('Blob Storage Account')]",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "Standard_LRS"
+            },
+            "kind": "StorageV2",
+            "properties": {
+                "isHnsEnabled": false
+            },
+            "resources": [
+                {
+                    "apiVersion": "2019-06-01",
+                    "type": "blobServices/containers",
+                    "name": "[concat('default/', variables('API Telemetry Container'))]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Storage/storageAccounts', variables('Blob Storage Account'))]"
                     ],
                     "properties": {
                         "publicAccess": "None"
@@ -114,7 +141,7 @@
             },
             "dependsOn": [
                 "[resourceId('Microsoft.Web/serverfarms', variables('App Plan'))]",
-                "[resourceId('Microsoft.Storage/storageAccounts', variables('Storage Account'))]"
+                "[resourceId('Microsoft.Storage/storageAccounts', variables('Blob Storage Account'))]"
             ],
             "properties": {
                 "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('App Plan'))]",
@@ -122,7 +149,7 @@
                     "appSettings": [
                         {
                             "name": "storageConnectionString",
-                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('Storage Account'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('Storage Account')), '2019-06-01').keys[0].value,';')]"
+                            "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('Blob Storage Account'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('Blob Storage Account')), '2019-06-01').keys[0].value,';')]"
                         },
                         {
                             "name": "telemetryContainerName",
