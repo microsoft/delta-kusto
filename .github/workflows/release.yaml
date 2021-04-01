@@ -30,7 +30,7 @@ jobs:
         path: windows-assets
     # Validate asset content
     - name: Assets content
-    - run:  |
+      run:  |
         ls -l linux-assets
         ls -l windows-assets
     # Zip assets
