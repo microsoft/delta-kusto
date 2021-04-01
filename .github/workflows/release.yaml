@@ -28,8 +28,18 @@ jobs:
       with:
         name: windows-assets
         path: windows-assets
-    - run:  ls -l linux-assets
-    - run:  ls -l windows-assets
+    # Validate asset content
+    - name: Assets content
+    - run:  |
+        ls -l linux-assets
+        ls -l windows-assets
+    # Zip assets
+    - name: Mkdir final assets
+      run:  mkdir final-assets
+    - name: Zip Linux executable
+      run:  tar -czvf final-assets/delta-kusto-linux.tar.gz linux-assets/bin/*
+    - name: Zip Windows executable
+      run:  zip final-assets/delta-kusto-windows.zip windows-assets/bin/*
     # See https://cli.github.com/manual/gh_auth
     - name: Authentication gh CLI
       run:  |
@@ -41,8 +51,7 @@ jobs:
         fullVersion=$(cat linux-assets/full-version.txt)
         # Create the release
         gh release create -d $fullVersion \
-          linux-assets/delta-kusto-linux.tar.gz \
-          windows-assets/delta-kusto-windows.zip
+          final-assets/*
 
   # Linux job, builds the Linux asset
   linux:
@@ -64,6 +73,11 @@ jobs:
       shell:  bash
       run:  |
         echo "Full version:  ${{ steps.patch-version.outputs.full-version }}"
+    - name: Create artefact directory
+      shell:  bash
+      run:  |
+        mkdir $assetsName
+        mkdir $assetsName/bin
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-restore
     - name: Install dependencies
       shell:  bash
@@ -81,20 +95,11 @@ jobs:
         dotnet publish code/delta-kusto -c release -r $dotnetOs \
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
           -p:PublishTrimmed=true -p:PublishReadyToRun=true \
-          -o bin
-    - name: Zip executable
-      shell:  bash
-      run:  tar -czvf bin/delta-kusto-$assetSuffix.tar.gz bin/$execName
-    - name: Create artefact directory
-      shell:  bash
-      run:  mkdir $assetsName
+          -o $assetsName/bin
     # Output variables can't be shared accross jobs, so we push it to artefacts
     - name: Push full version to file
       shell:  bash
       run:  echo ${{ steps.patch-version.outputs.full-version }} >> $assetsName/full-version.txt
-    - name: Copy binary into artefact
-      shell:  bash
-      run:  mv bin/*.gz $assetsName
     # Push archive + version to a sharable artefact
     # See https://stackoverflow.com/questions/57498605/github-actions-share-workspace-artifacts-between-jobs
     - uses: actions/upload-artifact@master
@@ -122,6 +127,11 @@ jobs:
       shell:  bash
       run:  |
         echo "Full version:  ${{ steps.patch-version.outputs.full-version }}"
+    - name: Create artefact directory
+      shell:  bash
+      run:  |
+        mkdir $assetsName
+        mkdir $assetsName/bin
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-restore
     - name: Install dependencies
       shell:  bash
@@ -139,20 +149,11 @@ jobs:
         dotnet publish code/delta-kusto -c release -r $dotnetOs \
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
           -p:PublishTrimmed=true -p:PublishReadyToRun=true \
-          -o bin
-    - name: Zip executable
-      shell:  powershell
-      run:  Compress-Archive -Path bin/$execName -DestinationPath bin/delta-kusto-$assetSuffix.zip
-    - name: Create artefact directory
-      shell:  bash
-      run:  mkdir $assetsName
+          -o $assetsName/bin
     # Output variables can't be shared accross jobs, so we push it to artefacts
     - name: Push full version to file
       shell:  bash
       run:  echo ${{ steps.patch-version.outputs.full-version }} >> $assetsName/full-version.txt
-    - name: Copy binary into artefact
-      shell:  bash
-      run:  mv bin/*.zip $assetsName
     # Push archive + version to a sharable artefact
     # See https://stackoverflow.com/questions/57498605/github-actions-share-workspace-artifacts-between-jobs
     - uses: actions/upload-artifact@master
