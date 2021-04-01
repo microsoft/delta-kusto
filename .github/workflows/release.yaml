@@ -40,7 +40,7 @@ jobs:
         # Create the release
         gh release create -d $fullVersion \
           linux-assets/delta-kusto-linux.tar.gz \
-          windows-assets/delta-kusto-windows.tar.gz
+          windows-assets/delta-kusto-windows.zip
 
   # Linux job, builds the Linux asset
   linux:
@@ -140,7 +140,7 @@ jobs:
           -o bin
     - name: Zip executable
       shell:  bash
-      run:  tar -czvf bin/delta-kusto-$assetSuffix.tar.gz bin/$execName
+      run:  zip bin/delta-kusto-$assetSuffix.zip bin/$execName
     - name: Create artefact directory
       shell:  bash
       run:  mkdir $assetsName
@@ -150,7 +150,7 @@ jobs:
       run:  echo ${{ steps.patch-version.outputs.full-version }} >> $assetsName/full-version.txt
     - name: Copy binary into artefact
       shell:  bash
-      run:  mv bin/*.gz $assetsName
+      run:  mv bin/*.zip $assetsName
     # Push archive + version to a sharable artefact
     # See https://stackoverflow.com/questions/57498605/github-actions-share-workspace-artifacts-between-jobs
     - uses: actions/upload-artifact@master
