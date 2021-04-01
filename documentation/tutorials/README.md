@@ -2,6 +2,6 @@
 
 Here is the list of tutorials of Delta-Kusto:
 
-* [Overview of Delta Kusto](overview-tutorial.md)
-* [Download / Install Delta Kusto](install-tutorial.md)
+* [Delta Kusto Overview](overview-tutorial/README.md)
+* [Delta Kusto Download / Install](install-tutorial.md)
 * [Authenticating to ADX Clusters](authentication-tutorial.md)

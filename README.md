@@ -88,7 +88,7 @@ The minimum viable product (MVP) will compute delta on *functions*.
 
 ## Tutorials
 
-See the [tutorial section](documentation/tutorials) for different tutorials on Delta-Kusto.
+See the [tutorial section](documentation/tutorials/README.md) for different tutorials on Delta-Kusto.
 
 ## Alternatives
 
