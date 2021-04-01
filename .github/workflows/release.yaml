@@ -139,8 +139,8 @@ jobs:
           -p:PublishTrimmed=true -p:PublishReadyToRun=true \
           -o bin
     - name: Zip executable
-      shell:  bash
-      run:  tar.exe -acf bin/delta-kusto-$assetSuffix.zip bin/$execName
+      shell:  powershell
+      run:  Compress-Archive -Path bin/$execName -DestinationPath bin/delta-kusto-$assetSuffix.zip
     - name: Create artefact directory
       shell:  bash
       run:  mkdir $assetsName
