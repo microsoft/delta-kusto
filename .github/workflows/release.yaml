@@ -32,7 +32,9 @@ jobs:
     - name: Assets content
       run:  |
         ls -l linux-assets
+        ls -l linux-assets/bin
         ls -l windows-assets
+        ls -l windows-assets/bin
     # Zip assets
     - name: Mkdir final assets
       run:  mkdir final-assets
