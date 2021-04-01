@@ -12,9 +12,9 @@ Delta-Kusto runs on both Linux & Windows as a stand-alone executable.  It is mea
 
 Delta-Kusto works on database structure, **not data**:
 
+* Functions
 * Tables / Columns
 * Ingestion Mapping
-* Functions
 * Policies
 * Materialized Views
 * Security roles
@@ -85,6 +85,10 @@ This is the *Live Sync* scenario:  we want to bring an ADX database to the same 
 Delta-Kusto is currently in development.  It has no releases yet.
 
 The minimum viable product (MVP) will compute delta on *functions*.
+
+## Tutorials
+
+See the [tutorial section]() for different tutorials on Delta-Kusto.
 
 ## Alternatives
 
