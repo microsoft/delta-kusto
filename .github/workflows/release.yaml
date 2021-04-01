@@ -28,6 +28,8 @@ jobs:
       with:
         name: windows-assets
         path: windows-assets
+    - run:  ls -l linux-assets
+    - run:  ls -l windows-assets
     # See https://cli.github.com/manual/gh_auth
     - name: Authentication gh CLI
       run:  |
