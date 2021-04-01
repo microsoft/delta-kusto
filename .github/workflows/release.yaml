@@ -140,7 +140,7 @@ jobs:
           -o bin
     - name: Zip executable
       shell:  bash
-      run:  zip bin/delta-kusto-$assetSuffix.zip bin/$execName
+      run:  tar.exe -acf bin/delta-kusto-$assetSuffix.zip bin/$execName
     - name: Create artefact directory
       shell:  bash
       run:  mkdir $assetsName
