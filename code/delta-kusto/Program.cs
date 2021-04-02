@@ -101,20 +101,6 @@ namespace delta_kusto
 
         private static async Task RunOptionsAsync(CommandLineOptions options)
         {
-            Console.WriteLine("Activating Client...");
-
-            var tokenSource = new CancellationTokenSource(TimeOuts.API);
-            var ct = tokenSource.Token;
-            var availableClientVersions = await ApiClient.ActivateAsync();
-
-            Console.WriteLine("Client Activated");
-            if (availableClientVersions != null && availableClientVersions.Any())
-            {
-                Console.WriteLine(
-                    "Newer clients available:  "
-                    + string.Join(", ", availableClientVersions));
-            }
-
             if (options.Verbose)
             {
                 Console.WriteLine("Verbose output enabled");

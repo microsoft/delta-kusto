@@ -40,13 +40,26 @@ namespace delta_kusto
             _tokenProviderFactory = tokenProviderFactory ?? new TokenProviderFactory();
         }
 
-
-
         public async Task<bool> ComputeDeltaAsync(
             string parameterFilePath,
             string jsonOverrides)
         {
-            Console.WriteLine($"Loading parameters at '{parameterFilePath}'");
+            _tracer.WriteLine(false, "Activating Client...");
+
+            var tokenSource = new CancellationTokenSource(TimeOuts.API);
+            var ct = tokenSource.Token;
+            var availableClientVersions = await ApiClient.ActivateAsync();
+
+            _tracer.WriteLine(false, "Client Activated");
+            if (availableClientVersions != null && availableClientVersions.Any())
+            {
+                _tracer.WriteLine(
+                    false,
+                    "Newer clients available:  "
+                    + string.Join(", ", availableClientVersions));
+            }
+
+            _tracer.WriteLine(false, $"Loading parameters at '{parameterFilePath}'");
 
             var parameters =
                 await LoadParameterizationAsync(parameterFilePath, jsonOverrides);
@@ -57,7 +70,7 @@ namespace delta_kusto
                 var orderedJobs = parameters.Jobs.OrderBy(p => p.Value.Priority);
                 var success = true;
 
-                Console.WriteLine($"{orderedJobs.Count()} jobs");
+                _tracer.WriteLine(false, $"{orderedJobs.Count()} jobs");
 
                 foreach (var jobPair in orderedJobs)
                 {
@@ -79,7 +92,9 @@ namespace delta_kusto
                 {
                     var operationID = await ApiClient.RegisterExceptionAsync(ex);
 
-                    Console.WriteLine($"Exception registered with Operation ID '{operationID}'");
+                    _tracer.WriteLine(
+                        false,
+                        $"Exception registered with Operation ID '{operationID}'");
                 }
                 throw;
             }
@@ -91,14 +106,14 @@ namespace delta_kusto
             string jobName,
             JobParameterization job)
         {
-            Console.WriteLine($"Job {jobName}");
+            _tracer.WriteLine(false, $"Job {jobName}");
             try
             {
-                Console.Write("Current DB Provider...  ");
+                _tracer.WriteLine(false, "Current DB Provider...  ");
 
                 var currentDbProvider = CreateDatabaseProvider(job.Current, tokenProvider);
 
-                Console.Write("Target DB Provider...  ");
+                _tracer.WriteLine(false, "Target DB Provider...  ");
 
                 var targetDbProvider = CreateDatabaseProvider(job.Target, tokenProvider);
                 var tokenSourceRetrieveDb = new CancellationTokenSource(TimeOuts.RETRIEVE_DB);
@@ -112,7 +127,7 @@ namespace delta_kusto
                 var currentDb = await currentDbTask;
                 var targetDb = await targetDbTask;
 
-                Console.WriteLine("Compute Delta...");
+                _tracer.WriteLine(false, "Compute Delta...");
 
                 var deltaCommands =
                     new ActionCommandCollection(currentDb.ComputeDelta(targetDb));
@@ -124,7 +139,7 @@ namespace delta_kusto
                 var tokenSourceAction = new CancellationTokenSource(TimeOuts.ACTION);
                 var ctAction = tokenSourceRetrieveDb.Token;
 
-                Console.WriteLine("Processing delta commands...");
+                _tracer.WriteLine(false, "Processing delta commands...");
                 foreach (var actionProvider in actionProviders)
                 {
                     await actionProvider.ProcessDeltaCommandsAsync(
@@ -132,8 +147,8 @@ namespace delta_kusto
                         deltaCommands,
                         ctAction);
                 }
-                Console.WriteLine("Delta processed / Job completed");
-                Console.WriteLine();
+                _tracer.WriteLine(false, "Delta processed / Job completed");
+                _tracer.WriteLine(false, "");
 
                 return jobSuccess;
             }
@@ -143,38 +158,38 @@ namespace delta_kusto
             }
         }
 
-        private static async Task<DatabaseModel> RetrieveDatabaseAsync(
+        private async Task<DatabaseModel> RetrieveDatabaseAsync(
             IDatabaseProvider currentDbProvider,
             string db,
             CancellationToken ct)
         {
-            Console.WriteLine($"Retrieving {db}...");
+            _tracer.WriteLine(false, $"Retrieving {db}...");
 
             var model = await currentDbProvider.RetrieveDatabaseAsync(ct);
 
-            Console.WriteLine($"{db} retrieved");
+            _tracer.WriteLine(false, $"{db} retrieved");
 
             return model;
         }
 
-        private static bool ReportOnDeltaCommands(
+        private bool ReportOnDeltaCommands(
             MainParameterization parameters,
             ActionCommandCollection deltaCommands)
         {
             var success = true;
 
-            Console.WriteLine($"{deltaCommands.Count()} commands in delta");
+            _tracer.WriteLine(false, $"{deltaCommands.Count()} commands in delta");
             if (deltaCommands.AllDropCommands.Any())
             {
-                Console.WriteLine("Delta contains drop commands:");
+                _tracer.WriteLine(false, "Delta contains drop commands:");
                 foreach (var command in deltaCommands.AllDropCommands)
                 {
-                    Console.WriteLine("  " + command.ToScript());
+                    _tracer.WriteLine(false, "  " + command.ToScript());
                 }
-                Console.WriteLine();
+                _tracer.WriteLine(false, "");
                 if (parameters.FailIfDrops)
                 {
-                    Console.Error.WriteLine("Drop commands forces failure");
+                    _tracer.WriteErrorLine("Drop commands forces failure");
                     success = false;
                 }
             }
@@ -264,7 +279,7 @@ namespace delta_kusto
         {
             if (source == null)
             {
-                Console.WriteLine("Empty database");
+                _tracer.WriteLine(true, "Empty database");
 
                 return new EmptyDatabaseProvider();
             }
@@ -272,7 +287,8 @@ namespace delta_kusto
             {
                 if (source.Adx != null)
                 {
-                    Console.WriteLine(
+                    _tracer.WriteLine(
+                        true,
                         $"ADX Database:  cluster '{source.Adx.ClusterUri}', "
                         + $"database '{source.Adx.Database}'");
 
@@ -290,7 +306,7 @@ namespace delta_kusto
                 }
                 else if (source.Scripts != null)
                 {
-                    Console.WriteLine("Database scripts");
+                    _tracer.WriteLine(true, "Database scripts");
 
                     return new ScriptDatabaseProvider(_fileGateway, source.Scripts);
                 }

@@ -22,5 +22,10 @@ namespace DeltaKustoLib
                 Console.WriteLine(text);
             }
         }
+
+        void ITracer.WriteErrorLine(string text)
+        {
+            Console.Error.WriteLine(text);
+        }
     }
 }
