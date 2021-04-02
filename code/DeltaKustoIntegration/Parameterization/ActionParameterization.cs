@@ -28,11 +28,6 @@ namespace DeltaKustoIntegration.Parameterization
                 throw new DeltaException(
                     "Both 'filePath' and 'folderPath' can't both be populated");
             }
-            if (string.IsNullOrWhiteSpace(FilePath) && string.IsNullOrWhiteSpace(FolderPath))
-            {
-                throw new DeltaException(
-                    "Either 'filePath' and 'folderPath' must be populated");
-            }
         }
     }
 }
