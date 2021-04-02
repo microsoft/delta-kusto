@@ -374,37 +374,47 @@ namespace DeltaKustoIntegration.Kusto
             string commandScript,
             CancellationToken ct)
         {
-            var token = await _tokenProvider.GetTokenAsync(_clusterUri, ct);
-
-            //  Implementation of https://docs.microsoft.com/en-us/azure/data-explorer/kusto/api/rest/request#examples
-            using (var client = new HttpClient())
+            try
             {
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                var token = await _tokenProvider.GetTokenAsync(_clusterUri, ct);
 
-                var managementUrl = $"{_clusterUri}/v1/rest/mgmt";
-                var body = new
+                //  Implementation of https://docs.microsoft.com/en-us/azure/data-explorer/kusto/api/rest/request#examples
+                using (var client = new HttpClient())
                 {
-                    db = _database,
-                    csl = commandScript
-                };
-                var bodyText = JsonSerializer.Serialize(body);
-                var response = await client.PostAsync(
-                    managementUrl,
-                    new StringContent(bodyText, null, "application/json"),
-                    ct);
-                var responseText = await response.Content.ReadAsStringAsync(ct);
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-                if (response.StatusCode != HttpStatusCode.OK)
-                {
-                    throw new InvalidOperationException(
-                        $"'{body.csl}' command failed for cluster URI '{_clusterUri}' "
-                        + $"with status code '{response.StatusCode}' "
-                        + $"and payload '{responseText}'");
+                    var managementUrl = $"{_clusterUri}/v1/rest/mgmt";
+                    var body = new
+                    {
+                        db = _database,
+                        csl = commandScript
+                    };
+                    var bodyText = JsonSerializer.Serialize(body);
+                    var response = await client.PostAsync(
+                        managementUrl,
+                        new StringContent(bodyText, null, "application/json"),
+                        ct);
+                    var responseText = await response.Content.ReadAsStringAsync(ct);
+
+                    if (response.StatusCode != HttpStatusCode.OK)
+                    {
+                        throw new InvalidOperationException(
+                            $"'{body.csl}' command failed for cluster URI '{_clusterUri}' "
+                            + $"with status code '{response.StatusCode}' "
+                            + $"and payload '{responseText}'");
+                    }
+
+                    var output = ApiOutput.FromJson(responseText);
+
+                    return output;
                 }
-
-                var output = ApiOutput.FromJson(responseText);
-
-                return output;
+            }
+            catch (Exception ex)
+            {
+                throw new DeltaException(
+                    $"Issue running Kusto script on cluster '{_clusterUri}' / "
+                    + $"database '{_database}'",
+                    ex);
             }
         }
     }

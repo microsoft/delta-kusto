@@ -36,42 +36,55 @@ namespace DeltaKustoIntegration.TokenProvider
             }
             else
             {
-                //  Implementation of https://docs.microsoft.com/en-us/azure/data-explorer/kusto/api/rest/request#examples
-                using (var client = new HttpClient())
+                try
                 {
-                    var loginUrl = $"https://login.microsoftonline.com/{_tenantId}/oauth2/token";
-                    var response = await client.PostAsync(
-                        loginUrl,
-                        new FormUrlEncodedContent(new[] {
+                    return await RetrieveTokenAsync(clusterUri, ct);
+                }
+                catch (Exception ex)
+                {
+                    throw new DeltaException("Issue retrieving token", ex);
+                }
+            }
+        }
+
+        private async Task<string> RetrieveTokenAsync(Uri clusterUri, CancellationToken ct)
+        {
+            //  Implementation of https://docs.microsoft.com/en-us/azure/data-explorer/kusto/api/rest/request#examples
+            using (var client = new HttpClient())
+            {
+                var loginUrl = $"https://login.microsoftonline.com/{_tenantId}/oauth2/token";
+                var response = await client.PostAsync(
+                    loginUrl,
+                    new FormUrlEncodedContent(new[] {
                             new KeyValuePair<string?, string?>("client_id", _clientId),
                             new KeyValuePair<string?, string?>("client_secret", _secret),
                             new KeyValuePair<string?, string?>("resource", clusterUri.ToString()),
                             new KeyValuePair<string?, string?>("grant_type", "client_credentials")
-                        }),
-                        ct);
-                    var responseText = await response.Content.ReadAsStringAsync(ct);
+                    }),
+                    ct);
+                var responseText = await response.Content.ReadAsStringAsync(ct);
 
-                    if (response.StatusCode != HttpStatusCode.OK)
-                    {
-                        throw new DeltaException(
-                            $"Authentication failed for cluster URI '{clusterUri}' "
-                            + $"with status code '{response.StatusCode}' "
-                            + $"and payload {responseText}");
-                    }
-
-                    var tokenMap = JsonSerializer.Deserialize<IDictionary<string, string>>(responseText);
-
-                    if (tokenMap == null || !tokenMap.ContainsKey("access_token"))
-                    {
-                        throw new DeltaException($"Can deserialize token in authentication response:"
-                            + $"  '{responseText}'");
-                    }
-                    var accessToken = tokenMap["access_token"];
-
-                    _tokenCache[clusterUri] = accessToken;
-
-                    return accessToken;
+                if (response.StatusCode != HttpStatusCode.OK)
+                {
+                    throw new DeltaException(
+                        $"Authentication failed for cluster URI '{clusterUri}' "
+                        + $"with status code '{response.StatusCode}' "
+                        + $"and payload {responseText}");
                 }
+
+                var tokenMap = JsonSerializer.Deserialize<IDictionary<string, string>>(responseText);
+
+                if (tokenMap == null || !tokenMap.ContainsKey("access_token"))
+                {
+                    throw new DeltaException(
+                        $"Can't deserialize token in authentication response:"
+                        + $"  '{responseText}'");
+                }
+                var accessToken = tokenMap["access_token"];
+
+                _tokenCache[clusterUri] = accessToken;
+
+                return accessToken;
             }
         }
     }
