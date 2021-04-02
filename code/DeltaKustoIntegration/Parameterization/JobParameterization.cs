@@ -25,13 +25,33 @@ namespace DeltaKustoIntegration.Parameterization
                     "Parameter file doesn't contain mandatory 'action' parameter");
             }
 
-            Target.Validate();
-
+            try
+            {
+                Target.Validate();
+            }
+            catch (DeltaException ex)
+            {
+                throw new DeltaException("Issue with 'target' source", ex);
+            }
             if (Current != null)
             {
-                Current.Validate();
+                try
+                {
+                    Current.Validate();
+                }
+                catch (DeltaException ex)
+                {
+                    throw new DeltaException("Issue with 'current' source", ex);
+                }
             }
-            Action.Validate();
+            try
+            {
+                Action.Validate();
+            }
+            catch (DeltaException ex)
+            {
+                throw new DeltaException("Issue with 'action'", ex);
+            }
             if (Action.PushToCurrentCluster && Target?.Adx == null)
             {
                 throw new DeltaException(

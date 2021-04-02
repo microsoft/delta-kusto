@@ -24,17 +24,31 @@ namespace DeltaKustoIntegration.Parameterization
             }
             if (Adx != null)
             {
-                Adx.Validate();
+                try
+                {
+                    Adx.Validate();
+                }
+                catch (DeltaException ex)
+                {
+                    throw new DeltaException("Issue with 'adx'", ex);
+                }
             }
-            else if(!Scripts!.Any())
+            else if (!Scripts!.Any())
             {
                 throw new DeltaException("'scripts' can't be empty in a source");
             }
             else
             {
-                foreach (var f in Scripts!)
+                try
                 {
-                    f.Validate();
+                    foreach (var f in Scripts!)
+                    {
+                        f.Validate();
+                    }
+                }
+                catch (DeltaException ex)
+                {
+                    throw new DeltaException("Issue with 'scripts'", ex);
                 }
             }
         }
