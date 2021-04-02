@@ -176,7 +176,8 @@ namespace DeltaKustoFileIntegrationTest
                 throw new InvalidOperationException($"Main returned {returnedValue}");
             }
 
-            var orchestration = new DeltaOrchestration();
+            var tracer = new ConsoleTracer(false);
+            var orchestration = new DeltaOrchestration(tracer);
             var parameters = await orchestration.LoadParameterizationAsync(
                 parameterFilePath,
                 jsonOverrides);

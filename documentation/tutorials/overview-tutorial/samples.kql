@@ -1,0 +1,48 @@
+//  Here are a few functions taken from the help/Samples database
+
+.create-or-alter function with (docstring = "A list of interesting states",folder = "Helpers") InterestingStates {
+    dynamic(["WASHINGTON", "FLORIDA", "GEORGIA", "NEW YORK"])
+}
+
+.create-or-alter function with (folder = "CoronaVirus") JoinCorona {
+CoronaConfirmed
+| extend Confirmed= Count
+| join kind=fullouter 
+(CoronaDeaths | extend Deaths = Count) on ProvinceOrState, CountryOrRegion, Timestamp
+| join kind=fullouter 
+(CoronaRecovered | extend Recovered = Count) on ProvinceOrState, CountryOrRegion, Timestamp
+| project Timestamp, CountryOrRegion, ProvinceOrState, Confirmed, Deaths, Recovered, Lat, Long
+| where Confirmed >0 or Deaths > 0 or Recovered > 0
+}
+
+.create-or-alter function with (folder = "CoronaVirus") UpdateCovidCountries {
+let lastRefreshed = toscalar(CovidCountries | summarize max(LastRefreshed)); 
+let newRefreshed = toscalar(externaldata(d:string)["https://binganswer.blob.core.windows.net/cssegisanddata/Covid19.Country.json"]
+with(format=txt)
+| mv-expand todynamic(d)
+| evaluate bag_unpack(d)
+| summarize max(LastRefreshed));
+let RequiresUpdate = lastRefreshed < newRefreshed; 
+externaldata(d:string)["https://binganswer.blob.core.windows.net/cssegisanddata/Covid19.Country.json"]
+with(format=txt)
+| mv-expand todynamic(d)
+| evaluate bag_unpack(d)
+| project ReportDate, LastUpdated, LastRefreshed, Country, Province, Latitude, Longitude, Confirmed, ConfirmedChange, Recovered, RecoveredChange, Deaths, DeathsChange, Active
+| join kind=leftanti
+(
+    CovidCountries |summarize arg_max(LastRefreshed, *) by Country, Province
+) on Country, Province, Confirmed, Recovered, Deaths
+| where RequiresUpdate 
+}
+
+.create-or-alter function  Add(a:real,b:real) {a+b}
+
+
+.create-or-alter function with (docstring = "Direct table access example") DirectTableAccess(myTable:(*)) {
+    myTable | count
+}
+
+
+.create-or-alter function with (docstring = "Table access example") TableAccess(tableName:string) {
+    table(tableName) | count
+}

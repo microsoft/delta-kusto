@@ -22,18 +22,18 @@ namespace delta_kusto
 {
     internal class DeltaOrchestration
     {
-        private readonly bool _verbose;
+        private readonly ITracer _tracer;
         private readonly IFileGateway _fileGateway;
         private readonly IKustoManagementGatewayFactory _kustoManagementGatewayFactory;
         private readonly ITokenProviderFactory _tokenProviderFactory;
 
         public DeltaOrchestration(
-            bool verbose = false,
+            ITracer tracer,
             IFileGateway? fileGateway = null,
             IKustoManagementGatewayFactory? kustoManagementGatewayFactory = null,
             ITokenProviderFactory? tokenProviderFactory = null)
         {
-            _verbose = verbose;
+            _tracer = tracer;
             _fileGateway = fileGateway ?? new FileGateway();
             _kustoManagementGatewayFactory = kustoManagementGatewayFactory
                 ?? new KustoManagementGatewayFactory();

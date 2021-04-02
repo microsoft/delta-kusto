@@ -121,7 +121,8 @@ namespace delta_kusto
             }
 
             //  Dependency injection
-            var orchestration = new DeltaOrchestration(options.Verbose);
+            var tracer = new ConsoleTracer(options.Verbose);
+            var orchestration = new DeltaOrchestration(tracer);
             var success = await orchestration.ComputeDeltaAsync(
                 options.ParameterFilePath,
                 options.Overrides);
