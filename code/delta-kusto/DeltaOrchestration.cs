@@ -43,13 +43,12 @@ namespace delta_kusto
 
         public async Task<bool> ComputeDeltaAsync(
             string parameterFilePath,
-            string jsonOverrides,
-            CancellationToken ct)
+            string jsonOverrides)
         {
             Console.WriteLine($"Loading parameters at '{parameterFilePath}'");
 
             var parameters =
-                await LoadParameterizationAsync(parameterFilePath, jsonOverrides, ct);
+                await LoadParameterizationAsync(parameterFilePath, jsonOverrides);
 
             try
             {
@@ -66,8 +65,7 @@ namespace delta_kusto
                         parameters,
                         tokenProvider,
                         jobName,
-                        job,
-                        ct);
+                        job);
 
                     success = success && jobSuccess;
                 }
@@ -78,7 +76,7 @@ namespace delta_kusto
             {
                 if (parameters.SendErrorOptIn)
                 {
-                    var operationID = await ApiClient.RegisterExceptionAsync(ex, ct);
+                    var operationID = await ApiClient.RegisterExceptionAsync(ex);
 
                     Console.WriteLine($"Exception registered with Operation ID '{operationID}'");
                 }
@@ -90,31 +88,51 @@ namespace delta_kusto
             MainParameterization parameters,
             ITokenProvider? tokenProvider,
             string jobName,
-            JobParameterization job,
-            CancellationToken ct)
+            JobParameterization job)
         {
             Console.WriteLine($"Job {jobName}");
             try
             {
                 var currentDbProvider = CreateDatabaseProvider(job.Current, tokenProvider);
                 var targetDbProvider = CreateDatabaseProvider(job.Target, tokenProvider);
+                var tokenSourceApi = new CancellationTokenSource(TimeOuts.API);
+                var ctApi = tokenSourceApi.Token;
+
+                Console.WriteLine("Retrieving current...");
+                
+                var currentDbTask = currentDbProvider.RetrieveDatabaseAsync(ctApi);
+                
+                Console.WriteLine("Retrieving target...");
+                
+                var targetDbTask = targetDbProvider.RetrieveDatabaseAsync(ctApi);
+                var currentDb = await currentDbTask;
+                
+                Console.WriteLine("Current retrieved");
+                
+                var targetDb = await targetDbTask;
+
+                Console.WriteLine("Target retrieved");
+                Console.WriteLine("Compute Delta...");
+
+                var deltaCommands =
+                    new ActionCommandCollection(currentDb.ComputeDelta(targetDb));
+                var jobSuccess = ReportOnDeltaCommands(parameters, deltaCommands);
                 var actionProviders = CreateActionProvider(
                     job.Action!,
                     tokenProvider,
                     job.Current?.Adx);
-                var currentDb = await currentDbProvider.RetrieveDatabaseAsync(ct);
-                var targetDb = await targetDbProvider.RetrieveDatabaseAsync(ct);
-                var deltaCommands =
-                    new ActionCommandCollection(currentDb.ComputeDelta(targetDb));
-                var jobSuccess = ReportOnDeltaCommands(parameters, deltaCommands);
+                var tokenSourceAction = new CancellationTokenSource(TimeOuts.ACTION);
+                var ctAction = tokenSourceApi.Token;
 
+                Console.WriteLine("Processing delta commands...");
                 foreach (var actionProvider in actionProviders)
                 {
                     await actionProvider.ProcessDeltaCommandsAsync(
                         parameters.FailIfDrops,
                         deltaCommands,
-                        ct);
+                        ctAction);
                 }
+                Console.WriteLine("Delta processed");
 
                 return jobSuccess;
             }
@@ -145,16 +163,17 @@ namespace delta_kusto
                     success = false;
                 }
             }
-            Console.WriteLine("Processing delta commands");
 
             return success;
         }
 
         internal async Task<MainParameterization> LoadParameterizationAsync(
             string parameterFilePath,
-            string jsonOverrides,
-            CancellationToken ct)
+            string jsonOverrides)
         {
+            var tokenSource = new CancellationTokenSource(TimeOuts.FILE);
+            var ct = tokenSource.Token;
+
             try
             {
                 var deserializer = new DeserializerBuilder()

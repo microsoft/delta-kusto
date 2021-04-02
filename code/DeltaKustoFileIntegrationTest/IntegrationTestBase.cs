@@ -179,8 +179,7 @@ namespace DeltaKustoFileIntegrationTest
             var orchestration = new DeltaOrchestration();
             var parameters = await orchestration.LoadParameterizationAsync(
                 parameterFilePath,
-                jsonOverrides,
-                ct);
+                jsonOverrides);
 
             return parameters;
         }

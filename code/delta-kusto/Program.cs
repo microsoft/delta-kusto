@@ -12,11 +12,8 @@ namespace delta_kusto
 {
     internal class Program
     {
-        private readonly CancellationToken _ct;
-
-        public Program(CancellationToken ct)
+        public Program()
         {
-            _ct = ct;
         }
 
         public static string AssemblyVersion
@@ -40,15 +37,6 @@ namespace delta_kusto
             Console.WriteLine($"delta-kusto { AssemblyVersion }");
             Console.WriteLine();
 
-            var tokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(1));
-            var ct = tokenSource.Token;
-            var programContext = new Program(ct);
-
-            return await programContext.RunAsync(args);
-        }
-
-        internal async Task<int> RunAsync(string[] args)
-        {
             //  Use CommandLineParser NuGet package to parse command line
             //  See https://github.com/commandlineparser/commandline
             var parser = new Parser(with =>
@@ -82,7 +70,7 @@ namespace delta_kusto
             }
         }
 
-        private void DisplayGenericException(Exception ex, string tab = "")
+        private static void DisplayGenericException(Exception ex, string tab = "")
         {
             Console.Error.WriteLine($"{tab}Exception encountered:  {ex.GetType().FullName} ; {ex.Message}");
             if (ex.InnerException != null)
@@ -91,7 +79,7 @@ namespace delta_kusto
             }
         }
 
-        private void DisplayDeltaException(DeltaException ex, string tab = "")
+        private static void DisplayDeltaException(DeltaException ex, string tab = "")
         {
             Console.Error.WriteLine($"{tab}Error:  {ex.Message}");
             if (!string.IsNullOrWhiteSpace(ex.Script))
@@ -111,11 +99,13 @@ namespace delta_kusto
             }
         }
 
-        private async Task RunOptionsAsync(CommandLineOptions options)
+        private static async Task RunOptionsAsync(CommandLineOptions options)
         {
             Console.WriteLine("Activating Client...");
 
-            var availableClientVersions = await ApiClient.ActivateAsync(_ct);
+            var tokenSource = new CancellationTokenSource(TimeOuts.API);
+            var ct = tokenSource.Token;
+            var availableClientVersions = await ApiClient.ActivateAsync();
 
             Console.WriteLine("Client Activated");
             if (availableClientVersions != null && availableClientVersions.Any())
@@ -134,8 +124,7 @@ namespace delta_kusto
             var orchestration = new DeltaOrchestration(options.Verbose);
             var success = await orchestration.ComputeDeltaAsync(
                 options.ParameterFilePath,
-                options.Overrides,
-                _ct);
+                options.Overrides);
 
             if (!success)
             {
@@ -143,7 +132,7 @@ namespace delta_kusto
             }
         }
 
-        private void HandleParseError(
+        private static void HandleParseError(
             ParserResult<CommandLineOptions> result,
             IEnumerable<Error> errors)
         {

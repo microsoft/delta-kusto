@@ -92,10 +92,13 @@ namespace delta_kusto
         private static readonly string ROOT_URL = ComputeRootUrl();
         private static readonly bool _doApiCalls = ComputeDoApiCalls();
 
-        public static async Task<string[]?> ActivateAsync(CancellationToken ct)
+        public static async Task<string[]?> ActivateAsync()
         {
             if (_doApiCalls)
             {
+                var tokenSource = new CancellationTokenSource(TimeOuts.API);
+                var ct = tokenSource.Token;
+
                 try
                 {
                     var output = await PostAsync<ActivationOutput>(
@@ -116,10 +119,13 @@ namespace delta_kusto
             return null;
         }
 
-        public static async Task<Guid?> RegisterExceptionAsync(Exception ex, CancellationToken ct)
+        public static async Task<Guid?> RegisterExceptionAsync(Exception ex)
         {
             if (_doApiCalls)
             {
+                var tokenSource = new CancellationTokenSource(TimeOuts.API);
+                var ct = tokenSource.Token;
+
                 try
                 {
                     var output = await PostAsync<ErrorOutput>("/error", new ErrorInput(ex), ct);
