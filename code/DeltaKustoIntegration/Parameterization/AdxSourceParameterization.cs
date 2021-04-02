@@ -12,8 +12,8 @@ namespace DeltaKustoIntegration.Parameterization
         internal void Validate()
         {
             Uri? uri;
-            
-            if (ClusterUri == null)
+
+            if (string.IsNullOrWhiteSpace(ClusterUri))
             {
                 throw new DeltaException("'clusterUri' must be populated in a ADX source");
             }
@@ -30,13 +30,9 @@ namespace DeltaKustoIntegration.Parameterization
                 throw new DeltaException($"'clusterUri' should be domain name only but isn't:  '{ClusterUri}'");
             }
 
-            if (Database == null)
-            {
-                throw new DeltaException("'database' must be populated in a ADX source");
-            }
             if (string.IsNullOrWhiteSpace(Database))
             {
-                throw new DeltaException($"'database' isn't valid:  '{Database}'");
+                throw new DeltaException("'database' must be populated in a ADX source");
             }
         }
     }

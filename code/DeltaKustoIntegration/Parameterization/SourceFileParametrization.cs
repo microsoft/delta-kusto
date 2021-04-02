@@ -14,12 +14,12 @@ namespace DeltaKustoIntegration.Parameterization
 
         internal void Validate()
         {
-            if (FilePath != null && FolderPath != null)
+            if (!string.IsNullOrWhiteSpace(FilePath) && !string.IsNullOrWhiteSpace(FolderPath))
             {
                 throw new DeltaException(
                     "Both 'filePath' and 'folderPath' can't both be populated");
             }
-            if (FilePath == null && FolderPath == null)
+            if (string.IsNullOrWhiteSpace(FilePath) && string.IsNullOrWhiteSpace(FolderPath))
             {
                 throw new DeltaException(
                     "Either 'filePath' and 'folderPath' must be populated");
@@ -29,20 +29,10 @@ namespace DeltaKustoIntegration.Parameterization
                 throw new DeltaException(
                     "If 'extensions' is specified, it must contain at least one extension");
             }
-            if (FilePath != null && Extensions != null)
+            if (!string.IsNullOrWhiteSpace(FilePath) && Extensions != null)
             {
                 throw new DeltaException(
                     "'extensions' can't be specified in conjonction with 'filePath'");
-            }
-            if (FilePath != null && string.IsNullOrWhiteSpace(FilePath))
-            {
-                throw new DeltaException(
-                    "If 'filePath' is specified, it must contain a valid path");
-            }
-            if (FolderPath != null && string.IsNullOrWhiteSpace(FolderPath))
-            {
-                throw new DeltaException(
-                    "If 'folderPath' is specified, it must contain a valid path");
             }
         }
     }
