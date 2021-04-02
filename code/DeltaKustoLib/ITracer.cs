@@ -1,0 +1,7 @@
+﻿namespace DeltaKustoLib
+{
+    public interface ITracer
+    {
+        void WriteLine(bool isVerbose, string text);
+    }
+}
