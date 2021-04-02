@@ -5,6 +5,7 @@ using DeltaKustoIntegration.Kusto;
 using DeltaKustoIntegration.Parameterization;
 using DeltaKustoIntegration.TokenProvider;
 using DeltaKustoLib;
+using DeltaKustoLib.KustoModel;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -96,27 +97,18 @@ namespace delta_kusto
                 Console.Write("Current DB Provider...  ");
 
                 var currentDbProvider = CreateDatabaseProvider(job.Current, tokenProvider);
-                
+
                 Console.Write("Target DB Provider...  ");
-                
+
                 var targetDbProvider = CreateDatabaseProvider(job.Target, tokenProvider);
                 var tokenSourceRetrieveDb = new CancellationTokenSource(TimeOuts.RETRIEVE_DB);
                 var ctRetrieveDb = tokenSourceRetrieveDb.Token;
 
-                Console.WriteLine("Retrieving current...");
-
-                var currentDbTask = currentDbProvider.RetrieveDatabaseAsync(ctRetrieveDb);
-
-                Console.WriteLine("Retrieving target...");
-
-                var targetDbTask = targetDbProvider.RetrieveDatabaseAsync(ctRetrieveDb);
+                var currentDbTask = RetrieveDatabaseAsync(currentDbProvider, "current", ctRetrieveDb);
+                var targetDbTask = RetrieveDatabaseAsync(targetDbProvider, "target", ctRetrieveDb);
                 var currentDb = await currentDbTask;
-
-                Console.WriteLine("Current retrieved");
-
                 var targetDb = await targetDbTask;
 
-                Console.WriteLine("Target retrieved");
                 Console.WriteLine("Compute Delta...");
 
                 var deltaCommands =
@@ -146,6 +138,20 @@ namespace delta_kusto
             {
                 throw new DeltaException($"Issue in running job '{jobName}'", ex);
             }
+        }
+
+        private static async Task<DatabaseModel> RetrieveDatabaseAsync(
+            IDatabaseProvider currentDbProvider,
+            string db,
+            CancellationToken ct)
+        {
+            Console.WriteLine($"Retrieving {db}...");
+
+            var model = await currentDbProvider.RetrieveDatabaseAsync(ct);
+
+            Console.WriteLine($"{db} retrieved");
+
+            return model;
         }
 
         private static bool ReportOnDeltaCommands(
