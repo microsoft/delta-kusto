@@ -106,6 +106,9 @@ namespace delta_kusto
 
                 var currentDbTask = RetrieveDatabaseAsync(currentDbProvider, "current", ctRetrieveDb);
                 var targetDbTask = RetrieveDatabaseAsync(targetDbProvider, "target", ctRetrieveDb);
+
+                await Task.WhenAll(currentDbTask, targetDbTask);
+
                 var currentDb = await currentDbTask;
                 var targetDb = await targetDbTask;
 
