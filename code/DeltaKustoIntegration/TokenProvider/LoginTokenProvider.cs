@@ -56,10 +56,10 @@ namespace DeltaKustoIntegration.TokenProvider
                 var response = await client.PostAsync(
                     loginUrl,
                     new FormUrlEncodedContent(new[] {
-                            new KeyValuePair<string?, string?>("client_id", _clientId),
-                            new KeyValuePair<string?, string?>("client_secret", _secret),
-                            new KeyValuePair<string?, string?>("resource", clusterUri.ToString()),
-                            new KeyValuePair<string?, string?>("grant_type", "client_credentials")
+                        new KeyValuePair<string?, string?>("client_id", _clientId),
+                        new KeyValuePair<string?, string?>("client_secret", _secret),
+                        new KeyValuePair<string?, string?>("resource", clusterUri.ToString()),
+                        new KeyValuePair<string?, string?>("grant_type", "client_credentials")
                     }),
                     ct);
                 var responseText = await response.Content.ReadAsStringAsync(ct);
