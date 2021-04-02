@@ -41,11 +41,11 @@ jobs:
     - name: Zip Linux executable
       run:  |
         cd linux-assets/bin
-        tar -czvf final-assets/delta-kusto-linux.tar.gz *
+        tar -czvf ../../final-assets/delta-kusto-linux.tar.gz *
     - name: Zip Windows executable
       run:  |
         cd windows-assets/bin
-        zip final-assets/delta-kusto-windows.zip *
+        zip ../../final-assets/delta-kusto-windows.zip *
     # See https://cli.github.com/manual/gh_auth
     - name: Authentication gh CLI
       run:  |
