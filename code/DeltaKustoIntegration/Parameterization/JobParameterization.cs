@@ -52,10 +52,10 @@ namespace DeltaKustoIntegration.Parameterization
             {
                 throw new DeltaException("Issue with 'action'", ex);
             }
-            if (Action.PushToCurrentCluster && Target?.Adx == null)
+            if (Action.PushToCurrentCluster && Current?.Adx == null)
             {
                 throw new DeltaException(
-                    "'action.useTargetCluster' can only be used "
+                    "'action.pushToCurrentCluster' can only be used "
                     + "in conjonction with 'target.cluster'");
             }
         }
