@@ -36,6 +36,10 @@ namespace delta_kusto
 
         internal static async Task<int> Main(string[] args)
         {
+            Console.WriteLine();
+            Console.WriteLine($"delta-kusto { AssemblyVersion }");
+            Console.WriteLine();
+
             var tokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(1));
             var ct = tokenSource.Token;
             var programContext = new Program(ct);
@@ -109,10 +113,7 @@ namespace delta_kusto
 
         private async Task RunOptionsAsync(CommandLineOptions options)
         {
-            string version = AssemblyVersion;
-
-            Console.WriteLine($"delta-kusto { version }");
-            Console.WriteLine();
+            Console.WriteLine("Activating Client...");
 
             var availableClientVersions = await ApiClient.ActivateAsync(_ct);
 
