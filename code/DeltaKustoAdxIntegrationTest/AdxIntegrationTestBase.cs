@@ -4,6 +4,7 @@ using DeltaKustoIntegration.Database;
 using DeltaKustoIntegration.Kusto;
 using DeltaKustoIntegration.Parameterization;
 using DeltaKustoIntegration.TokenProvider;
+using DeltaKustoLib;
 using DeltaKustoLib.CommandModel;
 using System;
 using System.Collections.Generic;
@@ -236,7 +237,9 @@ namespace DeltaKustoAdxIntegrationTest
             CancellationToken ct)
         {
             var gateway = CreateKustoManagementGateway(isCurrent);
-            var dbProvider = (IDatabaseProvider)new KustoDatabaseProvider(gateway);
+            var dbProvider = (IDatabaseProvider)new KustoDatabaseProvider(
+                new ConsoleTracer(false),
+                gateway);
             var emptyProvider = (IDatabaseProvider)new EmptyDatabaseProvider();
             var finalDb = await dbProvider.RetrieveDatabaseAsync(ct);
             var emptyDb = await emptyProvider.RetrieveDatabaseAsync(ct);
@@ -299,6 +302,7 @@ namespace DeltaKustoAdxIntegrationTest
             var gatewayFactory =
                 new KustoManagementGatewayFactory() as IKustoManagementGatewayFactory;
             var gateway = gatewayFactory.CreateGateway(
+                new ConsoleTracer(false),
                 _clusterUri,
                 isCurrent ? _currentDb : _targetDb,
                 CreateTokenProvider());
@@ -327,7 +331,9 @@ namespace DeltaKustoAdxIntegrationTest
         {
             var emptyDbProvider = (IDatabaseProvider)new EmptyDatabaseProvider();
             var kustoGateway = CreateKustoManagementGateway(isCurrent);
-            var dbProvider = (IDatabaseProvider)new KustoDatabaseProvider(kustoGateway);
+            var dbProvider = (IDatabaseProvider)new KustoDatabaseProvider(
+                new ConsoleTracer(false),
+                kustoGateway);
             var emptyDb = await emptyDbProvider.RetrieveDatabaseAsync(ct);
             var db = await dbProvider.RetrieveDatabaseAsync(ct);
             var currentDeltaCommands = db.ComputeDelta(emptyDb);

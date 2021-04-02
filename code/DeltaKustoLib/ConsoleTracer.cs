@@ -19,6 +19,10 @@ namespace DeltaKustoLib
         {
             if (!isVerbose || _doTraceVerbose)
             {
+                if(isVerbose)
+                {
+                    Console.Write("[Verbose]  ");
+                }
                 Console.WriteLine(text);
             }
         }

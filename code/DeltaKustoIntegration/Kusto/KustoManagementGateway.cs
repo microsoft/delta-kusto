@@ -300,12 +300,18 @@ namespace DeltaKustoIntegration.Kusto
         }
         #endregion
 
+        private readonly ITracer _tracer;
         private readonly Uri _clusterUri;
         private readonly string _database;
         private readonly ITokenProvider _tokenProvider;
 
-        public KustoManagementGateway(Uri clusterUri, string database, ITokenProvider tokenProvider)
+        public KustoManagementGateway(
+            ITracer tracer,
+            Uri clusterUri,
+            string database,
+            ITokenProvider tokenProvider)
         {
+            _tracer = tracer;
             _clusterUri = clusterUri;
             _database = database;
             _tokenProvider = tokenProvider;
@@ -314,7 +320,12 @@ namespace DeltaKustoIntegration.Kusto
         async Task<DatabaseSchema> IKustoManagementGateway.GetDatabaseSchemaAsync(
             CancellationToken ct)
         {
+            _tracer.WriteLine(true, ".show db command start");
+
             var output = await ExecuteCommandAsync(".show database schema as json", ct);
+            
+            _tracer.WriteLine(true, ".show db command end");
+            
             var schemaText = output.GetSingleElement<string>();
             var rootSchema = RootSchema.FromJson(schemaText);
 
@@ -333,11 +344,16 @@ namespace DeltaKustoIntegration.Kusto
         {
             if (commands.Any())
             {
+                _tracer.WriteLine(true, ".execute database script commands start");
+
                 var commandScripts = commands.Select(c => c.ToScript());
                 var fullScript = ".execute database script <|"
                     + Environment.NewLine
                     + string.Join(Environment.NewLine + Environment.NewLine, commandScripts);
                 var output = await ExecuteCommandAsync(fullScript, ct);
+                
+                _tracer.WriteLine(true, ".execute database script commands end");
+                
                 var content = output.Tables![0].ProjectRows<string, string, string, Guid>(
                     "Result",
                     "Reason",

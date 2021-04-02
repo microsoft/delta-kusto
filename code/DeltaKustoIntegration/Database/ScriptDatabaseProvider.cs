@@ -13,13 +13,16 @@ namespace DeltaKustoIntegration.Database
 {
     public class ScriptDatabaseProvider : IDatabaseProvider
     {
+        private readonly ITracer _tracer;
         private readonly IFileGateway _fileGateway;
         private readonly IImmutableList<SourceFileParametrization> _scripts;
 
         public ScriptDatabaseProvider(
+            ITracer tracer,
             IFileGateway fileGateway,
             SourceFileParametrization[] scripts)
         {
+            _tracer = tracer;
             _fileGateway = fileGateway;
             _scripts = scripts.ToImmutableArray();
         }
@@ -27,10 +30,14 @@ namespace DeltaKustoIntegration.Database
         async Task<DatabaseModel> IDatabaseProvider.RetrieveDatabaseAsync(
             CancellationToken ct)
         {
+            _tracer.WriteLine(true, "Retrieve scripts DB start");
+
             var scriptTasks = _scripts
                 .Select(s => LoadScriptsAsync(s, ct));
 
             await Task.WhenAll(scriptTasks);
+
+            _tracer.WriteLine(true, "Retrieve scripts DB end");
 
             var commands = scriptTasks
                 .SelectMany(t => t.Result)

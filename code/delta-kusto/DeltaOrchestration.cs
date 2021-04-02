@@ -259,6 +259,7 @@ namespace delta_kusto
                 }
 
                 var kustoManagementGateway = _kustoManagementGatewayFactory.CreateGateway(
+                    _tracer,
                     new Uri(database!.ClusterUri!),
                     database!.Database!,
                     tokenProvider);
@@ -298,17 +299,18 @@ namespace delta_kusto
                     }
 
                     var kustoManagementGateway = _kustoManagementGatewayFactory.CreateGateway(
+                        _tracer,
                         new Uri(source.Adx.ClusterUri!),
                         source.Adx.Database!,
                         tokenProvider);
 
-                    return new KustoDatabaseProvider(kustoManagementGateway);
+                    return new KustoDatabaseProvider(_tracer, kustoManagementGateway);
                 }
                 else if (source.Scripts != null)
                 {
                     _tracer.WriteLine(true, "Database scripts");
 
-                    return new ScriptDatabaseProvider(_fileGateway, source.Scripts);
+                    return new ScriptDatabaseProvider(_tracer, _fileGateway, source.Scripts);
                 }
                 else
                 {
