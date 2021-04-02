@@ -8,6 +8,8 @@ namespace delta_kusto
         
         public static TimeSpan FILE = TimeSpan.FromSeconds(.2);
 
+        public static TimeSpan RETRIEVE_DB = TimeSpan.FromSeconds(2);
+        
         public static TimeSpan ACTION = TimeSpan.FromSeconds(10);
     }
 }

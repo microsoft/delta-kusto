@@ -93,22 +93,27 @@ namespace delta_kusto
             Console.WriteLine($"Job {jobName}");
             try
             {
+                Console.Write("Current DB Provider...  ");
+
                 var currentDbProvider = CreateDatabaseProvider(job.Current, tokenProvider);
+                
+                Console.Write("Target DB Provider...  ");
+                
                 var targetDbProvider = CreateDatabaseProvider(job.Target, tokenProvider);
-                var tokenSourceApi = new CancellationTokenSource(TimeOuts.API);
-                var ctApi = tokenSourceApi.Token;
+                var tokenSourceRetrieveDb = new CancellationTokenSource(TimeOuts.RETRIEVE_DB);
+                var ctRetrieveDb = tokenSourceRetrieveDb.Token;
 
                 Console.WriteLine("Retrieving current...");
-                
-                var currentDbTask = currentDbProvider.RetrieveDatabaseAsync(ctApi);
-                
+
+                var currentDbTask = currentDbProvider.RetrieveDatabaseAsync(ctRetrieveDb);
+
                 Console.WriteLine("Retrieving target...");
-                
-                var targetDbTask = targetDbProvider.RetrieveDatabaseAsync(ctApi);
+
+                var targetDbTask = targetDbProvider.RetrieveDatabaseAsync(ctRetrieveDb);
                 var currentDb = await currentDbTask;
-                
+
                 Console.WriteLine("Current retrieved");
-                
+
                 var targetDb = await targetDbTask;
 
                 Console.WriteLine("Target retrieved");
@@ -122,7 +127,7 @@ namespace delta_kusto
                     tokenProvider,
                     job.Current?.Adx);
                 var tokenSourceAction = new CancellationTokenSource(TimeOuts.ACTION);
-                var ctAction = tokenSourceApi.Token;
+                var ctAction = tokenSourceRetrieveDb.Token;
 
                 Console.WriteLine("Processing delta commands...");
                 foreach (var actionProvider in actionProviders)
@@ -132,7 +137,8 @@ namespace delta_kusto
                         deltaCommands,
                         ctAction);
                 }
-                Console.WriteLine("Delta processed");
+                Console.WriteLine("Delta processed / Job completed");
+                Console.WriteLine();
 
                 return jobSuccess;
             }
@@ -249,12 +255,18 @@ namespace delta_kusto
         {
             if (source == null)
             {
+                Console.WriteLine("Empty database");
+
                 return new EmptyDatabaseProvider();
             }
             else
             {
                 if (source.Adx != null)
                 {
+                    Console.WriteLine(
+                        $"ADX Database:  cluster '{source.Adx.ClusterUri}', "
+                        + $"database '{source.Adx.Database}'");
+
                     if (tokenProvider == null)
                     {
                         throw new InvalidOperationException($"{tokenProvider} can't be null at this point");
@@ -269,6 +281,8 @@ namespace delta_kusto
                 }
                 else if (source.Scripts != null)
                 {
+                    Console.WriteLine("Database scripts");
+
                     return new ScriptDatabaseProvider(_fileGateway, source.Scripts);
                 }
                 else
