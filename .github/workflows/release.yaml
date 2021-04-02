@@ -39,9 +39,13 @@ jobs:
     - name: Mkdir final assets
       run:  mkdir final-assets
     - name: Zip Linux executable
-      run:  tar -czvf final-assets/delta-kusto-linux.tar.gz linux-assets/bin/*
+      run:  |
+        cd linux-assets/bin
+        tar -czvf final-assets/delta-kusto-linux.tar.gz *
     - name: Zip Windows executable
-      run:  zip final-assets/delta-kusto-windows.zip windows-assets/bin/*
+      run:  |
+        cd windows-assets/bin
+        zip final-assets/delta-kusto-windows.zip *
     # See https://cli.github.com/manual/gh_auth
     - name: Authentication gh CLI
       run:  |
@@ -80,6 +84,7 @@ jobs:
       run:  |
         mkdir $assetsName
         mkdir $assetsName/bin
+        mkdir bin
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-restore
     - name: Install dependencies
       shell:  bash
@@ -97,7 +102,10 @@ jobs:
         dotnet publish code/delta-kusto -c release -r $dotnetOs \
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
           -p:PublishTrimmed=true -p:PublishReadyToRun=true \
-          -o $assetsName/bin
+          -o bin
+    - name: Copy executable to assets
+      shell:  bash
+      run:  cp bin/$execName $assetsName/bin/$execName
     # Output variables can't be shared accross jobs, so we push it to artefacts
     - name: Push full version to file
       shell:  bash
@@ -134,6 +142,7 @@ jobs:
       run:  |
         mkdir $assetsName
         mkdir $assetsName/bin
+        mkdir bin
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-restore
     - name: Install dependencies
       shell:  bash
@@ -151,7 +160,10 @@ jobs:
         dotnet publish code/delta-kusto -c release -r $dotnetOs \
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
           -p:PublishTrimmed=true -p:PublishReadyToRun=true \
-          -o $assetsName/bin
+          -o bin
+    - name: Copy executable to assets
+      shell:  bash
+      run:  cp bin/$execName $assetsName/bin/$execName
     # Output variables can't be shared accross jobs, so we push it to artefacts
     - name: Push full version to file
       shell:  bash
