@@ -46,6 +46,9 @@ jobs:
       run:  |
         cd windows-assets/bin
         zip ../../final-assets/delta-kusto-windows.zip *
+    # Validate final assets
+    - name: Final assets content
+      run:  ls -l final-assets
     # See https://cli.github.com/manual/gh_auth
     - name: Authentication gh CLI
       run:  |
@@ -56,8 +59,7 @@ jobs:
         # Retrieve content of full-version from artefact
         fullVersion=$(cat linux-assets/full-version.txt)
         # Create the release
-        gh release create -d $fullVersion \
-          final-assets/*
+        gh release create -d $fullVersion final-assets/*
 
   # Linux job, builds the Linux asset
   linux:
