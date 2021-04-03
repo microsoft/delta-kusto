@@ -409,11 +409,12 @@ namespace DeltaKustoIntegration.Kusto
                     var response = await client.PostAsync(
                         managementUrl,
                         new StringContent(bodyText, null, "application/json"),
-                        ct);
+                        ct).ConfigureAwait(false);
 
                     _tracer.WriteLine(true, "KustoManagementGateway.ExecuteCommandAsync retrieve payload");
 
-                    var responseText = await response.Content.ReadAsStringAsync(ct);
+                    var responseText =
+                        await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
 
                     if (response.StatusCode != HttpStatusCode.OK)
                     {

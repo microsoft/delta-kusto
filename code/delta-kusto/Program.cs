@@ -12,10 +12,6 @@ namespace delta_kusto
 {
     internal class Program
     {
-        public Program()
-        {
-        }
-
         public static string AssemblyVersion
         {
             get

@@ -171,9 +171,9 @@ namespace delta_kusto
                     var response = await client.PostAsync(
                         url,
                         new StringContent(bodyText, null, "application/json"),
-                        ct);
+                        ct).ConfigureAwait(false);
                     var responseText =
-                        await response.Content.ReadAsStringAsync(ct);
+                        await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
 
                     if (response.StatusCode == HttpStatusCode.OK)
                     {

@@ -71,11 +71,12 @@ namespace DeltaKustoIntegration.TokenProvider
                         new KeyValuePair<string?, string?>("resource", clusterUri.ToString()),
                         new KeyValuePair<string?, string?>("grant_type", "client_credentials")
                     }),
-                    ct);
+                    ct).ConfigureAwait(false);
 
                 _tracer.WriteLine(true, "LoginTokenProvider.RetrieveTokenAsync retrieve payload");
                 
-                var responseText = await response.Content.ReadAsStringAsync(ct);
+                var responseText =
+                    await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
 
                 if (response.StatusCode != HttpStatusCode.OK)
                 {
