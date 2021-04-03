@@ -314,6 +314,7 @@ namespace DeltaKustoAdxIntegrationTest
         {
             var tokenProviderFactory = new TokenProviderFactory() as ITokenProviderFactory;
             var tokenProvider = tokenProviderFactory.CreateProvider(
+                new ConsoleTracer(false),
                 new TokenProviderParameterization
                 {
                     Login = new ServicePrincipalLoginParameterization

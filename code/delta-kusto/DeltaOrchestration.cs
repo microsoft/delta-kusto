@@ -66,7 +66,7 @@ namespace delta_kusto
 
             try
             {
-                var tokenProvider = _tokenProviderFactory.CreateProvider(parameters.TokenProvider);
+                var tokenProvider = _tokenProviderFactory.CreateProvider(_tracer, parameters.TokenProvider);
                 var orderedJobs = parameters.Jobs.OrderBy(p => p.Value.Priority);
                 var success = true;
 

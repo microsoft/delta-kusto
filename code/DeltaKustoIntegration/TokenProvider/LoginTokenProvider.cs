@@ -13,14 +13,20 @@ namespace DeltaKustoIntegration.TokenProvider
 {
     internal class LoginTokenProvider : ITokenProvider
     {
+        private readonly ITracer _tracer;
         private readonly string _tenantId;
         private readonly string _clientId;
         private readonly string _secret;
 
         private ConcurrentDictionary<Uri, string> _tokenCache = new ConcurrentDictionary<Uri, string>();
 
-        public LoginTokenProvider(string tenantId, string clientId, string secret)
+        public LoginTokenProvider(
+            ITracer tracer,
+            string tenantId,
+            string clientId,
+            string secret)
         {
+            _tracer = tracer;
             _tenantId = tenantId;
             _clientId = clientId;
             _secret = secret;
@@ -32,6 +38,8 @@ namespace DeltaKustoIntegration.TokenProvider
         {
             if (_tokenCache.ContainsKey(clusterUri))
             {
+                _tracer.WriteLine(true, "Token was cached");
+
                 return _tokenCache[clusterUri];
             }
             else
@@ -49,6 +57,8 @@ namespace DeltaKustoIntegration.TokenProvider
 
         private async Task<string> RetrieveTokenAsync(Uri clusterUri, CancellationToken ct)
         {
+            _tracer.WriteLine(true, "LoginTokenProvider.RetrieveTokenAsync start");
+
             //  Implementation of https://docs.microsoft.com/en-us/azure/data-explorer/kusto/api/rest/request#examples
             using (var client = new HttpClient())
             {
@@ -62,6 +72,9 @@ namespace DeltaKustoIntegration.TokenProvider
                         new KeyValuePair<string?, string?>("grant_type", "client_credentials")
                     }),
                     ct);
+
+                _tracer.WriteLine(true, "LoginTokenProvider.RetrieveTokenAsync retrieve payload");
+                
                 var responseText = await response.Content.ReadAsStringAsync(ct);
 
                 if (response.StatusCode != HttpStatusCode.OK)
@@ -83,6 +96,8 @@ namespace DeltaKustoIntegration.TokenProvider
                 var accessToken = tokenMap["access_token"];
 
                 _tokenCache[clusterUri] = accessToken;
+
+                _tracer.WriteLine(true, "LoginTokenProvider.RetrieveTokenAsync end");
 
                 return accessToken;
             }
