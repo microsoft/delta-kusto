@@ -42,7 +42,7 @@ namespace delta_kusto
 
         public async Task<bool> ComputeDeltaAsync(
             string parameterFilePath,
-            string jsonOverrides)
+            IEnumerable<string> pathOverrides)
         {
             _tracer.WriteLine(false, "Activating Client...");
 
@@ -62,7 +62,7 @@ namespace delta_kusto
             _tracer.WriteLine(false, $"Loading parameters at '{parameterFilePath}'");
 
             var parameters =
-                await LoadParameterizationAsync(parameterFilePath, jsonOverrides);
+                await LoadParameterizationAsync(parameterFilePath, pathOverrides);
 
             try
             {
@@ -199,7 +199,7 @@ namespace delta_kusto
 
         internal async Task<MainParameterization> LoadParameterizationAsync(
             string parameterFilePath,
-            string jsonOverrides)
+            IEnumerable<string> pathOverrides)
         {
             var tokenSource = new CancellationTokenSource(TimeOuts.FILE);
             var ct = tokenSource.Token;
@@ -217,7 +217,7 @@ namespace delta_kusto
                     throw new DeltaException($"File '{parameterFilePath}' doesn't contain valid parameters");
                 }
 
-                ParameterOverrideHelper.InplaceOverride(parameters, jsonOverrides);
+                ParameterOverrideHelper.InplaceOverride(parameters, pathOverrides);
 
                 parameters.Validate();
 

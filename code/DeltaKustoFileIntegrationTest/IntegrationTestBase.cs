@@ -159,17 +159,16 @@ namespace DeltaKustoFileIntegrationTest
         protected async virtual Task<MainParameterization> RunParametersAsync(
             string parameterFilePath,
             CancellationToken ct,
-            IEnumerable<(string path, object value)>? overrides = null)
+            IEnumerable<(string path, string value)>? overrides = null)
         {
-            var jsonOverrides = overrides != null && overrides.Any()
-                ? JsonSerializer.Serialize(overrides.Select(o => new { o.path, o.value }))
-                : "";
-            var returnedValue = await RunMainAsync(
-                ct,
-                "-p",
-                parameterFilePath,
-                "-o",
-                jsonOverrides);
+            var pathOverrides = overrides != null
+                ? overrides.Select(p => $"{p.path}={p.value}")
+                : new string[0];
+            var baseParameters = new string[] { "-p", parameterFilePath };
+            var cliParameters = overrides != null
+                ? baseParameters.Append("-o").Concat(pathOverrides)
+                : baseParameters;
+            var returnedValue = await RunMainAsync(ct, cliParameters.ToArray());
 
             if (returnedValue != 0)
             {
@@ -180,7 +179,7 @@ namespace DeltaKustoFileIntegrationTest
             var orchestration = new DeltaOrchestration(tracer);
             var parameters = await orchestration.LoadParameterizationAsync(
                 parameterFilePath,
-                jsonOverrides);
+                pathOverrides);
 
             return parameters;
         }

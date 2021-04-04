@@ -38,7 +38,7 @@ namespace DeltaKustoAdxIntegrationTest.Functions
             await PrepareDbAsync(toFile, false, ct);
 
             var overrides = TargetDbOverrides
-                .Append(("failIfDrops", true));
+                .Append(("failIfDrops", "true"));
 
             try
             {

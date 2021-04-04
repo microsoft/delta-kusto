@@ -70,19 +70,19 @@ namespace DeltaKustoAdxIntegrationTest
             _tenantId = tenantId;
             _servicePrincipalId = servicePrincipalId;
             _servicePrincipalSecret = servicePrincipalSecret;
-            CurrentDbOverrides = ImmutableArray<(string path, object value)>
+            CurrentDbOverrides = ImmutableArray<(string path, string value)>
                 .Empty
-                .Add(("jobs.main.current.adx.clusterUri", _clusterUri))
+                .Add(("jobs.main.current.adx.clusterUri", _clusterUri.ToString()))
                 .Add(("jobs.main.current.adx.database", _currentDb));
-            TargetDbOverrides = ImmutableArray<(string path, object value)>
+            TargetDbOverrides = ImmutableArray<(string path, string value)>
                 .Empty
-                .Add(("jobs.main.target.adx.clusterUri", (object)_clusterUri))
+                .Add(("jobs.main.target.adx.clusterUri", _clusterUri.ToString()))
                 .Add(("jobs.main.target.adx.database", _targetDb));
         }
 
-        protected IEnumerable<(string path, object value)> CurrentDbOverrides { get; }
+        protected IEnumerable<(string path, string value)> CurrentDbOverrides { get; }
 
-        protected IEnumerable<(string path, object value)> TargetDbOverrides { get; }
+        protected IEnumerable<(string path, string value)> TargetDbOverrides { get; }
 
         protected async Task TestAdxToFile(string statesFolderPath, string outputFolder)
         {
@@ -102,7 +102,7 @@ namespace DeltaKustoAdxIntegrationTest
                         + Path.GetFileNameWithoutExtension(toFile)
                         + ".kql";
                     var overrides = CurrentDbOverrides
-                        .Append(("jobs.main.target.scripts", new[] { new { filePath = toFile } }))
+                        .Append(("jobs.main.target.scripts[0].filePath", toFile))
                         .Append(("jobs.main.action.filePath", outputPath));
                     var parameters = await RunParametersAsync(
                         "adx-to-file-params.json",
@@ -140,7 +140,7 @@ namespace DeltaKustoAdxIntegrationTest
                         + Path.GetFileNameWithoutExtension(toFile)
                         + ".kql";
                     var overrides = TargetDbOverrides
-                        .Append(("jobs.main.current.scripts", new[] { new { filePath = fromFile } }))
+                        .Append(("jobs.main.current.scripts[0].filePath", fromFile))
                         .Append(("jobs.main.action.filePath", outputPath));
                     var parameters = await RunParametersAsync(
                         "file-to-adx-params.json",
@@ -252,11 +252,11 @@ namespace DeltaKustoAdxIntegrationTest
         protected override Task<MainParameterization> RunParametersAsync(
             string parameterFilePath,
             CancellationToken ct,
-            IEnumerable<(string path, object value)>? overrides = null)
+            IEnumerable<(string path, string value)>? overrides = null)
         {
             var adjustedOverrides = overrides != null
                 ? overrides
-                : ImmutableList<(string path, object value)>.Empty;
+                : ImmutableList<(string path, string value)>.Empty;
 
             adjustedOverrides = adjustedOverrides
                 .Append(("tokenProvider.login.tenantId", _tenantId))

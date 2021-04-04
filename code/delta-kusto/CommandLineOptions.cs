@@ -13,10 +13,7 @@ namespace delta_kusto
         [Option('p', "parameter", Required = true, HelpText = "Set parameter file path.")]
         public string ParameterFilePath { get; set; } = string.Empty;
 
-        [Option('o', "parameter", Required = false, HelpText = "Parameter JSON overrides.")]
-        public string Overrides { get; set; } = string.Empty;
-
-        [Option('w', "parameter", Required = false, HelpText = "Parameter JSON overrides.")]
-        public IEnumerable<string> Overrides2 { get; set; } = new string[0];
+        [Option('o', "parameter", Required = false, HelpText = "Parameter path overrides (list).")]
+        public IEnumerable<string> Overrides { get; set; } = new string[0];
     }
 }
