@@ -18,7 +18,7 @@ namespace DeltaKustoLib.CommandModel
 
         public string? DocString { get; }
 
-        public bool? SkipValidation { get; }
+        public bool SkipValidation { get; }
 
         public override string ObjectFriendlyTypeName => ".create function";
 
@@ -89,7 +89,7 @@ namespace DeltaKustoLib.CommandModel
             {
                 Folder!=null ? $"folder=\"{Folder}\"" : null,
                 DocString!=null ? $"docstring=\"{DocString}\"" : null,
-                SkipValidation!=null ? $"skipvalidation=\"{SkipValidation}\"" : null
+                $"skipvalidation=\"{SkipValidation}\""
             };
             var nonEmptyProperties = properties.Where(p => p != null);
 
