@@ -300,21 +300,24 @@ namespace DeltaKustoIntegration.Kusto
         }
         #endregion
 
-        private readonly ITracer _tracer;
         private readonly Uri _clusterUri;
         private readonly string _database;
         private readonly ITokenProvider _tokenProvider;
+        private readonly ITracer _tracer;
+        private readonly SimpleHttpClientFactory _httpClientFactory;
 
         public KustoManagementGateway(
-            ITracer tracer,
             Uri clusterUri,
             string database,
-            ITokenProvider tokenProvider)
+            ITokenProvider tokenProvider,
+            ITracer tracer,
+            SimpleHttpClientFactory httpClientFactory)
         {
-            _tracer = tracer;
             _clusterUri = clusterUri;
             _database = database;
             _tokenProvider = tokenProvider;
+            _tracer = tracer;
+            _httpClientFactory = httpClientFactory;
         }
 
         async Task<DatabaseSchema> IKustoManagementGateway.GetDatabaseSchemaAsync(
@@ -395,7 +398,7 @@ namespace DeltaKustoIntegration.Kusto
                 var token = await _tokenProvider.GetTokenAsync(_clusterUri, ct);
 
                 //  Implementation of https://docs.microsoft.com/en-us/azure/data-explorer/kusto/api/rest/request#examples
-                using (var client = new HttpClient())
+                using (var client = _httpClientFactory.CreateHttpClient())
                 {
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 

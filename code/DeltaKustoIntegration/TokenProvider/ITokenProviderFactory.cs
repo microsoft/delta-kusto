@@ -8,8 +8,6 @@ namespace DeltaKustoIntegration.TokenProvider
 {
     public interface ITokenProviderFactory
     {
-        ITokenProvider? CreateProvider(
-            ITracer tracer,
-            TokenProviderParameterization? parameterization);
+        ITokenProvider? CreateProvider(TokenProviderParameterization? parameterization);
     }
 }

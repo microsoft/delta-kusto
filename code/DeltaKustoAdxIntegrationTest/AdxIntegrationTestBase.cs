@@ -1,5 +1,4 @@
-﻿using delta_kusto;
-using DeltaKustoFileIntegrationTest;
+﻿using DeltaKustoFileIntegrationTest;
 using DeltaKustoIntegration.Database;
 using DeltaKustoIntegration.Kusto;
 using DeltaKustoIntegration.Parameterization;
@@ -299,10 +298,7 @@ namespace DeltaKustoAdxIntegrationTest
 
         private IKustoManagementGateway CreateKustoManagementGateway(bool isCurrent)
         {
-            var gatewayFactory =
-                new KustoManagementGatewayFactory() as IKustoManagementGatewayFactory;
-            var gateway = gatewayFactory.CreateGateway(
-                new ConsoleTracer(false),
+            var gateway = GatewayFactory.CreateGateway(
                 _clusterUri,
                 isCurrent ? _currentDb : _targetDb,
                 CreateTokenProvider());
@@ -312,9 +308,7 @@ namespace DeltaKustoAdxIntegrationTest
 
         private ITokenProvider CreateTokenProvider()
         {
-            var tokenProviderFactory = new TokenProviderFactory() as ITokenProviderFactory;
-            var tokenProvider = tokenProviderFactory.CreateProvider(
-                new ConsoleTracer(false),
+            var tokenProvider = TokenProviderFactory.CreateProvider(
                 new TokenProviderParameterization
                 {
                     Login = new ServicePrincipalLoginParameterization

@@ -29,15 +29,14 @@ namespace delta_kusto
 
         public DeltaOrchestration(
             ITracer tracer,
-            IFileGateway? fileGateway = null,
-            IKustoManagementGatewayFactory? kustoManagementGatewayFactory = null,
-            ITokenProviderFactory? tokenProviderFactory = null)
+            IKustoManagementGatewayFactory kustoManagementGatewayFactory,
+            ITokenProviderFactory tokenProviderFactory,
+            IFileGateway? fileGateway = null)
         {
             _tracer = tracer;
+            _kustoManagementGatewayFactory = kustoManagementGatewayFactory;
+            _tokenProviderFactory = tokenProviderFactory;
             _fileGateway = fileGateway ?? new FileGateway();
-            _kustoManagementGatewayFactory = kustoManagementGatewayFactory
-                ?? new KustoManagementGatewayFactory();
-            _tokenProviderFactory = tokenProviderFactory ?? new TokenProviderFactory();
         }
 
         public async Task<bool> ComputeDeltaAsync(
@@ -66,7 +65,7 @@ namespace delta_kusto
 
             try
             {
-                var tokenProvider = _tokenProviderFactory.CreateProvider(_tracer, parameters.TokenProvider);
+                var tokenProvider = _tokenProviderFactory.CreateProvider(parameters.TokenProvider);
                 var orderedJobs = parameters.Jobs.OrderBy(p => p.Value.Priority);
                 var success = true;
 
@@ -259,7 +258,6 @@ namespace delta_kusto
                 }
 
                 var kustoManagementGateway = _kustoManagementGatewayFactory.CreateGateway(
-                    _tracer,
                     new Uri(database!.ClusterUri!),
                     database!.Database!,
                     tokenProvider);
@@ -299,7 +297,6 @@ namespace delta_kusto
                     }
 
                     var kustoManagementGateway = _kustoManagementGatewayFactory.CreateGateway(
-                        _tracer,
                         new Uri(source.Adx.ClusterUri!),
                         source.Adx.Database!,
                         tokenProvider);

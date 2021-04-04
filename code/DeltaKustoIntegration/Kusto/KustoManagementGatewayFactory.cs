@@ -8,13 +8,28 @@ namespace DeltaKustoIntegration.Kusto
 {
     public class KustoManagementGatewayFactory : IKustoManagementGatewayFactory
     {
-        public IKustoManagementGateway CreateGateway(
+        private readonly ITracer _tracer;
+        private readonly SimpleHttpClientFactory _httpClientFactory;
+
+        public KustoManagementGatewayFactory(
             ITracer tracer,
+            SimpleHttpClientFactory httpClientFactory)
+        {
+            _tracer = tracer;
+            _httpClientFactory = httpClientFactory;
+        }
+
+        public IKustoManagementGateway CreateGateway(
             Uri clusterUri,
             string database,
             ITokenProvider tokenProvider)
         {
-            return new KustoManagementGateway(tracer, clusterUri, database, tokenProvider);
+            return new KustoManagementGateway(
+                clusterUri,
+                database,
+                tokenProvider,
+                _tracer,
+                _httpClientFactory);
         }
     }
 }

@@ -14,6 +14,7 @@ namespace DeltaKustoIntegration.TokenProvider
     internal class LoginTokenProvider : ITokenProvider
     {
         private readonly ITracer _tracer;
+        private readonly SimpleHttpClientFactory _httpClientFactory;
         private readonly string _tenantId;
         private readonly string _clientId;
         private readonly string _secret;
@@ -22,11 +23,13 @@ namespace DeltaKustoIntegration.TokenProvider
 
         public LoginTokenProvider(
             ITracer tracer,
+            SimpleHttpClientFactory httpClientFactory,
             string tenantId,
             string clientId,
             string secret)
         {
             _tracer = tracer;
+            _httpClientFactory = httpClientFactory;
             _tenantId = tenantId;
             _clientId = clientId;
             _secret = secret;
@@ -46,6 +49,8 @@ namespace DeltaKustoIntegration.TokenProvider
             {
                 try
                 {
+                    _tracer.WriteLine(true, "No token cached");
+
                     return await RetrieveTokenAsync(clusterUri, ct);
                 }
                 catch (Exception ex)
@@ -60,7 +65,7 @@ namespace DeltaKustoIntegration.TokenProvider
             _tracer.WriteLine(true, "LoginTokenProvider.RetrieveTokenAsync start");
 
             //  Implementation of https://docs.microsoft.com/en-us/azure/data-explorer/kusto/api/rest/request#examples
-            using (var client = new HttpClient())
+            using (var client = _httpClientFactory.CreateHttpClient())
             {
                 var loginUrl = $"https://login.microsoftonline.com/{_tenantId}/oauth2/token";
                 var response = await client.PostAsync(

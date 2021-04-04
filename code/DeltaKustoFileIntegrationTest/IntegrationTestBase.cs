@@ -1,5 +1,8 @@
 ﻿using delta_kusto;
+using DeltaKustoIntegration;
+using DeltaKustoIntegration.Kusto;
 using DeltaKustoIntegration.Parameterization;
+using DeltaKustoIntegration.TokenProvider;
 using DeltaKustoLib;
 using DeltaKustoLib.CommandModel;
 using System;
@@ -8,7 +11,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -82,6 +84,10 @@ namespace DeltaKustoFileIntegrationTest
             }
         }
 
+        protected IKustoManagementGatewayFactory GatewayFactory { get; }
+        
+        protected ITokenProviderFactory TokenProviderFactory { get; }
+
         protected IntegrationTestBase()
         {
             var path = Environment.GetEnvironmentVariable("deltaKustoSingleExecPath");
@@ -99,6 +105,12 @@ namespace DeltaKustoFileIntegrationTest
                         + $"current directory is:  {Directory.GetCurrentDirectory()}");
                 }
             }
+
+            var tracer = new ConsoleTracer(false);
+            var httpClientFactory = new SimpleHttpClientFactory(tracer);
+
+            GatewayFactory = new KustoManagementGatewayFactory(tracer, httpClientFactory);
+            TokenProviderFactory = new TokenProviderFactory(tracer, httpClientFactory);
         }
 
         protected async virtual Task<int> RunMainAsync(
@@ -176,7 +188,10 @@ namespace DeltaKustoFileIntegrationTest
             }
 
             var tracer = new ConsoleTracer(false);
-            var orchestration = new DeltaOrchestration(tracer);
+            var orchestration = new DeltaOrchestration(
+                tracer,
+                GatewayFactory,
+                TokenProviderFactory);
             var parameters = await orchestration.LoadParameterizationAsync(
                 parameterFilePath,
                 pathOverrides);

@@ -8,8 +8,18 @@ namespace DeltaKustoIntegration.TokenProvider
 {
     public class TokenProviderFactory : ITokenProviderFactory
     {
-        ITokenProvider? ITokenProviderFactory.CreateProvider(
+        private readonly ITracer _tracer;
+        private readonly SimpleHttpClientFactory _httpClientFactory;
+
+        public TokenProviderFactory(
             ITracer tracer,
+            SimpleHttpClientFactory httpClientFactory)
+        {
+            _tracer = tracer;
+            _httpClientFactory = httpClientFactory;
+        }
+
+        ITokenProvider? ITokenProviderFactory.CreateProvider(
             TokenProviderParameterization? parameterization)
         {
             if (parameterization == null)
@@ -21,7 +31,8 @@ namespace DeltaKustoIntegration.TokenProvider
                 if (parameterization.Login != null)
                 {
                     return new LoginTokenProvider(
-                        tracer,
+                        _tracer,
+                        _httpClientFactory,
                         parameterization.Login!.TenantId!,
                         parameterization.Login!.ClientId!,
                         parameterization.Login!.Secret!);
