@@ -1,4 +1,5 @@
-﻿using DeltaKustoLib.CommandModel;
+﻿using DeltaKustoLib;
+using DeltaKustoLib.CommandModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,12 +11,26 @@ namespace DeltaKustoIntegration.Action
 {
     public class ConsoleActionProvider : IActionProvider
     {
+        private readonly ITracer _tracer;
+        private readonly bool _isVerbose;
+
+        public ConsoleActionProvider(ITracer tracer, bool isVerbose)
+        {
+            _tracer = tracer;
+            _isVerbose = isVerbose;
+        }
+
         Task IActionProvider.ProcessDeltaCommandsAsync(
             bool doNotProcessIfDrops,
             ActionCommandCollection commands,
             CancellationToken ct)
         {
-            throw new NotImplementedException();
+            foreach(var c in commands)
+            {
+                _tracer.WriteLine(_isVerbose, c.ToScript());
+            }
+
+            return Task.CompletedTask;
         }
     }
 }

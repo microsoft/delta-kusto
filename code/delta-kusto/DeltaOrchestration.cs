@@ -65,6 +65,10 @@ namespace delta_kusto
 
             var parameters =
                 await LoadParameterizationAsync(parameterFilePath, pathOverrides);
+            var parameterDirectory = Path.GetDirectoryName(parameterFilePath)!;
+
+            //  Set "current" directory in parameter file directory
+            Directory.SetCurrentDirectory(parameterDirectory);
 
             try
             {
@@ -240,6 +244,8 @@ namespace delta_kusto
         {
             var builder = ImmutableArray<IActionProvider>.Empty.ToBuilder();
 
+            builder.Add(new ConsoleActionProvider(_tracer, !action.PushToConsole));
+            
             if (action.FilePath != null)
             {
                 builder.Add(new OneFileActionProvider(_fileGateway, action.FilePath));
@@ -247,10 +253,6 @@ namespace delta_kusto
             if (action.FolderPath != null)
             {
                 builder.Add(new MultiFilesActionProvider(_fileGateway, action.FolderPath));
-            }
-            if (action.PushToConsole)
-            {
-                throw new NotImplementedException();
             }
             if (action.PushToCurrentCluster)
             {
@@ -266,10 +268,6 @@ namespace delta_kusto
                     tokenProvider);
 
                 builder.Add(new KustoActionProvider(kustoManagementGateway));
-            }
-            if (builder.Count() == 0)
-            {
-                throw new InvalidOperationException("We should never get here");
             }
 
             return builder.ToImmutable();
