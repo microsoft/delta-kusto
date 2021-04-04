@@ -323,12 +323,15 @@ namespace DeltaKustoIntegration.Kusto
         async Task<DatabaseSchema> IKustoManagementGateway.GetDatabaseSchemaAsync(
             CancellationToken ct)
         {
+            var tracerTimer = new TracerTimer(_tracer);
+
             _tracer.WriteLine(true, ".show db command start");
 
             var output = await ExecuteCommandAsync(".show database schema as json", ct);
-            
+
             _tracer.WriteLine(true, ".show db command end");
-            
+            tracerTimer.WriteTime(true, ".show db time");
+
             var schemaText = output.GetSingleElement<string>();
             var rootSchema = RootSchema.FromJson(schemaText);
 
@@ -349,14 +352,16 @@ namespace DeltaKustoIntegration.Kusto
             {
                 _tracer.WriteLine(true, ".execute database script commands start");
 
+                var tracerTimer = new TracerTimer(_tracer);
                 var commandScripts = commands.Select(c => c.ToScript());
                 var fullScript = ".execute database script <|"
                     + Environment.NewLine
                     + string.Join(Environment.NewLine + Environment.NewLine, commandScripts);
                 var output = await ExecuteCommandAsync(fullScript, ct);
-                
+
                 _tracer.WriteLine(true, ".execute database script commands end");
-                
+                tracerTimer.WriteTime(true, ".execute database script commands time");
+
                 var content = output.Tables![0].ProjectRows<string, string, string, Guid>(
                     "Result",
                     "Reason",

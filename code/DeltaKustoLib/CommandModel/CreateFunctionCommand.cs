@@ -42,7 +42,7 @@ namespace DeltaKustoLib.CommandModel
             Body = functionBody.Trim();
             Folder = folder;
             DocString = docString;
-            SkipValidation = skipValidation;
+            SkipValidation = skipValidation ?? true;
         }
 
         internal static CommandBase FromCode(CustomCommand customCommand)
