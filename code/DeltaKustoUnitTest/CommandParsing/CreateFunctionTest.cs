@@ -102,7 +102,7 @@ namespace DeltaKustoUnitTest.CommandParsing
                 .All(p => p));
             Assert.Equal(body, createFunctionCommand.Body);
             Assert.Equal(folder, createFunctionCommand.Folder);
-            Assert.Equal(docString, createFunctionCommand.DocString);
+            Assert.Equal(docString, createFunctionCommand.DocString ?? string.Empty);
             Assert.Equal(skipValidation, createFunctionCommand.SkipValidation);
         }
 

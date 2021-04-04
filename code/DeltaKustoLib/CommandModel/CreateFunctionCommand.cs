@@ -40,8 +40,8 @@ namespace DeltaKustoLib.CommandModel
             Parameters = parameters.ToImmutableArray();
             ValidateNoTableParameterAfterScalar(functionName, Parameters);
             Body = functionBody.Trim();
-            Folder = folder;
-            DocString = docString;
+            Folder = string.IsNullOrEmpty(folder) ? null : folder;
+            DocString = string.IsNullOrEmpty(docString) ? null : docString;
             SkipValidation = skipValidation ?? true;
         }
 

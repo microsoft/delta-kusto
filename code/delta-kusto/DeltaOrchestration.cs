@@ -135,9 +135,9 @@ namespace delta_kusto
 
                 _tracer.WriteLine(false, "Compute Delta...");
 
-                var deltaCommands =
-                    new ActionCommandCollection(currentDb.ComputeDelta(targetDb));
-                var jobSuccess = ReportOnDeltaCommands(parameters, deltaCommands);
+                var delta = currentDb.ComputeDelta(targetDb);
+                var actions = new ActionCommandCollection(delta);
+                var jobSuccess = ReportOnDeltaCommands(parameters, actions);
                 var actionProviders = CreateActionProvider(
                     job.Action!,
                     tokenProvider,
@@ -150,7 +150,7 @@ namespace delta_kusto
                 {
                     await actionProvider.ProcessDeltaCommandsAsync(
                         parameters.FailIfDrops,
-                        deltaCommands,
+                        actions,
                         ctAction);
                 }
                 _tracer.WriteLine(false, "Delta processed / Job completed");
@@ -245,7 +245,7 @@ namespace delta_kusto
             var builder = ImmutableArray<IActionProvider>.Empty.ToBuilder();
 
             builder.Add(new ConsoleActionProvider(_tracer, !action.PushToConsole));
-            
+
             if (action.FilePath != null)
             {
                 builder.Add(new OneFileActionProvider(_fileGateway, action.FilePath));
