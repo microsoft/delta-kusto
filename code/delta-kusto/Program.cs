@@ -108,6 +108,7 @@ namespace delta_kusto
             //  Dependency injection
             var tracer = new ConsoleTracer(options.Verbose);
             var httpClientFactory = new SimpleHttpClientFactory(tracer);
+            var apiClient = new ApiClient(tracer, httpClientFactory);
             var kustoManagementGatewayFactory = new KustoManagementGatewayFactory(
                 tracer,
                 httpClientFactory);
@@ -116,6 +117,7 @@ namespace delta_kusto
                 httpClientFactory);
             var orchestration = new DeltaOrchestration(
                 tracer,
+                apiClient,
                 kustoManagementGatewayFactory,
                 tokenProviderFactory);
             var success = await orchestration.ComputeDeltaAsync(

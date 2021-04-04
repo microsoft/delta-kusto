@@ -84,6 +84,8 @@ namespace DeltaKustoFileIntegrationTest
             }
         }
 
+        protected SimpleHttpClientFactory HttpClientFactory { get; }
+        
         protected IKustoManagementGatewayFactory GatewayFactory { get; }
         
         protected ITokenProviderFactory TokenProviderFactory { get; }
@@ -107,10 +109,10 @@ namespace DeltaKustoFileIntegrationTest
             }
 
             var tracer = new ConsoleTracer(false);
-            var httpClientFactory = new SimpleHttpClientFactory(tracer);
-
-            GatewayFactory = new KustoManagementGatewayFactory(tracer, httpClientFactory);
-            TokenProviderFactory = new TokenProviderFactory(tracer, httpClientFactory);
+            
+            HttpClientFactory = new SimpleHttpClientFactory(tracer);
+            GatewayFactory = new KustoManagementGatewayFactory(tracer, HttpClientFactory);
+            TokenProviderFactory = new TokenProviderFactory(tracer, HttpClientFactory);
         }
 
         protected async virtual Task<int> RunMainAsync(
@@ -188,8 +190,10 @@ namespace DeltaKustoFileIntegrationTest
             }
 
             var tracer = new ConsoleTracer(false);
+            var apiClient = new ApiClient(tracer, HttpClientFactory);
             var orchestration = new DeltaOrchestration(
                 tracer,
+                apiClient,
                 GatewayFactory,
                 TokenProviderFactory);
             var parameters = await orchestration.LoadParameterizationAsync(

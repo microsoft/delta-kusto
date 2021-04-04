@@ -23,17 +23,20 @@ namespace delta_kusto
     internal class DeltaOrchestration
     {
         private readonly ITracer _tracer;
+        private readonly ApiClient _apiClient;
         private readonly IFileGateway _fileGateway;
         private readonly IKustoManagementGatewayFactory _kustoManagementGatewayFactory;
         private readonly ITokenProviderFactory _tokenProviderFactory;
 
         public DeltaOrchestration(
             ITracer tracer,
+            ApiClient apiClient,
             IKustoManagementGatewayFactory kustoManagementGatewayFactory,
             ITokenProviderFactory tokenProviderFactory,
             IFileGateway? fileGateway = null)
         {
             _tracer = tracer;
+            _apiClient = apiClient;
             _kustoManagementGatewayFactory = kustoManagementGatewayFactory;
             _tokenProviderFactory = tokenProviderFactory;
             _fileGateway = fileGateway ?? new FileGateway();
@@ -47,7 +50,7 @@ namespace delta_kusto
 
             var tokenSource = new CancellationTokenSource(TimeOuts.API);
             var ct = tokenSource.Token;
-            var availableClientVersions = await ApiClient.ActivateAsync();
+            var availableClientVersions = await _apiClient.ActivateAsync();
 
             _tracer.WriteLine(false, "Client Activated");
             if (availableClientVersions != null && availableClientVersions.Any())
@@ -89,7 +92,7 @@ namespace delta_kusto
             {
                 if (parameters.SendErrorOptIn)
                 {
-                    var operationID = await ApiClient.RegisterExceptionAsync(ex);
+                    var operationID = await _apiClient.RegisterExceptionAsync(ex);
 
                     _tracer.WriteLine(
                         false,

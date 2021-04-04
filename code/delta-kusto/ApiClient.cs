@@ -1,4 +1,6 @@
-﻿using System;
+﻿using DeltaKustoIntegration;
+using DeltaKustoLib;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -10,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace delta_kusto
 {
-    internal static class ApiClient
+    internal class ApiClient
     {
         #region Inner Types
         private class ClientInfo
@@ -66,7 +68,7 @@ namespace delta_kusto
                 while (current != null)
                 {
                     list.Add(new ExceptionInfo(current));
-                    current = ex.InnerException;
+                    current = current.InnerException;
                 }
 
                 return list.ToArray();
@@ -92,13 +94,23 @@ namespace delta_kusto
         private static readonly string ROOT_URL = ComputeRootUrl();
         private static readonly bool _doApiCalls = ComputeDoApiCalls();
 
-        public static async Task<string[]?> ActivateAsync()
+        private readonly ITracer _tracer;
+        private readonly SimpleHttpClientFactory _httpClientFactory;
+
+        public ApiClient(ITracer tracer, SimpleHttpClientFactory httpClientFactory)
+        {
+            _tracer = tracer;
+            _httpClientFactory = httpClientFactory;
+        }
+
+        public async Task<string[]?> ActivateAsync()
         {
             if (_doApiCalls)
             {
                 var tokenSource = new CancellationTokenSource(TimeOuts.API);
                 var ct = tokenSource.Token;
 
+                _tracer.WriteLine(true, "ActivateAsync - Start");
                 try
                 {
                     var output = await PostAsync<ActivationOutput>(
@@ -109,31 +121,38 @@ namespace delta_kusto
                         },
                         ct);
 
+                    _tracer.WriteLine(true, "ActivateAsync - End");
+
                     return output?.AvailableClientVersions;
                 }
                 catch
                 {
+                    _tracer.WriteLine(true, "ActivateAsync - Failed");
                 }
             }
 
             return null;
         }
 
-        public static async Task<Guid?> RegisterExceptionAsync(Exception ex)
+        public async Task<Guid?> RegisterExceptionAsync(Exception ex)
         {
             if (_doApiCalls)
             {
                 var tokenSource = new CancellationTokenSource(TimeOuts.API);
                 var ct = tokenSource.Token;
 
+                _tracer.WriteLine(true, "RegisterExceptionAsync - Start");
                 try
                 {
                     var output = await PostAsync<ErrorOutput>("/error", new ErrorInput(ex), ct);
+
+                    _tracer.WriteLine(true, "RegisterExceptionAsync - End");
 
                     return output?.OperationID;
                 }
                 catch
                 {
+                    _tracer.WriteLine(true, "RegisterExceptionAsync - Failed");
                 }
             }
 
@@ -150,7 +169,7 @@ namespace delta_kusto
             return Environment.GetEnvironmentVariable("disable-api-calls") != "true";
         }
 
-        private static async Task<T?> PostAsync<T>(
+        private async Task<T?> PostAsync<T>(
             string urlSuffix,
             object telemetry,
             CancellationToken ct)
@@ -165,7 +184,7 @@ namespace delta_kusto
                         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
                     });
 
-                using (var client = new HttpClient())
+                using (var client = _httpClientFactory.CreateHttpClient())
                 {
                     var url = new Uri(new Uri(ROOT_URL), urlSuffix);
                     var response = await client.PostAsync(

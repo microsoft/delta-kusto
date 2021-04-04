@@ -8,6 +8,6 @@ jobs:
             database:  dev
     target:
         scripts:
-            - filePath:  samples.kql
+            - filePath:  C:\Users\vilauzon\Documents\git\delta-kusto\documentation\tutorials\overview-tutorial\samples.kql
     action:
         pushToCurrentCluster:  true
