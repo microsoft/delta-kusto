@@ -45,7 +45,7 @@ jobs:
     - name: Zip Windows executable
       run:  |
         cd windows-assets/bin
-        zip ../../final-assets/delta-kusto-windows.zip *
+        tar -czvf ../../final-assets/delta-kusto-windows.tar.gz *
     # Validate final assets
     - name: Final assets content
       run:  ls -l final-assets
