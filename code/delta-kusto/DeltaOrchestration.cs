@@ -48,10 +48,10 @@ namespace delta_kusto
         {
             _tracer.WriteLine(false, "Activating Client...");
 
-            var tokenSource = new CancellationTokenSource(TimeOuts.API);
-            var ct = tokenSource.Token;
-            var availableClientVersions = await _apiClient.ActivateAsync();
+            var activateTask = _apiClient.ActivateAsync();
+            var availableClientVersions = await _apiClient.LatestClientVersionsAsync();
 
+            await activateTask;
             if (availableClientVersions == null)
             {
                 _tracer.WriteLine(false, "Activating Client (skipped)");

@@ -32,6 +32,11 @@ namespace delta_kusto
         private class ActivationOutput
         {
             public ApiInfo ApiInfo { get; set; } = new ApiInfo();
+        }
+
+        private class ClientVersionOutput
+        {
+            public ApiInfo ApiInfo { get; set; } = new ApiInfo();
 
             public string[] AvailableClientVersions { get; set; } = new string[0];
         }
@@ -103,7 +108,7 @@ namespace delta_kusto
             _httpClientFactory = httpClientFactory;
         }
 
-        public async Task<string[]?> ActivateAsync()
+        public async Task ActivateAsync()
         {
             if (_doApiCalls)
             {
@@ -122,12 +127,36 @@ namespace delta_kusto
                         ct);
 
                     _tracer.WriteLine(true, "ActivateAsync - End");
+                }
+                catch
+                {
+                    _tracer.WriteLine(true, "ActivateAsync - Failed");
+                }
+            }
+        }
+
+        public async Task<string[]?> LatestClientVersionsAsync()
+        {
+            if (_doApiCalls)
+            {
+                var tokenSource = new CancellationTokenSource(TimeOuts.API);
+                var ct = tokenSource.Token;
+
+                _tracer.WriteLine(true, "LatestClientVersionsAsync - Start");
+                try
+                {
+                    var output = await GetAsync<ClientVersionOutput>(
+                        "/clientVersion",
+                        ct,
+                        ("currentClientVersion", Program.AssemblyVersion));
+
+                    _tracer.WriteLine(true, "LatestClientVersionsAsync - End");
 
                     return output?.AvailableClientVersions;
                 }
                 catch
                 {
-                    _tracer.WriteLine(true, "ActivateAsync - Failed");
+                    _tracer.WriteLine(true, "LatestClientVersionsAsync - Failed");
                 }
             }
 
@@ -167,6 +196,48 @@ namespace delta_kusto
         private static bool ComputeDoApiCalls()
         {
             return Environment.GetEnvironmentVariable("disable-api-calls") != "true";
+        }
+
+        private async Task<T?> GetAsync<T>(
+            string urlSuffix,
+            CancellationToken ct,
+            params (string name, string value)[] queryParameters)
+            where T : class
+        {
+            try
+            {
+                using (var client = _httpClientFactory.CreateHttpClient())
+                {
+                    var queryParametersText = queryParameters
+                        .Select(q => WebUtility.UrlEncode(q.name) + "=" + WebUtility.UrlEncode(q.value));
+                    var url = new Uri(new Uri(ROOT_URL), urlSuffix);
+                    var urlWithQuery = new Uri(url, "?" + string.Join("&", queryParametersText));
+                    
+                    var response = await client.GetAsync(
+                        urlWithQuery,
+                        HttpCompletionOption.ResponseContentRead,
+                        ct);
+                    var responseText =
+                        await response.Content.ReadAsStringAsync(ct);
+
+                    if (response.StatusCode == HttpStatusCode.OK)
+                    {
+                        var output = JsonSerializer.Deserialize<T>(
+                            responseText,
+                            new JsonSerializerOptions
+                            {
+                                PropertyNameCaseInsensitive = true
+                            });
+
+                        return output!;
+                    }
+                }
+            }
+            catch
+            {
+            }
+
+            return null;
         }
 
         private async Task<T?> PostAsync<T>(
