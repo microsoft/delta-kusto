@@ -27,11 +27,18 @@ namespace DeltaKustoLib.CommandModel
 
         public override string ToString()
         {
-            var columnsText = string.Join(
-                ", ",
-                Columns.Select(c => c.ToString()));
+            if (Columns.Any())
+            {
+                var columnsText = string.Join(
+                    ", ",
+                    Columns.Select(c => c.ToString()));
 
-            return $"({columnsText})";
+                return $"({columnsText})";
+            }
+            else
+            {
+                return "(*)";
+            }
         }
     }
 }

@@ -197,6 +197,26 @@ namespace DeltaKustoUnitTest.CommandParsing
         }
 
         [Fact]
+        public void TableWithAnyColumns()
+        {
+            var name = "TableStarColumn";
+            var body = "myTable | count";
+            var command = ParseOneCommand(
+                $".create-or-alter function {name}(myTable:(*)){{ {body} }} ");
+
+            Assert.IsType<CreateFunctionCommand>(command);
+
+            var createFunctionCommand = (CreateFunctionCommand)command;
+
+            Assert.Equal(name, createFunctionCommand.ObjectName);
+            Assert.Single(createFunctionCommand.Parameters);
+            Assert.Equal("myTable", createFunctionCommand.Parameters.First().ParameterName);
+            Assert.NotNull(createFunctionCommand.Parameters.First().ComplexType);
+            Assert.Empty(createFunctionCommand.Parameters.First().ComplexType!.Columns);
+            Assert.Equal(body, createFunctionCommand.Body);
+        }
+
+        [Fact]
         public void TableAndPrimitiveTypeParameters()
         {
             var name = "TableAndPrimTypeFct";

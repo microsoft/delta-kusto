@@ -221,13 +221,26 @@ namespace DeltaKustoLib.CommandModel
             else
             {
                 var typeExpression = type as SchemaTypeExpression;
-                var columns = typeExpression!
-                    .Columns
-                    .Select(c => c.GetUniqueImmediateDescendant<NameAndTypeDeclaration>("Function parameter table column"))
-                    .Select(n => GetColumnSchema(n));
-                var table = new TableParameterModel(columns);
+                var cols = typeExpression!.Columns;
 
-                return new TypedParameterModel(name.SimpleName, table);
+                //  Consider the case T(*)
+                if (cols.Count == 1
+                    && cols.First().GetImmediateDescendants<NameAndTypeDeclaration>().Count == 0)
+                {
+                    return new TypedParameterModel(
+                        name.SimpleName,
+                        new TableParameterModel(new ColumnModel[0]));
+                }
+                else
+                {
+                    var columns = typeExpression!
+                        .Columns
+                        .Select(c => c.GetUniqueImmediateDescendant<NameAndTypeDeclaration>("Function parameter table column"))
+                        .Select(n => GetColumnSchema(n));
+                    var table = new TableParameterModel(columns);
+
+                    return new TypedParameterModel(name.SimpleName, table);
+                }
             }
         }
 
