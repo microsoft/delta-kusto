@@ -10,13 +10,12 @@ namespace DeltaKustoApi
     {
         #region Inner Types
         private class TelemetryInfo<T>
-            where T : new()
         {
             public string ClientIpAddress { get; set; } = string.Empty;
 
             public DateTime LogTime { get; set; } = DateTime.Now;
 
-            public T Input { get; set; } = new T();
+            public T? Input { get; set; }
         }
         #endregion
 
@@ -30,7 +29,6 @@ namespace DeltaKustoApi
         public void PostTelemetry<T>(
             T input,
             HttpRequest request)
-            where T : new()
         {
             var ipAddress = request.HttpContext.Connection.RemoteIpAddress?.ToString()
                 ?? "";
