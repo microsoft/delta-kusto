@@ -132,9 +132,9 @@ namespace DeltaKustoApi.Controllers.Activation
 
                 var response = await client.GetAsync(
                     TAGS_URL,
-                    cts.Token).ConfigureAwait(false);
+                    cts.Token);
                 var responseText =
-                    await response.Content.ReadAsStringAsync(cts.Token).ConfigureAwait(false);
+                    await response.Content.ReadAsStringAsync(cts.Token);
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {

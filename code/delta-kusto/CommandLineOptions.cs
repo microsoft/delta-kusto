@@ -15,5 +15,8 @@ namespace delta_kusto
 
         [Option('o', "parameter", Required = false, HelpText = "Parameter JSON overrides.")]
         public string Overrides { get; set; } = string.Empty;
+
+        [Option('w', "parameter", Required = false, HelpText = "Parameter JSON overrides.")]
+        public IEnumerable<string> Overrides2 { get; set; } = new string[0];
     }
 }
