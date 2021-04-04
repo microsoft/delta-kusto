@@ -16,9 +16,7 @@ namespace DeltaKustoUnitTest
             var before = main.SendErrorOptIn;
             var value = (!before).ToString().ToLower();
 
-            ParameterOverrideHelper.InplaceOverride(
-                main,
-                $"[{{\"path\" : \"sendErrorOptIn\", \"value\":{value} }}]");
+            ParameterOverrideHelper.InplaceOverride(main, $"sendErrorOptIn={value}");
 
             Assert.Equal(!before, main.SendErrorOptIn);
         }
@@ -31,9 +29,9 @@ namespace DeltaKustoUnitTest
 
             try
             {
-                ParameterOverrideHelper.InplaceOverride(
-                    main,
-                    $"[{{\"path\" : \"sendTelemetryOptIn\", \"value\":42 }}]");
+                ParameterOverrideHelper.InplaceOverride(main, "sendTelemetryOptIn=42");
+
+                Assert.True(false, "Shouldn't reach this point");
             }
             catch (DeltaException)
             {
@@ -47,9 +45,9 @@ namespace DeltaKustoUnitTest
 
             try
             {
-                ParameterOverrideHelper.InplaceOverride(
-                    main,
-                    $"[{{\"path\" : \"myPropertyOrTheHighWay\", \"value\":42 }}]");
+                ParameterOverrideHelper.InplaceOverride(main, "myPropertyOrTheHighWay=42");
+
+                Assert.True(false, "Shouldn't reach this point");
             }
             catch (DeltaException)
             {
@@ -78,7 +76,7 @@ namespace DeltaKustoUnitTest
 
             ParameterOverrideHelper.InplaceOverride(
                 main,
-                $"[{{\"path\" : \"tokenProvider.login.tenantId\", \"value\":\"{newTenantId}\" }}]");
+                $"tokenProvider.login.tenantId={newTenantId}");
 
             Assert.Equal(newTenantId, main.TokenProvider!.Login!.TenantId);
         }
@@ -107,32 +105,7 @@ namespace DeltaKustoUnitTest
 
             ParameterOverrideHelper.InplaceOverride(
                 main,
-                $"[{{\"path\" : \"tokenProvider.tokens.mine.token\", \"value\":\"{newToken}\" }}]");
-
-            Assert.Equal(newToken, main.TokenProvider!.Tokens["mine"].Token);
-        }
-
-        [Fact]
-        public void TestWholeDictionary()
-        {
-            var main = new MainParameterization
-            {
-                TokenProvider = new TokenProviderParameterization
-                {
-                    Tokens = new Dictionary<string, TokenParameterization>()
-                    {
-                        {
-                            "mine",
-                            new TokenParameterization()
-                        }
-                    }
-                }
-            };
-            var newToken = "xyz";
-
-            ParameterOverrideHelper.InplaceOverride(
-                main,
-                $"[{{\"path\" : \"tokenProvider.tokens.mine\", \"value\":{{ \"token\": \"{newToken}\" }} }}]");
+                $"tokenProvider.tokens.mine.token={newToken}");
 
             Assert.Equal(newToken, main.TokenProvider!.Tokens["mine"].Token);
         }
@@ -153,7 +126,7 @@ namespace DeltaKustoUnitTest
 
             ParameterOverrideHelper.InplaceOverride(
                 main,
-                $"[{{\"path\" : \"tokenProvider.login.tenantId\", \"value\":\"{newTenantId}\" }}]");
+                $"tokenProvider.login.tenantId={newTenantId}");
 
             Assert.Equal(newTenantId, main.TokenProvider!.Login!.TenantId);
         }
@@ -171,7 +144,7 @@ namespace DeltaKustoUnitTest
 
             ParameterOverrideHelper.InplaceOverride(
                 main,
-                $"[{{\"path\" : \"tokenProvider.login.tenantId\", \"value\":\"{newTenantId}\" }}]");
+                $"tokenProvider.login.tenantId={newTenantId}");
 
             Assert.Equal(newTenantId, main.TokenProvider!.Login!.TenantId);
         }
@@ -190,7 +163,7 @@ namespace DeltaKustoUnitTest
 
             ParameterOverrideHelper.InplaceOverride(
                 main,
-                $"[{{\"path\" : \"tokenProvider.tokens.mine.token\", \"value\":\"{newToken}\" }}]");
+                $"tokenProvider.tokens.mine.token={newToken}");
 
             Assert.Equal(newToken, main.TokenProvider!.Tokens["mine"].Token);
         }
@@ -206,7 +179,7 @@ namespace DeltaKustoUnitTest
 
             ParameterOverrideHelper.InplaceOverride(
                 main,
-                $"[{{\"path\" : \"tokenProvider.tokens.mine.token\", \"value\":\"{newToken}\" }}]");
+                $"tokenProvider.tokens.mine.token={newToken}");
 
             Assert.Equal(newToken, main.TokenProvider!.Tokens!["mine"].Token);
         }

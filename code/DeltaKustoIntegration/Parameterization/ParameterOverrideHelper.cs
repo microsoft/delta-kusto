@@ -4,76 +4,75 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Text.Json;
 
 namespace DeltaKustoIntegration.Parameterization
 {
     public static class ParameterOverrideHelper
     {
-        #region Inner Types
-        private class SingleOverride
+        public static void InplaceOverride(object target, params string[] pathOverrides)
         {
-            public string? Path { get; set; }
-
-            public object? Value { get; set; }
+            InplaceOverride(target, (IEnumerable<string>)pathOverrides);
         }
-        #endregion
 
-        public static void InplaceOverride(object target, string jsonOverrides)
+        public static void InplaceOverride(object target, IEnumerable<string> pathOverrides)
         {
-            if (!string.IsNullOrWhiteSpace(jsonOverrides))
+            if (pathOverrides.Any())
             {
                 try
                 {
-                    var overrideMap = JsonSerializer.Deserialize<SingleOverride[]>(
-                        jsonOverrides,
-                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var splits = pathOverrides.Select(t => t.Split('='));
+                    var noEquals = splits.FirstOrDefault(s => s.Length != 2);
 
-                    if (overrideMap == null)
+                    if (noEquals != null)
                     {
-                        throw new DeltaException("JSON Payload must be an array of path-value objects");
+                        throw new DeltaException(
+                            $"Override must be of the form path=value ; "
+                            + $"exception:  '{string.Join('=', noEquals)}'");
                     }
 
-                    var overrides = overrideMap
-                        .Select(m => ValidateAndTransform(m));
+                    var overrides = splits.Select(s => (path: s[0], textValue: s[1]));
 
                     InplaceOverride(target, overrides);
                 }
-                catch (DeltaException ex)
+                catch (Exception ex)
                 {
                     throw new DeltaException(
-                        $"Issue with the following JSON parameter override:  '{jsonOverrides}'",
-                        ex);
-                }
-                catch (JsonException ex)
-                {
-                    throw new DeltaException(
-                        $"The following string doesn't represent a valid JSON object:  '{jsonOverrides}'",
+                        $"Issue with the following JSON parameter override:  '{pathOverrides}'",
                         ex);
                 }
             }
         }
 
-        public static void InplaceOverride(object target, IEnumerable<(string path, object value)> overrides)
+        public static void InplaceOverride(
+            object target,
+            IEnumerable<(string path, string textValue)> overrides)
         {
+            if (overrides is null)
+            {
+                throw new ArgumentNullException(nameof(overrides));
+            }
+
             foreach (var o in overrides)
             {
-                InplaceOverride(target, o.path, o.value);
+                InplaceOverride(target, o.path, o.textValue);
             }
         }
 
-        public static void InplaceOverride(object target, string path, object value)
+        public static void InplaceOverride(object target, string path, string textValue)
         {
-            var properties = path
-                .Split('.')
-                .ToImmutableArray();
+            //  Create a stack to efficiently recurse over the properties
+            var properties = ImmutableStack<string>.Empty;
+
+            foreach (var p in path.Split('.').Reverse())
+            {
+                properties = properties.Push(p);
+            }
 
             try
             {
                 ValidateProperties(properties);
 
-                RecursiveInplaceOverride(target, properties, value);
+                RecursiveInplaceOverride(target, properties, textValue);
             }
             catch (DeltaException ex)
             {
@@ -83,14 +82,14 @@ namespace DeltaKustoIntegration.Parameterization
 
         private static void RecursiveInplaceOverride(
             object target,
-            IImmutableList<string> properties,
-            object value)
-        {
-            var isDictonary = target.GetType().IsGenericType
+            IImmutableStack<string> properties,
+            string textValue)
+        {   //  Determine if target is a dictionary or object
+            var isDictionary = target.GetType().IsGenericType
                 && target.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>);
 
-            if (isDictonary)
-            {
+            if (isDictionary)
+            {   //  Recreate generic method to call strong-type
                 var arguments = target.GetType().GetGenericArguments();
                 var keyType = arguments[0];
                 var valueType = arguments[1];
@@ -110,101 +109,66 @@ namespace DeltaKustoIntegration.Parameterization
 
                 var specificMethod = genericMethod.MakeGenericMethod(valueType);
 
-                specificMethod.Invoke(null, new object[] { target, properties, value });
+                specificMethod.Invoke(null, new object[] { target, properties, textValue });
             }
             else
             {
-                RecursiveInplaceOverrideOnObject(target, properties, value);
+                RecursiveInplaceOverrideOnObject(target, properties, textValue);
             }
         }
 
         private static void RecursiveInplaceOverrideOnDictionary<T>(
             IDictionary<string, T> target,
-            IImmutableList<string> properties,
-            object value) where T : class, new()
+            IImmutableStack<string> properties,
+            string textValue) where T : class, new()
         {
-            var property = properties.First();
+            var property = properties.Peek();
+            var remainingProperties = properties.Pop();
 
-            if (properties.Count() > 1)
+            if (remainingProperties.IsEmpty)
             {
-                if (!target.ContainsKey(property))
-                {
-                    target[property] = new T();
-                }
-
-                var newTarget = target[property];
-
-                if (newTarget == null)
-                {
-                    throw new DeltaException($"Property '{property}' is null");
-                }
-
-                RecursiveInplaceOverride(
-                    newTarget,
-                    properties.RemoveAt(0),
-                    value);
+                throw new DeltaException($"Can't override a dictionary at '{property}'");
             }
-            else
+            //  If the key doesn't exist in the dictionary, we create it
+            if (!target.ContainsKey(property))
             {
-                if (value is JsonElement)
-                {
-                    var text = JsonSerializer.Serialize(value);
-
-                    try
-                    {
-                        var newValue = JsonSerializer.Deserialize(
-                            text,
-                            typeof(T),
-                            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-                        if (newValue == null)
-                        {
-                            throw new DeltaException("Can't convert");
-                        }
-
-                        value = newValue;
-                    }
-                    catch (Exception ex)
-                    {
-                        throw new DeltaException(
-                            $"Can't convert '{text}' to expected type {typeof(T).FullName}",
-                            ex);
-                    }
-                }
-
-                var typedValue = value as T;
-
-                if (typedValue == null)
-                {
-                    throw new DeltaException(
-                        "The value isn't of the right type ; "
-                        + $"value is {value.GetType().FullName} but "
-                        + $"expecting {typeof(T).FullName}");
-                }
-                target[property] = typedValue;
+                target[property] = new T();
             }
+
+            var newTarget = target[property];
+
+            if (newTarget == null)
+            {
+                throw new DeltaException($"Property '{property}' is null");
+            }
+
+            RecursiveInplaceOverride(
+                newTarget,
+                remainingProperties,
+                textValue);
         }
 
         private static void RecursiveInplaceOverrideOnObject(
             object target,
-            IImmutableList<string> properties,
-            object value)
+            IImmutableStack<string> properties,
+            string textValue)
         {
-            var jsonProperty = properties.First();
-            var property = GetRealProperty(jsonProperty);
-            var propertyInfo = target.GetType().GetProperty(property);
+            var property = properties.Peek();
+            var realProperty = GetRealProperty(property);
+            var propertyInfo = target.GetType().GetProperty(realProperty);
+            var remainingProperties = properties.Pop();
 
             if (propertyInfo == null)
             {
-                throw new DeltaException($"Property '{jsonProperty}' doesn't exist on object");
+                throw new DeltaException($"Property '{property}' doesn't exist on object");
             }
 
-            if (properties.Count() > 1)
+            if (!remainingProperties.IsEmpty)
             {
                 var newTarget = propertyInfo.GetGetMethod()!.Invoke(target, new object[0]);
 
                 if (newTarget == null)
-                {
+                {   //  Property is null, we try to create it
                     newTarget = propertyInfo
                         .PropertyType
                         .GetConstructor(new Type[0])
@@ -221,52 +185,56 @@ namespace DeltaKustoIntegration.Parameterization
 
                 RecursiveInplaceOverride(
                     newTarget,
-                    properties.RemoveAt(0),
-                    value);
+                    remainingProperties,
+                    textValue);
             }
             else
             {
-                try
-                {
-                    if (value is JsonElement)
-                    {
-                        var text = JsonSerializer.Serialize(value);
+                var value = ParseValue(textValue, propertyInfo.PropertyType);
 
-                        try
-                        {
-                            var newValue = JsonSerializer.Deserialize(
-                                text,
-                                propertyInfo.PropertyType,
-                                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                propertyInfo.GetSetMethod()!.Invoke(target, new object[] { value });
+            }
+        }
 
-                            if (newValue == null)
-                            {
-                                throw new DeltaException("Can't convert");
-                            }
+        private static object ParseValue(string textValue, Type type)
+        {
+            if (type == typeof(string))
+            {
+                return textValue;
+            }
+            else if (type == typeof(bool))
+            {
+                var upperTextValue = textValue.ToLower();
 
-                            value = newValue;
-                        }
-                        catch (Exception ex)
-                        {
-                            throw new DeltaException(
-                                $"Can't convert '{text}' to expected type {propertyInfo.PropertyType.FullName}",
-                                ex);
-                        }
-                    }
-                    propertyInfo.GetSetMethod()!.Invoke(target, new object[] { value });
-                }
-                catch (DeltaException)
+                if (upperTextValue == "true")
                 {
-                    throw;
+                    return true;
                 }
-                catch (Exception ex)
+                else if (upperTextValue == "false")
                 {
-                    throw new DeltaException(
-                        "The value isn't of the right type ; "
-                        + $"value is {value.GetType().FullName} but "
-                        + $"expecting {propertyInfo.PropertyType.FullName}",
-                        ex);
+                    return false;
                 }
+                else
+                {
+                    throw new DeltaException($"Value '{textValue}' should be a boolean");
+                }
+            }
+            else if (type == typeof(int))
+            {
+                int value;
+
+                if (!int.TryParse(textValue, out value))
+                {
+                    throw new DeltaException($"Value '{textValue}' should be an integer");
+                }
+                else
+                {
+                    return value;
+                }
+            }
+            else
+            {
+                throw new DeltaException($"Type '{type.Name}' isn't supported in override");
             }
         }
 
@@ -301,13 +269,6 @@ namespace DeltaKustoIntegration.Parameterization
                 throw new DeltaException(
                     $"Illegal character '{illegalCharacter}' in property path '{property}'");
             }
-        }
-
-        private static (string path, object value) ValidateAndTransform(SingleOverride m)
-        {
-            return (
-                path: m.Path ?? throw new DeltaException("Path can't be null"),
-                value: m.Value ?? throw new DeltaException("Value can't be null"));
         }
     }
 }
