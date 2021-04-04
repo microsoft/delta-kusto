@@ -52,13 +52,20 @@ namespace delta_kusto
             var ct = tokenSource.Token;
             var availableClientVersions = await _apiClient.ActivateAsync();
 
-            _tracer.WriteLine(false, "Client Activated");
-            if (availableClientVersions != null && availableClientVersions.Any())
+            if (availableClientVersions == null)
             {
-                _tracer.WriteLine(
-                    false,
-                    "Newer clients available:  "
-                    + string.Join(", ", availableClientVersions));
+                _tracer.WriteLine(false, "Activating Client (skipped)");
+            }
+            else
+            {
+                _tracer.WriteLine(false, "Client Activated");
+                if (availableClientVersions.Any())
+                {
+                    _tracer.WriteLine(
+                        false,
+                        "Newer clients available:  "
+                        + string.Join(", ", availableClientVersions));
+                }
             }
 
             _tracer.WriteLine(false, $"Loading parameters at '{parameterFilePath}'");
