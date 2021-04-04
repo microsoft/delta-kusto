@@ -109,6 +109,41 @@ namespace DeltaKustoUnitTest
 
             Assert.Equal(newToken, main.TokenProvider!.Tokens["mine"].Token);
         }
+
+        [Fact]
+        public void TestExistingArraySubItem()
+        {
+            var main = new MainParameterization
+            {
+                Jobs = new Dictionary<string, JobParameterization>()
+                {
+                    {
+                        "myJob",
+                        new JobParameterization
+                        {
+                            Current = new SourceParameterization
+                            {
+                                Scripts = new []
+                                {
+                                    new SourceFileParametrization
+                                    {
+                                        FilePath="to-be-overriden"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+            var before = main.Jobs["myJob"].Current!.Scripts![0].FilePath;
+            var newFilePath = "hello.txt";
+
+            ParameterOverrideHelper.InplaceOverride(
+                main,
+                $"Jobs.myJob.current.scripts[0].filePath={newFilePath}");
+
+            Assert.Equal(newFilePath, main.Jobs["myJob"].Current!.Scripts![0].FilePath);
+        }
         #endregion
 
         #region Non-existing properties

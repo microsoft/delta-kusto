@@ -9,6 +9,21 @@ namespace DeltaKustoIntegration.Parameterization
 {
     public static class ParameterOverrideHelper
     {
+        #region Inner Types
+        private class PathComponent
+        {
+            public PathComponent(string property, int? index = null)
+            {
+                Property = property;
+                Index = index;
+            }
+
+            public string Property { get; }
+
+            public int? Index { get; }
+        }
+        #endregion
+
         public static void InplaceOverride(object target, params string[] pathOverrides)
         {
             InplaceOverride(target, (IEnumerable<string>)pathOverrides);
@@ -37,7 +52,7 @@ namespace DeltaKustoIntegration.Parameterization
                 catch (Exception ex)
                 {
                     throw new DeltaException(
-                        $"Issue with the following JSON parameter override:  '{pathOverrides}'",
+                        $"Issue with the following parameter override:  '{pathOverrides}'",
                         ex);
                 }
             }
@@ -60,19 +75,11 @@ namespace DeltaKustoIntegration.Parameterization
 
         public static void InplaceOverride(object target, string path, string textValue)
         {
-            //  Create a stack to efficiently recurse over the properties
-            var properties = ImmutableStack<string>.Empty;
-
-            foreach (var p in path.Split('.').Reverse())
-            {
-                properties = properties.Push(p);
-            }
-
             try
             {
-                ValidateProperties(properties);
+                var components = ParsePath(path);
 
-                RecursiveInplaceOverride(target, properties, textValue);
+                RecursiveInplaceOverride(target, components, textValue);
             }
             catch (DeltaException ex)
             {
@@ -82,7 +89,7 @@ namespace DeltaKustoIntegration.Parameterization
 
         private static void RecursiveInplaceOverride(
             object target,
-            IImmutableStack<string> properties,
+            IImmutableStack<PathComponent> components,
             string textValue)
         {   //  Determine if target is a dictionary or object
             var isDictionary = target.GetType().IsGenericType
@@ -109,37 +116,43 @@ namespace DeltaKustoIntegration.Parameterization
 
                 var specificMethod = genericMethod.MakeGenericMethod(valueType);
 
-                specificMethod.Invoke(null, new object[] { target, properties, textValue });
+                specificMethod.Invoke(null, new object[] { target, components, textValue });
             }
             else
             {
-                RecursiveInplaceOverrideOnObject(target, properties, textValue);
+                RecursiveInplaceOverrideOnObject(target, components, textValue);
             }
         }
 
         private static void RecursiveInplaceOverrideOnDictionary<T>(
             IDictionary<string, T> target,
-            IImmutableStack<string> properties,
+            IImmutableStack<PathComponent> components,
             string textValue) where T : class, new()
         {
-            var property = properties.Peek();
-            var remainingProperties = properties.Pop();
+            var component = components.Peek();
+            var remainingProperties = components.Pop();
 
             if (remainingProperties.IsEmpty)
             {
-                throw new DeltaException($"Can't override a dictionary at '{property}'");
+                throw new DeltaException($"Can't override a dictionary at '{component.Property}'");
+            }
+            if (component.Index != null)
+            {
+                throw new DeltaException(
+                    $"Dictionary can't be accessed with "
+                    + $"an index at '{component.Property}'");
             }
             //  If the key doesn't exist in the dictionary, we create it
-            if (!target.ContainsKey(property))
+            if (!target.ContainsKey(component.Property))
             {
-                target[property] = new T();
+                target[component.Property] = new T();
             }
 
-            var newTarget = target[property];
+            var newTarget = target[component.Property];
 
             if (newTarget == null)
             {
-                throw new DeltaException($"Property '{property}' is null");
+                throw new DeltaException($"Property '{component.Property}' is null");
             }
 
             RecursiveInplaceOverride(
@@ -150,13 +163,14 @@ namespace DeltaKustoIntegration.Parameterization
 
         private static void RecursiveInplaceOverrideOnObject(
             object target,
-            IImmutableStack<string> properties,
+            IImmutableStack<PathComponent> components,
             string textValue)
         {
-            var property = properties.Peek();
+            var component = components.Peek();
+            var property = component.Property;
             var realProperty = GetRealProperty(property);
             var propertyInfo = target.GetType().GetProperty(realProperty);
-            var remainingProperties = properties.Pop();
+            var remainingProperties = components.Pop();
 
             if (propertyInfo == null)
             {
@@ -181,6 +195,25 @@ namespace DeltaKustoIntegration.Parameterization
                     }
 
                     propertyInfo.GetSetMethod()!.Invoke(target, new[] { newTarget });
+                }
+
+                if (component.Index != null)
+                {
+                    var index = component.Index.Value;
+                    var array = newTarget as object[];
+
+                    if (array == null)
+                    {
+                        throw new DeltaException(
+                            $"Property '{property}' can't be accessed by index");
+                    }
+                    if (array.Length <= component.Index)
+                    {
+                        throw new DeltaException(
+                            $"Property '{property}' index '{index}' is out of bound");
+                    }
+
+                    newTarget = array[index];
                 }
 
                 RecursiveInplaceOverride(
@@ -238,36 +271,89 @@ namespace DeltaKustoIntegration.Parameterization
             }
         }
 
-        private static string GetRealProperty(string jsonPropertyName)
+        private static string GetRealProperty(string pathPropertyName)
         {
-            var property = char.ToUpper(jsonPropertyName[0]) + jsonPropertyName.Substring(1);
+            var property = char.ToUpper(pathPropertyName[0]) + pathPropertyName.Substring(1);
 
             return property;
         }
 
-        private static void ValidateProperties(IEnumerable<string> properties)
+        private static IImmutableStack<PathComponent> ParsePath(string path)
         {
-            foreach (var property in properties)
+            var components = path
+                .Split('.')
+                .Select(p => ParseComponent(p))
+                .Reverse();
+
+            //  Create a stack to efficiently recurse over the properties
+            var stack = ImmutableStack<PathComponent>.Empty;
+
+            foreach (var c in components)
             {
-                ValidateProperty(property);
+                stack = stack.Push(c);
             }
+
+            return stack;
         }
 
-        private static void ValidateProperty(string property)
+        private static PathComponent ParseComponent(string componentText)
         {
-            if (property.Length == 0)
+            if (componentText.Length == 0)
             {
                 throw new DeltaException("Empty property within property path");
             }
 
-            var illegalCharacter = property
+            var illegalCharacter = componentText
                 .Where(c => !(char.IsLetter(c) || char.IsDigit(c) || c != '_'))
                 .FirstOrDefault();
 
             if (illegalCharacter != default(char))
             {
                 throw new DeltaException(
-                    $"Illegal character '{illegalCharacter}' in property path '{property}'");
+                    $"Illegal character '{illegalCharacter}' in property path '{componentText}'");
+            }
+
+            var bracketOpenIndex = componentText.IndexOf('[');
+
+            if (bracketOpenIndex < 0)
+            {
+                return new PathComponent(componentText);
+            }
+            else
+            {
+                var bracketCloseIndex = componentText.IndexOf(']');
+
+                if (bracketCloseIndex < 0)
+                {
+                    throw new DeltaException(
+                        $"No corresponding closing bracket in property path '{componentText}'");
+                }
+                if (bracketCloseIndex < bracketOpenIndex)
+                {
+                    throw new DeltaException(
+                        $"Closing bracket before opening bracket in "
+                        + $"property path '{componentText}'");
+                }
+                if (bracketOpenIndex == 0)
+                {
+                    throw new DeltaException(
+                        $"Opening bracket should follow property name in "
+                        + $"property path '{componentText}'");
+                }
+
+                var inBrackets = componentText.Substring(
+                    bracketOpenIndex + 1,
+                    Math.Max(0, bracketCloseIndex - bracketOpenIndex - 1));
+                int index;
+
+                if (!int.TryParse(inBrackets, out index))
+                {
+                    throw new DeltaException(
+                        $"Brackets should contain an integer in "
+                        + $"property path '{componentText}'");
+                }
+
+                return new PathComponent(componentText.Substring(0, bracketOpenIndex), index);
             }
         }
     }
