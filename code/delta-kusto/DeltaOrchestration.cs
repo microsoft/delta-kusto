@@ -109,6 +109,7 @@ namespace delta_kusto
             JobParameterization job)
         {
             _tracer.WriteLine(false, $"Job {jobName}");
+            _tracer.WriteLine(false, "");
             try
             {
                 _tracer.WriteLine(false, "Current DB Provider...  ");
