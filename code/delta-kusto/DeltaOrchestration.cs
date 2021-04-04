@@ -65,10 +65,6 @@ namespace delta_kusto
 
             var parameters =
                 await LoadParameterizationAsync(parameterFilePath, pathOverrides);
-            var parameterDirectory = Path.GetDirectoryName(parameterFilePath)!;
-
-            //  Set "current" directory in parameter file directory
-            Directory.SetCurrentDirectory(parameterDirectory);
 
             try
             {
