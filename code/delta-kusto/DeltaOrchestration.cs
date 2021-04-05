@@ -115,7 +115,7 @@ namespace delta_kusto
             string jobName,
             JobParameterization job)
         {
-            _tracer.WriteLine(false, $"Job {jobName}");
+            _tracer.WriteLine(false, $"Job '{jobName}':");
             _tracer.WriteLine(false, "");
             try
             {

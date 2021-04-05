@@ -21,7 +21,7 @@ namespace DeltaKustoLib
             {
                 if(isVerbose)
                 {
-                    Console.Write("[Verbose]  ");
+                    Console.Write($"[Verbose - {DateTime.Now.ToString("HH:mm:ss.f")}]  ");
                 }
                 Console.WriteLine(text);
             }

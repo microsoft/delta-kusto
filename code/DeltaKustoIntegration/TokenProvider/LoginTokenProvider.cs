@@ -19,7 +19,8 @@ namespace DeltaKustoIntegration.TokenProvider
         private readonly string _clientId;
         private readonly string _secret;
 
-        private ConcurrentDictionary<Uri, string> _tokenCache = new ConcurrentDictionary<Uri, string>();
+        private ConcurrentDictionary<string, string> _tokenCache =
+            new ConcurrentDictionary<string, string>();
 
         public LoginTokenProvider(
             ITracer tracer,
@@ -39,11 +40,13 @@ namespace DeltaKustoIntegration.TokenProvider
             Uri clusterUri,
             CancellationToken ct)
         {
-            if (_tokenCache.ContainsKey(clusterUri))
+            var cacheKey = clusterUri.ToString();
+
+            if (_tokenCache.ContainsKey(cacheKey))
             {
                 _tracer.WriteLine(true, "Token was cached");
 
-                return _tokenCache[clusterUri];
+                return _tokenCache[cacheKey];
             }
             else
             {
@@ -51,7 +54,11 @@ namespace DeltaKustoIntegration.TokenProvider
                 {
                     _tracer.WriteLine(true, "No token cached");
 
-                    return await RetrieveTokenAsync(clusterUri, ct);
+                    var token = await RetrieveTokenAsync(clusterUri, ct);
+
+                    _tokenCache[cacheKey] = token;
+
+                    return token;
                 }
                 catch (Exception ex)
                 {
@@ -100,8 +107,6 @@ namespace DeltaKustoIntegration.TokenProvider
                         + $"  '{responseText}'");
                 }
                 var accessToken = tokenMap["access_token"];
-
-                _tokenCache[clusterUri] = accessToken;
 
                 _tracer.WriteLine(true, "LoginTokenProvider.RetrieveTokenAsync end");
 
