@@ -42,7 +42,87 @@ with(format=txt)
     myTable | count
 }
 
-
 .create-or-alter function with (docstring = "Table access example") TableAccess(tableName:string) {
     table(tableName) | count
+}
+
+.create-or-alter function with (folder = "Covid19_Bing") Covid19_flat {    
+    let Historic =
+    Covid19_Bing
+    | extend Id = iff(Id == "/" and isnotempty(Location.CountryName) and Location.CountryName != "Worldwide", strcat('/', Location.CountryName), Id)
+    | project 
+        ReportDate,
+        Country = tostring(Location.CountryName),
+        Longitude = toreal(Location.Longitude),
+        Latitude = toreal(Location.Latitude),
+        Confirmed = tolong(Confirmed.Value), ConfirmedChange = tolong(Confirmed.Change), 
+        Active = tolong(Active.Value), ActiveChange = tolong(Active.Change), 
+        Deaths = tolong(Deaths.Value), DeathsChange = tolong(Deaths.Change),
+        Id,  
+        Location;
+     let IdMap = Historic | where ReportDate > ago(5d) | extend State = Location.StateCode | extend StateOrCountry= iff(isempty(State), Country, State) |  summarize by StateOrCountry, Id;         
+     let Recent = Covid19_map2 
+        | project 
+                ReportDate = LastUpdated,
+                Country = tostring(AreaInfo.CountryName),
+                Longitude = todouble(AreaInfo.Longitude),
+                Latitude = todouble(AreaInfo.Latitude),
+                Confirmed = tolong(Confirmed.Value), ConfirmedChange = tolong(Confirmed.Change),
+                Active = tolong(Active.Value), ActiveChange = tolong(Active.Change),
+                Deaths = tolong(Deaths.Value), DeathsChange = tolong(Deaths.Change),
+                Recovered = tolong(Recovered.Value), RecoveredChange = tolong(Recovered.Change),
+                State = tostring(AreaInfo.StateName)
+        | extend Active = iff(isempty(Active) and Confirmed >0 , Confirmed - Deaths - iff(isempty(Recovered), 0, Recovered), Active)
+        | extend StateOrCountry = iff(isempty(State), Country, State)
+        | join (IdMap) on StateOrCountry | project-away StateOrCountry, StateOrCountry1, State
+        | summarize arg_max(ReportDate, *) by Id;
+        Historic | union Recent
+}
+
+.create-or-alter function with (docstring = "Calculate the dot product of 2 numerical arrays",folder = "Packages\\Series") series_dot_product_fl(vec1:dynamic,vec2:dynamic) {
+    let elem_prod = series_multiply(vec1, vec2);
+    let cum_sum = series_iir(elem_prod, dynamic([1]), dynamic([1,-1]));
+    todouble(cum_sum[-1])
+}
+
+.create-or-alter function with (docstring = "Calculate moving average of specified width",folder = "Packages\\Series") series_moving_avg_fl(y_series:dynamic,n:int,center:bool=false) {
+    series_fir(y_series, repeat(1, n), true, center)
+}
+
+.create-or-alter function with (docstring = "Returns version information for the Python engine and the specified packages",folder = "Packages\\Utils") get_modules_version_sf(modules:(*)) {
+    let code =
+    'import importlib\n'
+    'import sys\n'
+    '\n'
+    'result = df\n'
+    'for i in range(df.shape[0]):\n'
+    '    try:\n'
+    '        m = importlib.import_module(df.iloc[i, 0])\n'
+    '        result.loc[i, "ver"] = m.__version__ if hasattr(m, "__version__") else "missing __version__ attribute"\n'
+    '    except Exception as ex:\n'
+    '        result.loc[i, "ver"] = "ERROR: " + (ex.msg if hasattr(ex, "msg") else "exception, no msg")\n'
+    'id = df.shape[0]\n'
+    'result.loc[id, df.columns[0]] = "Python"\n'
+    'result.loc[id, "ver"] = sys.version\n';
+    modules | evaluate python(code, 'df(*),ver:string')
+}
+
+.create-or-alter function with (docstring = "Test Doc",folder = "PQTest") PQ_ComplexTableParam(d:(a:string,b:int,c":timespan),q:(*),j:dynamic,e:bool=true,f:string="TestDefault",g:int=42,h:long=345678,i:real=real(+inf),k:real=0.444,l:timespan=time(1.00:00:00),m:decimal=decimal(0.33),n:datetime=datetime(2000-01-01T12:34:56.7890000Z),o:datetime=datetime(2020-10-19T18:20:14.0916494Z),p:decimal=decimal(100000),r:guid=guid(74be27de-1e4e-49d9-b579-fe0b331d3642),s:string="\'") {
+    d
+}
+
+.create-or-alter function with (folder = "StormEventsFunctions") StormEventsStates {
+    StormEvents
+    | summarize by State
+}
+
+.create-or-alter function with (folder = "StormEventsFunctions") StormsReportedBySource(source:string) {
+    StormEvents
+    | where Source == source
+}
+
+.create-or-alter function with (folder = "StormEventsFunctions") StormsReportedByStateAndSource(state:string,source:string) {
+    StormEvents
+    | where State == state
+    | where Source == source
 }
