@@ -103,7 +103,10 @@ namespace DeltaKustoLib.KustoModel
                 ? new TypedParameterModel(
                     input.Name,
                     new TableParameterModel(input.Columns.Select(c => new ColumnModel(c.Name, c.CslType))))
-                : new TypedParameterModel(input.Name, input.CslType, null);
+                : new TypedParameterModel(
+                    input.Name,
+                    input.CslType,
+                    input.CslDefaultValue != null ? "=" + input.CslDefaultValue : null);
         }
 
         private static void ValidateCommandTypes(IEnumerable<(Type type, string friendlyName)> commandTypes)
