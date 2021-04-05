@@ -87,8 +87,8 @@ namespace DeltaKustoLib.CommandModel
             var builder = new StringBuilder();
             var properties = new[]
             {
-                Folder!=null ? $"folder=\"{Folder}\"" : null,
-                DocString!=null ? $"docstring=\"{DocString}\"" : null,
+                Folder!=null ? $"folder=\"{EscapeString(Folder)}\"" : null,
+                DocString!=null ? $"docstring=\"{EscapeString(DocString)}\"" : null,
                 $"skipvalidation=\"{SkipValidation}\""
             };
             var nonEmptyProperties = properties.Where(p => p != null);
@@ -220,7 +220,7 @@ namespace DeltaKustoLib.CommandModel
                 return new TypedParameterModel(
                     name.SimpleName,
                     typeExpression!.Type.ValueText,
-                    defaultValue!=null ? defaultValue.ToString() : null);
+                    defaultValue != null ? defaultValue.ToString() : null);
             }
             else
             {

@@ -83,12 +83,13 @@ namespace DeltaKustoUnitTest.CommandParsing
             };
             var parameterText = string
                 .Join(", ", parameters.Select(p => $"{p.ParameterName}:{p.PrimitiveType}"));
-            var folder = "StormEventsFunctions";
+            var folder = "Storm\\Functions";
             var docString = "";
             var skipValidation = true;
             var command = ParseOneCommand(
                 ".create-or-alter function with "
-                + $"(folder = \"{folder}\", docstring = \"{docString}\", skipvalidation = \"{skipValidation}\") "
+                + $"(folder = \"{folder.Replace("\\", "\\\\")}\", "
+                + $"docstring = \"{docString}\", skipvalidation = \"{skipValidation}\") "
                 + $"{name} ({parameterText}) {{ {body} }}");
 
             Assert.IsType<CreateFunctionCommand>(command);

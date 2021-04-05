@@ -52,6 +52,14 @@ namespace DeltaKustoLib.CommandModel
         }
         #endregion
 
+        protected string EscapeString(string text)
+        {
+            return text
+                .Replace("\\", "\\\\")
+                .Replace("\"", "\\\"")
+                .Replace("'", "\\'");
+        }
+
         private static CommandBase CreateCommand(string script, KustoCode code)
         {
             try
