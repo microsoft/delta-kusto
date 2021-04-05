@@ -74,6 +74,8 @@ namespace DeltaKustoIntegration.TokenProvider
             //  Implementation of https://docs.microsoft.com/en-us/azure/data-explorer/kusto/api/rest/request#examples
             using (var client = _httpClientFactory.CreateHttpClient())
             {
+                _tracer.WriteLine(true, "LoginTokenProvider - Post credentials");
+
                 var loginUrl = $"https://login.microsoftonline.com/{_tenantId}/oauth2/token";
                 var response = await client.PostAsync(
                     loginUrl,
