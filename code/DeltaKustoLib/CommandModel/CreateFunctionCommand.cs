@@ -200,14 +200,15 @@ namespace DeltaKustoLib.CommandModel
         {
             var typeParameters = functionParameters
                 .GetDescendants<FunctionParameter>()
-                .Select(n => n.GetUniqueImmediateDescendant<NameAndTypeDeclaration>("Function Parameter Declaration"))
-                .Select(n => GetParameter(n));
+                .Select(fp => GetParameter(fp));
 
             return typeParameters;
         }
 
-        private static TypedParameterModel GetParameter(NameAndTypeDeclaration declaration)
+        private static TypedParameterModel GetParameter(FunctionParameter functionParameter)
         {
+            var declaration = functionParameter.NameAndType;
+            var defaultValue = functionParameter.DefaultValue;
             var (name, type) = declaration
                 .GetImmediateDescendants<SyntaxNode>()
                 .ExtractChildren<NameDeclaration, TypeExpression>("Parameter pair");
@@ -216,7 +217,10 @@ namespace DeltaKustoLib.CommandModel
             {
                 var typeExpression = type as PrimitiveTypeExpression;
 
-                return new TypedParameterModel(name.SimpleName, typeExpression!.Type.ValueText);
+                return new TypedParameterModel(
+                    name.SimpleName,
+                    typeExpression!.Type.ValueText,
+                    defaultValue!=null ? defaultValue.ToString() : null);
             }
             else
             {

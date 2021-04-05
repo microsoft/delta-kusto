@@ -78,8 +78,8 @@ namespace DeltaKustoUnitTest.CommandParsing
             var body = "StormEvents | where State == state | where Source == source";
             var parameters = new[]
             {
-                new TypedParameterModel("state", "string"),
-                new TypedParameterModel("source", "string")
+                new TypedParameterModel("state", "string", null),
+                new TypedParameterModel("source", "string", null)
             };
             var parameterText = string
                 .Join(", ", parameters.Select(p => $"{p.ParameterName}:{p.PrimitiveType}"));
@@ -133,7 +133,7 @@ namespace DeltaKustoUnitTest.CommandParsing
                 "decimal"
             };
             var parameters = scalarTypes
-                .Select(t => new TypedParameterModel($"param{t}", t));
+                .Select(t => new TypedParameterModel($"param{t}", t, null));
             var parameterText =
                 string.Join(", ", parameters.Select(p => $"{p.ParameterName}:{p.PrimitiveType}"));
             var command = ParseOneCommand(
@@ -171,6 +171,35 @@ namespace DeltaKustoUnitTest.CommandParsing
             catch (ArgumentNullException)
             {
             }
+        }
+
+        [Fact]
+        public void DefaultValueParameter()
+        {
+            var name = "myfct";
+            var body = "print state, qty, tolerance";
+            var parameters = new[]
+            {
+                new TypedParameterModel("state", "string", "=\"dc\""),
+                new TypedParameterModel("qty", "int", "=3"),
+                new TypedParameterModel("tolerance", "double", "=8.523"),
+                new TypedParameterModel("duration", "timespan", "=3d")
+            };
+            var parameterText = string.Join(", ", parameters.Select(p => p.ToString()));
+            var command = ParseOneCommand(
+                ".create-or-alter function "
+                + $"{name} ({parameterText}) {{ {body} }}");
+
+            Assert.IsType<CreateFunctionCommand>(command);
+
+            var createFunctionCommand = (CreateFunctionCommand)command;
+
+            Assert.Equal(name, createFunctionCommand.ObjectName);
+            Assert.True(createFunctionCommand
+                .Parameters
+                .Zip(parameters, (p1, p2) => p1.Equals(p2))
+                .All(p => p));
+            Assert.Equal(body, createFunctionCommand.Body);
         }
 
         [Fact]

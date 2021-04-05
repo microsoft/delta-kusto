@@ -9,6 +9,8 @@ namespace DeltaKustoLib.CommandModel
 
         public string? PrimitiveType { get; }
 
+        public string? DefaultValue { get; }
+
         public TableParameterModel? ComplexType { get; }
 
         private TypedParameterModel(string parameterName)
@@ -20,13 +22,17 @@ namespace DeltaKustoLib.CommandModel
             ParameterName = parameterName;
         }
 
-        public TypedParameterModel(string parameterName, string primitiveType) : this(parameterName)
+        public TypedParameterModel(
+            string parameterName,
+            string primitiveType,
+            string? defaultValue) : this(parameterName)
         {
             if (string.IsNullOrWhiteSpace(primitiveType))
             {
                 throw new ArgumentNullException(nameof(primitiveType));
             }
             PrimitiveType = primitiveType;
+            DefaultValue = defaultValue;
         }
 
         public TypedParameterModel(string parameterName, TableParameterModel tableSchema)
@@ -39,8 +45,8 @@ namespace DeltaKustoLib.CommandModel
         {
             return other != null
                 && ParameterName == other.ParameterName
-                && (PrimitiveType!=null
-                ? PrimitiveType.Equals(other.PrimitiveType)
+                && (PrimitiveType != null
+                ? PrimitiveType.Equals(other.PrimitiveType) && DefaultValue == other.DefaultValue
                 : ComplexType!.Equals(other.ComplexType));
         }
 
@@ -48,7 +54,7 @@ namespace DeltaKustoLib.CommandModel
         {
             if (PrimitiveType != null)
             {
-                return $"['{ParameterName}']:{PrimitiveType}";
+                return $"['{ParameterName}']:{PrimitiveType}{DefaultValue}";
             }
             else
             {
