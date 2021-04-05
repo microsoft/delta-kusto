@@ -1,3 +1,3 @@
-﻿.create function MyFunction() { 42 }
+﻿.create function with (folder = "sample\\simple") MyFunction() { 42 }
 
 .create function YourFunction() { 74 }
