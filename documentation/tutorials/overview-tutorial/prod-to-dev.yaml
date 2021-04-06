@@ -1,0 +1,15 @@
+sendErrorOptIn:  true
+failIfDrops:  false
+jobs:
+  prod-to-dev-sync:
+    current:
+      adx:
+          clusterUri:  to-be-overriden
+          database:  dev
+    target:
+      adx:
+          clusterUri:  to-be-overriden
+          database:  prod
+    action:
+        filePath:  dev-update.kql
+        pushToCurrent:  true

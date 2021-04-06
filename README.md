@@ -56,9 +56,9 @@ The *current* script could represent the last state of a production database and
 
 This scenario is useful to reverse engineer changes done *manually* to an environment.
 
-### 3. Empty (current) to Kusto scripts (target)
+### 3. Empty (current) to ADX Database (target)
 
-This is a special case of the previous scenario where the current script is empty or omitted.  Indeed, the *current* source is optional (target is mandatory).  
+This is a special case of the previous scenario where the current script is empty or omitted.  Indeed, the *current* source is optional (target is mandatory).
 
 ![Empty to ADX](documentation/empty-to-adx.png)
 

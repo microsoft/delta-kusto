@@ -1,0 +1,19 @@
+sendErrorOptIn:  true
+failIfDrops:  true
+jobs:
+  push-script-to-prod:
+    current:
+      adx:
+          clusterUri:  to-be-overriden
+          database:  prod
+    target:
+      scripts:
+        - filePath:  dev-state.kql
+    action:
+        filePath:  prod-update.kql
+        pushToCurrent:  true
+tokenProvider:
+    login:
+        tenantId:  to-be-overriden
+        clientId:  to-be-overriden
+        secret:  to-be-overriden

@@ -4,4 +4,45 @@ In this tutorial, we are going to use Delta Kusto and tour its funcitonalities. 
 
 Because of this breath we won't cover details such as how to download Delta Kusto or authentication to ADX Clusters.  We suggest looking at [other tutorials](README.md) for more detailed tasks.
 
-## .
+## Brownfield Dev:  Empty to ADX Database
+
+[dev-start-samples.kql](dev-start-samples.kql)
+
+[download-dev.yaml](download-dev.yaml)
+
+```
+delta-kusto -p download-dev.yaml 
+```
+
+```
+cat dev-state.kql
+```
+
+##  Push to prod:  ADX Database (current) to Kusto scripts (target)
+
+[push-to-prod.yaml](push-to-prod.yaml)
+
+```
+delta-kusto -p push-to-prod.yaml
+```
+
+Look at prod
+
+##  Dev some more
+
+[modify-dev.kql](modify-dev.kql)
+
+Trigger the 'fail to drop'
+
+[push-to-prod.yaml](push-to-prod.yaml)
+
+##  Bring back prod:  ADX Database (current) to ADX Database (target)
+
+Bring prod back to dev
+
+[prod-to-dev.yaml](prod-to-dev.yaml)
+
+## Controlled environment:   Kusto scripts (current) to Kusto scripts (target)
+
+cp dev-start-samples.kql prod-state.kql
+

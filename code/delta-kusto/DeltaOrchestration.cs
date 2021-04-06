@@ -258,7 +258,7 @@ namespace delta_kusto
             {
                 builder.Add(new MultiFilesActionProvider(_fileGateway, action.FolderPath));
             }
-            if (action.PushToCurrentCluster)
+            if (action.PushToCurrent)
             {
                 if (tokenProvider == null)
                 {

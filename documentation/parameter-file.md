@@ -29,7 +29,7 @@ jobs:
         filePath:  "string"
         folderPath:  "string"
         pushToConsole:  "boolean"
-        pushToCurrentCluster:  "boolean"
+        pushToCurrent:  "boolean"
 tokenProvider:
     tokens:
         myToken:
@@ -112,9 +112,9 @@ Name|Type|Required|Default|Value
 filePath|string|No|N/A|Specify a file path to export all Kusto delta commands
 folderPath|string|No|N/A|Specify a folder path to export all Kusto delta commands.  Commands will be pushed in a folder structure by type (e.g. all functions will be under a *functions* folder)
 pushToConsole|boolean|No|false|If `true`, the delta commands are *printed* on the console during execution.
-pushToCurrentCluster|boolean|No|false|If `true`, the commands are executed on the *current* cluster.  For this to work, the current source of the [Job object](#job-object) must be an [ADX source object](#adx-source-object).
+pushToCurrent|boolean|No|false|If `true`, the commands are executed on the *current* database.  For this to work, the current source of the [Job object](#job-object) must be an [ADX source object](#adx-source-object).
 
-Although all properties are not required, at least one must be non-empty or true.  Both `filePath` and `folderPath` can't both be specified.  Either `filePath` and `folderPath` can be specified with none of, one of or both `pushToConsole` and `pushToCurrentCluster`.
+Although all properties are not required, at least one must be non-empty or true.  Both `filePath` and `folderPath` can't both be specified.  Either `filePath` and `folderPath` can be specified with none of, one of or both `pushToConsole` and `pushToCurrent`.
 
 ### Token object
 

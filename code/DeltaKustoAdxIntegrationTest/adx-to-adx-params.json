@@ -21,7 +21,7 @@
         }
       },
       "action": {
-        "pushToCurrentCluster": true,
+        "pushToCurrent": true,
         "filePath": "to-be-overriden"
       }
     }

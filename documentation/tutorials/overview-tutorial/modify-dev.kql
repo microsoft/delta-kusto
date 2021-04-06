@@ -1,0 +1,10 @@
+//  Change the folder of 'InterestingStates'
+.create-or-alter function with (docstring = "A list of interesting states",folder = "states") InterestingStates {
+    dynamic(["WASHINGTON", "FLORIDA", "GEORGIA", "NEW YORK"])
+}
+
+//  Drop function 'Add'
+.drop function Add
+
+//  Create a new function
+.create-or-alter function Substract(a:real,b:real) {a-b}

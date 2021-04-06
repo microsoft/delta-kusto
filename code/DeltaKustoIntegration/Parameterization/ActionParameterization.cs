@@ -12,13 +12,13 @@ namespace DeltaKustoIntegration.Parameterization
 
         public bool PushToConsole { get; set; } = false;
 
-        public bool PushToCurrentCluster { get; set; } = false;
+        public bool PushToCurrent { get; set; } = false;
 
         internal void Validate()
         {
             if (string.IsNullOrWhiteSpace(FilePath)
                 && string.IsNullOrWhiteSpace(FolderPath)
-                && !PushToCurrentCluster
+                && !PushToCurrent
                 && !PushToConsole)
             {
                 throw new DeltaException("No action defined");

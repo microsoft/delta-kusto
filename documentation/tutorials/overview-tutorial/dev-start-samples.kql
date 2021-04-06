@@ -1,0 +1,12 @@
+//  Here are a few functions taken from the help/Samples database
+
+.create-or-alter function with (docstring = "A list of interesting states",folder = "Helpers") InterestingStates {
+    dynamic(["WASHINGTON", "FLORIDA", "GEORGIA", "NEW YORK"])
+}
+
+.create-or-alter function  Add(a:real,b:real) {a+b}
+
+.create-or-alter function with (docstring = "Direct table access example") DirectTableAccess(myTable:(*)) {
+    myTable | count
+}
+
