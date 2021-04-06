@@ -13,3 +13,8 @@ jobs:
     action:
         filePath:  dev-update.kql
         pushToCurrent:  true
+tokenProvider:
+    login:
+        tenantId:  to-be-overriden
+        clientId:  to-be-overriden
+        secret:  to-be-overriden

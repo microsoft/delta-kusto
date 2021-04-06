@@ -12,7 +12,7 @@ Because of this breath we won't cover details such as how to download Delta Kust
     * Hint to multi-tenant scenario
 * Specific diagrams to scenario
 
-## Brownfield Dev:  Empty to ADX Database
+## Brownfield Dev
 
 [dev-start-samples.kql](dev-start-samples.kql)
 
@@ -26,7 +26,7 @@ delta-kusto -p download-dev.yaml
 cat dev-state.kql
 ```
 
-##  Push to prod:  ADX Database (current) to Kusto scripts (target)
+##  Push to prod
 
 [push-to-prod.yaml](push-to-prod.yaml)
 
@@ -52,5 +52,9 @@ Bring prod back to dev
 
 ## Controlled environment:   Kusto scripts (current) to Kusto scripts (target)
 
+[modify-dev.kql](modify-dev.kql)
+
 cp dev-start-samples.kql prod-state.kql
+
+compare with dev-state
 
