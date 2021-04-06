@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using DeltaKustoApi.Controllers.ClientVersion;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -16,31 +17,31 @@ namespace DeltaKustoApi.Controllers.Activation
     [Route("[controller]")]
     public class ActivationController : ControllerBase
     {
+        private readonly ClientVersionCacheProxy _clientVersionCacheProxy;
         private readonly ILogger<ActivationController> _logger;
         private readonly TelemetryWriter _telemetryWriter;
 
         public ActivationController(
+            ClientVersionCacheProxy clientVersionCacheProxy,
             ILogger<ActivationController> logger,
             TelemetryWriter telemetryWriter)
         {
+            _clientVersionCacheProxy = clientVersionCacheProxy;
             _logger = logger;
             _telemetryWriter = telemetryWriter;
         }
 
-        public ActivationOutput Post(ActivationInput input)
+        public async Task<ActivationOutput> PostAsync(ActivationInput input)
         {
-            try
-            {
-                _telemetryWriter.PostTelemetry(input, Request);
+            var newestVersions = await _clientVersionCacheProxy.GetNewestClientVersionsAsync(
+                input.ClientInfo.ClientVersion);
 
-                return new ActivationOutput();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex.Message);
+            _telemetryWriter.PostTelemetry(input, Request);
 
-                return new ActivationOutput();
-            }
+            return new ActivationOutput
+            {
+                NewestVersions = newestVersions
+            };
         }
     }
 }
