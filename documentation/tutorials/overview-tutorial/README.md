@@ -4,6 +4,13 @@ In this tutorial, we are going to use Delta Kusto and tour its funcitonalities. 
 
 Because of this breath we won't cover details such as how to download Delta Kusto or authentication to ADX Clusters.  We suggest looking at [other tutorials](README.md) for more detailed tasks.
 
+*   Explain CLI
+* Explain parameter file
+* Explain overrides
+* Using one cluster but could be many
+    * Hint to multi-tenant scenario
+* Specific diagrams to scenario
+
 ## Brownfield Dev:  Empty to ADX Database
 
 [dev-start-samples.kql](dev-start-samples.kql)
