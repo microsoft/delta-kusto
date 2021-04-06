@@ -1,0 +1,11 @@
+sendErrorOptIn:  true
+jobs:
+  offline-delta:
+    current:
+      scripts:
+        - filePath:  prod-state.kql
+    target:
+      scripts:
+        - filePath:  dev-state.kql
+    action:
+        filePath:  prod-update.kql

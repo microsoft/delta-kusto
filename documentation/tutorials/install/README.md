@@ -4,6 +4,10 @@ This article explains how to install [Delta Kusto](https://github.com/microsoft/
 
 This is typically done within a CI/CD environment, i.e. on an ephemeral compute.  But it can also be done on a laptop.
 
+This tutorial is also available in video format:
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/ywCkANu0RCg" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
 ## Releases
 
 Delta Kusto releases are available on the [Delta Kusto GitHub repo](https://github.com/microsoft/delta-kusto).
