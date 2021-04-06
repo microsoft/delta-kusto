@@ -4,6 +4,7 @@ In this tutorial, we are going to use Delta Kusto and tour its funcitonalities. 
 
 Because of this breath we won't cover details such as how to download Delta Kusto or authentication to ADX Clusters.  We suggest looking at [other tutorials](README.md) for more detailed tasks.
 
+*   Recommend other tutorials
 *   Explain CLI
 * Explain parameter file
 * Explain overrides

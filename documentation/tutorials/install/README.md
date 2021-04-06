@@ -69,3 +69,9 @@ This makes it more easily available for running.
 In both Windows and Linux case we should be able to run the CLI and obtain something similar to this output:
 
 ![Test output](test.png)
+
+## Summary
+
+We have installed the Delta Kusto CLI.
+
+We are now use it.  See [the Delta Kusto overview tutorial](../overview-tutorial/README.md) for examples.
