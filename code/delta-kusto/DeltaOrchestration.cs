@@ -48,10 +48,8 @@ namespace delta_kusto
         {
             _tracer.WriteLine(false, "Activating Client...");
 
-            var activateTask = _apiClient.ActivateAsync();
-            var availableClientVersions = await _apiClient.LatestClientVersionsAsync();
+            var availableClientVersions = await _apiClient.ActivateAsync();
 
-            await activateTask;
             if (availableClientVersions == null)
             {
                 _tracer.WriteLine(false, "Activating Client (skipped)");

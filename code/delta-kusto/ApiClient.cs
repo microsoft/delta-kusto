@@ -2,6 +2,7 @@
 using DeltaKustoLib;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -32,13 +33,8 @@ namespace delta_kusto
         private class ActivationOutput
         {
             public ApiInfo ApiInfo { get; set; } = new ApiInfo();
-        }
 
-        private class ClientVersionOutput
-        {
-            public ApiInfo ApiInfo { get; set; } = new ApiInfo();
-
-            public string[] AvailableClientVersions { get; set; } = new string[0];
+            public IImmutableList<string> NewestVersions { get; set; } = ImmutableArray<string>.Empty;
         }
 
         private class ErrorInput
@@ -108,7 +104,7 @@ namespace delta_kusto
             _httpClientFactory = httpClientFactory;
         }
 
-        public async Task ActivateAsync()
+        public async Task<IImmutableList<string>?> ActivateAsync()
         {
             if (_doApiCalls)
             {
@@ -127,36 +123,15 @@ namespace delta_kusto
                         ct);
 
                     _tracer.WriteLine(true, "ActivateAsync - End");
+
+                    if (output != null)
+                    {
+                        return output.NewestVersions;
+                    }
                 }
                 catch
                 {
                     _tracer.WriteLine(true, "ActivateAsync - Failed");
-                }
-            }
-        }
-
-        public async Task<string[]?> LatestClientVersionsAsync()
-        {
-            if (_doApiCalls)
-            {
-                var tokenSource = new CancellationTokenSource(TimeOuts.API);
-                var ct = tokenSource.Token;
-
-                _tracer.WriteLine(true, "LatestClientVersionsAsync - Start");
-                try
-                {
-                    var output = await GetAsync<ClientVersionOutput>(
-                        "/clientVersion",
-                        ct,
-                        ("currentClientVersion", Program.AssemblyVersion));
-
-                    _tracer.WriteLine(true, "LatestClientVersionsAsync - End");
-
-                    return output?.AvailableClientVersions;
-                }
-                catch
-                {
-                    _tracer.WriteLine(true, "LatestClientVersionsAsync - Failed");
                 }
             }
 
@@ -212,7 +187,7 @@ namespace delta_kusto
                         .Select(q => WebUtility.UrlEncode(q.name) + "=" + WebUtility.UrlEncode(q.value));
                     var url = new Uri(new Uri(ROOT_URL), urlSuffix);
                     var urlWithQuery = new Uri(url, "?" + string.Join("&", queryParametersText));
-                    
+
                     var response = await client.GetAsync(
                         urlWithQuery,
                         HttpCompletionOption.ResponseContentRead,
