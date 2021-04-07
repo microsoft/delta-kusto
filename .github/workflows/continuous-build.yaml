@@ -3,7 +3,7 @@ name:  Continuous Build / Unit Test
 on:
   push:
     paths-ignore:
-    - 'documentation/**'
+    - documentation/**
     branches-ignore:
     - api/*
 
