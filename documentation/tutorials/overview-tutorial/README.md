@@ -32,6 +32,16 @@ The parameter file is meant to be persisted in source control.  For that reason 
 
 In this tutorial, we are going to use only one cluster but Delta Kusto can compute delta between multiple clusters.
 
+## How Delta Kusto works
+
+One of the strenght of Delta Kusto is that it parses scripts and / or load database configuration into a database *model*.  It can then compare two models to compute a Delta.
+
+This approach might seem overkilled when considering functions for instance where a simple `create-or-alter` can overwrite a function.  It does offer some advantages though:
+
+1. Computes a minimalistic set of delta commands since it doesn't need to `create-or-alter` everything *just in case*
+1. Detects drops (e.g. table columns) and can treat them as such
+1. Can do *offline delta*, i.e. compare two scripts without any Kusto runtime involved.
+
 ## Scenarios
 
 All scenarios we are going to cover are based on the following setup:  a dev database and a prod database.
@@ -44,7 +54,7 @@ All scenarios we'll look at will involve change management between those two env
 
 ## Original development
 
-To simulate development happening before the introduction of Delta Kusto, we'll run the scripts from [dev-start-samples.kql](dev-start-samples.kql):
+To simulate development happening before the introduction of Delta Kusto, we'll run the scripts from [dev-start-samples.kql](dev-start-samples.kql) on the *dev* database:
 
 ```kusto
 .create-or-alter function with (docstring = "A list of interesting states",folder = "Helpers") InterestingStates {
@@ -58,29 +68,138 @@ To simulate development happening before the introduction of Delta Kusto, we'll 
 }
 ```
 
-[download-dev.yaml](download-dev.yaml)
+This creates 3 functions.  The top one is in a folder named *Helpers*.
+
+## Download Dev
+
+We now want to introduce change management so the first thing we want to do is to put our *dev* database under source control.
+
+For that we're going to use Delta Kusto to *download* the database's structure.
+
+There are no *download* functionality in Delta Kusto but we can trick it into one by have an empty *current* database.  This is actually the default when the current source isn't specified, it is assumed to be empty.
+
+We'll use the Parameter file from [download-dev.yaml](download-dev.yaml):
+
+```yaml
+sendErrorOptIn:  true
+jobs:
+  download-dev:
+    target:
+        adx:
+            clusterUri:  to-be-overriden
+            database:  dev
+    action:
+        filePath:  dev-state.kql
+tokenProvider:
+    login:
+        tenantId:  to-be-overriden
+        clientId:  to-be-overriden
+        secret:  to-be-overriden
+```
+
+The first YAML property is `sendErrorOptIn`.  By default this is false.  When set to `true`, if any error occurs during the CLI execution, the content of the error (i.e. the stack trace, exception type & exception message) are going to be sent to a central API for analysis.  Setting this option to `true` basically help pro-actively improve Delta Kusto.  It does send some data to a central (private) API though.
+
+We see that we define one job with an empty current source (i.e. unspecified), an ADX target database *dev* and an action to push the delta to a KQL file.
+
+In order to execute this job we would need to run the CLI:
 
 ```
 delta-kusto -p download-dev.yaml 
 ```
 
-```
-cat dev-state.kql
-```
-
-##  Push to prod
-
-[push-to-prod.yaml](push-to-prod.yaml)
+Now if we do that, there are several values in the YAML that are specified as *to-be-overriden* that will cause problem.  For that reason, we need to override those values:
 
 ```
-delta-kusto -p push-to-prod.yaml
+delta-kusto -p download-dev.yaml -o tokenProvider.login.tenantId=$tenantId tokenProvider.login.clientId=$clientId tokenProvider.login.secret=$secret jobs.download-dev.target.adx.clusterUri=$clusterUri
 ```
 
-Look at prod
+(Assuming we've set the variables `$tenantId`, `$clientId`, `$secret` and `$clusterUri` to relevant values)
 
-##  Dev some more
+The override mechanism is quite simple:  for each override we specified the path to the property, e.g. `tokenProvider.login.tenantId`, then `=` and the value.
 
-[modify-dev.kql](modify-dev.kql)
+Executing this CLI command should start Delta Kusto and give an output similar to:
+
+![Download dev](download-dev.png)
+
+We see different steps of the run and the fact that 3 commands were found in the delta.
+
+Looking at the generated script, i.e. `dev-state.kql`:
+
+```kusto
+//  Create functions
+
+.create-or-alter function with (skipvalidation="True") Add (['a']:real, ['b']:real) {
+a+b
+}
+
+.create-or-alter function with (docstring="Direct table access example", skipvalidation="True") DirectTableAccess (['myTable']:(*)) {
+myTable | count
+}
+
+.create-or-alter function with (folder="Helpers", docstring="A list of interesting states", skipvalidation="True") InterestingStates () {
+dynamic(["WASHINGTON", "FLORIDA", "GEORGIA", "NEW YORK"])
+}
+```
+
+We see that this script is similar to the script we used to populate the database (and is actually functionnaly equivalent) but not identical.  This is because the database configuration was loaded into a database model before being re-rendered into scripts.
+
+##  Push dev script to prod
+
+Now that we have a script representing the *dev* database state we can push that state to the *prod* database:
+
+![Push dev to prod](push-dev-to-prod.png)
+
+This time we invert the sources.  The current will be an ADX Database (*prod*) while the target will be a script.  We use [push-to-prod.yaml](push-to-prod.yaml) as parameter file:
+
+```yaml
+sendErrorOptIn:  true
+failIfDrops:  true
+jobs:
+  push-script-to-prod:
+    current:
+      adx:
+          clusterUri:  to-be-overriden
+          database:  prod
+    target:
+      scripts:
+        - filePath:  dev-state.kql
+    action:
+        filePath:  prod-update.kql
+        pushToCurrent:  true
+tokenProvider:
+    login:
+        tenantId:  to-be-overriden
+        clientId:  to-be-overriden
+        secret:  to-be-overriden
+```
+
+We notice a new property:  `failIfDrops`.  It won't get into play in this scenario but will in a later one.
+
+We see that we define two actions:
+
+1. Pushing the delta to a file
+1. Pushing the delta the the current ADX database
+
+We can run the CLI in a similar way than previously.
+
+We can now see that the *prod* database has the same configuration as the *dev* one.  The delta script was a little trivial since *prod* was empty, it was simply the entire *dev* state.
+
+##  Download a modified *dev*
+
+Let's simulate that development continues by doing some modification to the *dev* database.  We use [modify-dev.kql](modify-dev.kql) for that:
+
+```kusto
+//  Change the folder of 'InterestingStates'
+.create-or-alter function with (docstring = "A list of interesting states",folder = "states") InterestingStates {
+    dynamic(["WASHINGTON", "FLORIDA", "GEORGIA", "NEW YORK"])
+}
+
+//  Drop function 'Add'
+.drop function Add
+
+//  Create a new function
+.create-or-alter function Substract(a:real,b:real) {a-b}
+```
 
 Trigger the 'fail to drop'
 
