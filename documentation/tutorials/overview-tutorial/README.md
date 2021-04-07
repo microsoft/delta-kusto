@@ -46,7 +46,7 @@ All scenarios we'll look at will involve change management between those two env
 
 To simulate development happening before the introduction of Delta Kusto, we'll run the scripts from [dev-start-samples.kql](dev-start-samples.kql):
 
-```kusto
+```sql
 .create-or-alter function with (docstring = "A list of interesting states",folder = "Helpers") InterestingStates {
     dynamic(["WASHINGTON", "FLORIDA", "GEORGIA", "NEW YORK"])
 }
