@@ -2,6 +2,8 @@
 
 This tutorial explains how the Delta Kusto CLI can authenticate against an Azure Data Explorer (ADX) cluster.
 
+This tutorial is also [available as a YouTube video](https://www.youtube.com/watch?v=ErLSCKCkGXI&t=5s).
+
 The [parameter file](../../parameter-file.md) shows 2 methods to authenticate in the `tokenProvider` section:
 
 ```yaml
@@ -21,10 +23,6 @@ The first one, `tokens`, consists in providing an actual oauth token for each AD
 The second method, `login`, consists in providing login information of an Azure AD Service Principal.  **This is the method we are going to explore in this article**.
 
 There is a third method [not implemented yet](https://github.com/microsoft/delta-kusto/issues/7) which would use a [Managed Service Principal](https://www.youtube.com/watch?v=TK8jdVpWsNY) (MSI).  This would allow to run Delta Kusto without sharing Service Principal credentials. It would require Delta Kusto to run in a compute having MSI enabled.
-
-This tutorial is also available in video format:
-
-<iframe width="560" height="315" src="https://www.youtube.com/embed/ErLSCKCkGXI" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 ## Creating a Service Principal
 

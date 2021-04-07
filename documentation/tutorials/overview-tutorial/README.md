@@ -4,9 +4,7 @@ In this tutorial, we are going to use the Delta Kusto CLI and tour its functiona
 
 We are going to cover a few scenarios.  Because of this breath we won't cover details such as how to download Delta Kusto or authentication to ADX Clusters.  We suggest looking at [other tutorials](../README.md) for more details.  Specifically, [Delta Kusto Download / Install](../install/README.md) and [Authenticating to ADX Clusters](../authentication/README.md) would be useful.
 
-This tutorial is also available in video format:
-
-<iframe width="560" height="315" src="https://www.youtube.com/embed/2neGBKlcoOA" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+This tutorial is also [available as a YouTube video](https://www.youtube.com/watch?v=2neGBKlcoOA).
 
 ## Delta Kusto
 
