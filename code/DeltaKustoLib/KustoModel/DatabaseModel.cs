@@ -43,7 +43,7 @@ namespace DeltaKustoLib.KustoModel
             var functions = databaseSchema
                 .Functions
                 .Values
-                .Select(s => FromFunctionSchema(s));
+                .Select(s => CreateFunctionCommand.FromFunctionSchema(s));
 
             return new DatabaseModel(functions);
         }
@@ -55,60 +55,6 @@ namespace DeltaKustoLib.KustoModel
             var deltaCommands = functions;
 
             return deltaCommands.ToImmutableArray();
-        }
-
-        #region Functions
-        private static CreateFunctionCommand FromFunctionSchema(FunctionSchema schema)
-        {
-            var parameters = schema
-                .InputParameters
-                .Select(i => FromParameterSchema(i));
-            var body = TrimFunctionSchemaBody(schema.Body);
-
-            return new CreateFunctionCommand(
-                schema.Name,
-                parameters,
-                body,
-                schema.Folder,
-                schema.DocString,
-                true);
-        }
-
-        private static string TrimFunctionSchemaBody(string body)
-        {
-            var trimmedBody = body.Trim();
-
-            if (trimmedBody.Length < 2)
-            {
-                throw new InvalidOperationException(
-                    $"Function body should at least be 2 characters but isn't:  {body}");
-            }
-            if (trimmedBody.First() != '{' || trimmedBody.Last() != '}')
-            {
-                throw new InvalidOperationException(
-                    $"Function body was expected to be surrounded by curly brace but isn't:"
-                    + $"  {body}");
-            }
-
-            var actualBody = trimmedBody
-                .Substring(1, trimmedBody.Length - 2)
-                //  This trim removes the carriage return so they don't accumulate in translations
-                .Trim();
-
-            return actualBody;
-        }
-        #endregion
-
-        private static TypedParameterModel FromParameterSchema(InputParameterSchema input)
-        {
-            return input.CslType == null
-                ? new TypedParameterModel(
-                    input.Name,
-                    new TableParameterModel(input.Columns.Select(c => new ColumnModel(c.Name, c.CslType))))
-                : new TypedParameterModel(
-                    input.Name,
-                    input.CslType,
-                    input.CslDefaultValue != null ? "=" + input.CslDefaultValue : null);
         }
 
         private static void ValidateCommandTypes(IEnumerable<(Type type, string friendlyName)> commandTypes)

@@ -1,4 +1,5 @@
-﻿using Kusto.Language.Syntax;
+﻿using DeltaKustoLib.SchemaObjects;
+using Kusto.Language.Syntax;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -65,6 +66,22 @@ namespace DeltaKustoLib.CommandModel
                 folder,
                 docString,
                 skipValidation);
+        }
+
+        internal static CreateFunctionCommand FromFunctionSchema(FunctionSchema schema)
+        {
+            var parameters = schema
+                .InputParameters
+                .Select(i => FromParameterSchema(i));
+            var body = TrimFunctionSchemaBody(schema.Body);
+
+            return new CreateFunctionCommand(
+                schema.Name,
+                parameters,
+                body,
+                schema.Folder,
+                schema.DocString,
+                true);
         }
 
         public override bool Equals(CommandBase? other)
@@ -339,6 +356,42 @@ namespace DeltaKustoLib.CommandModel
                         + $"and follows '{firstViolation.current.ParameterName}' which is a scalar");
                 }
             }
+        }
+
+        private static string TrimFunctionSchemaBody(string body)
+        {
+            var trimmedBody = body.Trim();
+
+            if (trimmedBody.Length < 2)
+            {
+                throw new InvalidOperationException(
+                    $"Function body should at least be 2 characters but isn't:  {body}");
+            }
+            if (trimmedBody.First() != '{' || trimmedBody.Last() != '}')
+            {
+                throw new InvalidOperationException(
+                    $"Function body was expected to be surrounded by curly brace but isn't:"
+                    + $"  {body}");
+            }
+
+            var actualBody = trimmedBody
+                .Substring(1, trimmedBody.Length - 2)
+                //  This trim removes the carriage return so they don't accumulate in translations
+                .Trim();
+
+            return actualBody;
+        }
+
+        private static TypedParameterModel FromParameterSchema(InputParameterSchema input)
+        {
+            return input.CslType == null
+                ? new TypedParameterModel(
+                    input.Name,
+                    new TableParameterModel(input.Columns.Select(c => new ColumnModel(c.Name, c.CslType))))
+                : new TypedParameterModel(
+                    input.Name,
+                    input.CslType,
+                    input.CslDefaultValue != null ? "=" + input.CslDefaultValue : null);
         }
     }
 }
