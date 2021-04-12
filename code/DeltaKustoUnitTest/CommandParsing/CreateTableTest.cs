@@ -74,7 +74,7 @@ namespace DeltaKustoUnitTest.CommandParsing
 
             var createTableCommand = (CreateTableCommand)command;
 
-            Assert.Equal(tableName, createTableCommand.ObjectName);
+            Assert.Equal(tableName, createTableCommand.TableName);
             Assert.Equal(columns.Length, createTableCommand.Columns.Count);
             for (int i = 0; i != columns.Length; ++i)
             {

@@ -17,12 +17,12 @@ namespace DeltaKustoIntegration.Action
         {
             DropFunctionCommands = commands
                 .OfType<DropFunctionCommand>()
-                .OrderBy(d => d.ObjectName)
+                .OrderBy(d => d.FunctionName)
                 .ToImmutableArray();
             CreateFunctionCommands = commands
                 .OfType<CreateFunctionCommand>()
                 .OrderBy(d => d.Folder)
-                .ThenBy(d => d.ObjectName)
+                .ThenBy(d => d.FunctionName)
                 .ToImmutableArray();
             AllDropCommands = DropFunctionCommands;
             _allCommands = AllDropCommands

@@ -27,15 +27,20 @@ namespace DeltaKustoLib.KustoModel
         public static DatabaseModel FromCommands(
             IEnumerable<CommandBase> commands)
         {
-            ValidateCommandTypes(commands.Select(c => (c.GetType(), c.ObjectFriendlyTypeName)).Distinct());
+            var commandTypeIndex = commands
+                .GroupBy(c => c.GetType())
+                .ToImmutableDictionary(g => g.Key, g => g as IEnumerable<CommandBase>);
+            var commandTypes = commandTypeIndex
+                .Keys
+                .Select(key => (key, commandTypeIndex[key].First().CommandFriendlyName));
+            var createFunctions = GetCommands<CreateFunctionCommand>(commandTypeIndex);
+            var createTables = GetCommands<CreateTableCommand>(commandTypeIndex);
 
-            var functions = commands
-                .OfType<CreateFunctionCommand>()
-                .ToImmutableArray();
+            ValidateCommandTypes(commandTypes);
+            ValidateDuplicates(createFunctions, f => f.FunctionName);
+            ValidateDuplicates(createTables, t => t.TableName);
 
-            ValidateDuplicates("Functions", functions);
-
-            return new DatabaseModel(functions);
+            return new DatabaseModel(createFunctions);
         }
 
         public static DatabaseModel FromDatabaseSchema(DatabaseSchema databaseSchema)
@@ -57,6 +62,21 @@ namespace DeltaKustoLib.KustoModel
             return deltaCommands.ToImmutableArray();
         }
 
+        private static IImmutableList<T> GetCommands<T>(
+            IImmutableDictionary<Type, IEnumerable<CommandBase>> commandTypeIndex)
+        {
+            if (commandTypeIndex.ContainsKey(typeof(T)))
+            {
+                return commandTypeIndex[typeof(T)]
+                    .Cast<T>()
+                    .ToImmutableArray();
+            }
+            else
+            {
+                return ImmutableArray<T>.Empty;
+            }
+        }
+
         private static void ValidateCommandTypes(IEnumerable<(Type type, string friendlyName)> commandTypes)
         {
             var extraCommandTypes = commandTypes
@@ -75,23 +95,29 @@ namespace DeltaKustoLib.KustoModel
         }
 
         private static void ValidateDuplicates<T>(
-            string friendlyObjectType,
-            IEnumerable<T> dbObjects)
+            IEnumerable<T> commands,
+            Func<T, string> keyExtractor)
             where T : CommandBase
         {
-            var functionDuplicates = dbObjects
-                .GroupBy(o => o.ObjectName)
+            var duplicates = commands
+                .GroupBy(o => keyExtractor(o))
                 .Where(g => g.Count() > 1)
-                .Select(g => new { Name = g.Key, Objects = g.ToArray(), Count = g.Count() });
+                .Select(g => new
+                {
+                    Name = g.Key,
+                    CommandFriendlyName = g.First().CommandFriendlyName,
+                    Count = g.Count()
+                });
+            var duplicate = duplicates.FirstOrDefault();
 
-            if (functionDuplicates.Any())
+            if (duplicate != null)
             {
                 var duplicateText = string.Join(
                     ", ",
-                    functionDuplicates.Select(d => $"(Name = '{d.Name}', Count = {d.Count})"));
+                    duplicates.Select(d => $"(Name = '{d.Name}', Count = {d.Count})"));
 
                 throw new DeltaException(
-                    $"{friendlyObjectType} have duplicates:  {{ {duplicateText} }}");
+                    $"{duplicate.CommandFriendlyName} have duplicates:  {{ {duplicateText} }}");
             }
         }
     }

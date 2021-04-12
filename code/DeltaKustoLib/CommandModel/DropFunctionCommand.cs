@@ -10,11 +10,13 @@ namespace DeltaKustoLib.CommandModel
 {
     public class DropFunctionCommand : CommandBase
     {
-        public override string ObjectFriendlyTypeName => ".drop function";
+        public string FunctionName { get; }
+
+        public override string CommandFriendlyName => ".drop function";
 
         public DropFunctionCommand(string functionName)
-            : base(functionName)
         {
+            FunctionName = functionName;
         }
 
         internal static CommandBase FromCode(CustomCommand customCommand)
@@ -29,14 +31,14 @@ namespace DeltaKustoLib.CommandModel
         {
             var otherFunction = other as CreateFunctionCommand;
             var areEqualed = otherFunction != null
-                && otherFunction.ObjectName == ObjectName;
+                && otherFunction.FunctionName == FunctionName;
 
             return areEqualed;
         }
 
         public override string ToScript()
         {
-            return $".drop function ['{ObjectName}']";
+            return $".drop function ['{FunctionName}']";
         }
     }
 }

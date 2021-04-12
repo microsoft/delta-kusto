@@ -28,23 +28,26 @@ namespace DeltaKustoIntegration.Action
         {
             await ProcessDeltaCommandsAsync(
                 commands.DropFunctionCommands,
+                c => c.FunctionName,
                 "functions/drop",
                 ct);
             await ProcessDeltaCommandsAsync(
                 commands.CreateFunctionCommands,
+                c => c.FunctionName,
                 "functions/create",
                 ct);
         }
 
         private async Task ProcessDeltaCommandsAsync<CT>(
             IEnumerable<CT> commands,
+            Func<CT, string> fileNameExtractor,
             string folder,
             CancellationToken ct)
             where CT : CommandBase
         {
             foreach (var command in commands)
             {
-                var fileName = command.ObjectName + ".kql";
+                var fileName = $"{fileNameExtractor(command)}.kql";
                 var script = command.ToScript();
                 var fullPath = Path.Combine(_folderPath, folder, fileName);
 

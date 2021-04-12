@@ -47,7 +47,7 @@ namespace DeltaKustoFileIntegrationTest.EmptyTarget
 
             var function = (CreateFunctionCommand)commands.First();
 
-            Assert.Equal("YourFunction", function.ObjectName);
+            Assert.Equal("YourFunction", function.FunctionName);
         }
 
         [Fact]
@@ -64,7 +64,7 @@ namespace DeltaKustoFileIntegrationTest.EmptyTarget
 
             var function = (DropFunctionCommand)commands.First();
 
-            Assert.Equal("YourFunction", function.ObjectName);
+            Assert.Equal("YourFunction", function.FunctionName);
         }
 
         private CancellationToken CreateCancellationToken() =>

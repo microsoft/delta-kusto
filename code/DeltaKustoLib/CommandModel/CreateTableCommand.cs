@@ -10,21 +10,23 @@ namespace DeltaKustoLib.CommandModel
 {
     public class CreateTableCommand : CommandBase
     {
+        public string TableName { get; }
+        
         public IImmutableList<ColumnModel> Columns { get; }
 
         public string? Folder { get; }
 
         public string? DocString { get; }
 
-        public override string ObjectFriendlyTypeName => ".create table";
+        public override string CommandFriendlyName => ".create table";
 
         public CreateTableCommand(
             string tableName,
             IEnumerable<ColumnModel> columns,
             string? folder,
             string? docString)
-            : base(tableName)
         {
+            TableName = tableName;
             Columns = columns.ToImmutableArray();
             Folder = string.IsNullOrEmpty(folder) ? null : folder;
             DocString = string.IsNullOrEmpty(docString) ? null : docString;
@@ -51,7 +53,7 @@ namespace DeltaKustoLib.CommandModel
         {
             var otherTable = other as CreateTableCommand;
             var areEqualed = otherTable != null
-                && otherTable.ObjectName == ObjectName
+                && otherTable.TableName == TableName
                 //  Check that all columns are equal
                 && otherTable.Columns.Zip(Columns, (p1, p2) => p1.Equals(p2)).All(p => p)
                 && otherTable.Folder == Folder
@@ -71,7 +73,7 @@ namespace DeltaKustoLib.CommandModel
             var nonEmptyProperties = properties.Where(p => p != null);
 
             builder.Append(".create table ");
-            builder.Append(ObjectName);
+            builder.Append(TableName);
             builder.Append(" (");
             builder.AppendJoin(", ", Columns.Select(c => c.ToString()));
             builder.Append(")");

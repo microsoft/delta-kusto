@@ -11,6 +11,8 @@ namespace DeltaKustoLib.CommandModel
 {
     public class CreateFunctionCommand : CommandBase
     {
+        public string FunctionName { get; }
+
         public IImmutableList<TypedParameterModel> Parameters { get; }
 
         public string Body { get; }
@@ -21,7 +23,7 @@ namespace DeltaKustoLib.CommandModel
 
         public bool SkipValidation { get; }
 
-        public override string ObjectFriendlyTypeName => ".create function";
+        public override string CommandFriendlyName => ".create function";
 
         public CreateFunctionCommand(
             string functionName,
@@ -30,15 +32,16 @@ namespace DeltaKustoLib.CommandModel
             string? folder,
             string? docString,
             bool? skipValidation)
-            : base(functionName)
         {
+            FunctionName = functionName;
+            Parameters = parameters.ToImmutableArray();
+
             if (functionBody.Trim().StartsWith('{'))
             {
                 throw new ArgumentException(
                     $"Body should start with curly braces:  '{functionBody}'",
                     nameof(functionBody));
             }
-            Parameters = parameters.ToImmutableArray();
             ValidateNoTableParameterAfterScalar(functionName, Parameters);
             Body = functionBody.Trim().Replace("\r", string.Empty);
             Folder = string.IsNullOrEmpty(folder) ? null : folder;
@@ -88,7 +91,7 @@ namespace DeltaKustoLib.CommandModel
         {
             var otherFunction = other as CreateFunctionCommand;
             var areEqualed = otherFunction != null
-                && otherFunction.ObjectName == ObjectName
+                && otherFunction.FunctionName == FunctionName
                 //  Check that all parameters are equal
                 && otherFunction.Parameters.Zip(Parameters, (p1, p2) => p1.Equals(p2)).All(p => p)
                 && otherFunction.Body == Body
@@ -117,7 +120,7 @@ namespace DeltaKustoLib.CommandModel
                 builder.AppendJoin(", ", nonEmptyProperties);
                 builder.Append(") ");
             }
-            builder.Append(ObjectName);
+            builder.Append(FunctionName);
             builder.Append(" ");
             builder.Append("(");
             builder.AppendJoin(", ", Parameters.Select(p => p.ToString()));
@@ -136,7 +139,7 @@ namespace DeltaKustoLib.CommandModel
             return SkipValidation == true
                 ? this
                 : new CreateFunctionCommand(
-                    ObjectName,
+                    FunctionName,
                     Parameters,
                     Body,
                     Folder,
@@ -149,10 +152,10 @@ namespace DeltaKustoLib.CommandModel
             IImmutableList<CreateFunctionCommand> targetFunctionCommands)
         {
             var currentFunctions =
-                currentFunctionCommands.ToImmutableDictionary(c => c.ObjectName);
+                currentFunctionCommands.ToImmutableDictionary(c => c.FunctionName);
             var currentFunctionNames = currentFunctions.Keys.ToImmutableSortedSet();
             var targetFunctions =
-                targetFunctionCommands.ToImmutableDictionary(c => c.ObjectName);
+                targetFunctionCommands.ToImmutableDictionary(c => c.FunctionName);
             var targetFunctionNames = targetFunctions.Keys.ToImmutableSortedSet();
             var dropFunctionNames = currentFunctionNames.Except(targetFunctionNames);
             var createFunctionNames = targetFunctionNames.Except(currentFunctionNames);
@@ -336,8 +339,10 @@ namespace DeltaKustoLib.CommandModel
             string functionName,
             IImmutableList<TypedParameterModel> parameters)
         {
-            //  This implements the rule cited in a note in https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/functions/user-defined-functions#input-arguments
-            //  "When using both tabular input arguments and scalar input arguments, put all tabular input arguments before the scalar input arguments."
+            //  This implements the rule cited in a note in
+            //  https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/functions/user-defined-functions#input-arguments
+            //  "When using both tabular input arguments and scalar input arguments,
+            //  put all tabular input arguments before the scalar input arguments."
             if (parameters.Count() > 2)
             {
                 var skipEnd = parameters.Take(parameters.Count - 1);
