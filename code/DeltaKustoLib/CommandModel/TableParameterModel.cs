@@ -9,9 +9,9 @@ namespace DeltaKustoLib.CommandModel
 {
     public class TableParameterModel : IEquatable<TableParameterModel>
     {
-        public IImmutableList<ColumnModel> Columns { get; }
+        public IImmutableList<TableColumn> Columns { get; }
 
-        public TableParameterModel(IEnumerable<ColumnModel> columns)
+        public TableParameterModel(IEnumerable<TableColumn> columns)
         {
             Columns = columns.ToImmutableArray();
         }

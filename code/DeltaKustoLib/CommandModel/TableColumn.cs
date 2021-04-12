@@ -3,13 +3,13 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace DeltaKustoLib.CommandModel
 {
-    public class ColumnModel : IEquatable<ColumnModel>
+    public class TableColumn : IEquatable<TableColumn>
     {
         public string ColumnName { get; }
 
         public string PrimitiveType { get; }
 
-        public ColumnModel(string columnName, string primitiveType)
+        public TableColumn(string columnName, string primitiveType)
         {
             if (string.IsNullOrWhiteSpace(columnName))
             {
@@ -23,7 +23,7 @@ namespace DeltaKustoLib.CommandModel
             PrimitiveType = primitiveType;
         }
 
-        public bool Equals([AllowNull] ColumnModel other)
+        public bool Equals([AllowNull] TableColumn other)
         {
             return other != null
                 && ColumnName == other.ColumnName

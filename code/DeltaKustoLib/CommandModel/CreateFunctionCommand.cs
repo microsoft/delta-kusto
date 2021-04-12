@@ -253,7 +253,7 @@ namespace DeltaKustoLib.CommandModel
                 {
                     return new TypedParameterModel(
                         name.SimpleName,
-                        new TableParameterModel(new ColumnModel[0]));
+                        new TableParameterModel(new TableColumn[0]));
                 }
                 else
                 {
@@ -268,13 +268,13 @@ namespace DeltaKustoLib.CommandModel
             }
         }
 
-        private static ColumnModel GetColumnSchema(NameAndTypeDeclaration declaration)
+        private static TableColumn GetColumnSchema(NameAndTypeDeclaration declaration)
         {
             var (name, type) = declaration
                 .GetImmediateDescendants<SyntaxNode>()
                 .ExtractChildren<NameDeclaration, PrimitiveTypeExpression>("Column pair");
 
-            return new ColumnModel(name.SimpleName, type.Type.ValueText);
+            return new TableColumn(name.SimpleName, type.Type.ValueText);
         }
 
         private static bool? GetSkipValidation(string text)
@@ -392,7 +392,7 @@ namespace DeltaKustoLib.CommandModel
             return input.CslType == null
                 ? new TypedParameterModel(
                     input.Name,
-                    new TableParameterModel(input.Columns.Select(c => new ColumnModel(c.Name, c.CslType))))
+                    new TableParameterModel(input.Columns.Select(c => new TableColumn(c.Name, c.CslType))))
                 : new TypedParameterModel(
                     input.Name,
                     input.CslType,

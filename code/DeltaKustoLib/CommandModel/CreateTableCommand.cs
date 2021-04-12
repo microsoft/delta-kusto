@@ -12,7 +12,7 @@ namespace DeltaKustoLib.CommandModel
     {
         public string TableName { get; }
         
-        public IImmutableList<ColumnModel> Columns { get; }
+        public IImmutableList<TableColumn> Columns { get; }
 
         public string? Folder { get; }
 
@@ -22,7 +22,7 @@ namespace DeltaKustoLib.CommandModel
 
         public CreateTableCommand(
             string tableName,
-            IEnumerable<ColumnModel> columns,
+            IEnumerable<TableColumn> columns,
             string? folder,
             string? docString)
         {
@@ -119,14 +119,14 @@ namespace DeltaKustoLib.CommandModel
             }
         }
 
-        private static ColumnModel ExtractColumn(CustomNode columnNode)
+        private static TableColumn ExtractColumn(CustomNode columnNode)
         {
             var nameDeclaration = columnNode.GetUniqueDescendant<NameDeclaration>(
                 "Table column name");
             var typeDeclaration = columnNode.GetUniqueDescendant<PrimitiveTypeExpression>(
                 "Table column type");
 
-            return new ColumnModel(nameDeclaration.Name.SimpleName, typeDeclaration.Type.Text);
+            return new TableColumn(nameDeclaration.Name.SimpleName, typeDeclaration.Type.Text);
         }
 
         private static (string? folder, string? docString) ParseWithNode(
