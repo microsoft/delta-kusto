@@ -20,11 +20,12 @@ namespace DeltaKustoLib.CommandModel
         {
             var scripts = SplitCommandScripts(script);
             var commands = scripts
-                .Select(s => CreateCommand(s, KustoCode.Parse(s)))
+                .Select(s => ParseAndCreateCommand(s))
                 .ToImmutableArray();
 
             return commands;
         }
+
         public string ObjectName { get; }
 
         public abstract string ObjectFriendlyTypeName { get; }
@@ -60,6 +61,14 @@ namespace DeltaKustoLib.CommandModel
                 .Replace("'", "\\'");
         }
 
+        private static CommandBase ParseAndCreateCommand(string script)
+        {
+            var code = KustoCode.Parse(script);
+            var command = CreateCommand(script, code);
+
+            return command;
+        }
+
         private static CommandBase CreateCommand(string script, KustoCode code)
         {
             try
@@ -85,6 +94,13 @@ namespace DeltaKustoLib.CommandModel
                         return CreateFunctionCommand.FromCode(customCommand);
                     case "DropFunction":
                         return DropFunctionCommand.FromCode(customCommand);
+                    case "CreateTable":
+                        return CreateTableCommand.FromCode(customCommand);
+                    case "CreateMergeTable":
+                        //  We need to do this since the parsing is quite different with the with-node
+                        //  between a .create and .create-merge (for unknown reasons)
+                        return ParseAndCreateCommand(
+                            ReplaceFirstOccurence(script, "create-merge", "create"));
 
                     default:
                         throw new DeltaException(
@@ -102,6 +118,23 @@ namespace DeltaKustoLib.CommandModel
                     throw;
                 }
             }
+        }
+
+        private static string ReplaceFirstOccurence(string script, string oldValue, string newValue)
+        {
+            var occurenceIndex = script.IndexOf(oldValue);
+
+            if (occurenceIndex == -1)
+            {
+                throw new InvalidOperationException(
+                    $"Script '{script}' should contain '{oldValue}'");
+            }
+
+            var newScript = script.Substring(0, occurenceIndex)
+                + newValue
+                + script.Substring(occurenceIndex + oldValue.Length);
+
+            return newScript;
         }
 
         private static IEnumerable<string> SplitCommandScripts(string script)

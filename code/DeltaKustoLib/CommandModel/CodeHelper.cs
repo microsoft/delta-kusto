@@ -64,7 +64,7 @@ namespace DeltaKustoLib.CommandModel
             {
                 throw new DeltaException(
                     $"Expected 2 children in '{childrenNameForExceptionMessage}' "
-                    + "but found {children.Count}");
+                    + $"but found {children.Count}");
             }
             var child1 = children[0] as C1;
             var child2 = children[1] as C2;
@@ -127,6 +127,57 @@ namespace DeltaKustoLib.CommandModel
             }
 
             return (child1, child2, child3);
+        }
+
+        public static (C1, C2, C3, C4) ExtractChildren<C1, C2, C3, C4>(
+            this IReadOnlyList<SyntaxElement> children,
+            string childrenNameForExceptionMessage)
+            where C1 : SyntaxElement
+            where C2 : SyntaxElement
+            where C3 : SyntaxElement
+            where C4 : SyntaxElement
+        {
+            if (children.Count != 4)
+            {
+                throw new DeltaException(
+                    $"Expected 4 children in '{childrenNameForExceptionMessage}' "
+                    + "but found {children.Count}");
+            }
+            var child1 = children[0] as C1;
+            var child2 = children[1] as C2;
+            var child3 = children[2] as C3;
+            var child4 = children[3] as C4;
+
+            if (child1 == null)
+            {
+                throw new DeltaException(
+                    $"First child in '{childrenNameForExceptionMessage}' "
+                    + "has unexpected type",
+                    children[0].Root.ToString(IncludeTrivia.All));
+            }
+            if (child2 == null)
+            {
+                throw new DeltaException(
+                    $"Second child in '{childrenNameForExceptionMessage}' "
+                    + "has unexpected type",
+                    children[1].Root.ToString(IncludeTrivia.All));
+            }
+            if (child3 == null)
+            {
+                throw new DeltaException(
+                    $"Third child in '{childrenNameForExceptionMessage}' "
+                    + "has unexpected type",
+                    children[2].Root.ToString(IncludeTrivia.All));
+            }
+            if (child4 == null)
+            {
+                throw new DeltaException(
+                    $"Third child in '{childrenNameForExceptionMessage}' "
+                    + "has unexpected type",
+                    children[3].Root.ToString(IncludeTrivia.All));
+            }
+
+            return (child1, child2, child3, child4);
         }
         #endregion
     }
