@@ -117,13 +117,6 @@ namespace DeltaKustoLib.CommandModel
         {
             var customNode = customCommand.GetUniqueImmediateDescendant<CustomNode>("Custom node");
             var rootNodes = customNode.GetImmediateDescendants<SyntaxNode>();
-            //.Select(n => n.GetDescendants<SyntaxNode>())
-            //.Select(l =>
-            //{
-            //    var (name, _, literal) = l.ExtractChildren<NameDeclaration, TokenName, LiteralExpression>("With properties");
-
-            //    return (name: name.SimpleName, value: (string)literal.LiteralValue);
-            //});
 
             if (rootNodes.Count < 2 || rootNodes.Count > 3)
             {
