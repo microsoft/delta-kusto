@@ -284,7 +284,7 @@ namespace DeltaKustoLib.CommandModel
                     .Select(n => n.GetDescendants<SyntaxNode>())
                     .Select(l =>
                     {
-                        var (name, temp, literal) = l.ExtractChildren<NameDeclaration, TokenName, LiteralExpression>("With properties");
+                        var (name, _, literal) = l.ExtractChildren<NameDeclaration, TokenName, LiteralExpression>("With properties");
 
                         return (name: name.SimpleName, value: (string)literal.LiteralValue);
                     });

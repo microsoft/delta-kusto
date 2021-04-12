@@ -16,12 +16,12 @@ namespace DeltaKustoLib.KustoModel
             typeof(CreateFunctionCommand)
         }.ToImmutableHashSet();
 
-        internal IImmutableList<CreateFunctionCommand> FunctionCommands { get; }
+        private IImmutableList<CreateFunctionCommand> _functionCommands;
 
         private DatabaseModel(
             IEnumerable<CreateFunctionCommand> functionCommands)
         {
-            FunctionCommands = functionCommands.ToImmutableArray();
+            _functionCommands = functionCommands.ToImmutableArray();
         }
 
         public static DatabaseModel FromCommands(
@@ -51,18 +51,19 @@ namespace DeltaKustoLib.KustoModel
         public IImmutableList<CommandBase> ComputeDelta(DatabaseModel targetModel)
         {
             var functions =
-                CreateFunctionCommand.ComputeDelta(FunctionCommands, targetModel.FunctionCommands);
+                CreateFunctionCommand.ComputeDelta(_functionCommands, targetModel._functionCommands);
             var deltaCommands = functions;
 
             return deltaCommands.ToImmutableArray();
         }
 
+        #region Functions
         private static CreateFunctionCommand FromFunctionSchema(FunctionSchema schema)
         {
             var parameters = schema
                 .InputParameters
                 .Select(i => FromParameterSchema(i));
-            var body = TrimSchemaBody(schema.Body);
+            var body = TrimFunctionSchemaBody(schema.Body);
 
             return new CreateFunctionCommand(
                 schema.Name,
@@ -73,7 +74,7 @@ namespace DeltaKustoLib.KustoModel
                 true);
         }
 
-        private static string TrimSchemaBody(string body)
+        private static string TrimFunctionSchemaBody(string body)
         {
             var trimmedBody = body.Trim();
 
@@ -96,6 +97,7 @@ namespace DeltaKustoLib.KustoModel
 
             return actualBody;
         }
+        #endregion
 
         private static TypedParameterModel FromParameterSchema(InputParameterSchema input)
         {
@@ -126,7 +128,9 @@ namespace DeltaKustoLib.KustoModel
             }
         }
 
-        private static void ValidateDuplicates<T>(string objectName, IEnumerable<T> dbObjects)
+        private static void ValidateDuplicates<T>(
+            string friendlyObjectType,
+            IEnumerable<T> dbObjects)
             where T : CommandBase
         {
             var functionDuplicates = dbObjects
@@ -140,7 +144,8 @@ namespace DeltaKustoLib.KustoModel
                     ", ",
                     functionDuplicates.Select(d => $"(Name = '{d.Name}', Count = {d.Count})"));
 
-                throw new DeltaException($"{objectName} have duplicates:  {{ {duplicateText} }}");
+                throw new DeltaException(
+                    $"{friendlyObjectType} have duplicates:  {{ {duplicateText} }}");
             }
         }
     }
