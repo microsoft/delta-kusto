@@ -279,12 +279,12 @@ namespace DeltaKustoLib.CommandModel
             }
             else
             {
-                var properties = withNode!
+                var properties = withNode
                     .GetDescendants<CustomNode>()
                     .Select(n => n.GetDescendants<SyntaxNode>())
                     .Select(l =>
                     {
-                        var (name, _, literal) = l.ExtractChildren<NameDeclaration, TokenName, LiteralExpression>("With properties");
+                        var (name, temp, literal) = l.ExtractChildren<NameDeclaration, TokenName, LiteralExpression>("With properties");
 
                         return (name: name.SimpleName, value: (string)literal.LiteralValue);
                     });
