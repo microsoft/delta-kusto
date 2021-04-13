@@ -9,6 +9,9 @@ using System.Text;
 
 namespace DeltaKustoLib.CommandModel
 {
+    /// <summary>
+    /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/create-alter-function"/>
+    /// </summary>
     public class CreateFunctionCommand : CommandBase
     {
         public string FunctionName { get; }

@@ -8,6 +8,9 @@ using System.Text;
 
 namespace DeltaKustoLib.CommandModel
 {
+    /// <summary>
+    /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/drop-function"/>
+    /// </summary>
     public class DropFunctionCommand : CommandBase
     {
         public string FunctionName { get; }
