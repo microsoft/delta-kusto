@@ -10,7 +10,10 @@ namespace DeltaKustoLib.KustoModel
 
         public string? DocString { get; }
 
-        public ColumnModel(string columnName, string primitiveType)
+        public ColumnModel(
+            string columnName,
+            string primitiveType,
+            string? docString)
         {
             if (string.IsNullOrWhiteSpace(columnName))
             {
@@ -22,6 +25,7 @@ namespace DeltaKustoLib.KustoModel
             }
             ColumnName = columnName;
             PrimitiveType = primitiveType;
+            DocString = docString;
         }
 
         public override bool Equals(object? other)
