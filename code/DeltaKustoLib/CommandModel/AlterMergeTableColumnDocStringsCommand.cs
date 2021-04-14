@@ -9,47 +9,91 @@ using System.Text;
 namespace DeltaKustoLib.CommandModel
 {
     /// <summary>
-    /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/create-merge-table-command"/>
+    /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/alter-merge-table-column"/>
     /// </summary>
-    public class CreateTableCommand : CommandBase
+    public class AlterMergeTableColumnDocStringsCommand : CommandBase
     {
+        #region Inner Types
+        public class ColumnDocString : IEquatable<ColumnDocString>
+        {
+            public string ColumnName { get; }
+
+            public string DocString { get; }
+
+            public ColumnDocString(string columnName, string docString)
+            {
+                if (string.IsNullOrWhiteSpace(columnName))
+                {
+                    throw new ArgumentNullException(nameof(columnName));
+                }
+                if (string.IsNullOrWhiteSpace(docString))
+                {
+                    throw new ArgumentNullException(nameof(docString));
+                }
+                ColumnName = columnName;
+                DocString = docString;
+            }
+
+            public bool Equals([AllowNull] ColumnDocString other)
+            {
+                return other != null
+                    && ColumnName == other.ColumnName
+                    && DocString == other.DocString;
+            }
+
+            public override string ToString()
+            {
+                return $"['{ColumnName}']:\"{DocString}\"";
+            }
+        }
+        #endregion
+
         public string TableName { get; }
-        
-        public IImmutableList<TableColumn> Columns { get; }
 
-        public string? Folder { get; }
+        public IImmutableList<ColumnDocString> Columns { get; }
 
-        public string? DocString { get; }
+        public override string CommandFriendlyName => ".alter-merge table column-docstring";
 
-        public override string CommandFriendlyName => ".create table";
-
-        private CreateTableCommand(
+        private AlterMergeTableColumnDocStringsCommand(
             string tableName,
-            IEnumerable<TableColumn> columns,
-            string? folder,
-            string? docString)
+            IEnumerable<ColumnDocString> columns)
         {
             TableName = tableName;
             Columns = columns.ToImmutableArray();
-            Folder = string.IsNullOrEmpty(folder) ? null : folder;
-            DocString = string.IsNullOrEmpty(docString) ? null : docString;
         }
 
-        internal static CommandBase FromCode(CustomCommand customCommand)
+        internal static CommandBase FromCode(
+            CommandBlock commandBlock,
+            CustomCommand customCommand)
         {
-            var (nameDeclaration, columnsNode, withNode) = ExtractRootNodes(customCommand);
-            var columns = columnsNode
-                .GetDescendants<SeparatedElement<SyntaxElement>>()
-                .Select(p => p.GetUniqueDescendant<CustomNode>("Table column"))
-                .Select(c => ExtractColumn(c));
-            var tableName = nameDeclaration.Name.SimpleName;
-            var (folder, docString) = ParseWithNode(withNode);
+            var tableName = customCommand
+                .GetDescendants<NameReference>()
+                .Select(n => n.SimpleName)
+                .FirstOrDefault();
+            var q = commandBlock.GetDescendants<NameReference>();
+            var q2 = commandBlock.GetDescendants<SyntaxNode>();
+            var q3 = commandBlock.GetDescendants<SeparatedElement<Statement>>();
+            var q4 = commandBlock.GetDescendants<NameReference>();
+            var q5 = commandBlock.GetDescendants<SyntaxElement>();
 
-            return new CreateTableCommand(
-                tableName,
-                columns,
-                folder,
-                docString);
+            if (tableName == null)
+            {
+                throw new DeltaException("Can't find the name reference with the table name");
+            }
+
+            var (nameDeclaration, columnsNode, withNode) = ExtractRootNodes(customCommand);
+
+            throw new NotImplementedException();
+            //var columns = columnsNode
+            //    .GetDescendants<SeparatedElement<SyntaxElement>>()
+            //    .Select(p => p.GetUniqueDescendant<CustomNode>("Table column"))
+            //    .Select(c => ExtractColumn(c));
+            //var tableName = nameDeclaration.Name.SimpleName;
+            //var (folder, docString) = ParseWithNode(withNode);
+
+            //return new AlterMergeTableColumnDocStringsCommand(
+            //    tableName,
+            //    columns);
         }
 
         public override bool Equals(CommandBase? other)
@@ -58,9 +102,7 @@ namespace DeltaKustoLib.CommandModel
             var areEqualed = otherTable != null
                 && otherTable.TableName == TableName
                 //  Check that all columns are equal
-                && otherTable.Columns.Zip(Columns, (p1, p2) => p1.Equals(p2)).All(p => p)
-                && otherTable.Folder == Folder
-                && otherTable.DocString == DocString;
+                && otherTable.Columns.Zip(Columns, (p1, p2) => p1.Equals(p2)).All(p => p);
 
             return areEqualed;
         }
@@ -68,24 +110,12 @@ namespace DeltaKustoLib.CommandModel
         public override string ToScript()
         {
             var builder = new StringBuilder();
-            var properties = new[]
-            {
-                Folder!=null ? $"folder=\"{EscapeString(Folder)}\"" : null,
-                DocString!=null ? $"docstring=\"{EscapeString(DocString)}\"" : null
-            };
-            var nonEmptyProperties = properties.Where(p => p != null);
 
             builder.Append(".create table ");
             builder.Append(TableName);
             builder.Append(" (");
             builder.AppendJoin(", ", Columns.Select(c => c.ToString()));
             builder.Append(")");
-            if (nonEmptyProperties.Any())
-            {
-                builder.Append(" with (");
-                builder.AppendJoin(", ", nonEmptyProperties);
-                builder.Append(") ");
-            }
 
             return builder.ToString();
         }
@@ -122,14 +152,14 @@ namespace DeltaKustoLib.CommandModel
             }
         }
 
-        private static TableColumn ExtractColumn(CustomNode columnNode)
+        private static ColumnDocString ExtractColumn(CustomNode columnNode)
         {
             var nameDeclaration = columnNode.GetUniqueDescendant<NameDeclaration>(
                 "Table column name");
             var typeDeclaration = columnNode.GetUniqueDescendant<PrimitiveTypeExpression>(
                 "Table column type");
 
-            return new TableColumn(nameDeclaration.Name.SimpleName, typeDeclaration.Type.Text);
+            return new ColumnDocString(nameDeclaration.Name.SimpleName, typeDeclaration.Type.Text);
         }
 
         private static (string? folder, string? docString) ParseWithNode(

@@ -94,6 +94,10 @@ namespace DeltaKustoLib.CommandModel
                         //  between a .create and .create-merge (for unknown reasons)
                         return ParseAndCreateCommand(
                             ReplaceFirstOccurence(script, "create-merge", "create"));
+                    case "AlterMergeTableColumnDocStrings":
+                        return AlterMergeTableColumnDocStringsCommand.FromCode(
+                            commandBlock,
+                            customCommand);
 
                     default:
                         throw new DeltaException(
