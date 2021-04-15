@@ -34,6 +34,19 @@ namespace DeltaKustoUnitTest.CommandParsing
         }
 
         [Fact]
+        public void FunkyFunctionName()
+        {
+            var command = ParseOneCommand(".create function ['My Function']() { 42 }");
+
+            Assert.IsType<CreateFunctionCommand>(command);
+
+            var createFunctionCommand = (CreateFunctionCommand)command;
+
+            Assert.Equal("My Function", createFunctionCommand.FunctionName);
+            Assert.Equal("42", createFunctionCommand.Body);
+        }
+
+        [Fact]
         public void WithLets()
         {
             var name = "MyFunction4";
@@ -121,8 +134,6 @@ namespace DeltaKustoUnitTest.CommandParsing
                 "date",
                 "dynamic",
                 "guid",
-                //  Is uuid legal?
-                //"uuid",
                 "uniqueid",
                 "int",
                 "long",
@@ -154,24 +165,24 @@ namespace DeltaKustoUnitTest.CommandParsing
         }
 
         [Fact]
-        public void UUidScalarTypes()
+        public void FunkyParameter()
         {
-            var name = "UUidScalarTypeFct";
-            var body = "42";
+            var name = "myfct";
+            var body = "print state, qty, tolerance";
+            var paramName = "state.high";
+            var command = ParseOneCommand(
+                ".create-or-alter function "
+                + $"{name} (['{paramName}']:int) {{ {body} }}");
 
-            try
-            {
-                //  According to list in https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/scalar-data-types/
-                //  it should be legal but it doesn't work in Web UI
-                ParseOneCommand(
-                    ".create-or-alter function "
-                    + $"{name} (a:uuid) {{ {body} }}");
+            Assert.IsType<CreateFunctionCommand>(command);
 
-                throw new Exception("This should have failed with ArgumentNullException by now");
-            }
-            catch (ArgumentNullException)
-            {
-            }
+            var createFunctionCommand = (CreateFunctionCommand)command;
+
+            Assert.Equal(name, createFunctionCommand.FunctionName);
+            Assert.Single(createFunctionCommand.Parameters);
+            Assert.Equal(paramName, createFunctionCommand.Parameters.First().ParameterName);
+            Assert.Equal("int", createFunctionCommand.Parameters.First().PrimitiveType);
+            Assert.Equal(body, createFunctionCommand.Body);
         }
 
         [Fact]
@@ -222,6 +233,31 @@ namespace DeltaKustoUnitTest.CommandParsing
             Assert.NotNull(createFunctionCommand.Parameters.First().ComplexType);
             Assert.Single(createFunctionCommand.Parameters.First().ComplexType!.Columns);
             Assert.Equal("x", createFunctionCommand.Parameters.First().ComplexType!.Columns.First().ColumnName);
+            Assert.Equal("long", createFunctionCommand.Parameters.First().ComplexType!.Columns.First().PrimitiveType);
+            Assert.Equal(body, createFunctionCommand.Body);
+        }
+
+        [Fact]
+        public void FunkyTableTypeParameter()
+        {
+            var name = "TableTypeFct";
+            var body = "42";
+            var tableName = "t 1";
+            var columnName = "x.1";
+            var command = ParseOneCommand(
+                ".create-or-alter function "
+                + $"{name} (['{tableName}']:(['{columnName}']:long)) {{ {body} }}");
+
+            Assert.IsType<CreateFunctionCommand>(command);
+
+            var createFunctionCommand = (CreateFunctionCommand)command;
+
+            Assert.Equal(name, createFunctionCommand.FunctionName);
+            Assert.Single(createFunctionCommand.Parameters);
+            Assert.Equal(tableName, createFunctionCommand.Parameters.First().ParameterName);
+            Assert.NotNull(createFunctionCommand.Parameters.First().ComplexType);
+            Assert.Single(createFunctionCommand.Parameters.First().ComplexType!.Columns);
+            Assert.Equal(columnName, createFunctionCommand.Parameters.First().ComplexType!.Columns.First().ColumnName);
             Assert.Equal("long", createFunctionCommand.Parameters.First().ComplexType!.Columns.First().PrimitiveType);
             Assert.Equal(body, createFunctionCommand.Body);
         }
