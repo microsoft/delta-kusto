@@ -38,6 +38,36 @@ namespace DeltaKustoUnitTest.CommandParsing
             ValidateColumnCommand(command, tableName, columns);
         }
 
+        [Fact]
+        public void FunkyTableName()
+        {
+            var tableName = "t 1-";
+            var columns = new[]
+            {
+                (name: "Timestamp", docString: "Time of \\nday")
+            };
+            var command = ParseOneCommand(
+                $".alter-merge table [\"{tableName}\"] column-docstrings "
+                + $"({string.Join(", ", columns.Select(c => $"{c.name}:\"{c.docString}\""))})");
+
+            ValidateColumnCommand(command, tableName, columns);
+        }
+
+        [Fact]
+        public void FunkyColumnName()
+        {
+            var tableName = "t1";
+            var columns = new[]
+            {
+                (name: "Time.stamp", docString: "Time of \\nday")
+            };
+            var command = ParseOneCommand(
+                $".alter-merge table {tableName} column-docstrings "
+                + $"({string.Join(", ", columns.Select(c => $"['{c.name}']:\"{c.docString}\""))})");
+
+            ValidateColumnCommand(command, tableName, columns);
+        }
+
         private static void ValidateColumnCommand(
             CommandBase command,
             string tableName,
