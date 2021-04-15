@@ -13,10 +13,10 @@ namespace DeltaKustoUnitTest.CommandParsing
             var tableName = "t1";
             var columns = new[]
             {
-                (name: "TimeStamp", docString: "Time of day")
+                (name: "Timestamp", docString: "Time of \\nday")
             };
             var command = ParseOneCommand(
-                $".alter-merge table {tableName} column-docstring "
+                $".alter-merge table {tableName} column-docstrings "
                 + $"({string.Join(", ", columns.Select(c => $"{c.name}:\"{c.docString}\""))})");
 
             ValidateColumnCommand(command, tableName, columns);
@@ -32,7 +32,7 @@ namespace DeltaKustoUnitTest.CommandParsing
                 (name: "ac", docString: "acceleration")
             };
             var command = ParseOneCommand(
-                $".alter-merge table {tableName} column-docstring "
+                $".alter-merge table {tableName} column-docstrings "
                 + $"({string.Join(", ", columns.Select(c => $"{c.name}:\"{c.docString}\""))})");
 
             ValidateColumnCommand(command, tableName, columns);
@@ -43,7 +43,7 @@ namespace DeltaKustoUnitTest.CommandParsing
             string tableName,
             (string name, string docString)[] columns)
         {
-            Assert.IsType<CreateTableCommand>(command);
+            Assert.IsType<AlterMergeTableColumnDocStringsCommand>(command);
 
             var alterColumnCommand = (AlterMergeTableColumnDocStringsCommand)command;
 

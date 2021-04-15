@@ -75,9 +75,9 @@ namespace DeltaKustoLib.CommandModel
             };
             var nonEmptyProperties = properties.Where(p => p != null);
 
-            builder.Append(".create table ");
+            builder.Append(".create table ['");
             builder.Append(TableName);
-            builder.Append(" (");
+            builder.Append("'] (");
             builder.AppendJoin(", ", Columns.Select(c => c.ToString()));
             builder.Append(")");
             if (nonEmptyProperties.Any())
