@@ -66,20 +66,10 @@ namespace DeltaKustoLib.CommandModel
             CommandBlock commandBlock,
             CustomCommand customCommand)
         {
-            var tableName = customCommand
-                .GetDescendants<NameReference>()
-                .Select(n => n.SimpleName)
-                .FirstOrDefault();
-            var q = commandBlock.GetDescendants<NameReference>();
-            var q2 = commandBlock.GetDescendants<SyntaxNode>();
-            var q3 = commandBlock.GetDescendants<SeparatedElement<Statement>>();
-            var q4 = commandBlock.GetDescendants<NameReference>();
-            var q5 = commandBlock.GetDescendants<SyntaxElement>();
-
-            if (tableName == null)
-            {
-                throw new DeltaException("Can't find the name reference with the table name");
-            }
+            var tableNameReference = commandBlock.GetUniqueDescendant<NameReference>(
+                "TableName",
+                n => n.NameInParent == "TableName");
+            var q = commandBlock.GetDescendants<SyntaxElement>();
 
             var (nameDeclaration, columnsNode, withNode) = ExtractRootNodes(customCommand);
 
