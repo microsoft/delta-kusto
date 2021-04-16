@@ -35,10 +35,10 @@ namespace DeltaKustoLib.KustoModel
         {
             var tables = createTables
                 .Select(ct => new TableModel(
-                    ct.TableName,
+                    ct.TableName.Name,
                     FromCodeColumn(ct.Columns),
-                    ct.Folder,
-                    ct.DocString))
+                    ct.Folder?.Text,
+                    ct.DocString?.Text))
                 .ToImmutableArray();
 
             return tables;
@@ -49,7 +49,7 @@ namespace DeltaKustoLib.KustoModel
         {
             var columns = codeColumns
                 .Select(c => new ColumnModel(
-                    c.ColumnName,
+                    c.ColumnName.Name,
                     c.PrimitiveType,
                     null));
 

@@ -13,26 +13,26 @@ namespace DeltaKustoLib.CommandModel
     /// </summary>
     public class CreateTableCommand : CommandBase
     {
-        public string TableName { get; }
-        
+        public EntityName TableName { get; }
+
         public IImmutableList<TableColumn> Columns { get; }
 
-        public string? Folder { get; }
+        public QuotedText? Folder { get; }
 
-        public string? DocString { get; }
+        public QuotedText? DocString { get; }
 
         public override string CommandFriendlyName => ".create table";
 
         private CreateTableCommand(
-            string tableName,
+            EntityName tableName,
             IEnumerable<TableColumn> columns,
-            string? folder,
-            string? docString)
+            QuotedText? folder,
+            QuotedText? docString)
         {
             TableName = tableName;
             Columns = columns.ToImmutableArray();
-            Folder = string.IsNullOrEmpty(folder) ? null : folder;
-            DocString = string.IsNullOrEmpty(docString) ? null : docString;
+            Folder = folder;
+            DocString = docString;
         }
 
         internal static CommandBase FromCode(CustomCommand customCommand)
@@ -42,25 +42,25 @@ namespace DeltaKustoLib.CommandModel
                 .GetDescendants<SeparatedElement<SyntaxElement>>()
                 .Select(p => p.GetUniqueDescendant<CustomNode>("Table column"))
                 .Select(c => ExtractColumn(c));
-            var tableName = nameDeclaration.Name.SimpleName;
+            var tableName = nameDeclaration;
             var (folder, docString) = ParseWithNode(withNode);
 
             return new CreateTableCommand(
-                tableName,
+                EntityName.FromCode(tableName),
                 columns,
-                folder,
-                docString);
+                QuotedText.FromText(folder),
+                QuotedText.FromText(docString));
         }
 
         public override bool Equals(CommandBase? other)
         {
             var otherTable = other as CreateTableCommand;
             var areEqualed = otherTable != null
-                && otherTable.TableName == TableName
+                && otherTable.TableName.Equals(TableName)
                 //  Check that all columns are equal
                 && otherTable.Columns.Zip(Columns, (p1, p2) => p1.Equals(p2)).All(p => p)
-                && otherTable.Folder == Folder
-                && otherTable.DocString == DocString;
+                && object.Equals(otherTable.Folder, Folder)
+                && object.Equals(otherTable.DocString, DocString);
 
             return areEqualed;
         }
@@ -70,14 +70,14 @@ namespace DeltaKustoLib.CommandModel
             var builder = new StringBuilder();
             var properties = new[]
             {
-                Folder!=null ? $"folder=\"{EscapeString(Folder)}\"" : null,
-                DocString!=null ? $"docstring=\"{EscapeString(DocString)}\"" : null
+                Folder!=null ? $"folder={Folder}" : null,
+                DocString!=null ? $"docstring={DocString}" : null
             };
             var nonEmptyProperties = properties.Where(p => p != null);
 
-            builder.Append(".create table ['");
+            builder.Append(".create table ");
             builder.Append(TableName);
-            builder.Append("'] (");
+            builder.Append(" (");
             builder.AppendJoin(", ", Columns.Select(c => c.ToString()));
             builder.Append(")");
             if (nonEmptyProperties.Any())
@@ -129,7 +129,9 @@ namespace DeltaKustoLib.CommandModel
             var typeDeclaration = columnNode.GetUniqueDescendant<PrimitiveTypeExpression>(
                 "Table column type");
 
-            return new TableColumn(nameDeclaration.Name.SimpleName, typeDeclaration.Type.Text);
+            return new TableColumn(
+                EntityName.FromCode(nameDeclaration),
+                typeDeclaration.Type.Text);
         }
 
         private static (string? folder, string? docString) ParseWithNode(

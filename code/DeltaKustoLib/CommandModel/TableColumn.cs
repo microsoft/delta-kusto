@@ -9,16 +9,12 @@ namespace DeltaKustoLib.CommandModel
 {
     public class TableColumn : IEquatable<TableColumn>
     {
-        public string ColumnName { get; }
+        public EntityName ColumnName { get; }
 
         public string PrimitiveType { get; }
 
-        public TableColumn(string columnName, string primitiveType)
+        public TableColumn(EntityName columnName, string primitiveType)
         {
-            if (string.IsNullOrWhiteSpace(columnName))
-            {
-                throw new ArgumentNullException(nameof(columnName));
-            }
             if (string.IsNullOrWhiteSpace(primitiveType))
             {
                 throw new ArgumentNullException(nameof(primitiveType));
@@ -30,13 +26,13 @@ namespace DeltaKustoLib.CommandModel
         public bool Equals([AllowNull] TableColumn other)
         {
             return other != null
-                && ColumnName == other.ColumnName
+                && ColumnName.Equals(other.ColumnName)
                 && PrimitiveType == other.PrimitiveType;
         }
 
         public override string ToString()
         {
-            return $"['{ColumnName}']:{PrimitiveType}";
+            return $"{ColumnName}:{PrimitiveType}";
         }
     }
 }

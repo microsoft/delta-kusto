@@ -28,12 +28,12 @@ namespace DeltaKustoIntegration.Action
         {
             await ProcessDeltaCommandsAsync(
                 commands.DropFunctionCommands,
-                c => c.FunctionName,
+                c => c.FunctionName.Name,
                 "functions/drop",
                 ct);
             await ProcessDeltaCommandsAsync(
                 commands.CreateFunctionCommands,
-                c => c.FunctionName,
+                c => c.FunctionName.Name,
                 "functions/create",
                 ct);
         }

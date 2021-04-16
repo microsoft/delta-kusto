@@ -74,15 +74,15 @@ namespace DeltaKustoUnitTest.CommandParsing
 
             var createTableCommand = (CreateTableCommand)command;
 
-            Assert.Equal(tableName, createTableCommand.TableName);
+            Assert.Equal(tableName, createTableCommand.TableName.Name);
             Assert.Equal(columns.Length, createTableCommand.Columns.Count);
             for (int i = 0; i != columns.Length; ++i)
             {
-                Assert.Equal(columns[i].name, createTableCommand.Columns[i].ColumnName);
+                Assert.Equal(columns[i].name, createTableCommand.Columns[i].ColumnName.Name);
                 Assert.Equal(columns[i].type, createTableCommand.Columns[i].PrimitiveType);
             }
-            Assert.Equal(folder, createTableCommand.Folder);
-            Assert.Equal(docString, createTableCommand.DocString);
+            Assert.Equal(folder, createTableCommand.Folder?.Text);
+            Assert.Equal(docString, createTableCommand.DocString?.Text);
         }
     }
 }

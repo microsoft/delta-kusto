@@ -17,7 +17,7 @@ namespace DeltaKustoUnitTest.CommandParsing
             };
             var command = ParseOneCommand(
                 $".alter-merge table {tableName} column-docstrings "
-                + $"({string.Join(", ", columns.Select(c => $"{c.name}:\"{c.docString}\""))})");
+                + $"({string.Join(", ", columns.Select(c => $"{c.name}:{new QuotedText(c.docString)}"))})");
 
             ValidateColumnCommand(command, tableName, columns);
         }
@@ -44,7 +44,7 @@ namespace DeltaKustoUnitTest.CommandParsing
             var tableName = "t 1-";
             var columns = new[]
             {
-                (name: "Timestamp", docString: "Time of \\nday")
+                (name: "Timestamp", docString: "Time of day")
             };
             var command = ParseOneCommand(
                 $".alter-merge table [\"{tableName}\"] column-docstrings "
@@ -59,7 +59,7 @@ namespace DeltaKustoUnitTest.CommandParsing
             var tableName = "t1";
             var columns = new[]
             {
-                (name: "Time.stamp", docString: "Time of \\nday")
+                (name: "Time.stamp", docString: "Time of day")
             };
             var command = ParseOneCommand(
                 $".alter-merge table {tableName} column-docstrings "
@@ -77,12 +77,12 @@ namespace DeltaKustoUnitTest.CommandParsing
 
             var alterColumnCommand = (AlterMergeTableColumnDocStringsCommand)command;
 
-            Assert.Equal(tableName, alterColumnCommand.TableName);
+            Assert.Equal(tableName, alterColumnCommand.TableName.Name);
             Assert.Equal(columns.Length, alterColumnCommand.Columns.Count);
             for (int i = 0; i != columns.Length; ++i)
             {
-                Assert.Equal(columns[i].name, alterColumnCommand.Columns[i].ColumnName);
-                Assert.Equal(columns[i].docString, alterColumnCommand.Columns[i].DocString);
+                Assert.Equal(columns[i].name, alterColumnCommand.Columns[i].ColumnName.Name);
+                Assert.Equal(columns[i].docString, alterColumnCommand.Columns[i].DocString.Text);
             }
         }
     }

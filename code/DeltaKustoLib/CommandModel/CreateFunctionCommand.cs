@@ -14,26 +14,26 @@ namespace DeltaKustoLib.CommandModel
     /// </summary>
     public class CreateFunctionCommand : CommandBase
     {
-        public string FunctionName { get; }
+        public EntityName FunctionName { get; }
 
         public IImmutableList<TypedParameterModel> Parameters { get; }
 
         public string Body { get; }
 
-        public string? Folder { get; }
+        public QuotedText? Folder { get; }
 
-        public string? DocString { get; }
+        public QuotedText? DocString { get; }
 
         public bool SkipValidation { get; }
 
         public override string CommandFriendlyName => ".create function";
 
         public CreateFunctionCommand(
-            string functionName,
+            EntityName functionName,
             IEnumerable<TypedParameterModel> parameters,
             string functionBody,
-            string? folder,
-            string? docString,
+            QuotedText? folder,
+            QuotedText? docString,
             bool? skipValidation)
         {
             FunctionName = functionName;
@@ -47,14 +47,14 @@ namespace DeltaKustoLib.CommandModel
             }
             ValidateNoTableParameterAfterScalar(functionName, Parameters);
             Body = functionBody.Trim().Replace("\r", string.Empty);
-            Folder = string.IsNullOrEmpty(folder) ? null : folder;
-            DocString = string.IsNullOrEmpty(docString) ? null : docString;
+            Folder = folder;
+            DocString = docString;
             SkipValidation = skipValidation ?? true;
         }
 
         internal static CommandBase FromCode(CustomCommand customCommand)
         {
-            var functionName = GetEntityName(
+            var functionName = EntityName.FromCode(
                 customCommand.GetUniqueDescendant<SyntaxElement>(
                     "Function Name",
                     e => e.NameInParent == "FunctionName"));
@@ -85,11 +85,11 @@ namespace DeltaKustoLib.CommandModel
             var body = TrimFunctionSchemaBody(schema.Body);
 
             return new CreateFunctionCommand(
-                schema.Name,
+                new EntityName(schema.Name),
                 parameters,
                 body,
-                schema.Folder,
-                schema.DocString,
+                QuotedText.FromText(schema.Folder),
+                QuotedText.FromText(schema.DocString),
                 true);
         }
 
@@ -97,13 +97,13 @@ namespace DeltaKustoLib.CommandModel
         {
             var otherFunction = other as CreateFunctionCommand;
             var areEqualed = otherFunction != null
-                && otherFunction.FunctionName == FunctionName
+                && otherFunction.FunctionName.Equals(FunctionName)
                 //  Check that all parameters are equal
                 && otherFunction.Parameters.Zip(Parameters, (p1, p2) => p1.Equals(p2)).All(p => p)
-                && otherFunction.Body == Body
-                && otherFunction.Folder == Folder
-                && otherFunction.DocString == DocString
-                && otherFunction.SkipValidation == SkipValidation;
+                && otherFunction.Body.Equals(Body)
+                && object.Equals(otherFunction.Folder, Folder)
+                && object.Equals(otherFunction.DocString, DocString)
+                && object.Equals(otherFunction.SkipValidation, SkipValidation);
 
             return areEqualed;
         }
@@ -113,8 +113,8 @@ namespace DeltaKustoLib.CommandModel
             var builder = new StringBuilder();
             var properties = new[]
             {
-                Folder!=null ? $"folder=\"{EscapeString(Folder)}\"" : null,
-                DocString!=null ? $"docstring=\"{EscapeString(DocString)}\"" : null,
+                Folder!=null ? $"folder={Folder}" : null,
+                DocString!=null ? $"docstring={DocString}" : null,
                 $"skipvalidation=\"{SkipValidation}\""
             };
             var nonEmptyProperties = properties.Where(p => p != null);
@@ -145,10 +145,10 @@ namespace DeltaKustoLib.CommandModel
             IImmutableList<CreateFunctionCommand> targetFunctionCommands)
         {
             var currentFunctions =
-                currentFunctionCommands.ToImmutableDictionary(c => c.FunctionName);
+                currentFunctionCommands.ToImmutableDictionary(c => c.FunctionName.Name);
             var currentFunctionNames = currentFunctions.Keys.ToImmutableSortedSet();
             var targetFunctions =
-                targetFunctionCommands.ToImmutableDictionary(c => c.FunctionName);
+                targetFunctionCommands.ToImmutableDictionary(c => c.FunctionName.Name);
             var targetFunctionNames = targetFunctions.Keys.ToImmutableSortedSet();
             var dropFunctionNames = currentFunctionNames.Except(targetFunctionNames);
             var createFunctionNames = targetFunctionNames.Except(currentFunctionNames);
@@ -156,7 +156,7 @@ namespace DeltaKustoLib.CommandModel
                 .Intersect(currentFunctionNames)
                 .Where(name => !targetFunctions[name].Equals(currentFunctions[name]));
             var dropFunctions = dropFunctionNames
-                .Select(name => new DropFunctionCommand(name));
+                .Select(name => new DropFunctionCommand(new EntityName(name)));
             var createAlterFunctions = createFunctionNames
                 .Concat(changedFunctionsNames)
                 .Select(name => targetFunctions[name]);
@@ -179,7 +179,7 @@ namespace DeltaKustoLib.CommandModel
                 var typeExpression = type as PrimitiveTypeExpression;
 
                 return new TypedParameterModel(
-                    name.SimpleName,
+                    EntityName.FromCode(name),
                     typeExpression!.Type.ValueText,
                     defaultValue != null ? defaultValue.ToString() : null);
             }
@@ -193,7 +193,7 @@ namespace DeltaKustoLib.CommandModel
                     && cols.First().GetImmediateDescendants<NameAndTypeDeclaration>().Count == 0)
                 {
                     return new TypedParameterModel(
-                        name.SimpleName,
+                        EntityName.FromCode(name),
                         new TableParameterModel(new TableColumn[0]));
                 }
                 else
@@ -204,7 +204,9 @@ namespace DeltaKustoLib.CommandModel
                         .Select(n => GetColumnSchema(n));
                     var table = new TableParameterModel(columns);
 
-                    return new TypedParameterModel(name.SimpleName, table);
+                    return new TypedParameterModel(
+                        EntityName.FromCode(name),
+                        table);
                 }
             }
         }
@@ -215,18 +217,19 @@ namespace DeltaKustoLib.CommandModel
                 .GetImmediateDescendants<SyntaxNode>()
                 .ExtractChildren<NameDeclaration, PrimitiveTypeExpression>("Column pair");
 
-            return new TableColumn(name.SimpleName, type.Type.ValueText);
+            return new TableColumn(new EntityName(name.SimpleName), type.Type.ValueText);
         }
 
-        private static (string? folder, string? docString, bool? skipValidation) GetProperties(
-            CustomCommand customCommand)
+        private static (QuotedText? folder, QuotedText? docString, bool? skipValidation)
+            GetProperties(CustomCommand customCommand)
         {
             var propertyMap = customCommand
                 .GetDescendants<NameDeclaration>(e => e.NameInParent == "PropertyName")
                 .Select(n => new
                 {
                     Name = n.Name.SimpleName.ToUpperInvariant(),
-                    Value = n.Parent.GetUniqueDescendant<LiteralExpression>("Property Value").LiteralValue.ToString()
+                    Value = n.Parent.GetUniqueDescendant<LiteralExpression>(
+                        "Property Value").LiteralValue.ToString()
                 })
                 .ToImmutableDictionary(i => i.Name, i => i.Value);
             Func<string, string?> findValue = (name) =>
@@ -242,8 +245,14 @@ namespace DeltaKustoLib.CommandModel
                     return null;
                 }
             };
-            var folder = findValue("folder");
-            var docString = findValue("docstring");
+            var folderText = findValue("folder");
+            var folder = string.IsNullOrWhiteSpace(folderText)
+                ? null
+                : new QuotedText(folderText);
+            var docStringText = findValue("docstring");
+            var docString = string.IsNullOrWhiteSpace(docStringText)
+                ? null
+                : new QuotedText(docStringText);
             var skipValidationText = findValue("skipValidation");
             var skipValidation = skipValidationText == null
                 ? null
@@ -253,7 +262,7 @@ namespace DeltaKustoLib.CommandModel
         }
 
         private void ValidateNoTableParameterAfterScalar(
-            string functionName,
+            EntityName functionName,
             IImmutableList<TypedParameterModel> parameters)
         {
             //  This implements the rule cited in a note in
@@ -308,10 +317,12 @@ namespace DeltaKustoLib.CommandModel
         {
             return input.CslType == null
                 ? new TypedParameterModel(
-                    input.Name,
-                    new TableParameterModel(input.Columns.Select(c => new TableColumn(c.Name, c.CslType))))
+                    new EntityName(input.Name),
+                    new TableParameterModel(
+                        input.Columns.Select(
+                            c => new TableColumn(new EntityName(c.Name), c.CslType))))
                 : new TypedParameterModel(
-                    input.Name,
+                    new EntityName(input.Name),
                     input.CslType,
                     input.CslDefaultValue != null ? "=" + input.CslDefaultValue : null);
         }

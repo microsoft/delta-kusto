@@ -13,11 +13,11 @@ namespace DeltaKustoLib.CommandModel
     /// </summary>
     public class DropFunctionCommand : CommandBase
     {
-        public string FunctionName { get; }
+        public EntityName FunctionName { get; }
 
         public override string CommandFriendlyName => ".drop function";
 
-        public DropFunctionCommand(string functionName)
+        public DropFunctionCommand(EntityName functionName)
         {
             FunctionName = functionName;
         }
@@ -27,7 +27,7 @@ namespace DeltaKustoLib.CommandModel
             var customNode = customCommand.GetUniqueImmediateDescendant<CustomNode>("Custom node");
             var nameReference = customNode.GetUniqueImmediateDescendant<NameReference>("Name reference");
 
-            return new DropFunctionCommand(nameReference.Name.SimpleName);
+            return new DropFunctionCommand(new EntityName(nameReference.Name.SimpleName));
         }
 
         public override bool Equals(CommandBase? other)
@@ -41,7 +41,7 @@ namespace DeltaKustoLib.CommandModel
 
         public override string ToScript()
         {
-            return $".drop function ['{FunctionName}']";
+            return $".drop function {FunctionName}";
         }
     }
 }

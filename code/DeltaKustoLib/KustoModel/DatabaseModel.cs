@@ -40,8 +40,8 @@ namespace DeltaKustoLib.KustoModel
             var createTables = GetCommands<CreateTableCommand>(commandTypeIndex);
 
             ValidateCommandTypes(commandTypes);
-            ValidateDuplicates(createFunctions, f => f.FunctionName);
-            ValidateDuplicates(createTables, t => t.TableName);
+            ValidateDuplicates(createFunctions, f => f.FunctionName.Name);
+            ValidateDuplicates(createTables, t => t.TableName.Name);
 
             var tableModels = TableModel.FromCommands(createTables);
 

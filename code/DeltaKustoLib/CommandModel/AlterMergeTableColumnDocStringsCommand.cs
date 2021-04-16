@@ -17,20 +17,12 @@ namespace DeltaKustoLib.CommandModel
         #region Inner Types
         public class ColumnDocString : IEquatable<ColumnDocString>
         {
-            public string ColumnName { get; }
+            public EntityName ColumnName { get; }
 
-            public string DocString { get; }
+            public QuotedText DocString { get; }
 
-            public ColumnDocString(string columnName, string docString)
+            public ColumnDocString(EntityName columnName, QuotedText docString)
             {
-                if (string.IsNullOrWhiteSpace(columnName))
-                {
-                    throw new ArgumentNullException(nameof(columnName));
-                }
-                if (string.IsNullOrWhiteSpace(docString))
-                {
-                    throw new ArgumentNullException(nameof(docString));
-                }
                 ColumnName = columnName;
                 DocString = docString;
             }
@@ -38,25 +30,25 @@ namespace DeltaKustoLib.CommandModel
             public bool Equals([AllowNull] ColumnDocString other)
             {
                 return other != null
-                    && ColumnName == other.ColumnName
-                    && DocString == other.DocString;
+                    && ColumnName.Equals(other.ColumnName)
+                    && DocString.Equals(other.DocString);
             }
 
             public override string ToString()
             {
-                return $"['{ColumnName}']:\"{DocString}\"";
+                return $"{ColumnName}:{DocString}";
             }
         }
         #endregion
 
-        public string TableName { get; }
+        public EntityName TableName { get; }
 
         public IImmutableList<ColumnDocString> Columns { get; }
 
         public override string CommandFriendlyName => ".alter-merge table column-docstring";
 
         private AlterMergeTableColumnDocStringsCommand(
-            string tableName,
+            EntityName tableName,
             IEnumerable<ColumnDocString> columns)
         {
             TableName = tableName;
@@ -70,11 +62,10 @@ namespace DeltaKustoLib.CommandModel
             var identifiers = commandBlock
                 .GetDescendants<SyntaxNode>(e => e.NameInParent == "Name"
                 && e.Kind != SyntaxKind.BracketedName)
-                .Select(t => GetEntityName(t));
+                .Select(t => EntityName.FromCode(t));
             var literals = commandBlock
-                .GetDescendants<SyntaxNode>(e => e.NameInParent == "DocString")
-                .Select(l => l.ToString())
-                .Select(t => t.Trim('"'));
+                .GetDescendants<LiteralExpression>(e => e.NameInParent == "DocString")
+                .Select(l => new QuotedText(l.LiteralValue.ToString()!));
 
             if (identifiers.Count() < 1)
             {
@@ -97,7 +88,7 @@ namespace DeltaKustoLib.CommandModel
         {
             var otherTable = other as AlterMergeTableColumnDocStringsCommand;
             var areEqualed = otherTable != null
-                && otherTable.TableName == TableName
+                && otherTable.TableName.Equals(TableName)
                 //  Check that all columns are equal
                 && otherTable.Columns.Zip(Columns, (p1, p2) => p1.Equals(p2)).All(p => p);
 
@@ -108,12 +99,12 @@ namespace DeltaKustoLib.CommandModel
         {
             var builder = new StringBuilder();
 
-            builder.Append(".alter-merge table ['");
+            builder.Append(".alter-merge table ");
             builder.Append(TableName);
-            builder.Append("'] column-docstrings (");
+            builder.Append(" column-docstrings (");
             builder.AppendJoin(
                 ", ",
-                Columns.Select(c => $"['{c.ColumnName}']:\"{c.DocString}\""));
+                Columns.Select(c => $"{c.ColumnName}:{c.DocString}"));
             builder.Append(")");
 
             return builder.ToString();

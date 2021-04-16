@@ -46,32 +46,6 @@ namespace DeltaKustoLib.CommandModel
         }
         #endregion
 
-        protected static string GetEntityName(SyntaxElement element)
-        {
-            switch (element)
-            {
-                case NameDeclaration nameDeclaration:
-                        return nameDeclaration.Name.SimpleName;
-                case TokenName tokenName:
-                    return tokenName.Name.Text;
-                case LiteralExpression literal:
-                    return (string)literal.LiteralValue;
-         
-                default:
-                    return element.ToString();
-            }
-        }
-
-        protected static string EscapeString(string text)
-        {
-            var escaped = text
-                .Replace("\\", "\\\\")
-                .Replace("\"", "\\\"")
-                .Replace("'", "\\'");
-
-            return escaped;
-        }
-
         private static CommandBase ParseAndCreateCommand(string script)
         {
             try
