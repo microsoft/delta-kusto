@@ -55,8 +55,9 @@ namespace DeltaKustoLib.KustoModel
                 .Values
                 .Select(s => CreateFunctionCommand.FromFunctionSchema(s));
 
-            throw new NotImplementedException();
-            //return new DatabaseModel(functions);
+            return new DatabaseModel(
+                functions.ToImmutableArray(),
+                ImmutableList<TableModel>.Empty);
         }
 
         public IImmutableList<CommandBase> ComputeDelta(DatabaseModel targetModel)
