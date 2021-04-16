@@ -54,21 +54,24 @@ namespace DeltaKustoLib.CommandModel
 
         internal static CommandBase FromCode(CustomCommand customCommand)
         {
-            var (withNode, nameDeclaration, functionDeclaration) = ExtractRootNodes(customCommand);
-            var (functionParameters, functionBody) = functionDeclaration
-                .GetImmediateDescendants<SyntaxNode>()
-                .ExtractChildren<FunctionParameters, FunctionBody>("Function declaration");
-            var functionName = nameDeclaration.Name.SimpleName;
-            var parameters = GetParameters(functionParameters);
-            var bodyText = functionBody.Root.ToString(IncludeTrivia.All).Substring(
-                functionBody.OpenBrace.TextStart + 1,
-                functionBody.CloseBrace.TextStart - functionBody.OpenBrace.TextStart - 1);
-            var (folder, docString, skipValidation) = GetProperties(withNode);
+            var functionName = GetEntityName(
+                customCommand.GetUniqueDescendant<SyntaxElement>(
+                    "Function Name",
+                    e => e.NameInParent == "FunctionName"));
+            var functionDeclaration = customCommand.GetUniqueDescendant<FunctionDeclaration>(
+                "Function declaration");
+            var body = TrimFunctionSchemaBody(functionDeclaration.Body.ToString());
+            var parameters = functionDeclaration
+                .Parameters
+                .Parameters
+                .Select(p => p.Element)
+                .Select(fp => GetParameter(fp));
+            var (folder, docString, skipValidation) = GetProperties(customCommand);
 
             return new CreateFunctionCommand(
                 functionName,
                 parameters,
-                bodyText.Trim(),
+                body,
                 folder,
                 docString,
                 skipValidation);
@@ -137,19 +140,6 @@ namespace DeltaKustoLib.CommandModel
             return builder.ToString();
         }
 
-        internal CreateFunctionCommand ForceSkipValidation()
-        {
-            return SkipValidation == true
-                ? this
-                : new CreateFunctionCommand(
-                    FunctionName,
-                    Parameters,
-                    Body,
-                    Folder,
-                    DocString,
-                    true);
-        }
-
         internal static IEnumerable<CommandBase> ComputeDelta(
             IImmutableList<CreateFunctionCommand> currentFunctionCommands,
             IImmutableList<CreateFunctionCommand> targetFunctionCommands)
@@ -174,58 +164,6 @@ namespace DeltaKustoLib.CommandModel
             return dropFunctions
                 .Cast<CommandBase>()
                 .Concat(createAlterFunctions);
-        }
-
-        private static (CustomNode?, NameDeclaration, FunctionDeclaration) ExtractRootNodes(
-            CustomCommand customCommand)
-        {
-            var customNode = customCommand.GetUniqueImmediateDescendant<CustomNode>("Custom node");
-            var rootNodes = customNode.GetImmediateDescendants<SyntaxNode>();
-
-            if (rootNodes.Count < 2 || rootNodes.Count > 3)
-            {
-                throw new DeltaException(
-                    $"2 or 3 root nodes are expected but {rootNodes.Count} were found");
-            }
-            else
-            {
-                CustomNode? withNode = null;
-
-                if (rootNodes.Count == 3)
-                {
-                    withNode = rootNodes.First() as CustomNode;
-
-                    if (withNode == null)
-                    {
-                        throw new DeltaException(
-                            $"A custom node was expected as first node but '{rootNodes.First().GetType().Name}' was found instead");
-                    }
-                }
-
-                var nameDeclaration = rootNodes.SkipLast(1).Last() as NameDeclaration;
-                var functionDeclaration = rootNodes.Last() as FunctionDeclaration;
-
-                if (nameDeclaration == null)
-                {
-                    throw new DeltaException("Name declaration was expected but not found");
-                }
-                if (functionDeclaration == null)
-                {
-                    throw new DeltaException("Function declaration was expected but not found");
-                }
-
-                return (withNode, nameDeclaration, functionDeclaration);
-            }
-        }
-
-        private static IEnumerable<TypedParameterModel> GetParameters(
-            FunctionParameters functionParameters)
-        {
-            var typeParameters = functionParameters
-                .GetDescendants<FunctionParameter>()
-                .Select(fp => GetParameter(fp));
-
-            return typeParameters;
         }
 
         private static TypedParameterModel GetParameter(FunctionParameter functionParameter)
@@ -280,62 +218,38 @@ namespace DeltaKustoLib.CommandModel
             return new TableColumn(name.SimpleName, type.Type.ValueText);
         }
 
-        private static bool? GetSkipValidation(string text)
-        {
-            if (text.ToLower() != "true" && text.ToLower() != "false")
-            {
-                throw new DeltaException(
-                    $"skipvalidation must be 'true' or 'false', it can't be '{text}'");
-            }
-
-            var skipValidation = bool.Parse(text);
-
-            return skipValidation;
-        }
-
         private static (string? folder, string? docString, bool? skipValidation) GetProperties(
-            CustomNode? withNode)
+            CustomCommand customCommand)
         {
-            if (withNode == null)
-            {
-                return (null, null, null);
-            }
-            else
-            {
-                var properties = withNode
-                    .GetDescendants<CustomNode>()
-                    .Select(n => n.GetDescendants<SyntaxNode>())
-                    .Select(l =>
-                    {
-                        var (name, _, literal) = l.ExtractChildren<NameDeclaration, TokenName, LiteralExpression>("With properties");
-
-                        return (name: name.SimpleName, value: (string)literal.LiteralValue);
-                    });
-                string? folder = null;
-                string? docString = null;
-                bool? skipValidation = null;
-
-                foreach (var property in properties)
+            var propertyMap = customCommand
+                .GetDescendants<NameDeclaration>(e => e.NameInParent == "PropertyName")
+                .Select(n => new
                 {
-                    switch (property.name)
-                    {
-                        case "folder":
-                            folder = property.value;
-                            break;
-                        case "docstring":
-                            docString = property.value;
-                            break;
-                        case "skipvalidation":
-                            skipValidation = GetSkipValidation(property.value);
-                            break;
-                        default:
-                            throw new DeltaException(
-                                $"Unsupported function property name:  '{property.name}'");
-                    }
-                }
+                    Name = n.Name.SimpleName.ToUpperInvariant(),
+                    Value = n.Parent.GetUniqueDescendant<LiteralExpression>("Property Value").LiteralValue.ToString()
+                })
+                .ToImmutableDictionary(i => i.Name, i => i.Value);
+            Func<string, string?> findValue = (name) =>
+            {
+                var key = name.ToUpperInvariant();
 
-                return (folder, docString, skipValidation);
-            }
+                if (propertyMap.ContainsKey(key))
+                {
+                    return propertyMap[key];
+                }
+                else
+                {
+                    return null;
+                }
+            };
+            var folder = findValue("folder");
+            var docString = findValue("docstring");
+            var skipValidationText = findValue("skipValidation");
+            var skipValidation = skipValidationText == null
+                ? null
+                : (skipValidationText.ToUpperInvariant() == "FALSE" ? (bool?)false : true);
+
+            return (folder, docString, skipValidation);
         }
 
         private void ValidateNoTableParameterAfterScalar(

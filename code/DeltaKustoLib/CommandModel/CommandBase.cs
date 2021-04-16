@@ -50,8 +50,10 @@ namespace DeltaKustoLib.CommandModel
         {
             switch (element)
             {
-                case TokenName name:
-                    return name.Name.Text;
+                case NameDeclaration nameDeclaration:
+                        return nameDeclaration.Name.SimpleName;
+                case TokenName tokenName:
+                    return tokenName.Name.Text;
                 case LiteralExpression literal:
                     return (string)literal.LiteralValue;
          

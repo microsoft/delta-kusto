@@ -30,10 +30,13 @@ namespace DeltaKustoLib.CommandModel
 
         public static TElement GetUniqueImmediateDescendant<TElement>(
             this SyntaxElement parent,
-            string descendantNameForExceptionMessage)
+            string descendantNameForExceptionMessage,
+            Func<TElement, bool>? predicate = null)
             where TElement : SyntaxElement
         {
-            var descendants = parent.GetDescendants<TElement>(e => e.Parent == parent);
+            var descendants = parent.GetDescendants<TElement>(
+                e => e.Parent == parent
+                && (predicate == null || predicate(e)));
 
             if (descendants.Count != 1)
             {
@@ -45,10 +48,14 @@ namespace DeltaKustoLib.CommandModel
             return descendants.First();
         }
 
-        public static IReadOnlyList<TElement> GetImmediateDescendants<TElement>(this SyntaxElement parent)
+        public static IReadOnlyList<TElement> GetImmediateDescendants<TElement>(
+            this SyntaxElement parent,
+            Func<TElement, bool>? predicate = null)
             where TElement : SyntaxElement
         {
-            var descendants = parent.GetDescendants<TElement>(e => e.Parent == parent);
+            var descendants = parent.GetDescendants<TElement>(
+                e => e.Parent == parent
+                && (predicate == null || predicate(e)));
 
             return descendants;
         }
