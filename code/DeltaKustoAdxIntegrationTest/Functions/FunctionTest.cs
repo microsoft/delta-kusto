@@ -10,7 +10,7 @@ using Xunit;
 
 namespace DeltaKustoAdxIntegrationTest.Functions
 {
-    public class FunctionsAdxToFileTest : AdxIntegrationTestBase
+    public class FunctionTest : AdxIntegrationTestBase
     {
         private const string STATES_FOLDER_PATH = "Functions/States";
 
