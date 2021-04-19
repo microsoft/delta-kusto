@@ -42,6 +42,25 @@ namespace DeltaKustoUnitTest.CommandParsing
 
             ValidateTableCommand(command, tableName, columns, null, null);
         }
+
+        [Fact]
+        public void AlterMerge()
+        {
+            var tableName = "demo_make_series1";
+            var columns = new[]
+            {
+                (name: "TimeStamp", type: "datetime"),
+                (name: "BrowserVer", type: "string"),
+                (name: "OsVer", type: "string"),
+                (name: "Country", type: "string")
+            };
+            var command = ParseOneCommand(
+                $".alter-merge table {tableName} "
+                + $"({string.Join(", ", columns.Select(c => $"{c.name}:{c.type}"))})");
+
+            ValidateTableCommand(command, tableName, columns, null, null);
+        }
+
         [Fact]
         public void WithLetsAndProperties()
         {
