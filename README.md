@@ -21,6 +21,10 @@ Delta-Kusto works on database structure, **not data**:
 * External tables
 * Continuous Export
 
+## Documentations
+
+See the [documentation](documentation/README.md) for details and [tutorial section](documentation/tutorials/README.md) for different tutorials on Delta-Kusto.
+
 ## Overview
 
 The high-level view of delta-kusto is the following:
@@ -82,13 +86,11 @@ This is the *Live Sync* scenario:  we want to bring an ADX database to the same 
 
 ## Limitations
 
-Delta-Kusto is currently in development.  It has no releases yet.
+The [current release](https://github.com/microsoft/delta-kusto/releases) of Delta-Kusto focusses on *functions*.
 
-The minimum viable product (MVP) will compute delta on *functions*.
+[Tables are planned](https://github.com/microsoft/delta-kusto/issues/8) for the next release.
 
-## Tutorials
-
-See the [tutorial section](documentation/tutorials/README.md) for different tutorials on Delta-Kusto.
+See the [list of issues](https://github.com/microsoft/delta-kusto/issues/) for details on upcoming features and bugs found.
 
 ## Alternatives
 
