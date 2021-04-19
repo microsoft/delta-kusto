@@ -16,7 +16,11 @@ A table consists of:
 
 ## Inputs
 
-TODO
+Inputs for table model are:
+
+* [.create table](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/create-table-command)
+* [.create-merge table](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/create-merge-table-command)
+
 
 ## Delta
 
