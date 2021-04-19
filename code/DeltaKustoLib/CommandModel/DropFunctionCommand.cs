@@ -22,9 +22,9 @@ namespace DeltaKustoLib.CommandModel
             FunctionName = functionName;
         }
 
-        internal static CommandBase FromCode(CustomCommand customCommand)
+        internal static CommandBase FromCode(SyntaxElement rootElement)
         {
-            var nameReference = customCommand.GetUniqueDescendant<NameReference>(
+            var nameReference = rootElement.GetUniqueDescendant<NameReference>(
                 "FunctionName",
                 n => n.NameInParent == "FunctionName");
 

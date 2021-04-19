@@ -52,13 +52,13 @@ namespace DeltaKustoLib.CommandModel
             SkipValidation = skipValidation ?? true;
         }
 
-        internal static CommandBase FromCode(CustomCommand customCommand)
+        internal static CommandBase FromCode(SyntaxElement rootElement)
         {
             var functionName = EntityName.FromCode(
-                customCommand.GetUniqueDescendant<SyntaxElement>(
+                rootElement.GetUniqueDescendant<SyntaxElement>(
                     "Function Name",
                     e => e.NameInParent == "FunctionName"));
-            var functionDeclaration = customCommand.GetUniqueDescendant<FunctionDeclaration>(
+            var functionDeclaration = rootElement.GetUniqueDescendant<FunctionDeclaration>(
                 "Function declaration");
             var body = TrimFunctionSchemaBody(functionDeclaration.Body.ToString());
             var parameters = functionDeclaration
@@ -66,7 +66,7 @@ namespace DeltaKustoLib.CommandModel
                 .Parameters
                 .Select(p => p.Element)
                 .Select(fp => GetParameter(fp));
-            var (folder, docString, skipValidation) = GetProperties(customCommand);
+            var (folder, docString, skipValidation) = GetProperties(rootElement);
 
             return new CreateFunctionCommand(
                 functionName,
@@ -217,9 +217,9 @@ namespace DeltaKustoLib.CommandModel
         }
 
         private static (QuotedText? folder, QuotedText? docString, bool? skipValidation)
-            GetProperties(CustomCommand customCommand)
+            GetProperties(SyntaxElement rootElement)
         {
-            var propertyMap = customCommand
+            var propertyMap = rootElement
                 .GetDescendants<NameDeclaration>(e => e.NameInParent == "PropertyName")
                 .Select(n => new
                 {

@@ -55,15 +55,13 @@ namespace DeltaKustoLib.CommandModel
             Columns = columns.ToImmutableArray();
         }
 
-        internal static CommandBase FromCode(
-            CommandBlock commandBlock,
-            CustomCommand customCommand)
+        internal static CommandBase FromCode(SyntaxElement rootElement)
         {
-            var identifiers = commandBlock
+            var identifiers = rootElement
                 .GetDescendants<SyntaxNode>(e => e.NameInParent == "Name"
                 && e.Kind != SyntaxKind.BracketedName)
                 .Select(t => EntityName.FromCode(t));
-            var literals = commandBlock
+            var literals = rootElement
                 .GetDescendants<LiteralExpression>(e => e.NameInParent == "DocString")
                 .Select(l => new QuotedText(l.LiteralValue.ToString()!));
 

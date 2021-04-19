@@ -79,9 +79,9 @@ namespace DeltaKustoLib.CommandModel
             {
                 case "CreateFunction":
                 case "CreateOrAlterFunction":
-                    return CreateFunctionCommand.FromCode(customCommand);
+                    return CreateFunctionCommand.FromCode(commandBlock);
                 case "DropFunction":
-                    return DropFunctionCommand.FromCode(customCommand);
+                    return DropFunctionCommand.FromCode(commandBlock);
                 case "CreateTable":
                     return CreateTableCommand.FromCode(commandBlock);
                 case "CreateMergeTable":
@@ -90,9 +90,7 @@ namespace DeltaKustoLib.CommandModel
                     return ParseAndCreateCommand(
                         ReplaceFirstOccurence(script, "create-merge", "create"));
                 case "AlterMergeTableColumnDocStrings":
-                    return AlterMergeTableColumnDocStringsCommand.FromCode(
-                        commandBlock,
-                        customCommand);
+                    return AlterMergeTableColumnDocStringsCommand.FromCode(commandBlock);
 
                 default:
                     throw new DeltaException(
