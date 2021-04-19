@@ -83,7 +83,7 @@ namespace DeltaKustoLib.CommandModel
                 case "DropFunction":
                     return DropFunctionCommand.FromCode(customCommand);
                 case "CreateTable":
-                    return CreateTableCommand.FromCode(customCommand);
+                    return CreateTableCommand.FromCode(commandBlock);
                 case "CreateMergeTable":
                     //  We need to do this since the parsing is quite different with the with-node
                     //  between a .create and .create-merge (for unknown reasons)

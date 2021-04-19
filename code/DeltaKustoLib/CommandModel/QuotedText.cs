@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Kusto.Language.Syntax;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -25,7 +26,12 @@ namespace DeltaKustoLib.CommandModel
                 : new QuotedText(text);
         }
 
-        public static QuotedText? Empty { get; }
+        public static QuotedText FromLiteral(LiteralExpression literal)
+        {
+            return new QuotedText((string)literal.LiteralValue);
+        }
+
+        public static QuotedText Empty { get; }
 
         public string Text { get; }
 

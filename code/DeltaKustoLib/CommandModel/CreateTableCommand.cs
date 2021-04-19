@@ -17,17 +17,17 @@ namespace DeltaKustoLib.CommandModel
 
         public IImmutableList<TableColumn> Columns { get; }
 
-        public QuotedText? Folder { get; }
+        public QuotedText Folder { get; }
 
-        public QuotedText? DocString { get; }
+        public QuotedText DocString { get; }
 
         public override string CommandFriendlyName => ".create table";
 
         private CreateTableCommand(
             EntityName tableName,
             IEnumerable<TableColumn> columns,
-            QuotedText? folder,
-            QuotedText? docString)
+            QuotedText folder,
+            QuotedText docString)
         {
             TableName = tableName;
             Columns = columns.ToImmutableArray();
@@ -35,21 +35,30 @@ namespace DeltaKustoLib.CommandModel
             DocString = docString;
         }
 
-        internal static CommandBase FromCode(CustomCommand customCommand)
+        internal static CommandBase FromCode(SyntaxElement rootElement)
         {
-            var (nameDeclaration, columnsNode, withNode) = ExtractRootNodes(customCommand);
-            var columns = columnsNode
-                .GetDescendants<SeparatedElement<SyntaxElement>>()
-                .Select(p => p.GetUniqueDescendant<CustomNode>("Table column"))
-                .Select(c => ExtractColumn(c));
-            var tableName = nameDeclaration;
-            var (folder, docString) = ParseWithNode(withNode);
+            var tableName = rootElement.GetUniqueDescendant<NameDeclaration>(
+                "TableName",
+                n => n.NameInParent == "TableName");
+            var folder = GetProperty(rootElement, SyntaxKind.FolderKeyword);
+            var docString = GetProperty(rootElement, SyntaxKind.DocStringKeyword);
+            var columns = rootElement
+                .GetDescendants<NameDeclaration>(n => n.NameInParent=="ColumnName")
+                .Select(n => n.Parent)
+                .Select(n => new
+                {
+                    Name = n.GetUniqueDescendant<NameDeclaration>("Table column name"),
+                    Type = n.GetUniqueDescendant<PrimitiveTypeExpression>("Table column type")
+                })
+                .Select(c => new TableColumn(
+                    EntityName.FromCode(c.Name),
+                    c.Type.Type.Text));
 
             return new CreateTableCommand(
                 EntityName.FromCode(tableName),
                 columns,
-                QuotedText.FromText(folder),
-                QuotedText.FromText(docString));
+                folder,
+                docString);
         }
 
         public override bool Equals(CommandBase? other)
@@ -90,149 +99,16 @@ namespace DeltaKustoLib.CommandModel
             return builder.ToString();
         }
 
-        private static (NameDeclaration, SyntaxNode, CustomNode?) ExtractRootNodes(
-            CustomCommand customCommand)
+        private static QuotedText GetProperty(SyntaxElement rootElement, SyntaxKind kind)
         {
-            var customNode = customCommand.GetUniqueImmediateDescendant<CustomNode>("Custom node");
-            var rootNodes = customNode.GetImmediateDescendants<SyntaxNode>();
+            var literal = rootElement
+                .GetDescendants<SyntaxElement>(e => e.Kind == kind)
+                .Select(e => e.Parent.GetDescendants<LiteralExpression>().FirstOrDefault())
+                .FirstOrDefault();
 
-            if (rootNodes.Count < 2 || rootNodes.Count > 3)
-            {
-                throw new DeltaException(
-                    $"2 or 3 root nodes are expected but {rootNodes.Count} were found");
-            }
-            else
-            {
-                var nameDeclaration = rootNodes[0] as NameDeclaration;
-                var columnsNode = rootNodes[1];
-                var withNode = rootNodes.Count == 3
-                    ? rootNodes[2] as CustomNode
-                    : null;
-
-                if (nameDeclaration == null)
-                {
-                    throw new DeltaException("Name declaration was expected but not found");
-                }
-                if (withNode == null && rootNodes.Count == 3)
-                {
-                    throw new DeltaException($"A custom node was expected as last node");
-                }
-
-                return (nameDeclaration, columnsNode, withNode);
-            }
-        }
-
-        private static TableColumn ExtractColumn(CustomNode columnNode)
-        {
-            var nameDeclaration = columnNode.GetUniqueDescendant<NameDeclaration>(
-                "Table column name");
-            var typeDeclaration = columnNode.GetUniqueDescendant<PrimitiveTypeExpression>(
-                "Table column type");
-
-            return new TableColumn(
-                EntityName.FromCode(nameDeclaration),
-                typeDeclaration.Type.Text);
-        }
-
-        private static (string? folder, string? docString) ParseWithNode(
-            CustomNode? withNode)
-        {
-            if (withNode != null)
-            {
-                var tokens = withNode
-                    .GetDescendants<CustomNode>()
-                    .Select(n =>
-                    {
-                        var elements = n.GetDescendants<SyntaxElement>();
-                        var (token, _, litteral, _) = elements.ExtractChildren<
-                            SyntaxToken,
-                            SyntaxToken,
-                            LiteralExpression,
-                            SyntaxToken>("with-node children");
-
-                        return (token.Kind, litteral.ConstantValue);
-                    });
-                string? folder = null;
-                string? docString = null;
-
-                foreach (var t in tokens)
-                {
-                    if (t.Kind == SyntaxKind.FolderKeyword)
-                    {
-                        folder = t.ConstantValue as string;
-                    }
-                    else if (t.Kind == SyntaxKind.DocStringKeyword)
-                    {
-                        docString = t.ConstantValue as string;
-                    }
-                    else
-                    {
-                        throw new DeltaException($"Unknown token:  '{t.Kind}'");
-                    }
-                }
-
-                return (folder, docString);
-            }
-            else
-            {
-                return (null, null);
-            }
-        }
-
-        private static (string? folder, string? docString) GetProperties(
-            IEnumerable<SkippedTokens> withNodeTokens)
-        {
-            if (withNodeTokens.Count() > 1)
-            {
-                throw new DeltaException(
-                    $"With-node expected to be unique but has {withNodeTokens.Count()} nodes");
-            }
-            else if (withNodeTokens.Count() == 0)
-            {
-                return (null, null);
-            }
-            else
-            {
-                var tokens = withNodeTokens.First().GetDescendants<SyntaxToken>();
-                string? folder = null;
-                string? docString = null;
-
-                //  Scan the tokens and find the folder / doc string
-                //  It's a flat list, not much structure to hook on
-                for (int i = 0; i != tokens.Count; ++i)
-                {
-                    if (tokens[i].Kind == SyntaxKind.FolderKeyword)
-                    {
-                        folder = GetPropertyValue(tokens, i);
-                    }
-                    if (tokens[i].Kind == SyntaxKind.DocStringKeyword)
-                    {
-                        docString = GetPropertyValue(tokens, i);
-                    }
-                }
-
-                return (folder, docString);
-            }
-        }
-
-        private static string GetPropertyValue(IReadOnlyList<SyntaxToken> tokens, int index)
-        {
-            if (tokens.Count < index + 3)
-            {
-                throw new DeltaException("Not enough tokens in the with-node");
-            }
-            if (tokens[index + 1].Kind != SyntaxKind.EqualToken)
-            {
-                throw new DeltaException("with-property name should be followed by equal");
-            }
-            if (tokens[index + 2].Kind != SyntaxKind.StringLiteralToken)
-            {
-                throw new DeltaException("with-property value should be a string");
-            }
-
-            var value = tokens[index + 2].ValueText;
-
-            return value;
+            return literal == null
+                ? QuotedText.Empty
+                : QuotedText.FromLiteral(literal);
         }
     }
 }

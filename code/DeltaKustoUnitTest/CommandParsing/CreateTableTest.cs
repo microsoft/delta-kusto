@@ -81,8 +81,8 @@ namespace DeltaKustoUnitTest.CommandParsing
                 Assert.Equal(columns[i].name, createTableCommand.Columns[i].ColumnName.Name);
                 Assert.Equal(columns[i].type, createTableCommand.Columns[i].PrimitiveType);
             }
-            Assert.Equal(folder, createTableCommand.Folder?.Text);
-            Assert.Equal(docString, createTableCommand.DocString?.Text);
+            Assert.Equal(folder ?? string.Empty, createTableCommand.Folder?.Text);
+            Assert.Equal(docString ?? string.Empty, createTableCommand.DocString?.Text);
         }
     }
 }
