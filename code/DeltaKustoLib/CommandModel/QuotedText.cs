@@ -8,6 +8,11 @@ namespace DeltaKustoLib.CommandModel
 {
     public class QuotedText
     {
+        static QuotedText()
+        {
+            Empty = new QuotedText(string.Empty);
+        }
+
         public QuotedText(string text)
         {
             Text = text;
@@ -19,6 +24,8 @@ namespace DeltaKustoLib.CommandModel
                 ? null
                 : new QuotedText(text);
         }
+
+        public static QuotedText? Empty { get; }
 
         public string Text { get; }
 

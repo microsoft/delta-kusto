@@ -113,19 +113,15 @@ namespace DeltaKustoLib.CommandModel
             var builder = new StringBuilder();
             var properties = new[]
             {
-                Folder!=null ? $"folder={Folder}" : null,
-                DocString!=null ? $"docstring={DocString}" : null,
-                $"skipvalidation=\"{SkipValidation}\""
+                $"folder={Folder ?? QuotedText.Empty}",
+                $"docstring={DocString ?? QuotedText.Empty}",
+                $"skipvalidation={new QuotedText(SkipValidation.ToString())}"
             };
-            var nonEmptyProperties = properties.Where(p => p != null);
 
             builder.Append(".create-or-alter function ");
-            if (nonEmptyProperties.Any())
-            {
-                builder.Append("with (");
-                builder.AppendJoin(", ", nonEmptyProperties);
-                builder.Append(") ");
-            }
+            builder.Append("with (");
+            builder.AppendJoin(", ", properties);
+            builder.Append(") ");
             builder.Append(FunctionName);
             builder.Append(" ");
             builder.Append("(");

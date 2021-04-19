@@ -1,3 +1,3 @@
-﻿.create function MyFunction() { 42 }
+﻿.create function with(docstring="this is mine") MyFunction() { 42 }
 
 .create function YourFunction() { 74 }
