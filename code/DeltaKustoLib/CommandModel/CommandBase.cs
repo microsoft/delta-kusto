@@ -75,11 +75,6 @@ namespace DeltaKustoLib.CommandModel
 
             var customCommand = commandBlock.GetUniqueDescendant<CustomCommand>("custom command");
 
-            //  Show all elements (for debug purposes)
-            //var list = new List<SyntaxElement>();
-
-            //commandBlock.WalkElements(e => list.Add(e));
-
             switch (customCommand.CommandKind)
             {
                 case "CreateFunction":

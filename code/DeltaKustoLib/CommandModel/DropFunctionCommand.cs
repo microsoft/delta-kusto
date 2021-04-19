@@ -24,17 +24,18 @@ namespace DeltaKustoLib.CommandModel
 
         internal static CommandBase FromCode(CustomCommand customCommand)
         {
-            var customNode = customCommand.GetUniqueImmediateDescendant<CustomNode>("Custom node");
-            var nameReference = customNode.GetUniqueImmediateDescendant<NameReference>("Name reference");
+            var nameReference = customCommand.GetUniqueDescendant<NameReference>(
+                "FunctionName",
+                n => n.NameInParent == "FunctionName");
 
             return new DropFunctionCommand(new EntityName(nameReference.Name.SimpleName));
         }
 
         public override bool Equals(CommandBase? other)
         {
-            var otherFunction = other as CreateFunctionCommand;
+            var otherFunction = other as DropFunctionCommand;
             var areEqualed = otherFunction != null
-                && otherFunction.FunctionName == FunctionName;
+                && otherFunction.FunctionName.Equals(FunctionName);
 
             return areEqualed;
         }
