@@ -81,7 +81,6 @@ namespace DeltaKustoUnitTest.CommandParsing
             Assert.Equal(body, createFunctionCommand.Body);
             Assert.Equal(folder, createFunctionCommand.Folder?.Text);
             Assert.Equal(docString, createFunctionCommand.DocString?.Text);
-            Assert.Equal(skipValidation, createFunctionCommand.SkipValidation);
         }
 
         [Fact]
@@ -116,8 +115,7 @@ namespace DeltaKustoUnitTest.CommandParsing
                 .All(p => p));
             Assert.Equal(body, createFunctionCommand.Body);
             Assert.Equal(folder, createFunctionCommand.Folder!.Text);
-            Assert.Equal((string?)null, createFunctionCommand.DocString?.Text);
-            Assert.Equal(skipValidation, createFunctionCommand.SkipValidation);
+            Assert.Equal(string.Empty, createFunctionCommand.DocString.Text);
         }
 
         [Fact]

@@ -20,11 +20,9 @@ namespace DeltaKustoLib.CommandModel
 
         public string Body { get; }
 
-        public QuotedText? Folder { get; }
+        public QuotedText Folder { get; }
 
-        public QuotedText? DocString { get; }
-
-        public bool SkipValidation { get; }
+        public QuotedText DocString { get; }
 
         public override string CommandFriendlyName => ".create function";
 
@@ -32,9 +30,8 @@ namespace DeltaKustoLib.CommandModel
             EntityName functionName,
             IEnumerable<TypedParameterModel> parameters,
             string functionBody,
-            QuotedText? folder,
-            QuotedText? docString,
-            bool? skipValidation)
+            QuotedText folder,
+            QuotedText docString)
         {
             FunctionName = functionName;
             Parameters = parameters.ToImmutableArray();
@@ -49,7 +46,6 @@ namespace DeltaKustoLib.CommandModel
             Body = functionBody.Trim().Replace("\r", string.Empty);
             Folder = folder;
             DocString = docString;
-            SkipValidation = skipValidation ?? true;
         }
 
         internal static CommandBase FromCode(SyntaxElement rootElement)
@@ -66,15 +62,15 @@ namespace DeltaKustoLib.CommandModel
                 .Parameters
                 .Select(p => p.Element)
                 .Select(fp => GetParameter(fp));
-            var (folder, docString, skipValidation) = GetProperties(rootElement);
+            var folder = GetProperty(rootElement, SyntaxKind.FolderKeyword);
+            var docString = GetProperty(rootElement, SyntaxKind.DocStringKeyword);
 
             return new CreateFunctionCommand(
                 functionName,
                 parameters,
                 body,
                 folder,
-                docString,
-                skipValidation);
+                docString);
         }
 
         internal static CreateFunctionCommand FromFunctionSchema(FunctionSchema schema)
@@ -88,9 +84,8 @@ namespace DeltaKustoLib.CommandModel
                 new EntityName(schema.Name),
                 parameters,
                 body,
-                QuotedText.FromText(schema.Folder),
-                QuotedText.FromText(schema.DocString),
-                true);
+                QuotedText.FromText(schema.Folder) ?? QuotedText.Empty,
+                QuotedText.FromText(schema.DocString) ?? QuotedText.Empty);
         }
 
         public override bool Equals(CommandBase? other)
@@ -102,8 +97,7 @@ namespace DeltaKustoLib.CommandModel
                 && otherFunction.Parameters.Zip(Parameters, (p1, p2) => p1.Equals(p2)).All(p => p)
                 && otherFunction.Body.Equals(Body)
                 && object.Equals(otherFunction.Folder, Folder)
-                && object.Equals(otherFunction.DocString, DocString)
-                && object.Equals(otherFunction.SkipValidation, SkipValidation);
+                && object.Equals(otherFunction.DocString, DocString);
 
             return areEqualed;
         }
@@ -115,7 +109,7 @@ namespace DeltaKustoLib.CommandModel
             {
                 $"folder={Folder ?? QuotedText.Empty}",
                 $"docstring={DocString ?? QuotedText.Empty}",
-                $"skipvalidation={new QuotedText(SkipValidation.ToString())}"
+                $"skipvalidation=true"
             };
 
             builder.Append(".create-or-alter function ");
@@ -216,45 +210,17 @@ namespace DeltaKustoLib.CommandModel
             return new TableColumn(new EntityName(name.SimpleName), type.Type.ValueText);
         }
 
-        private static (QuotedText? folder, QuotedText? docString, bool? skipValidation)
-            GetProperties(SyntaxElement rootElement)
+        private static QuotedText GetProperty(SyntaxElement rootElement, SyntaxKind kind)
         {
-            var propertyMap = rootElement
-                .GetDescendants<NameDeclaration>(e => e.NameInParent == "PropertyName")
-                .Select(n => new
-                {
-                    Name = n.Name.SimpleName.ToUpperInvariant(),
-                    Value = n.Parent.GetUniqueDescendant<LiteralExpression>(
-                        "Property Value").LiteralValue.ToString()
-                })
-                .ToImmutableDictionary(i => i.Name, i => i.Value);
-            Func<string, string?> findValue = (name) =>
-            {
-                var key = name.ToUpperInvariant();
+            var literal = rootElement
+                .GetDescendants<SyntaxElement>(e => e.Kind == kind)
+                .Select(e => e.Parent.Parent.Parent)
+                .Select(p => p.GetDescendants<LiteralExpression>().FirstOrDefault())
+                .FirstOrDefault();
 
-                if (propertyMap.ContainsKey(key))
-                {
-                    return propertyMap[key];
-                }
-                else
-                {
-                    return null;
-                }
-            };
-            var folderText = findValue("folder");
-            var folder = string.IsNullOrWhiteSpace(folderText)
-                ? null
-                : new QuotedText(folderText);
-            var docStringText = findValue("docstring");
-            var docString = string.IsNullOrWhiteSpace(docStringText)
-                ? null
-                : new QuotedText(docStringText);
-            var skipValidationText = findValue("skipValidation");
-            var skipValidation = skipValidationText == null
-                ? null
-                : (skipValidationText.ToUpperInvariant() == "FALSE" ? (bool?)false : true);
-
-            return (folder, docString, skipValidation);
+            return literal == null
+                ? QuotedText.Empty
+                : QuotedText.FromLiteral(literal);
         }
 
         private void ValidateNoTableParameterAfterScalar(
