@@ -16,26 +16,36 @@ namespace DeltaKustoLib.KustoModel
             typeof(CreateFunctionCommand)
         }.ToImmutableHashSet();
 
-        internal IImmutableList<CreateFunctionCommand> FunctionCommands { get; }
+        private readonly IImmutableList<CreateFunctionCommand> _functionCommands;
+        private readonly IImmutableList<TableModel> _tableModels;
 
         private DatabaseModel(
-            IEnumerable<CreateFunctionCommand> functionCommands)
+            IImmutableList<CreateFunctionCommand> functionCommands,
+            IImmutableList<TableModel> tableModels)
         {
-            FunctionCommands = functionCommands.ToImmutableArray();
+            _functionCommands = functionCommands;
+            _tableModels = tableModels;
         }
 
         public static DatabaseModel FromCommands(
             IEnumerable<CommandBase> commands)
         {
-            ValidateCommandTypes(commands.Select(c => (c.GetType(), c.ObjectFriendlyTypeName)).Distinct());
+            var commandTypeIndex = commands
+                .GroupBy(c => c.GetType())
+                .ToImmutableDictionary(g => g.Key, g => g as IEnumerable<CommandBase>);
+            var commandTypes = commandTypeIndex
+                .Keys
+                .Select(key => (key, commandTypeIndex[key].First().CommandFriendlyName));
+            var createFunctions = GetCommands<CreateFunctionCommand>(commandTypeIndex);
+            var createTables = GetCommands<CreateTableCommand>(commandTypeIndex);
 
-            var functions = commands
-                .OfType<CreateFunctionCommand>()
-                .ToImmutableArray();
+            ValidateCommandTypes(commandTypes);
+            ValidateDuplicates(createFunctions, f => f.FunctionName.Name);
+            ValidateDuplicates(createTables, t => t.TableName.Name);
 
-            ValidateDuplicates("Functions", functions);
+            var tableModels = TableModel.FromCommands(createTables);
 
-            return new DatabaseModel(functions);
+            return new DatabaseModel(createFunctions, tableModels);
         }
 
         public static DatabaseModel FromDatabaseSchema(DatabaseSchema databaseSchema)
@@ -43,70 +53,35 @@ namespace DeltaKustoLib.KustoModel
             var functions = databaseSchema
                 .Functions
                 .Values
-                .Select(s => FromFunctionSchema(s));
+                .Select(s => CreateFunctionCommand.FromFunctionSchema(s));
 
-            return new DatabaseModel(functions);
+            return new DatabaseModel(
+                functions.ToImmutableArray(),
+                ImmutableList<TableModel>.Empty);
         }
 
         public IImmutableList<CommandBase> ComputeDelta(DatabaseModel targetModel)
         {
             var functions =
-                CreateFunctionCommand.ComputeDelta(FunctionCommands, targetModel.FunctionCommands);
+                CreateFunctionCommand.ComputeDelta(_functionCommands, targetModel._functionCommands);
             var deltaCommands = functions;
 
             return deltaCommands.ToImmutableArray();
         }
 
-        private static CreateFunctionCommand FromFunctionSchema(FunctionSchema schema)
+        private static IImmutableList<T> GetCommands<T>(
+            IImmutableDictionary<Type, IEnumerable<CommandBase>> commandTypeIndex)
         {
-            var parameters = schema
-                .InputParameters
-                .Select(i => FromParameterSchema(i));
-            var body = TrimSchemaBody(schema.Body);
-
-            return new CreateFunctionCommand(
-                schema.Name,
-                parameters,
-                body,
-                schema.Folder,
-                schema.DocString,
-                true);
-        }
-
-        private static string TrimSchemaBody(string body)
-        {
-            var trimmedBody = body.Trim();
-
-            if (trimmedBody.Length < 2)
+            if (commandTypeIndex.ContainsKey(typeof(T)))
             {
-                throw new InvalidOperationException(
-                    $"Function body should at least be 2 characters but isn't:  {body}");
+                return commandTypeIndex[typeof(T)]
+                    .Cast<T>()
+                    .ToImmutableArray();
             }
-            if (trimmedBody.First() != '{' || trimmedBody.Last() != '}')
+            else
             {
-                throw new InvalidOperationException(
-                    $"Function body was expected to be surrounded by curly brace but isn't:"
-                    + $"  {body}");
+                return ImmutableArray<T>.Empty;
             }
-
-            var actualBody = trimmedBody
-                .Substring(1, trimmedBody.Length - 2)
-                //  This trim removes the carriage return so they don't accumulate in translations
-                .Trim();
-
-            return actualBody;
-        }
-
-        private static TypedParameterModel FromParameterSchema(InputParameterSchema input)
-        {
-            return input.CslType == null
-                ? new TypedParameterModel(
-                    input.Name,
-                    new TableParameterModel(input.Columns.Select(c => new ColumnModel(c.Name, c.CslType))))
-                : new TypedParameterModel(
-                    input.Name,
-                    input.CslType,
-                    input.CslDefaultValue != null ? "=" + input.CslDefaultValue : null);
         }
 
         private static void ValidateCommandTypes(IEnumerable<(Type type, string friendlyName)> commandTypes)
@@ -126,21 +101,30 @@ namespace DeltaKustoLib.KustoModel
             }
         }
 
-        private static void ValidateDuplicates<T>(string objectName, IEnumerable<T> dbObjects)
+        private static void ValidateDuplicates<T>(
+            IEnumerable<T> commands,
+            Func<T, string> keyExtractor)
             where T : CommandBase
         {
-            var functionDuplicates = dbObjects
-                .GroupBy(o => o.ObjectName)
+            var duplicates = commands
+                .GroupBy(o => keyExtractor(o))
                 .Where(g => g.Count() > 1)
-                .Select(g => new { Name = g.Key, Objects = g.ToArray(), Count = g.Count() });
+                .Select(g => new
+                {
+                    Name = g.Key,
+                    CommandFriendlyName = g.First().CommandFriendlyName,
+                    Count = g.Count()
+                });
+            var duplicate = duplicates.FirstOrDefault();
 
-            if (functionDuplicates.Any())
+            if (duplicate != null)
             {
                 var duplicateText = string.Join(
                     ", ",
-                    functionDuplicates.Select(d => $"(Name = '{d.Name}', Count = {d.Count})"));
+                    duplicates.Select(d => $"(Name = '{d.Name}', Count = {d.Count})"));
 
-                throw new DeltaException($"{objectName} have duplicates:  {{ {duplicateText} }}");
+                throw new DeltaException(
+                    $"{duplicate.CommandFriendlyName} have duplicates:  {{ {duplicateText} }}");
             }
         }
     }

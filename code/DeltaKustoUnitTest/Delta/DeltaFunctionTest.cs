@@ -71,7 +71,7 @@ namespace DeltaKustoUnitTest.Delta
 
             Assert.Single(delta);
             Assert.IsType<CreateFunctionCommand>(delta[0]);
-            Assert.Equal("MyOtherFunction", ((CreateFunctionCommand)delta[0]).ObjectName);
+            Assert.Equal("MyOtherFunction", ((CreateFunctionCommand)delta[0]).FunctionName.Name);
         }
 
         [Fact]
@@ -101,7 +101,7 @@ namespace DeltaKustoUnitTest.Delta
                 var commands = new CommandBase[]
                 {
                     function,
-                    new DropFunctionCommand("myFunction")
+                    new DropFunctionCommand(new EntityName("myFunction"))
                 };
                 var database = DatabaseModel.FromCommands(commands);
 

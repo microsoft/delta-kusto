@@ -5,7 +5,7 @@ namespace DeltaKustoLib.CommandModel
 {
     public class TypedParameterModel : IEquatable<TypedParameterModel>
     {
-        public string ParameterName { get; }
+        public EntityName ParameterName { get; }
 
         public string? PrimitiveType { get; }
 
@@ -13,17 +13,13 @@ namespace DeltaKustoLib.CommandModel
 
         public TableParameterModel? ComplexType { get; }
 
-        private TypedParameterModel(string parameterName)
+        private TypedParameterModel(EntityName parameterName)
         {
-            if (string.IsNullOrWhiteSpace(parameterName))
-            {
-                throw new ArgumentNullException(nameof(parameterName));
-            }
             ParameterName = parameterName;
         }
 
         public TypedParameterModel(
-            string parameterName,
+            EntityName parameterName,
             string primitiveType,
             string? defaultValue) : this(parameterName)
         {
@@ -35,7 +31,7 @@ namespace DeltaKustoLib.CommandModel
             DefaultValue = defaultValue;
         }
 
-        public TypedParameterModel(string parameterName, TableParameterModel tableSchema)
+        public TypedParameterModel(EntityName parameterName, TableParameterModel tableSchema)
             : this(parameterName)
         {
             ComplexType = tableSchema;
@@ -44,7 +40,7 @@ namespace DeltaKustoLib.CommandModel
         public bool Equals(TypedParameterModel? other)
         {
             return other != null
-                && ParameterName == other.ParameterName
+                && ParameterName.Equals(other.ParameterName)
                 && (PrimitiveType != null
                 ? PrimitiveType.Equals(other.PrimitiveType) && DefaultValue == other.DefaultValue
                 : ComplexType!.Equals(other.ComplexType));
@@ -54,11 +50,11 @@ namespace DeltaKustoLib.CommandModel
         {
             if (PrimitiveType != null)
             {
-                return $"['{ParameterName}']:{PrimitiveType}{DefaultValue}";
+                return $"{ParameterName}:{PrimitiveType}{DefaultValue}";
             }
             else
             {
-                return $"['{ParameterName}']:{ComplexType}";
+                return $"{ParameterName}:{ComplexType}";
             }
         }
     }

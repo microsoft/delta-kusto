@@ -11,11 +11,6 @@ namespace DeltaKustoLib.CommandModel
 {
     public abstract class CommandBase : IEquatable<CommandBase>
     {
-        protected CommandBase(string objectName)
-        {
-            ObjectName = objectName;
-        }
-
         public static IImmutableList<CommandBase> FromScript(string script)
         {
             var scripts = SplitCommandScripts(script);
@@ -26,9 +21,7 @@ namespace DeltaKustoLib.CommandModel
             return commands;
         }
 
-        public string ObjectName { get; }
-
-        public abstract string ObjectFriendlyTypeName { get; }
+        public abstract string CommandFriendlyName { get; }
 
         public abstract bool Equals([AllowNull] CommandBase other);
 
@@ -53,70 +46,55 @@ namespace DeltaKustoLib.CommandModel
         }
         #endregion
 
-        protected string EscapeString(string text)
-        {
-            return text
-                .Replace("\\", "\\\\")
-                .Replace("\"", "\\\"")
-                .Replace("'", "\\'");
-        }
-
         private static CommandBase ParseAndCreateCommand(string script)
         {
-            var code = KustoCode.Parse(script);
-            var command = CreateCommand(script, code);
+            try
+            {
+                var code = KustoCode.Parse(script);
+                var command = CreateCommand(script, code);
 
-            return command;
+                return command;
+            }
+            catch (Exception ex)
+            {
+                throw new DeltaException(
+                    $"Issue parsing script",
+                    script,
+                    ex);
+            }
         }
 
         private static CommandBase CreateCommand(string script, KustoCode code)
         {
-            try
+            var commandBlock = code.Syntax as CommandBlock;
+
+            if (commandBlock == null)
             {
-                var commandBlock = code.Syntax as CommandBlock;
-
-                if (commandBlock == null)
-                {
-                    throw new DeltaException("Script isn't a command");
-                }
-
-                var customCommand = commandBlock.GetUniqueDescendant<CustomCommand>("custom command");
-
-                //  Show all elements (for debug purposes)
-                //var list = new List<SyntaxElement>();
-
-                //commandBlock.WalkElements(e => list.Add(e));
-
-                switch (customCommand.CommandKind)
-                {
-                    case "CreateFunction":
-                    case "CreateOrAlterFunction":
-                        return CreateFunctionCommand.FromCode(customCommand);
-                    case "DropFunction":
-                        return DropFunctionCommand.FromCode(customCommand);
-                    case "CreateTable":
-                        return CreateTableCommand.FromCode(customCommand);
-                    case "CreateMergeTable":
-                        //  We need to do this since the parsing is quite different with the with-node
-                        //  between a .create and .create-merge (for unknown reasons)
-                        return ParseAndCreateCommand(
-                            ReplaceFirstOccurence(script, "create-merge", "create"));
-
-                    default:
-                        throw new DeltaException(
-                            $"Can't handle CommandKind '{customCommand.CommandKind}'");
-                }
+                throw new DeltaException("Script isn't a command");
             }
-            catch (DeltaException ex)
+
+            var customCommand = commandBlock.GetUniqueDescendant<CustomCommand>("custom command");
+
+            switch (customCommand.CommandKind)
             {
-                if (string.IsNullOrWhiteSpace(ex.Script))
-                {
-                    throw new DeltaException(ex.Message, script, ex);
-                }
-                else
-                {
-                    throw;
-                }
+                case "CreateFunction":
+                case "CreateOrAlterFunction":
+                    return CreateFunctionCommand.FromCode(commandBlock);
+                case "DropFunction":
+                    return DropFunctionCommand.FromCode(commandBlock);
+                case "CreateTable":
+                    return CreateTableCommand.FromCode(commandBlock);
+                case "CreateMergeTable":
+                    //  We need to do this since the parsing is quite different with the with-node
+                    //  between a .create and .create-merge (for unknown reasons)
+                    return ParseAndCreateCommand(
+                        ReplaceFirstOccurence(script, "create-merge", "create"));
+                case "AlterMergeTableColumnDocStrings":
+                    return AlterMergeTableColumnDocStringsCommand.FromCode(commandBlock);
+
+                default:
+                    throw new DeltaException(
+                        $"Can't handle CommandKind '{customCommand.CommandKind}'");
             }
         }
 

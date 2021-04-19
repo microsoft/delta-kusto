@@ -243,7 +243,7 @@ namespace DeltaKustoAdxIntegrationTest
             var finalDb = await dbProvider.RetrieveDatabaseAsync(ct);
             var emptyDb = await emptyProvider.RetrieveDatabaseAsync(ct);
             //  Use the delta from an empty db to get 
-            var finalCommands = finalDb.ComputeDelta(emptyDb);
+            var finalCommands = emptyDb.ComputeDelta(finalDb);
 
             return finalCommands;
         }

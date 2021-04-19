@@ -8,35 +8,41 @@ using System.Text;
 
 namespace DeltaKustoLib.CommandModel
 {
+    /// <summary>
+    /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/drop-function"/>
+    /// </summary>
     public class DropFunctionCommand : CommandBase
     {
-        public override string ObjectFriendlyTypeName => ".drop function";
+        public EntityName FunctionName { get; }
 
-        public DropFunctionCommand(string functionName)
-            : base(functionName)
+        public override string CommandFriendlyName => ".drop function";
+
+        public DropFunctionCommand(EntityName functionName)
         {
+            FunctionName = functionName;
         }
 
-        internal static CommandBase FromCode(CustomCommand customCommand)
+        internal static CommandBase FromCode(SyntaxElement rootElement)
         {
-            var customNode = customCommand.GetUniqueImmediateDescendant<CustomNode>("Custom node");
-            var nameReference = customNode.GetUniqueImmediateDescendant<NameReference>("Name reference");
+            var nameReference = rootElement.GetUniqueDescendant<NameReference>(
+                "FunctionName",
+                n => n.NameInParent == "FunctionName");
 
-            return new DropFunctionCommand(nameReference.Name.SimpleName);
+            return new DropFunctionCommand(new EntityName(nameReference.Name.SimpleName));
         }
 
         public override bool Equals(CommandBase? other)
         {
-            var otherFunction = other as CreateFunctionCommand;
+            var otherFunction = other as DropFunctionCommand;
             var areEqualed = otherFunction != null
-                && otherFunction.ObjectName == ObjectName;
+                && otherFunction.FunctionName.Equals(FunctionName);
 
             return areEqualed;
         }
 
         public override string ToScript()
         {
-            return $".drop function ['{ObjectName}']";
+            return $".drop function {FunctionName}";
         }
     }
 }
