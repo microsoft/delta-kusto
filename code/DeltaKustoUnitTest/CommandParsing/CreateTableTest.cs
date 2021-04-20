@@ -43,7 +43,7 @@ namespace DeltaKustoUnitTest.CommandParsing
             ValidateTableCommand(command, tableName, columns, null, null);
         }
         [Fact]
-        public void WithLetsAndProperties()
+        public void WithProperties()
         {
             var folder = "Demo";
             var docString = "Function calling other function";
