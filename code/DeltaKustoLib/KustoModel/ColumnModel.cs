@@ -1,24 +1,21 @@
-﻿using System;
+﻿using DeltaKustoLib.CommandModel;
+using System;
 
 namespace DeltaKustoLib.KustoModel
 {
     public class ColumnModel
     {
-        public string ColumnName { get; }
+        public EntityName ColumnName { get; }
 
         public string PrimitiveType { get; }
 
-        public string? DocString { get; }
+        public QuotedText? DocString { get; }
 
         public ColumnModel(
-            string columnName,
+            EntityName columnName,
             string primitiveType,
-            string? docString)
+            QuotedText? docString)
         {
-            if (string.IsNullOrWhiteSpace(columnName))
-            {
-                throw new ArgumentNullException(nameof(columnName));
-            }
             if (string.IsNullOrWhiteSpace(primitiveType))
             {
                 throw new ArgumentNullException(nameof(primitiveType));

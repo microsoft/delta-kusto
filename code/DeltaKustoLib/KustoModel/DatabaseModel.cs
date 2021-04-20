@@ -13,7 +13,9 @@ namespace DeltaKustoLib.KustoModel
     {
         private static readonly IImmutableSet<Type> INPUT_COMMANDS = new[]
         {
-            typeof(CreateFunctionCommand)
+            typeof(CreateFunctionCommand),
+            typeof(CreateTableCommand),
+            typeof(AlterMergeTableColumnDocStringsCommand)
         }.ToImmutableHashSet();
 
         private readonly IImmutableList<CreateFunctionCommand> _functionCommands;
@@ -38,12 +40,14 @@ namespace DeltaKustoLib.KustoModel
                 .Select(key => (key, commandTypeIndex[key].First().CommandFriendlyName));
             var createFunctions = GetCommands<CreateFunctionCommand>(commandTypeIndex);
             var createTables = GetCommands<CreateTableCommand>(commandTypeIndex);
+            var alterMergeTableColumns =
+                GetCommands<AlterMergeTableColumnDocStringsCommand>(commandTypeIndex);
 
             ValidateCommandTypes(commandTypes);
             ValidateDuplicates(createFunctions, f => f.FunctionName.Name);
             ValidateDuplicates(createTables, t => t.TableName.Name);
 
-            var tableModels = TableModel.FromCommands(createTables);
+            var tableModels = TableModel.FromCommands(createTables, alterMergeTableColumns);
 
             return new DatabaseModel(createFunctions, tableModels);
         }

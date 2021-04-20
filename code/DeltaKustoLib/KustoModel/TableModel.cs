@@ -10,7 +10,7 @@ namespace DeltaKustoLib.KustoModel
 {
     public class TableModel
     {
-        public string TableName { get; }
+        public EntityName TableName { get; }
 
         public IImmutableList<ColumnModel> Columns { get; }
 
@@ -19,7 +19,7 @@ namespace DeltaKustoLib.KustoModel
         public string? DocString { get; }
 
         private TableModel(
-            string tableName,
+            EntityName tableName,
             IEnumerable<ColumnModel> columns,
             string? folder,
             string? docString)
@@ -31,12 +31,20 @@ namespace DeltaKustoLib.KustoModel
         }
 
         internal static IImmutableList<TableModel> FromCommands(
-            IImmutableList<CreateTableCommand> createTables)
+            IImmutableList<CreateTableCommand> createTables,
+            IImmutableList<AlterMergeTableColumnDocStringsCommand> alterMergeTableColumns)
         {
+            var tableDocStringColumnMap = alterMergeTableColumns
+                .GroupBy(c => c.TableName)
+                .ToImmutableDictionary(g => g.Key, g => g.SelectMany(c => c.Columns));
             var tables = createTables
                 .Select(ct => new TableModel(
-                    ct.TableName.Name,
-                    FromCodeColumn(ct.Columns),
+                    ct.TableName,
+                    FromCodeColumn(
+                        ct.Columns,
+                        tableDocStringColumnMap.ContainsKey(ct.TableName)
+                        ? tableDocStringColumnMap[ct.TableName]
+                        : null),
                     ct.Folder?.Text,
                     ct.DocString?.Text))
                 .ToImmutableArray();
@@ -45,13 +53,17 @@ namespace DeltaKustoLib.KustoModel
         }
 
         private static IEnumerable<ColumnModel> FromCodeColumn(
-            IImmutableList<TableColumn> codeColumns)
+            IImmutableList<TableColumn> codeColumns,
+            IEnumerable<AlterMergeTableColumnDocStringsCommand.ColumnDocString>? columnDocStrings)
         {
+            var columnDocMap = columnDocStrings != null
+                ? columnDocStrings.ToImmutableDictionary(c => c.ColumnName, c => c.DocString)
+                : ImmutableDictionary<EntityName, QuotedText>.Empty;
             var columns = codeColumns
                 .Select(c => new ColumnModel(
-                    c.ColumnName.Name,
+                    c.ColumnName,
                     c.PrimitiveType,
-                    null));
+                    columnDocMap.ContainsKey(c.ColumnName) ? columnDocMap[c.ColumnName] : null));
 
             return columns.ToImmutableArray();
         }
