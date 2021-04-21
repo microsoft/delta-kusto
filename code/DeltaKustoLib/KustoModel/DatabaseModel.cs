@@ -68,8 +68,8 @@ namespace DeltaKustoLib.KustoModel
         {
             var functions =
                 CreateFunctionCommand.ComputeDelta(_functionCommands, targetModel._functionCommands);
-            var tables =
-                CreateFunctionCommand.ComputeDelta(_tableModels, targetModel._functionCommands);
+            //var tables =
+            //    CreateFunctionCommand.ComputeDelta(_tableModels, targetModel._functionCommands);
             var deltaCommands = functions;
 
             return deltaCommands.ToImmutableArray();

@@ -92,6 +92,8 @@ namespace DeltaKustoLib.CommandModel
                 case "AlterMergeTable":
                     return ParseAndCreateCommand(
                         ReplaceFirstOccurence(script, "alter-merge", "create"));
+                case "CreateTables":
+                    return CreateTablesCommand.FromCode(commandBlock);
                 case "AlterMergeTableColumnDocStrings":
                     return AlterMergeTableColumnDocStringsCommand.FromCode(commandBlock);
 
