@@ -7,11 +7,17 @@ using System.Threading.Tasks;
 
 namespace DeltaKustoLib.CommandModel
 {
+    /// <summary>
+    /// Model an entity name in Kusto (cf
+    /// <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/schema-entities/entity-names"/>).
+    /// </summary>
     public class EntityName
     {
+        private readonly char[] SPECIAL_CHARACTERS = new[] { ' ', '.', '-' };
+
         public EntityName(string name)
         {
-            if(string.IsNullOrWhiteSpace(name))
+            if (string.IsNullOrWhiteSpace(name))
             {
                 throw new ArgumentNullException("Entity name can't be null or empty");
             }
@@ -36,9 +42,13 @@ namespace DeltaKustoLib.CommandModel
 
         public string Name { get; }
 
+        public bool NeedEscape => Name.IndexOfAny(SPECIAL_CHARACTERS) != -1;
+
         public string ToScript()
         {
-            return $"['{Name}']";
+            return NeedEscape
+                ? $"['{Name}']"
+                : Name;
         }
 
         #region object methods
