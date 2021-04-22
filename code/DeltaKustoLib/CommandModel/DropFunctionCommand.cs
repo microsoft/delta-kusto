@@ -17,7 +17,7 @@ namespace DeltaKustoLib.CommandModel
 
         public override string CommandFriendlyName => ".drop function";
 
-        public DropFunctionCommand(EntityName functionName)
+        internal DropFunctionCommand(EntityName functionName)
         {
             FunctionName = functionName;
         }
