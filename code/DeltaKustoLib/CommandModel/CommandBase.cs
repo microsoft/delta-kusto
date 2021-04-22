@@ -108,6 +108,8 @@ namespace DeltaKustoLib.CommandModel
                         return DropTableCommand.FromCode(commandBlock);
                     case "DropTables":
                         return DropTablesCommand.FromCode(commandBlock);
+                    case "AlterColumnType":
+                        return AlterColumnTypeCommand.FromCode(commandBlock);
                     case "AlterMergeTableColumnDocStrings":
                         return AlterMergeTableColumnDocStringsCommand.FromCode(commandBlock);
                     case "DropTableColumns":
