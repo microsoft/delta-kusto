@@ -78,7 +78,7 @@ namespace DeltaKustoUnitTest.CommandParsing
                 .Zip(columns, (t, cols) => $"['{t}'] ({string.Join(", ", cols.Select(c => $"{c.name}:{c.type}"))})");
             var withFolder = folder == null
                 ? string.Empty
-                : $" with (folder=\"{folder.Replace("\\", "\\\\")}\")";
+                : $" with (folder=\"{new QuotedText(folder)}\")";
             var command = ParseOneCommand(
                 $".create tables {string.Join(", ", tableParts)}"
                 + withFolder);

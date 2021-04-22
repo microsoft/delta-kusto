@@ -73,6 +73,7 @@ namespace DeltaKustoLib.CommandModel
                 throw new DeltaException("Script isn't a command");
             }
 
+            var q = commandBlock.GetDescendants<SyntaxElement>();
             var customCommand = commandBlock.GetUniqueDescendant<CustomCommand>("custom command");
 
             switch (customCommand.CommandKind)
