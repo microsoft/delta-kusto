@@ -110,6 +110,8 @@ namespace DeltaKustoLib.CommandModel
                         return DropTablesCommand.FromCode(commandBlock);
                     case "AlterMergeTableColumnDocStrings":
                         return AlterMergeTableColumnDocStringsCommand.FromCode(commandBlock);
+                    case "DropTableColumns":
+                        return DropTableColumnsCommand.FromCode(commandBlock);
 
                     default:
                         throw new DeltaException(
