@@ -78,26 +78,32 @@ namespace DeltaKustoUnitTest.CommandParsing
                 .Zip(columns, (t, cols) => $"['{t}'] ({string.Join(", ", cols.Select(c => $"{c.name}:{c.type}"))})");
             var withFolder = folder == null
                 ? string.Empty
-                : $" with (folder=\"{new QuotedText(folder)}\")";
-            var command = ParseOneCommand(
-                $".create tables {string.Join(", ", tableParts)}"
-                + withFolder);
+                : $" with (folder={new QuotedText(folder)})";
 
-            Assert.IsType<CreateTablesCommand>(command);
+            var commandTexts = new[] { ".create tables", ".create-merge tables" };
 
-            var createTablesCommand = (CreateTablesCommand)command;
-
-            Assert.Equal(folder, createTablesCommand.Folder?.Text);
-            for (int i = 0; i != createTablesCommand.Tables.Count; ++i)
+            foreach (var commandText in commandTexts)
             {
-                var table = createTablesCommand.Tables[i];
+                var command = ParseOneCommand(
+                    $"//body\n   \t{commandText} {string.Join(", ", tableParts)}"
+                    + withFolder);
 
-                Assert.Equal(tableNames[i], table.TableName.Name);
-                Assert.Equal(columns[i].Length, table.Columns.Count);
-                for (int j = 0; j != columns[i].Length; ++j)
+                Assert.IsType<CreateTablesCommand>(command);
+
+                var createTablesCommand = (CreateTablesCommand)command;
+
+                Assert.Equal(folder, createTablesCommand.Folder?.Text);
+                for (int i = 0; i != createTablesCommand.Tables.Count; ++i)
                 {
-                    Assert.Equal(columns[i][j].name, table.Columns[j].ColumnName.Name);
-                    Assert.Equal(columns[i][j].type, table.Columns[j].PrimitiveType);
+                    var table = createTablesCommand.Tables[i];
+
+                    Assert.Equal(tableNames[i], table.TableName.Name);
+                    Assert.Equal(columns[i].Length, table.Columns.Count);
+                    for (int j = 0; j != columns[i].Length; ++j)
+                    {
+                        Assert.Equal(columns[i][j].name, table.Columns[j].ColumnName.Name);
+                        Assert.Equal(columns[i][j].type, table.Columns[j].PrimitiveType);
+                    }
                 }
             }
         }
