@@ -8,7 +8,7 @@ namespace DeltaKustoUnitTest.CommandParsing
     public class DropFunctionTest : ParsingTestBase
     {
         [Fact]
-        public void Drop()
+        public void DropFunction()
         {
             var command = ParseOneCommand(".drop function MyFunction");
 
