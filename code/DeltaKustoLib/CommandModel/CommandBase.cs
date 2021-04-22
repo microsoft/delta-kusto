@@ -90,6 +90,8 @@ namespace DeltaKustoLib.CommandModel
                         return CreateFunctionCommand.FromCode(commandBlock);
                     case "DropFunction":
                         return DropFunctionCommand.FromCode(commandBlock);
+                    case "DropFunctions":
+                        return DropFunctionsCommand.FromCode(commandBlock);
                     case "CreateTable":
                         return CreateTableCommand.FromCode(commandBlock);
                     case "CreateMergeTable":
