@@ -41,7 +41,7 @@ namespace DeltaKustoUnitTest.Delta
         {
             var currentCommands = Parse(".create table t1(a: string, b: int)");
             var currentDatabase = DatabaseModel.FromCommands(currentCommands);
-            var targetCommands =  Parse(".create table t1(a: string, b: int)");
+            var targetCommands = Parse(".create table t1(a: string, b: int)");
             var targetDatabase = DatabaseModel.FromCommands(targetCommands);
             var delta = currentDatabase.ComputeDelta(targetDatabase);
 
@@ -65,6 +65,24 @@ namespace DeltaKustoUnitTest.Delta
             Assert.Equal(new QuotedText("abc"), createTableCommand.Folder);
             //  This hasn't changed so it shouldn't be part of the command
             Assert.Null(createTableCommand.DocString);
+        }
+
+        [Fact]
+        public void RemovingDocString()
+        {
+            var currentCommands = Parse(".create table t1(a: string, b: int) with (docstring='bla')");
+            var currentDatabase = DatabaseModel.FromCommands(currentCommands);
+            var targetCommands = Parse(".create table t1(a: string, b: int)");
+            var targetDatabase = DatabaseModel.FromCommands(targetCommands);
+            var delta = currentDatabase.ComputeDelta(targetDatabase);
+
+            Assert.Single(delta);
+            Assert.IsType<CreateTableCommand>(delta[0]);
+
+            var createTableCommand = (CreateTableCommand)delta[0];
+
+            Assert.Null(createTableCommand.Folder);
+            Assert.Equal(createTableCommand.DocString, new QuotedText(string.Empty));
         }
     }
 }

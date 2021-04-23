@@ -151,10 +151,12 @@ namespace DeltaKustoLib.KustoModel
                     TableName,
                     targetModel.Columns.Select(
                         c => new TableColumn(c.ColumnName, c.PrimitiveType)),
-                    includeFolder ? targetModel.Folder : null,
-                    includeDocString ? targetModel.DocString : null);
+                    includeFolder ? (targetModel.Folder ?? new QuotedText(string.Empty)) : null,
+                    includeDocString
+                    ? (targetModel.DocString ?? new QuotedText(string.Empty))
+                    : null);
             }
-            foreach(var columnName in updateTypeColumnNames)
+            foreach (var columnName in updateTypeColumnNames)
             {
                 yield return new AlterColumnTypeCommand(
                     TableName,
