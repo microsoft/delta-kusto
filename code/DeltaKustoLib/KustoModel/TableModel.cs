@@ -84,14 +84,12 @@ namespace DeltaKustoLib.KustoModel
             var targetTableNames = targetTables.Keys.ToImmutableSortedSet();
             var dropTableNames = currentTableNames.Except(targetTableNames);
             var createTableNames = targetTableNames.Except(currentTableNames);
-            var modifiedTableNames = targetTableNames
-                .Intersect(currentTableNames)
-                .Where(name => !targetTables[name].Equals(currentTables[name]));
             var dropTables = dropTableNames
                 .Select(name => new DropTableCommand(name) as CommandBase);
             var createTables = createTableNames
                 .Select(name => targetTables[name].ToCreateTable() as CommandBase);
-            var modifiedTables = modifiedTableNames
+            var modifiedTables = targetTableNames
+                .Intersect(currentTableNames)
                 .SelectMany(name => currentTables[name].ComputeDelta(targetTables[name]));
 
             return dropTables
@@ -126,10 +124,43 @@ namespace DeltaKustoLib.KustoModel
 
         private IEnumerable<CommandBase> ComputeDelta(TableModel targetModel)
         {
-            return new[]
+            var includeFolder = !object.Equals(targetModel.Folder, Folder);
+            var includeDocString = !object.Equals(targetModel.DocString, DocString);
+            var currentColumns = Columns.ToImmutableDictionary(c => c.ColumnName);
+            var targetColumns = targetModel.Columns.ToImmutableDictionary(c => c.ColumnName);
+            var currentColumnNames = Columns.Select(c => c.ColumnName).ToImmutableHashSet();
+            var targetColumnNames =
+                targetModel.Columns.Select(c => c.ColumnName).ToImmutableHashSet();
+            var dropColumnNames = currentColumnNames.Except(targetColumnNames);
+            var createColumnNames = targetColumnNames.Except(currentColumnNames);
+            var keepingColumnNames = currentColumnNames.Intersect(targetColumnNames);
+            var updateTypeColumnNames = keepingColumnNames
+                .Where(n => currentColumns[n].PrimitiveType != targetColumns[n].PrimitiveType);
+            var updateDocStringColumnNames = keepingColumnNames
+                .Where(n => !object.Equals(currentColumns[n].DocString, targetColumns[n].DocString));
+
+            if (dropColumnNames.Any())
             {
-                targetModel.ToCreateTable()
-            };
+                yield return new DropTableColumnsCommand(
+                    TableName,
+                    dropColumnNames.ToImmutableArray());
+            }
+            if (createColumnNames.Any() || includeFolder || includeDocString)
+            {
+                yield return new CreateTableCommand(
+                    TableName,
+                    targetModel.Columns.Select(
+                        c => new TableColumn(c.ColumnName, c.PrimitiveType)),
+                    includeFolder ? targetModel.Folder : null,
+                    includeDocString ? targetModel.DocString : null);
+            }
+            foreach(var columnName in updateTypeColumnNames)
+            {
+                yield return new AlterColumnTypeCommand(
+                    TableName,
+                    columnName,
+                    targetColumns[columnName].PrimitiveType);
+            }
         }
     }
 }

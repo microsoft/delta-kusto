@@ -49,7 +49,7 @@ namespace DeltaKustoLib.CommandModel
 
         public override string CommandFriendlyName => ".alter column type";
 
-        private AlterColumnTypeCommand(
+        internal AlterColumnTypeCommand(
             EntityName tableName,
             EntityName columnName,
             string type)

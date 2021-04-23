@@ -43,7 +43,7 @@ namespace DeltaKustoLib.CommandModel
             var folder = GetProperty(rootElement, SyntaxKind.FolderKeyword);
             var docString = GetProperty(rootElement, SyntaxKind.DocStringKeyword);
             var columns = rootElement
-                .GetDescendants<NameDeclaration>(n => n.NameInParent=="ColumnName")
+                .GetDescendants<NameDeclaration>(n => n.NameInParent == "ColumnName")
                 .Select(n => n.Parent)
                 .Select(n => new
                 {

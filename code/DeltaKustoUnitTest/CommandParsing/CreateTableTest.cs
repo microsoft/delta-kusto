@@ -77,7 +77,7 @@ namespace DeltaKustoUnitTest.CommandParsing
             var command = ParseOneCommand(
                 $".create-merge table {tableName} "
                 + $"({string.Join(", ", columns.Select(c => $"{c.name}:{c.type}"))}) "
-                + $"with (folder=\"{folder}\", docstring=\"{docString}\")");
+                + $"with (folder='{folder}', docstring=\"{docString}\")");
 
             ValidateTableCommand(command, tableName, columns, folder, docString);
         }
