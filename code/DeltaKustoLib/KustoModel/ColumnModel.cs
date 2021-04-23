@@ -30,9 +30,9 @@ namespace DeltaKustoLib.KustoModel
             var otherColumn = other as ColumnModel;
 
             return otherColumn != null
-                && ColumnName == otherColumn.ColumnName
-                && PrimitiveType == otherColumn.PrimitiveType
-                && string.Equals(DocString, otherColumn.DocString);
+                && ColumnName.Equals(otherColumn.ColumnName)
+                && PrimitiveType.Equals(otherColumn.PrimitiveType)
+                && object.Equals(DocString, otherColumn.DocString);
         }
 
         public override int GetHashCode()

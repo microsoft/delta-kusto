@@ -30,6 +30,28 @@ namespace DeltaKustoLib.KustoModel
             DocString = docString;
         }
 
+        #region Object methods
+        public override bool Equals(object? obj)
+        {
+            var other = obj as TableModel;
+
+            return other != null
+                && other.TableName.Equals(TableName)
+                && other.Columns.OrderBy(c => c.ColumnName).SequenceEqual(
+                    Columns.OrderBy(c => c.ColumnName))
+                && object.Equals(other.Folder, Folder)
+                && object.Equals(other.DocString, DocString);
+        }
+
+        public override int GetHashCode()
+        {
+            return TableName.Name.GetHashCode()
+                ^ Columns.Aggregate(0, (h, c) => h ^ c.GetHashCode())
+                ^ (Folder == null ? 0 : Folder.Text.GetHashCode())
+                ^ (DocString == null ? 0 : DocString.Text.GetHashCode());
+        }
+        #endregion
+
         internal static IImmutableList<TableModel> FromCommands(
             IImmutableList<CreateTableCommand> createTables,
             IImmutableList<AlterMergeTableColumnDocStringsCommand> alterMergeTableColumns)
@@ -66,18 +88,15 @@ namespace DeltaKustoLib.KustoModel
                 .Intersect(currentTableNames)
                 .Where(name => !targetTables[name].Equals(currentTables[name]));
             var dropTables = dropTableNames
-                .Select(name => new DropTableCommand(name));
+                .Select(name => new DropTableCommand(name) as CommandBase);
             var createTables = createTableNames
-                .Select(name => targetTables[name].ToCreateTable());
-
-            if(modifiedTableNames.Any())
-            {
-                throw new NotImplementedException();
-            }
+                .Select(name => targetTables[name].ToCreateTable() as CommandBase);
+            var modifiedTables = modifiedTableNames
+                .SelectMany(name => currentTables[name].ComputeDelta(targetTables[name]));
 
             return dropTables
-                .Cast<CommandBase>()
-                .Concat(createTables);
+                .Concat(createTables)
+                .Concat(modifiedTables);
         }
 
         private static IEnumerable<ColumnModel> FromCodeColumn(
@@ -103,6 +122,14 @@ namespace DeltaKustoLib.KustoModel
                 Columns.Select(c => new TableColumn(c.ColumnName, c.PrimitiveType)),
                 Folder,
                 DocString);
+        }
+
+        private IEnumerable<CommandBase> ComputeDelta(TableModel targetModel)
+        {
+            return new[]
+            {
+                targetModel.ToCreateTable()
+            };
         }
     }
 }

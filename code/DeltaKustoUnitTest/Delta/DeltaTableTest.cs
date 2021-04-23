@@ -35,5 +35,34 @@ namespace DeltaKustoUnitTest.Delta
             Assert.Single(delta);
             Assert.IsType<DropTableCommand>(delta[0]);
         }
+
+        [Fact]
+        public void NoChanges()
+        {
+            var currentCommands = Parse(".create table t1(a: string, b: int)");
+            var currentDatabase = DatabaseModel.FromCommands(currentCommands);
+            var targetCommands =  Parse(".create table t1(a: string, b: int)");
+            var targetDatabase = DatabaseModel.FromCommands(targetCommands);
+            var delta = currentDatabase.ComputeDelta(targetDatabase);
+
+            Assert.Empty(delta);
+        }
+
+        [Fact]
+        public void AddingFolder()
+        {
+            var currentCommands = Parse(".create table t1(a: string, b: int)");
+            var currentDatabase = DatabaseModel.FromCommands(currentCommands);
+            var targetCommands = Parse(".create table t1(a: string, b: int) with(folder='abc')");
+            var targetDatabase = DatabaseModel.FromCommands(targetCommands);
+            var delta = currentDatabase.ComputeDelta(targetDatabase);
+
+            Assert.Single(delta);
+            Assert.IsType<CreateTableCommand>(delta[0]);
+
+            var createTableCommand = (CreateTableCommand)delta[0];
+
+            Assert.Equal(new QuotedText("abc"), createTableCommand.Folder);
+        }
     }
 }
