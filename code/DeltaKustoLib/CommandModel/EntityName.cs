@@ -11,7 +11,7 @@ namespace DeltaKustoLib.CommandModel
     /// Model an entity name in Kusto (cf
     /// <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/schema-entities/entity-names"/>).
     /// </summary>
-    public class EntityName
+    public class EntityName : IComparable<EntityName>
     {
         private readonly char[] SPECIAL_CHARACTERS = new[] { ' ', '.', '-' };
 
@@ -49,6 +49,13 @@ namespace DeltaKustoLib.CommandModel
             return NeedEscape
                 ? $"['{Name}']"
                 : Name;
+        }
+
+        int IComparable<EntityName>.CompareTo(EntityName? other)
+        {
+            return other != null
+                ? Name.CompareTo(other.Name)
+                : -1;
         }
 
         #region object methods

@@ -17,17 +17,17 @@ namespace DeltaKustoLib.CommandModel
 
         public IImmutableList<TableColumn> Columns { get; }
 
-        public QuotedText Folder { get; }
+        public QuotedText? Folder { get; }
 
-        public QuotedText DocString { get; }
+        public QuotedText? DocString { get; }
 
         public override string CommandFriendlyName => ".create table";
 
-        private CreateTableCommand(
+        internal CreateTableCommand(
             EntityName tableName,
             IEnumerable<TableColumn> columns,
-            QuotedText folder,
-            QuotedText docString)
+            QuotedText? folder,
+            QuotedText? docString)
         {
             TableName = tableName;
             Columns = columns.ToImmutableArray();
@@ -99,7 +99,7 @@ namespace DeltaKustoLib.CommandModel
             return builder.ToString();
         }
 
-        private static QuotedText GetProperty(SyntaxElement rootElement, SyntaxKind kind)
+        private static QuotedText? GetProperty(SyntaxElement rootElement, SyntaxKind kind)
         {
             var literal = rootElement
                 .GetDescendants<SyntaxElement>(e => e.Kind == kind)
@@ -107,7 +107,7 @@ namespace DeltaKustoLib.CommandModel
                 .FirstOrDefault();
 
             return literal == null
-                ? QuotedText.Empty
+                ? null
                 : QuotedText.FromLiteral(literal);
         }
     }

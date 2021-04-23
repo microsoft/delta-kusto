@@ -14,20 +14,20 @@ namespace DeltaKustoLib.KustoModel
 
         public IImmutableList<ColumnModel> Columns { get; }
 
-        public string? Folder { get; }
+        public QuotedText? Folder { get; }
 
-        public string? DocString { get; }
+        public QuotedText? DocString { get; }
 
         private TableModel(
             EntityName tableName,
             IEnumerable<ColumnModel> columns,
-            string? folder,
-            string? docString)
+            QuotedText? folder,
+            QuotedText? docString)
         {
             TableName = tableName;
             Columns = columns.ToImmutableArray();
-            Folder = string.IsNullOrEmpty(folder) ? null : folder;
-            DocString = string.IsNullOrEmpty(docString) ? null : docString;
+            Folder = folder;
+            DocString = docString;
         }
 
         internal static IImmutableList<TableModel> FromCommands(
@@ -45,11 +45,39 @@ namespace DeltaKustoLib.KustoModel
                         tableDocStringColumnMap.ContainsKey(ct.TableName)
                         ? tableDocStringColumnMap[ct.TableName]
                         : null),
-                    ct.Folder?.Text,
-                    ct.DocString?.Text))
+                    ct.Folder,
+                    ct.DocString))
                 .ToImmutableArray();
 
             return tables;
+        }
+
+        internal static IEnumerable<CommandBase> ComputeDelta(
+            IImmutableList<TableModel> currentModels,
+            IImmutableList<TableModel> targetModels)
+        {
+            var currentTables = currentModels.ToImmutableDictionary(m => m.TableName);
+            var currentTableNames = currentTables.Keys.ToImmutableSortedSet();
+            var targetTables = targetModels.ToImmutableDictionary(m => m.TableName);
+            var targetTableNames = targetTables.Keys.ToImmutableSortedSet();
+            var dropTableNames = currentTableNames.Except(targetTableNames);
+            var createTableNames = targetTableNames.Except(currentTableNames);
+            var modifiedTableNames = targetTableNames
+                .Intersect(currentTableNames)
+                .Where(name => !targetTables[name].Equals(currentTables[name]));
+            var dropTables = dropTableNames
+                .Select(name => new DropTableCommand(name));
+            var createTables = createTableNames
+                .Select(name => targetTables[name].ToCreateTable());
+
+            if(modifiedTableNames.Any())
+            {
+                throw new NotImplementedException();
+            }
+
+            return dropTables
+                .Cast<CommandBase>()
+                .Concat(createTables);
         }
 
         private static IEnumerable<ColumnModel> FromCodeColumn(
@@ -66,6 +94,15 @@ namespace DeltaKustoLib.KustoModel
                     columnDocMap.ContainsKey(c.ColumnName) ? columnDocMap[c.ColumnName] : null));
 
             return columns.ToImmutableArray();
+        }
+
+        private CreateTableCommand ToCreateTable()
+        {
+            return new CreateTableCommand(
+                TableName,
+                Columns.Select(c => new TableColumn(c.ColumnName, c.PrimitiveType)),
+                Folder,
+                DocString);
         }
     }
 }

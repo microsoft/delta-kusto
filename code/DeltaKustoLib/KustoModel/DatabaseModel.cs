@@ -66,11 +66,12 @@ namespace DeltaKustoLib.KustoModel
 
         public IImmutableList<CommandBase> ComputeDelta(DatabaseModel targetModel)
         {
-            var functions =
+            var functionCommands =
                 CreateFunctionCommand.ComputeDelta(_functionCommands, targetModel._functionCommands);
-            //var tables =
-            //    CreateFunctionCommand.ComputeDelta(_tableModels, targetModel._functionCommands);
-            var deltaCommands = functions;
+            var tableCommands =
+                TableModel.ComputeDelta(_tableModels, targetModel._tableModels);
+            var deltaCommands = functionCommands
+                .Concat(tableCommands);
 
             return deltaCommands.ToImmutableArray();
         }

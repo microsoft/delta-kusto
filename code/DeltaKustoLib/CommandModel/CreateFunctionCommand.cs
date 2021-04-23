@@ -135,10 +135,10 @@ namespace DeltaKustoLib.CommandModel
             IImmutableList<CreateFunctionCommand> targetFunctionCommands)
         {
             var currentFunctions =
-                currentFunctionCommands.ToImmutableDictionary(c => c.FunctionName.Name);
+                currentFunctionCommands.ToImmutableDictionary(c => c.FunctionName);
             var currentFunctionNames = currentFunctions.Keys.ToImmutableSortedSet();
             var targetFunctions =
-                targetFunctionCommands.ToImmutableDictionary(c => c.FunctionName.Name);
+                targetFunctionCommands.ToImmutableDictionary(c => c.FunctionName);
             var targetFunctionNames = targetFunctions.Keys.ToImmutableSortedSet();
             var dropFunctionNames = currentFunctionNames.Except(targetFunctionNames);
             var createFunctionNames = targetFunctionNames.Except(currentFunctionNames);
@@ -146,7 +146,7 @@ namespace DeltaKustoLib.CommandModel
                 .Intersect(currentFunctionNames)
                 .Where(name => !targetFunctions[name].Equals(currentFunctions[name]));
             var dropFunctions = dropFunctionNames
-                .Select(name => new DropFunctionCommand(new EntityName(name)));
+                .Select(name => new DropFunctionCommand(name));
             var createAlterFunctions = createFunctionNames
                 .Concat(changedFunctionsNames)
                 .Select(name => targetFunctions[name]);
