@@ -22,5 +22,18 @@ namespace DeltaKustoUnitTest.Delta
             Assert.Single(delta);
             Assert.IsType<CreateTableCommand>(delta[0]);
         }
+
+        [Fact]
+        public void FromSomethingToEmpty()
+        {
+            var currentCommands = Parse(".create table t1(a: string, b: int)");
+            var currentDatabase = DatabaseModel.FromCommands(currentCommands);
+            var targetCommands = new CommandBase[0];
+            var targetDatabase = DatabaseModel.FromCommands(targetCommands);
+            var delta = currentDatabase.ComputeDelta(targetDatabase);
+
+            Assert.Single(delta);
+            Assert.IsType<DropTableCommand>(delta[0]);
+        }
     }
 }
