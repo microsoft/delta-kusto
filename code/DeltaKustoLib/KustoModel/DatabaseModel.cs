@@ -13,7 +13,9 @@ namespace DeltaKustoLib.KustoModel
     {
         private static readonly IImmutableSet<Type> INPUT_COMMANDS = new[]
         {
-            typeof(CreateFunctionCommand)
+            typeof(CreateFunctionCommand),
+            typeof(CreateTableCommand),
+            typeof(AlterMergeTableColumnDocStringsCommand)
         }.ToImmutableHashSet();
 
         private readonly IImmutableList<CreateFunctionCommand> _functionCommands;
@@ -38,12 +40,20 @@ namespace DeltaKustoLib.KustoModel
                 .Select(key => (key, commandTypeIndex[key].First().CommandFriendlyName));
             var createFunctions = GetCommands<CreateFunctionCommand>(commandTypeIndex);
             var createTables = GetCommands<CreateTableCommand>(commandTypeIndex);
+            var alterMergeTableColumns =
+                GetCommands<AlterMergeTableColumnDocStringsCommand>(commandTypeIndex);
+            var alterMergeTableSingleColumn = alterMergeTableColumns
+                .SelectMany(a => a.Columns.Select(
+                    c => new AlterMergeTableColumnDocStringsCommand(a.TableName, new[] { c })));
 
             ValidateCommandTypes(commandTypes);
             ValidateDuplicates(createFunctions, f => f.FunctionName.Name);
             ValidateDuplicates(createTables, t => t.TableName.Name);
+            ValidateDuplicates(
+                alterMergeTableSingleColumn,
+                a => $"{a.TableName.Name}_{a.Columns.First().ColumnName}");
 
-            var tableModels = TableModel.FromCommands(createTables);
+            var tableModels = TableModel.FromCommands(createTables, alterMergeTableColumns);
 
             return new DatabaseModel(createFunctions, tableModels);
         }
@@ -62,9 +72,12 @@ namespace DeltaKustoLib.KustoModel
 
         public IImmutableList<CommandBase> ComputeDelta(DatabaseModel targetModel)
         {
-            var functions =
+            var functionCommands =
                 CreateFunctionCommand.ComputeDelta(_functionCommands, targetModel._functionCommands);
-            var deltaCommands = functions;
+            var tableCommands =
+                TableModel.ComputeDelta(_tableModels, targetModel._tableModels);
+            var deltaCommands = functionCommands
+                .Concat(tableCommands);
 
             return deltaCommands.ToImmutableArray();
         }

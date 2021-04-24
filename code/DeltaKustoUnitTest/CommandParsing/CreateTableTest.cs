@@ -42,6 +42,25 @@ namespace DeltaKustoUnitTest.CommandParsing
 
             ValidateTableCommand(command, tableName, columns, null, null);
         }
+
+        [Fact]
+        public void AlterMerge()
+        {
+            var tableName = "demo_make_series1";
+            var columns = new[]
+            {
+                (name: "TimeStamp", type: "datetime"),
+                (name: "BrowserVer", type: "string"),
+                (name: "OsVer", type: "string"),
+                (name: "Country", type: "string")
+            };
+            var command = ParseOneCommand(
+                $".alter-merge table {tableName} "
+                + $"({string.Join(", ", columns.Select(c => $"{c.name}:{c.type}"))})");
+
+            ValidateTableCommand(command, tableName, columns, null, null);
+        }
+
         [Fact]
         public void WithProperties()
         {
@@ -58,7 +77,7 @@ namespace DeltaKustoUnitTest.CommandParsing
             var command = ParseOneCommand(
                 $".create-merge table {tableName} "
                 + $"({string.Join(", ", columns.Select(c => $"{c.name}:{c.type}"))}) "
-                + $"with (folder=\"{folder}\", docstring=\"{docString}\")");
+                + $"with (folder='{folder}', docstring=\"{docString}\")");
 
             ValidateTableCommand(command, tableName, columns, folder, docString);
         }
@@ -81,8 +100,8 @@ namespace DeltaKustoUnitTest.CommandParsing
                 Assert.Equal(columns[i].name, createTableCommand.Columns[i].ColumnName.Name);
                 Assert.Equal(columns[i].type, createTableCommand.Columns[i].PrimitiveType);
             }
-            Assert.Equal(folder ?? string.Empty, createTableCommand.Folder?.Text);
-            Assert.Equal(docString ?? string.Empty, createTableCommand.DocString?.Text);
+            Assert.Equal(folder != null ? new QuotedText(folder) : null, createTableCommand.Folder);
+            Assert.Equal(docString !=null ? new QuotedText(docString) : null, createTableCommand.DocString);
         }
     }
 }

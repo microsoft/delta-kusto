@@ -73,28 +73,71 @@ namespace DeltaKustoLib.CommandModel
                 throw new DeltaException("Script isn't a command");
             }
 
-            var customCommand = commandBlock.GetUniqueDescendant<CustomCommand>("custom command");
+            var unknownCommand = commandBlock.GetDescendants<UnknownCommand>().FirstOrDefault();
 
-            switch (customCommand.CommandKind)
+            if (unknownCommand != null)
             {
-                case "CreateFunction":
-                case "CreateOrAlterFunction":
-                    return CreateFunctionCommand.FromCode(commandBlock);
-                case "DropFunction":
-                    return DropFunctionCommand.FromCode(commandBlock);
-                case "CreateTable":
-                    return CreateTableCommand.FromCode(commandBlock);
-                case "CreateMergeTable":
-                    //  We need to do this since the parsing is quite different with the with-node
-                    //  between a .create and .create-merge (for unknown reasons)
-                    return ParseAndCreateCommand(
-                        ReplaceFirstOccurence(script, "create-merge", "create"));
-                case "AlterMergeTableColumnDocStrings":
-                    return AlterMergeTableColumnDocStringsCommand.FromCode(commandBlock);
+                return RerouteUnknownCommand(script, unknownCommand);
+            }
+            else
+            {
+                var customCommand = commandBlock.GetUniqueDescendant<CustomCommand>("custom command");
 
-                default:
-                    throw new DeltaException(
-                        $"Can't handle CommandKind '{customCommand.CommandKind}'");
+                switch (customCommand.CommandKind)
+                {
+                    case "CreateFunction":
+                    case "CreateOrAlterFunction":
+                        return CreateFunctionCommand.FromCode(commandBlock);
+                    case "DropFunction":
+                        return DropFunctionCommand.FromCode(commandBlock);
+                    case "DropFunctions":
+                        return DropFunctionsCommand.FromCode(commandBlock);
+                    case "CreateTable":
+                        return CreateTableCommand.FromCode(commandBlock);
+                    case "CreateMergeTable":
+                        //  We need to do this since the parsing is quite different with the with-node
+                        //  between a .create and .create-merge (for unknown reasons)
+                        return ParseAndCreateCommand(
+                            ReplaceFirstOccurence(script, "create-merge", "create"));
+                    case "AlterMergeTable":
+                        return ParseAndCreateCommand(
+                            ReplaceFirstOccurence(script, "alter-merge", "create"));
+                    case "CreateTables":
+                        return CreateTablesCommand.FromCode(commandBlock);
+                    case "DropTable":
+                        return DropTableCommand.FromCode(commandBlock);
+                    case "DropTables":
+                        return DropTablesCommand.FromCode(commandBlock);
+                    case "AlterColumnType":
+                        return AlterColumnTypeCommand.FromCode(commandBlock);
+                    case "AlterMergeTableColumnDocStrings":
+                        return AlterMergeTableColumnDocStringsCommand.FromCode(commandBlock);
+                    case "DropTableColumns":
+                        return DropTableColumnsCommand.FromCode(commandBlock);
+
+                    default:
+                        throw new DeltaException(
+                            $"Can't handle CommandKind '{customCommand.CommandKind}'");
+                }
+            }
+        }
+
+        private static CommandBase RerouteUnknownCommand(
+            string script,
+            UnknownCommand unknownCommand)
+        {
+            //  .create merge tables isn't a recognized command by the parser (for some reason)
+            if (unknownCommand.Parts[0].Kind == SyntaxKind.CreateMergeKeyword
+                && unknownCommand.Parts[1].Kind == SyntaxKind.TablesKeyword)
+            {
+                var cutPoint = unknownCommand.Parts[1].TextStart + unknownCommand.Parts[1].FullWidth;
+                var newScript = ".create tables " + script.Substring(cutPoint);
+
+                return ParseAndCreateCommand(newScript);
+            }
+            else
+            {
+                throw new DeltaException("Unrecognized command");
             }
         }
 

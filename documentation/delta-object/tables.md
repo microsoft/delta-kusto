@@ -33,7 +33,7 @@ Kusto Command|Potential Data Loss|Condition
 -|-|-
 [.drop table](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/drop-table-command)|X (can potentially be recovered with [.undo drop table](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/undo-drop-table-command))|Table exists in the current but doesn't in the target.
 [.drop tables](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/drop-table-command)|X (can potentially be recovered with [.undo drop table](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/undo-drop-table-command))|Plural form.
-[.create-merge table](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/create-merge-table-command)||Table exists in target but not current.  Columns exist in target but not current.  Folder or doc-string are different in target and current.
+[.create-merge table](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/create-merge-table-command)||Table exists in target but not current (create table).  Columns exist in target but not current (create columns).  Folder or doc-string are different in target and current (update folder and doc-string).
 [.create-merge tables](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/create-merge-tables-command)||Plural form.
 [.alter column](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/alter-column)|X|Column exists in both current and target but have different type (change column type)
 [.drop table columns](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/drop-column)|X|Columns exist in the target but either don't exist in the current or are different.

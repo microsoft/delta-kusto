@@ -1,24 +1,21 @@
-﻿using System;
+﻿using DeltaKustoLib.CommandModel;
+using System;
 
 namespace DeltaKustoLib.KustoModel
 {
     public class ColumnModel
     {
-        public string ColumnName { get; }
+        public EntityName ColumnName { get; }
 
         public string PrimitiveType { get; }
 
-        public string? DocString { get; }
+        public QuotedText? DocString { get; }
 
         public ColumnModel(
-            string columnName,
+            EntityName columnName,
             string primitiveType,
-            string? docString)
+            QuotedText? docString)
         {
-            if (string.IsNullOrWhiteSpace(columnName))
-            {
-                throw new ArgumentNullException(nameof(columnName));
-            }
             if (string.IsNullOrWhiteSpace(primitiveType))
             {
                 throw new ArgumentNullException(nameof(primitiveType));
@@ -33,9 +30,9 @@ namespace DeltaKustoLib.KustoModel
             var otherColumn = other as ColumnModel;
 
             return otherColumn != null
-                && ColumnName == otherColumn.ColumnName
-                && PrimitiveType == otherColumn.PrimitiveType
-                && string.Equals(DocString, otherColumn.DocString);
+                && ColumnName.Equals(otherColumn.ColumnName)
+                && PrimitiveType.Equals(otherColumn.PrimitiveType)
+                && object.Equals(DocString, otherColumn.DocString);
         }
 
         public override int GetHashCode()

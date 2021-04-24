@@ -10,50 +10,170 @@ namespace DeltaKustoLib.KustoModel
 {
     public class TableModel
     {
-        public string TableName { get; }
+        public EntityName TableName { get; }
 
         public IImmutableList<ColumnModel> Columns { get; }
 
-        public string? Folder { get; }
+        public QuotedText? Folder { get; }
 
-        public string? DocString { get; }
+        public QuotedText? DocString { get; }
 
         private TableModel(
-            string tableName,
+            EntityName tableName,
             IEnumerable<ColumnModel> columns,
-            string? folder,
-            string? docString)
+            QuotedText? folder,
+            QuotedText? docString)
         {
             TableName = tableName;
             Columns = columns.ToImmutableArray();
-            Folder = string.IsNullOrEmpty(folder) ? null : folder;
-            DocString = string.IsNullOrEmpty(docString) ? null : docString;
+            Folder = folder;
+            DocString = docString;
         }
 
-        internal static IImmutableList<TableModel> FromCommands(
-            IImmutableList<CreateTableCommand> createTables)
+        #region Object methods
+        public override bool Equals(object? obj)
         {
+            var other = obj as TableModel;
+
+            return other != null
+                && other.TableName.Equals(TableName)
+                && other.Columns.OrderBy(c => c.ColumnName).SequenceEqual(
+                    Columns.OrderBy(c => c.ColumnName))
+                && object.Equals(other.Folder, Folder)
+                && object.Equals(other.DocString, DocString);
+        }
+
+        public override int GetHashCode()
+        {
+            return TableName.Name.GetHashCode()
+                ^ Columns.Aggregate(0, (h, c) => h ^ c.GetHashCode())
+                ^ (Folder == null ? 0 : Folder.Text.GetHashCode())
+                ^ (DocString == null ? 0 : DocString.Text.GetHashCode());
+        }
+        #endregion
+
+        internal static IImmutableList<TableModel> FromCommands(
+            IImmutableList<CreateTableCommand> createTables,
+            IImmutableList<AlterMergeTableColumnDocStringsCommand> alterMergeTableColumns)
+        {
+            var tableDocStringColumnMap = alterMergeTableColumns
+                .GroupBy(c => c.TableName)
+                .ToImmutableDictionary(g => g.Key, g => g.SelectMany(c => c.Columns));
             var tables = createTables
                 .Select(ct => new TableModel(
-                    ct.TableName.Name,
-                    FromCodeColumn(ct.Columns),
-                    ct.Folder?.Text,
-                    ct.DocString?.Text))
+                    ct.TableName,
+                    FromCodeColumn(
+                        ct.Columns,
+                        tableDocStringColumnMap.ContainsKey(ct.TableName)
+                        ? tableDocStringColumnMap[ct.TableName]
+                        : null),
+                    ct.Folder,
+                    ct.DocString))
                 .ToImmutableArray();
 
             return tables;
         }
 
-        private static IEnumerable<ColumnModel> FromCodeColumn(
-            IImmutableList<TableColumn> codeColumns)
+        internal static IEnumerable<CommandBase> ComputeDelta(
+            IImmutableList<TableModel> currentModels,
+            IImmutableList<TableModel> targetModels)
         {
+            var currentTables = currentModels.ToImmutableDictionary(m => m.TableName);
+            var currentTableNames = currentTables.Keys.ToImmutableSortedSet();
+            var targetTables = targetModels.ToImmutableDictionary(m => m.TableName);
+            var targetTableNames = targetTables.Keys.ToImmutableSortedSet();
+            var dropTableNames = currentTableNames.Except(targetTableNames);
+            var createTableNames = targetTableNames.Except(currentTableNames);
+            var dropTables = dropTableNames
+                .Select(name => new DropTableCommand(name) as CommandBase);
+            var createTables = createTableNames
+                .Select(name => targetTables[name].ToCreateTable() as CommandBase);
+            var modifiedTables = targetTableNames
+                .Intersect(currentTableNames)
+                .SelectMany(name => currentTables[name].ComputeDelta(targetTables[name]));
+
+            return dropTables
+                .Concat(createTables)
+                .Concat(modifiedTables);
+        }
+
+        private static IEnumerable<ColumnModel> FromCodeColumn(
+            IImmutableList<TableColumn> codeColumns,
+            IEnumerable<AlterMergeTableColumnDocStringsCommand.ColumnDocString>? columnDocStrings)
+        {
+            var columnDocMap = columnDocStrings != null
+                ? columnDocStrings.ToImmutableDictionary(c => c.ColumnName, c => c.DocString)
+                : ImmutableDictionary<EntityName, QuotedText>.Empty;
             var columns = codeColumns
                 .Select(c => new ColumnModel(
-                    c.ColumnName.Name,
+                    c.ColumnName,
                     c.PrimitiveType,
-                    null));
+                    columnDocMap.ContainsKey(c.ColumnName) ? columnDocMap[c.ColumnName] : null));
 
             return columns.ToImmutableArray();
+        }
+
+        private CreateTableCommand ToCreateTable()
+        {
+            return new CreateTableCommand(
+                TableName,
+                Columns.Select(c => new TableColumn(c.ColumnName, c.PrimitiveType)),
+                Folder,
+                DocString);
+        }
+
+        private IEnumerable<CommandBase> ComputeDelta(TableModel targetModel)
+        {
+            var includeFolder = !object.Equals(targetModel.Folder, Folder);
+            var includeDocString = !object.Equals(targetModel.DocString, DocString);
+            var currentColumns = Columns.ToImmutableDictionary(c => c.ColumnName);
+            var targetColumns = targetModel.Columns.ToImmutableDictionary(c => c.ColumnName);
+            var currentColumnNames = Columns.Select(c => c.ColumnName).ToImmutableHashSet();
+            var targetColumnNames =
+                targetModel.Columns.Select(c => c.ColumnName).ToImmutableHashSet();
+            var dropColumnNames = currentColumnNames.Except(targetColumnNames);
+            var createColumnNames = targetColumnNames.Except(currentColumnNames);
+            var keepingColumnNames = currentColumnNames.Intersect(targetColumnNames);
+            var updateTypeColumnNames = keepingColumnNames
+                .Where(n => currentColumns[n].PrimitiveType != targetColumns[n].PrimitiveType);
+            var updateDocStringColumnNames = keepingColumnNames
+                .Where(n => !object.Equals(currentColumns[n].DocString, targetColumns[n].DocString));
+
+            if (dropColumnNames.Any())
+            {
+                yield return new DropTableColumnsCommand(
+                    TableName,
+                    dropColumnNames.ToImmutableArray());
+            }
+            if (createColumnNames.Any() || includeFolder || includeDocString)
+            {
+                yield return new CreateTableCommand(
+                    TableName,
+                    targetModel.Columns.Select(
+                        c => new TableColumn(c.ColumnName, c.PrimitiveType)),
+                    includeFolder ? (targetModel.Folder ?? QuotedText.Empty) : null,
+                    includeDocString
+                    ? (targetModel.DocString ?? QuotedText.Empty)
+                    : null);
+            }
+            if (updateDocStringColumnNames.Any())
+            {
+                yield return new AlterMergeTableColumnDocStringsCommand(
+                    TableName,
+                    updateDocStringColumnNames.Select(
+                        n => new AlterMergeTableColumnDocStringsCommand.ColumnDocString(
+                            n,
+                            targetColumns[n].DocString != null
+                            ? targetColumns[n].DocString!
+                            : QuotedText.Empty)));
+            }
+            foreach (var columnName in updateTypeColumnNames)
+            {
+                yield return new AlterColumnTypeCommand(
+                    TableName,
+                    columnName,
+                    targetColumns[columnName].PrimitiveType);
+            }
         }
     }
 }

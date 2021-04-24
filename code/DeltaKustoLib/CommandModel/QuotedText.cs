@@ -26,6 +26,19 @@ namespace DeltaKustoLib.CommandModel
                 : new QuotedText(text);
         }
 
+        public static QuotedText FromToken(SyntaxToken token)
+        {
+            //  Remove surrounding quotes
+            var text = token.Text.Substring(1, token.Text.Length - 2);
+            var unescapedText = text
+                .Replace("\\r", "\r")
+                .Replace("\\n", "\n")
+                .Replace("\\\"", "\"")
+                .Replace("\\\\", "\\");
+
+            return new QuotedText(unescapedText);
+        }
+
         public static QuotedText FromLiteral(LiteralExpression literal)
         {
             return new QuotedText((string)literal.LiteralValue);
