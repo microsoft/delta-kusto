@@ -15,6 +15,7 @@ namespace DeltaKustoLib.KustoModel
         {
             typeof(CreateFunctionCommand),
             typeof(CreateTableCommand),
+            typeof(CreateTablesCommand),
             typeof(AlterMergeTableColumnDocStringsCommand)
         }.ToImmutableHashSet();
 
@@ -39,7 +40,16 @@ namespace DeltaKustoLib.KustoModel
                 .Keys
                 .Select(key => (key, commandTypeIndex[key].First().CommandFriendlyName));
             var createFunctions = GetCommands<CreateFunctionCommand>(commandTypeIndex);
-            var createTables = GetCommands<CreateTableCommand>(commandTypeIndex);
+            //  Flatten the .create tables to integrate them with .create table
+            var createPluralTables = GetCommands<CreateTablesCommand>(commandTypeIndex)
+                .SelectMany(c => c.Tables.Select(t => new CreateTableCommand(
+                    t.TableName,
+                    t.Columns,
+                    c.Folder,
+                    c.DocString)));
+            var createTables = GetCommands<CreateTableCommand>(commandTypeIndex)
+                .Concat(createPluralTables)
+                .ToImmutableArray();
             var alterMergeTableColumns =
                 GetCommands<AlterMergeTableColumnDocStringsCommand>(commandTypeIndex);
             var alterMergeTableSingleColumn = alterMergeTableColumns

@@ -56,13 +56,19 @@ namespace DeltaKustoLib.CommandModel
         public IImmutableList<InnerTable> Tables { get; }
 
         public QuotedText? Folder { get; }
+        
+        public QuotedText? DocString { get; }
 
         public override string CommandFriendlyName => ".create tables";
 
-        private CreateTablesCommand(IEnumerable<InnerTable> tables, QuotedText? folder)
+        private CreateTablesCommand(
+            IEnumerable<InnerTable> tables,
+            QuotedText? folder,
+            QuotedText? docString)
         {
             Tables = tables.ToImmutableArray();
             Folder = folder;
+            DocString = docString;
         }
 
         internal static CommandBase FromCode(SyntaxElement rootElement)
@@ -71,6 +77,13 @@ namespace DeltaKustoLib.CommandModel
                 .GetDescendants<SyntaxElement>(n => n.Kind == SyntaxKind.FolderKeyword)
                 .Select(n => n.Parent.GetUniqueDescendant<SyntaxToken>(
                     "Folder Name",
+                    e => e.Kind == SyntaxKind.StringLiteralToken))
+                .Select(n => QuotedText.FromToken(n))
+                .FirstOrDefault();
+            var docString = rootElement
+                .GetDescendants<SyntaxElement>(n => n.Kind == SyntaxKind.DocStringKeyword)
+                .Select(n => n.Parent.GetUniqueDescendant<SyntaxToken>(
+                    "Doc string",
                     e => e.Kind == SyntaxKind.StringLiteralToken))
                 .Select(n => QuotedText.FromToken(n))
                 .FirstOrDefault();
@@ -89,7 +102,7 @@ namespace DeltaKustoLib.CommandModel
                 .GetDescendants<NameDeclaration>(n => n.NameInParent == "TableName")
                 .Select(t => tableExtraction(t));
 
-            return new CreateTablesCommand(tables, folder);
+            return new CreateTablesCommand(tables, folder, docString);
         }
 
         public override bool Equals(CommandBase? other)
