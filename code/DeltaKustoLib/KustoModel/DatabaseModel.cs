@@ -42,10 +42,16 @@ namespace DeltaKustoLib.KustoModel
             var createTables = GetCommands<CreateTableCommand>(commandTypeIndex);
             var alterMergeTableColumns =
                 GetCommands<AlterMergeTableColumnDocStringsCommand>(commandTypeIndex);
+            var alterMergeTableSingleColumn = alterMergeTableColumns
+                .SelectMany(a => a.Columns.Select(
+                    c => new AlterMergeTableColumnDocStringsCommand(a.TableName, new[] { c })));
 
             ValidateCommandTypes(commandTypes);
             ValidateDuplicates(createFunctions, f => f.FunctionName.Name);
             ValidateDuplicates(createTables, t => t.TableName.Name);
+            ValidateDuplicates(
+                alterMergeTableSingleColumn,
+                a => $"{a.TableName.Name}_{a.Columns.First().ColumnName}");
 
             var tableModels = TableModel.FromCommands(createTables, alterMergeTableColumns);
 

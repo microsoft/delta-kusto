@@ -39,6 +39,23 @@ namespace DeltaKustoUnitTest.Delta
         }
 
         [Fact]
+        public void FromTwoToOneTable()
+        {
+            var currentCommands = Parse(".create-merge tables t1(a: string, b: int), t2(c:dynamic)");
+            var currentDatabase = DatabaseModel.FromCommands(currentCommands);
+            var targetCommands = Parse(".create table t1(a: string, b: int)");
+            var targetDatabase = DatabaseModel.FromCommands(targetCommands);
+            var delta = currentDatabase.ComputeDelta(targetDatabase);
+
+            Assert.Single(delta);
+            Assert.IsType<DropTableCommand>(delta[0]);
+
+            var dropTableCommand = (DropTableCommand)delta[0];
+
+            Assert.Equal(new EntityName("t2"), dropTableCommand.TableName);
+        }
+
+        [Fact]
         public void NoChanges()
         {
             var currentCommands = Parse(".create table t1(a: string, b: int)");
@@ -84,7 +101,7 @@ namespace DeltaKustoUnitTest.Delta
             var createTableCommand = (CreateTableCommand)delta[0];
 
             Assert.Null(createTableCommand.Folder);
-            Assert.Equal(createTableCommand.DocString, new QuotedText(string.Empty));
+            Assert.Equal(createTableCommand.DocString, QuotedText.Empty);
         }
 
         [Fact]
@@ -123,6 +140,47 @@ namespace DeltaKustoUnitTest.Delta
             Assert.Equal(new EntityName("t1"), alterColumnTypeCommand.TableName);
             Assert.Equal(new EntityName("b"), alterColumnTypeCommand.ColumnName);
             Assert.Equal("real", alterColumnTypeCommand.Type);
+        }
+
+        [Fact]
+        public void AddingDocStringOnColumn()
+        {
+            var currentCommands = Parse(".create table t1(a: string, b: int, c:dynamic)");
+            var currentDatabase = DatabaseModel.FromCommands(currentCommands);
+            var targetCommands = Parse(".create table t1(a: string, b: int, c:dynamic)\n\n"
+                + ".alter-merge table t1 column-docstrings (b:'bla')");
+            var targetDatabase = DatabaseModel.FromCommands(targetCommands);
+            var delta = currentDatabase.ComputeDelta(targetDatabase);
+
+            Assert.Single(delta);
+            Assert.IsType<AlterMergeTableColumnDocStringsCommand>(delta[0]);
+
+            var columnCommand = (AlterMergeTableColumnDocStringsCommand)delta[0];
+
+            Assert.Equal(new EntityName("t1"), columnCommand.TableName);
+            Assert.Contains(new EntityName("b"), columnCommand.Columns.Select(c => c.ColumnName));
+            Assert.Equal(new QuotedText("bla"), columnCommand.Columns.First().DocString);
+        }
+
+        [Fact]
+        public void RemovingDocStringOnColumn()
+        {
+            var currentCommands = Parse(".create table t1(a: string, b: int, c:dynamic)\n\n"
+                + ".alter-merge table t1 column-docstrings (b:'bla', c:'blabla')\n\n");
+            var currentDatabase = DatabaseModel.FromCommands(currentCommands);
+            var targetCommands = Parse(".create table t1(a: string, b: int, c:dynamic)\n\n"
+                + ".alter-merge table t1 column-docstrings (b:'bla')");
+            var targetDatabase = DatabaseModel.FromCommands(targetCommands);
+            var delta = currentDatabase.ComputeDelta(targetDatabase);
+
+            Assert.Single(delta);
+            Assert.IsType<AlterMergeTableColumnDocStringsCommand>(delta[0]);
+
+            var columnCommand = (AlterMergeTableColumnDocStringsCommand)delta[0];
+
+            Assert.Equal(new EntityName("t1"), columnCommand.TableName);
+            Assert.Contains(new EntityName("c"), columnCommand.Columns.Select(c => c.ColumnName));
+            Assert.Equal(QuotedText.Empty, columnCommand.Columns.First().DocString);
         }
     }
 }

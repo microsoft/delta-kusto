@@ -151,10 +151,21 @@ namespace DeltaKustoLib.KustoModel
                     TableName,
                     targetModel.Columns.Select(
                         c => new TableColumn(c.ColumnName, c.PrimitiveType)),
-                    includeFolder ? (targetModel.Folder ?? new QuotedText(string.Empty)) : null,
+                    includeFolder ? (targetModel.Folder ?? QuotedText.Empty) : null,
                     includeDocString
-                    ? (targetModel.DocString ?? new QuotedText(string.Empty))
+                    ? (targetModel.DocString ?? QuotedText.Empty)
                     : null);
+            }
+            if (updateDocStringColumnNames.Any())
+            {
+                yield return new AlterMergeTableColumnDocStringsCommand(
+                    TableName,
+                    updateDocStringColumnNames.Select(
+                        n => new AlterMergeTableColumnDocStringsCommand.ColumnDocString(
+                            n,
+                            targetColumns[n].DocString != null
+                            ? targetColumns[n].DocString!
+                            : QuotedText.Empty)));
             }
             foreach (var columnName in updateTypeColumnNames)
             {

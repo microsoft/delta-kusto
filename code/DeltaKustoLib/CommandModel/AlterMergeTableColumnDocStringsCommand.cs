@@ -47,7 +47,7 @@ namespace DeltaKustoLib.CommandModel
 
         public override string CommandFriendlyName => ".alter-merge table column-docstring";
 
-        private AlterMergeTableColumnDocStringsCommand(
+        internal AlterMergeTableColumnDocStringsCommand(
             EntityName tableName,
             IEnumerable<ColumnDocString> columns)
         {
