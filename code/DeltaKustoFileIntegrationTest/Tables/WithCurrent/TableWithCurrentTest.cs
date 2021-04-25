@@ -47,7 +47,7 @@ namespace DeltaKustoFileIntegrationTest.EmptyTarget
 
             var table = (CreateTableCommand)commands.First();
 
-            Assert.Equal("YourFunction", table.TableName.Name);
+            Assert.Equal("your-table", table.TableName.Name);
         }
 
         [Fact]
@@ -57,14 +57,14 @@ namespace DeltaKustoFileIntegrationTest.EmptyTarget
                 "Tables/WithCurrent/TargetLess/delta-params.json",
                 CreateCancellationToken());
             var outputRootFolder = parameters.Jobs!.First().Value.Action!.FolderPath!;
-            var outputPath = Path.Combine(outputRootFolder, "Tables/drop/YourFunction.kql");
+            var outputPath = Path.Combine(outputRootFolder, "tables/drop/your-table.kql");
             var commands = await LoadScriptAsync(outputPath);
 
             Assert.Single(commands);
 
             var table = (DropTableCommand)commands.First();
 
-            Assert.Equal("YourFunction", table.TableName.Name);
+            Assert.Equal("your-table", table.TableName.Name);
         }
 
         private CancellationToken CreateCancellationToken() =>

@@ -27,9 +27,34 @@ namespace DeltaKustoIntegration.Action
             CancellationToken ct)
         {
             await ProcessDeltaCommandsAsync(
+                commands.DropTableCommands,
+                c => c.TableName.Name,
+                "tables/drop",
+                ct);
+            await ProcessDeltaCommandsAsync(
+                commands.DropTableColumnsCommands,
+                c => c.TableName.Name,
+                "columns/drop",
+                ct);
+            await ProcessDeltaCommandsAsync(
+                commands.AlterColumnTypeCommands,
+                c => c.TableName.Name,
+                "columns/alter-type",
+                ct);
+            await ProcessDeltaCommandsAsync(
                 commands.DropFunctionCommands,
                 c => c.FunctionName.Name,
                 "functions/drop",
+                ct);
+            await ProcessDeltaCommandsAsync(
+                commands.CreateTableCommands,
+                c => c.TableName.Name,
+                "tables/create",
+                ct);
+            await ProcessDeltaCommandsAsync(
+                commands.AlterMergeTableColumnDocStringsCommands,
+                c => c.TableName.Name,
+                "columns/alter-doc-strings",
                 ct);
             await ProcessDeltaCommandsAsync(
                 commands.CreateFunctionCommands,

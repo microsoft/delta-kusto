@@ -28,8 +28,28 @@ namespace DeltaKustoIntegration.Action
 
             ProcessDeltaCommands(
                 builder,
+                commands.DropTableCommands,
+                "Drop Tables");
+            ProcessDeltaCommands(
+                builder,
+                commands.DropTableColumnsCommands,
+                "Drop Table Columns");
+            ProcessDeltaCommands(
+                builder,
+                commands.AlterColumnTypeCommands,
+                "Alter Column Type");
+            ProcessDeltaCommands(
+                builder,
                 commands.DropFunctionCommands,
                 "Drop functions");
+            ProcessDeltaCommands(
+                builder,
+                commands.CreateTableCommands,
+                "Create tables");
+            ProcessDeltaCommands(
+                builder,
+                commands.AlterMergeTableColumnDocStringsCommands,
+                "Alter merge table column doc strings");
             ProcessDeltaCommands(
                 builder,
                 commands.CreateFunctionCommands,

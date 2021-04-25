@@ -205,6 +205,11 @@ namespace DeltaKustoFileIntegrationTest
 
         protected async virtual Task<IImmutableList<CommandBase>> LoadScriptAsync(string scriptPath)
         {
+            if(!File.Exists(scriptPath))
+            {
+                throw new InvalidOperationException($"Can't find '{scriptPath}'");
+            }
+
             var script = await File.ReadAllTextAsync(scriptPath);
             var commands = CommandBase.FromScript(script);
 

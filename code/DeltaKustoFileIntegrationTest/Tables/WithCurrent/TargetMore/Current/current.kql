@@ -1,2 +1,1 @@
-﻿.create function MyFunction() { 42 }
-
+﻿.create table ['my-table'] (a: real, b: int, c: string) with (docstring = "bla2", folder="my-tables")
