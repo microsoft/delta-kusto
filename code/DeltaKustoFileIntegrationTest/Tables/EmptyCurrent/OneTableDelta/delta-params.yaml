@@ -1,0 +1,7 @@
+﻿jobs: 
+  main:
+    target:
+      scripts:
+        - filePath:  Tables/EmptyCurrent/OneTableDelta/target.kql
+    action:
+      filePath:  outputs/tables/empty-current/one-table-delta.kql
