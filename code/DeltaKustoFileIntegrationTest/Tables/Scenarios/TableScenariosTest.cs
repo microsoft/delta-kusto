@@ -26,6 +26,23 @@ namespace DeltaKustoFileIntegrationTest.EmptyTarget
             Assert.Equal("a", alterColumnType.ColumnName.Name);
         }
 
+        [Fact]
+        public async Task DropColumnType()
+        {
+            var parameters = await RunParametersAsync(
+                "Tables/Scenarios/DropColumnType/delta-params.yaml",
+                CreateCancellationToken());
+            var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
+            var commands = await LoadScriptAsync(outputPath);
+
+            Assert.Single(commands);
+
+            var dropColumns = (DropTableColumnsCommand)commands.First();
+
+            Assert.Single(dropColumns.ColumnNames);
+            Assert.Equal("a", dropColumns.ColumnNames.First().Name);
+        }
+
         private CancellationToken CreateCancellationToken() =>
            new CancellationTokenSource(TimeSpan.FromSeconds(2)).Token;
     }
