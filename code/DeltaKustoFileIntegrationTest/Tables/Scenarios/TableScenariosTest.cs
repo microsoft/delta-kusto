@@ -27,10 +27,10 @@ namespace DeltaKustoFileIntegrationTest.EmptyTarget
         }
 
         [Fact]
-        public async Task DropColumnType()
+        public async Task DropColumn()
         {
             var parameters = await RunParametersAsync(
-                "Tables/Scenarios/DropColumnType/delta-params.yaml",
+                "Tables/Scenarios/DropColumn/delta-params.yaml",
                 CreateCancellationToken());
             var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
             var commands = await LoadScriptAsync(outputPath);
@@ -41,6 +41,27 @@ namespace DeltaKustoFileIntegrationTest.EmptyTarget
 
             Assert.Single(dropColumns.ColumnNames);
             Assert.Equal("a", dropColumns.ColumnNames.First().Name);
+        }
+
+        [Fact]
+        public async Task ChangeColumnDocString()
+        {
+            var parameters = await RunParametersAsync(
+                "Tables/Scenarios/ChangeColumnDoc/delta-params.yaml",
+                CreateCancellationToken());
+            var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
+            var commands = await LoadScriptAsync(outputPath);
+
+            Assert.Single(commands);
+
+            var alterMerge = (AlterMergeTableColumnDocStringsCommand)commands.First();
+
+            Assert.Equal(3, alterMerge.Columns.Count);
+
+            foreach (var col in alterMerge.Columns)
+            {
+                Assert.Equal($"new param {col.ColumnName}", col.DocString.Text);
+            }
         }
 
         private CancellationToken CreateCancellationToken() =>
