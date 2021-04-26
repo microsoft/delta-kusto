@@ -64,6 +64,27 @@ namespace DeltaKustoFileIntegrationTest.EmptyTarget
             }
         }
 
+        [Fact]
+        public async Task DropColumnDocString()
+        {
+            var parameters = await RunParametersAsync(
+                "Tables/Scenarios/DropColumnDoc/delta-params.yaml",
+                CreateCancellationToken());
+            var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
+            var commands = await LoadScriptAsync(outputPath);
+
+            Assert.Single(commands);
+
+            var alterMerge = (AlterMergeTableColumnDocStringsCommand)commands.First();
+
+            Assert.Equal(3, alterMerge.Columns.Count);
+
+            foreach (var col in alterMerge.Columns)
+            {
+                Assert.Equal(QuotedText.Empty, col.DocString);
+            }
+        }
+
         private CancellationToken CreateCancellationToken() =>
            new CancellationTokenSource(TimeSpan.FromSeconds(2)).Token;
     }

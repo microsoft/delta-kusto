@@ -1,0 +1,10 @@
+﻿jobs: 
+  main:
+    current:
+      scripts:
+        - filePath:  Tables/Scenarios/DropColumnDoc/current.kql
+    target:
+      scripts:
+        - filePath:  Tables/Scenarios/DropColumnDoc/target.kql
+    action:
+      filePath:  outputs/tables/scenarios/drop-column-doc-delta.kql
