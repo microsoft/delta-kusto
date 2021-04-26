@@ -1,4 +1,5 @@
 ﻿using DeltaKustoLib.CommandModel;
+using DeltaKustoLib.SchemaObjects;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -72,6 +73,19 @@ namespace DeltaKustoLib.KustoModel
                 .ToImmutableArray();
 
             return tables;
+        }
+
+        internal static TableModel FromTableSchema(TableSchema schema)
+        {
+            var columns = schema
+                .OrderedColumns
+                .Select(c => FromColumnSchema(c));
+
+            return new TableModel(
+                new EntityName(schema.Name),
+                columns,
+                QuotedText.FromText(schema.Folder) ?? QuotedText.Empty,
+                QuotedText.FromText(schema.DocString) ?? QuotedText.Empty);
         }
 
         internal static IEnumerable<CommandBase> ComputeDelta(
@@ -174,6 +188,14 @@ namespace DeltaKustoLib.KustoModel
                     columnName,
                     targetColumns[columnName].PrimitiveType);
             }
+        }
+
+        private static ColumnModel FromColumnSchema(ColumnSchema column)
+        {
+            return new ColumnModel(
+                new EntityName(column.Name),
+                column.CslType,
+                QuotedText.FromText(column.DocString));
         }
     }
 }
