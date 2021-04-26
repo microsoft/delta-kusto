@@ -1,0 +1,1 @@
+﻿.create table GithubEvent (Id: long, Type: string, Actor: dynamic, Repo: dynamic, Payload: dynamic, Public: bool, CreatedAt: datetime) 
