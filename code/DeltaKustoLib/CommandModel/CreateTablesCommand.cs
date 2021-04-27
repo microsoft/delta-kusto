@@ -120,7 +120,7 @@ namespace DeltaKustoLib.CommandModel
         {
             var builder = new StringBuilder();
 
-            builder.Append(".create tables ");
+            builder.Append(".create-merge tables ");
             builder.AppendJoin(", ", Tables);
             if (Folder != null)
             {

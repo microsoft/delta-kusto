@@ -114,10 +114,12 @@ namespace DeltaKustoAdxIntegrationTest
                     await ApplyCommandsAsync(outputCommands, true, ct);
 
                     var finalCommands = await FetchDbCommandsAsync(true, ct);
+                    var finalScript = string.Join("\n", finalCommands.Select(c => c.ToScript()));
+                    var targetScript = string.Join("\n", targetCommands.Select(c => c.ToScript()));
 
                     Assert.True(
                         finalCommands.SequenceEqual(targetCommands),
-                        $"From {fromFile} to {toFile}");
+                        $"From {fromFile} to {toFile}:\n\n{finalScript}\nvs\n\n{targetScript}");
                 });
         }
 
@@ -157,10 +159,12 @@ namespace DeltaKustoAdxIntegrationTest
                         ct);
 
                     var finalCommands = await FetchDbCommandsAsync(true, ct);
+                    var finalScript = string.Join("\n", finalCommands.Select(c => c.ToScript()));
+                    var targetScript = string.Join("\n", targetCommands.Select(c => c.ToScript()));
 
                     Assert.True(
                         finalCommands.SequenceEqual(targetCommands),
-                        $"From {fromFile} to {toFile}");
+                        $"From {fromFile} to {toFile}:\n\n{finalScript}\nvs\n\n{targetScript}");
                 });
         }
 
@@ -193,10 +197,12 @@ namespace DeltaKustoAdxIntegrationTest
                     var targetCommands = CommandBase.FromScript(
                         await File.ReadAllTextAsync(toFile));
                     var finalCommands = await FetchDbCommandsAsync(false, ct);
+                    var finalScript = string.Join("\n", finalCommands.Select(c => c.ToScript()));
+                    var targetScript = string.Join("\n", targetCommands.Select(c => c.ToScript()));
 
                     Assert.True(
                         finalCommands.SequenceEqual(targetCommands),
-                        $"From {fromFile} to {toFile}");
+                        $"From {fromFile} to {toFile}:\n\n{finalScript}\nvs\n\n{targetScript}");
                 });
         }
 
