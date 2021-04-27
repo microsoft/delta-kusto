@@ -61,7 +61,7 @@ namespace DeltaKustoLib.CommandModel
 
         public override string CommandFriendlyName => ".create tables";
 
-        private CreateTablesCommand(
+        public CreateTablesCommand(
             IEnumerable<InnerTable> tables,
             QuotedText? folder,
             QuotedText? docString)
