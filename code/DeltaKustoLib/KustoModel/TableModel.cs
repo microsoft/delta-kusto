@@ -84,8 +84,8 @@ namespace DeltaKustoLib.KustoModel
             return new TableModel(
                 new EntityName(schema.Name),
                 columns,
-                QuotedText.FromText(schema.Folder) ?? QuotedText.Empty,
-                QuotedText.FromText(schema.DocString) ?? QuotedText.Empty);
+                QuotedText.FromText(schema.Folder),
+                QuotedText.FromText(schema.DocString));
         }
 
         internal static IEnumerable<CommandBase> ComputeDelta(
