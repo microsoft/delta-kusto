@@ -55,6 +55,9 @@
     <None Update="Tables\States\empty.kql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Tables\States\two-tables.kql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Tables\States\one-table.kql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
