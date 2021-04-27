@@ -39,6 +39,6 @@ Kusto Command|Potential Data Loss|Condition
 [.drop table columns](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/drop-column)|X|Columns exist in the target but either don't exist in the current or are different.
 [.alter-merge table column-docstrings](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/alter-merge-table-column)||Column doc-string is different between current and target.
 
-"Plural form" (e.g. `.drop tables` vs `.drop table`) are used to bundle commands together when sent to an ADX Database or a single file.  "Singular form" are used when sent to a folder, i.e. multiple files.  Plural form isn't always possible, e.g. when folder changes are necessary on different table, [.create-merge tables](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/create-merge-tables-command) can't be used in bulk.
+"Plural form" (e.g. `.drop tables` vs `.drop table`) are used to bundle commands together when sent to an ADX Database.  "Singular form" is used when sent to files or console.  Plural form isn't always possible, e.g. when folder changes are necessary on different table, [.create-merge tables](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/create-merge-tables-command) can't be used in bulk.
 
 It is important to note that it is currently impossible to re-order columns on a table with a single command.  Delta Kusto doesn't do column re-ordering and therefore configuration drift could occur between current and target regarding column order.

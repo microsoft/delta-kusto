@@ -11,6 +11,38 @@ namespace DeltaKustoFileIntegrationTest.EmptyTarget
     public class TableScenariosTest : IntegrationTestBase
     {
         [Fact]
+        public async Task AddFolderOnTable()
+        {
+            var parameters = await RunParametersAsync(
+                "Tables/Scenarios/AddFolderOnTable/delta-params.yaml",
+                CreateCancellationToken());
+            var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
+            var commands = await LoadScriptAsync(outputPath);
+
+            Assert.Single(commands);
+
+            var createTable = (CreateTableCommand)commands.First();
+
+            Assert.NotNull(createTable.Folder);
+        }
+
+        [Fact]
+        public async Task AddDocStringOnTable()
+        {
+            var parameters = await RunParametersAsync(
+                "Tables/Scenarios/AddDocStringOnTable/delta-params.yaml",
+                CreateCancellationToken());
+            var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
+            var commands = await LoadScriptAsync(outputPath);
+
+            Assert.Single(commands);
+
+            var createTable = (CreateTableCommand)commands.First();
+
+            Assert.NotNull(createTable.DocString);
+        }
+
+        [Fact]
         public async Task ChangeColumnType()
         {
             var parameters = await RunParametersAsync(

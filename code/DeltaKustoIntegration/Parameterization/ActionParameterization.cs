@@ -10,6 +10,8 @@ namespace DeltaKustoIntegration.Parameterization
 
         public string? FolderPath { get; set; }
 
+        public bool UsePluralForms { get; set; } = false;
+
         public bool PushToConsole { get; set; } = false;
 
         public bool PushToCurrent { get; set; } = false;

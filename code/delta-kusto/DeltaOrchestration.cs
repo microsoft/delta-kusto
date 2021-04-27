@@ -250,11 +250,17 @@ namespace delta_kusto
 
             if (action.FilePath != null)
             {
-                builder.Add(new OneFileActionProvider(_fileGateway, action.FilePath));
+                builder.Add(new OneFileActionProvider(
+                    _fileGateway,
+                    action.FilePath,
+                    action.UsePluralForms));
             }
             if (action.FolderPath != null)
             {
-                builder.Add(new MultiFilesActionProvider(_fileGateway, action.FolderPath));
+                builder.Add(new MultiFilesActionProvider(
+                    _fileGateway,
+                    action.FolderPath,
+                    action.UsePluralForms));
             }
             if (action.PushToCurrent)
             {
