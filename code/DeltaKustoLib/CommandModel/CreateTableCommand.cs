@@ -81,8 +81,8 @@ namespace DeltaKustoLib.CommandModel
             var builder = new StringBuilder();
             var properties = new[]
             {
-                Folder!=null ? $"folder={Folder}" : null,
-                DocString!=null ? $"docstring={DocString}" : null
+                Folder != null ? $"folder={Folder}" : null,
+                DocString != null ? $"docstring={DocString}" : null
             };
             var nonEmptyProperties = properties.Where(p => p != null);
 

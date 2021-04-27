@@ -56,7 +56,7 @@ namespace DeltaKustoLib.CommandModel
         public IImmutableList<InnerTable> Tables { get; }
 
         public QuotedText? Folder { get; }
-        
+
         public QuotedText? DocString { get; }
 
         public override string CommandFriendlyName => ".create tables";
@@ -119,14 +119,20 @@ namespace DeltaKustoLib.CommandModel
         public override string ToScript()
         {
             var builder = new StringBuilder();
+            var properties = new[]
+            {
+                Folder != null ? $"folder={Folder}" : null,
+                DocString != null ? $"docstring={DocString}" : null
+            };
+            var nonEmptyProperties = properties.Where(p => p != null);
 
             builder.Append(".create-merge tables ");
             builder.AppendJoin(", ", Tables);
-            if (Folder != null)
+            if (nonEmptyProperties.Any())
             {
-                builder.Append("with (folder = ");
-                builder.Append(Folder);
-                builder.Append(")");
+                builder.Append(" with (");
+                builder.AppendJoin(", ", nonEmptyProperties);
+                builder.Append(") ");
             }
 
             return builder.ToString();
