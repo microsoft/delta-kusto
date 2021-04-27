@@ -1,0 +1,11 @@
+﻿jobs: 
+  main:
+    current:
+      scripts:
+        - filePath:  Tables/Scenarios/DropMultipleTables/current.kql
+    target:
+      scripts:
+        - filePath:  Tables/Scenarios/DropMultipleTables/target.kql
+    action:
+      filePath:  outputs/tables/scenarios/drop-multiple-tables-delta.kql
+      usePluralForms: true

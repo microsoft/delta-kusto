@@ -117,6 +117,22 @@ namespace DeltaKustoFileIntegrationTest.EmptyTarget
             }
         }
 
+        [Fact]
+        public async Task DropMultipleTablesTablesString()
+        {
+            var parameters = await RunParametersAsync(
+                "Tables/Scenarios/DropMultipleTables/delta-params.yaml",
+                CreateCancellationToken());
+            var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
+            var commands = await LoadScriptAsync(outputPath);
+
+            Assert.Single(commands);
+
+            var dropTables = (DropTablesCommand)commands.First();
+
+            Assert.Equal(3, dropTables.TableNames.Count);
+        }
+
         private CancellationToken CreateCancellationToken() =>
            new CancellationTokenSource(TimeSpan.FromSeconds(2)).Token;
     }
