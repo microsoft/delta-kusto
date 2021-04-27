@@ -12,13 +12,20 @@ namespace DeltaKustoLib.CommandModel
         public static IImmutableList<DropTablesCommand> MergeToPlural(
             this IEnumerable<DropTableCommand> singularCommands)
         {
-            //  We might want to cap batches to a maximum size?
-            var pluralCommand = new DropTablesCommand(
-                singularCommands
-                .Select(c => c.TableName)
-                .ToImmutableArray());
+            if (singularCommands.Any())
+            {
+                //  We might want to cap batches to a maximum size?
+                var pluralCommand = new DropTablesCommand(
+                    singularCommands
+                    .Select(c => c.TableName)
+                    .ToImmutableArray());
 
-            return ImmutableArray.Create(pluralCommand);
+                return ImmutableArray.Create(pluralCommand);
+            }
+            else
+            {
+                return ImmutableArray<DropTablesCommand>.Empty;
+            }
         }
 
         public static IImmutableList<CreateTablesCommand> MergeToPlural(

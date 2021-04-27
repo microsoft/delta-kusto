@@ -28,7 +28,7 @@ namespace DeltaKustoIntegration.Action
 
             ProcessDeltaCommands(
                 builder,
-                commands.DropTableCommands,
+                commands.DropTableCommands.MergeToPlural(),
                 "Drop Tables");
             ProcessDeltaCommands(
                 builder,
@@ -44,7 +44,7 @@ namespace DeltaKustoIntegration.Action
                 "Drop functions");
             ProcessDeltaCommands(
                 builder,
-                commands.CreateTableCommands,
+                commands.CreateTableCommands.MergeToPlural(),
                 "Create tables");
             ProcessDeltaCommands(
                 builder,

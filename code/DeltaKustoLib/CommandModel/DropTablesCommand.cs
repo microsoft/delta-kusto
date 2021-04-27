@@ -17,8 +17,12 @@ namespace DeltaKustoLib.CommandModel
 
         public override string CommandFriendlyName => ".drop tables";
 
-        internal DropTablesCommand(IImmutableList< EntityName> tableNames)
+        internal DropTablesCommand(IImmutableList<EntityName> tableNames)
         {
+            if(!tableNames.Any())
+            {
+                throw new ArgumentNullException(nameof(tableNames), "At least one table name is needed");
+            }
             TableNames = tableNames;
         }
 
@@ -43,7 +47,7 @@ namespace DeltaKustoLib.CommandModel
 
         public override string ToScript()
         {
-            return $".drop tables ({string.Join(", ", TableNames)})";
+            return $".drop tables ({string.Join(", ", TableNames.Select(t => t.ToScript()))})";
         }
     }
 }
