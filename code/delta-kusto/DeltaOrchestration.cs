@@ -151,7 +151,7 @@ namespace delta_kusto
                 foreach (var actionProvider in actionProviders)
                 {
                     await actionProvider.ProcessDeltaCommandsAsync(
-                        parameters.FailIfDrops,
+                        parameters.FailIfDataLoss,
                         actions,
                         ctAction);
                 }
@@ -187,15 +187,15 @@ namespace delta_kusto
             var success = true;
 
             _tracer.WriteLine(false, $"{deltaCommands.Count()} commands in delta");
-            if (deltaCommands.AllDropCommands.Any())
+            if (deltaCommands.AllDataLossCommands.Any())
             {
                 _tracer.WriteLine(false, "Delta contains drop commands:");
-                foreach (var command in deltaCommands.AllDropCommands)
+                foreach (var command in deltaCommands.AllDataLossCommands)
                 {
                     _tracer.WriteLine(false, "  " + command.ToScript());
                 }
                 _tracer.WriteLine(false, "");
-                if (parameters.FailIfDrops)
+                if (parameters.FailIfDataLoss)
                 {
                     _tracer.WriteErrorLine("Drop commands forces failure");
                     success = false;

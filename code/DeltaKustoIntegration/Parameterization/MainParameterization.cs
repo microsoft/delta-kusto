@@ -12,7 +12,7 @@ namespace DeltaKustoIntegration.Parameterization
 
         public bool SendErrorOptIn { get; set; } = false;
 
-        public bool FailIfDrops { get; set; } = false;
+        public bool FailIfDataLoss { get; set; } = false;
 
         public TokenProviderParameterization? TokenProvider { get; set; }
 

@@ -1,3 +1,0 @@
-﻿.create function MyFunction() { 42 }
-
-.create function YourFunction() { 74 }

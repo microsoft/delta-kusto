@@ -12,18 +12,18 @@ using Xunit;
 
 namespace DeltaKustoAdxIntegrationTest.Functions
 {
-    public class FailIfDropTest : AdxIntegrationTestBase
+    public class FailIfDataLossTest : AdxIntegrationTestBase
     {
         [Fact]
         public async Task TestFailIfDropsNoDrop()
         {
-            var toFile = "FailIfDrops/target.kql";
+            var toFile = "FailIfDataLoss/target.kql";
             var ct = CreateCancellationToken();
 
             await CleanDatabasesAsync(ct);
             await PrepareDbAsync(toFile, false, ct);
 
-            await RunParametersAsync("FailIfDrops/no-fail.json", ct, TargetDbOverrides);
+            await RunParametersAsync("FailIfDataLoss/no-fail.json", ct, TargetDbOverrides);
 
             //  We just test that this doesn't fail
         }
@@ -31,7 +31,7 @@ namespace DeltaKustoAdxIntegrationTest.Functions
         [Fact]
         public async Task TestFailIfDrops()
         {
-            var toFile = "FailIfDrops/target.kql";
+            var toFile = "FailIfDataLoss/target.kql";
             var ct = CreateCancellationToken();
 
             await CleanDatabasesAsync(ct);
@@ -44,9 +44,9 @@ namespace DeltaKustoAdxIntegrationTest.Functions
             {
                 //  The "Main" will return non-zero which will throw an exception
                 var parameters =
-                    await RunParametersAsync("FailIfDrops/no-fail.json", ct, overrides);
+                    await RunParametersAsync("FailIfDataLoss/no-fail.json", ct, overrides);
 
-                Assert.True(parameters.FailIfDrops);
+                Assert.True(parameters.FailIfDataLoss);
                 Assert.False(true, "Should have thrown by now");
             }
             catch (InvalidOperationException)

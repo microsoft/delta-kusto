@@ -1,5 +1,5 @@
 ﻿{
-  "failIfDrops": false,
+  "failIfDataLoss": false,
   "tokenProvider": {
     "login": {
       "tenantId": "to-be-overriden",
@@ -12,7 +12,7 @@
       "current": {
         "scripts": [
           {
-            "filePath": "FailIfDrops/source.kql"
+            "filePath": "FailIfDataLoss/source.kql"
           }
         ]
       },
@@ -23,7 +23,7 @@
         }
       },
       "action": {
-        "filePath": "outputs/fail-if-drops/no-fail.kql"
+        "filePath": "outputs/fail-if-data-loss/no-fail.kql"
       }
     }
   }

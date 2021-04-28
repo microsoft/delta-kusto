@@ -10,7 +10,7 @@ namespace DeltaKustoIntegration.Action
     public interface IActionProvider
     {
         Task ProcessDeltaCommandsAsync(
-            bool doNotProcessIfDrops,
+            bool doNotProcessIfDataLoss,
             ActionCommandCollection commands,
             CancellationToken ct);
     }

@@ -19,11 +19,11 @@ namespace DeltaKustoIntegration.Action
         }
 
         async Task IActionProvider.ProcessDeltaCommandsAsync(
-            bool doNotProcessIfDrops,
+            bool doNotProcessIfDataLoss,
             ActionCommandCollection commands,
             CancellationToken ct)
         {
-            if (!doNotProcessIfDrops || !commands.AllDropCommands.Any())
+            if (!doNotProcessIfDataLoss || !commands.AllDataLossCommands.Any())
             {
                 await _kustoManagementGateway.ExecuteCommandsAsync(commands, ct);
             }
