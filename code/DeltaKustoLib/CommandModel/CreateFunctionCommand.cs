@@ -127,10 +127,6 @@ namespace DeltaKustoLib.CommandModel
             builder.AppendLine();
             builder.Append("}");
 
-            if (FunctionName.Name == "PQ_ComplexTableParam")
-            {
-            }
-
             return builder.ToString();
         }
 

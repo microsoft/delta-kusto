@@ -1,3 +1,4 @@
+using DeltaKustoLib.CommandModel;
 using System;
 using System.Linq;
 using System.Threading;
@@ -16,8 +17,13 @@ namespace DeltaKustoFileIntegrationTest.EmptyTarget
                 CreateCancellationToken());
             var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
             var outputCommands = await LoadScriptAsync(outputPath);
+            //  Mostly a check we can process the json file
+            var oneTable = outputCommands
+                .Where(c => c is CreateTableCommand)
+                .Cast<CreateTableCommand>()
+                .Where(c => c.TableName.Name == "table041121");
 
-            //Assert.True(inputCommands.SequenceEqual(outputCommands));
+            Assert.Single(oneTable);
         }
  
         private CancellationToken CreateCancellationToken() =>
