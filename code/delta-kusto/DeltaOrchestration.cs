@@ -318,6 +318,12 @@ namespace delta_kusto
 
                     return new ScriptDatabaseProvider(_tracer, _fileGateway, source.Scripts);
                 }
+                else if (source.JsonFilePath != null)
+                {
+                    _tracer.WriteLine(true, "Json file");
+
+                    return new JsonDatabaseProvider(_tracer, _fileGateway, source.JsonFilePath);
+                }
                 else
                 {
                     throw new InvalidOperationException("We should never get here");
