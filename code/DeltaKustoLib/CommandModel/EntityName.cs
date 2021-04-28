@@ -13,7 +13,7 @@ namespace DeltaKustoLib.CommandModel
     /// </summary>
     public class EntityName : IComparable<EntityName>
     {
-        private readonly char[] SPECIAL_CHARACTERS = new[] { ' ', '.', '-', '"' };
+        private readonly char[] SPECIAL_CHARACTERS = new[] { ' ', '.', '-', '"', '\'' };
 
         public EntityName(string name)
         {
@@ -97,7 +97,8 @@ namespace DeltaKustoLib.CommandModel
         private string EscapeName()
         {
             var escapedName = Name
-                .Replace("\"", "\\\"");
+                .Replace("\"", "\\\"")
+                .Replace("'", "\\'");
 
             return escapedName;
         }
