@@ -1,0 +1,2 @@
+﻿//	Random comment
+.create table ['my-table'] (a: real, b: int, c: string) with (docstring = "bla2", folder="my-tables")

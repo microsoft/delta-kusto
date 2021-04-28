@@ -20,7 +20,7 @@ namespace DeltaKustoUnitTest.CommandParsing
                 }
             };
 
-            ValidateTablesCommand(tableNames, columns, null);
+            ValidateTablesCommand(tableNames, columns, null, null);
         }
 
         [Fact]
@@ -41,7 +41,7 @@ namespace DeltaKustoUnitTest.CommandParsing
                 }
             };
 
-            ValidateTablesCommand(tableNames, columns, null);
+            ValidateTablesCommand(tableNames, columns, null, null);
         }
 
         [Fact]
@@ -66,33 +66,65 @@ namespace DeltaKustoUnitTest.CommandParsing
                 }
             };
 
-            ValidateTablesCommand(tableNames, columns, "my\\tables");
+            ValidateTablesCommand(tableNames, columns, "my\\tables", null);
+        }
+
+        [Fact]
+        public void CreateThreeWithFolderAndDocString()
+        {
+            var tableNames = new[] { "t 1", "t 2", "tennis" };
+            var columns = new[]
+            {
+                new[]
+                {
+                    (name: "TimeStamp", type: "datetime"),
+                    (name: "BrowserVer", type: "string"),
+                    (name: "OsVer", type: "string")
+                },
+                new[]
+                {
+                    (name: "Country", type: "int")
+                },
+                new[]
+                {
+                    (name: "weight", type: "real")
+                }
+            };
+
+            ValidateTablesCommand(tableNames, columns, "my\\tables", "A wonderful story");
         }
 
         private void ValidateTablesCommand(
             string[] tableNames,
             (string name, string type)[][] columns,
-            string? folder)
+            string? folder,
+            string? docString)
         {
             var tableParts = tableNames
                 .Zip(columns, (t, cols) => $"['{t}'] ({string.Join(", ", cols.Select(c => $"{c.name}:{c.type}"))})");
-            var withFolder = folder == null
+            var properties = new[]
+            {
+                folder != null ? $"folder={new QuotedText(folder)}" : null,
+                docString != null ? $"docstring={new QuotedText(docString)}" : null
+            };
+            var nonEmptyProperties = properties.Where(p => p != null);
+            var withProperties = !nonEmptyProperties.Any()
                 ? string.Empty
-                : $" with (folder={new QuotedText(folder)})";
-
+                : $" with ({string.Join(", ", nonEmptyProperties)})";
             var commandTexts = new[] { ".create tables", ".create-merge tables" };
 
             foreach (var commandText in commandTexts)
             {
                 var command = ParseOneCommand(
                     $"//body\n   \t{commandText} {string.Join(", ", tableParts)}"
-                    + withFolder);
+                    + withProperties);
 
                 Assert.IsType<CreateTablesCommand>(command);
 
                 var createTablesCommand = (CreateTablesCommand)command;
 
                 Assert.Equal(folder, createTablesCommand.Folder?.Text);
+                Assert.Equal(docString, createTablesCommand.DocString?.Text);
                 for (int i = 0; i != createTablesCommand.Tables.Count; ++i)
                 {
                     var table = createTablesCommand.Tables[i];

@@ -56,12 +56,12 @@ namespace DeltaKustoLib.CommandModel
         public IImmutableList<InnerTable> Tables { get; }
 
         public QuotedText? Folder { get; }
-        
+
         public QuotedText? DocString { get; }
 
         public override string CommandFriendlyName => ".create tables";
 
-        private CreateTablesCommand(
+        public CreateTablesCommand(
             IEnumerable<InnerTable> tables,
             QuotedText? folder,
             QuotedText? docString)
@@ -73,20 +73,7 @@ namespace DeltaKustoLib.CommandModel
 
         internal static CommandBase FromCode(SyntaxElement rootElement)
         {
-            var folder = rootElement
-                .GetDescendants<SyntaxElement>(n => n.Kind == SyntaxKind.FolderKeyword)
-                .Select(n => n.Parent.GetUniqueDescendant<SyntaxToken>(
-                    "Folder Name",
-                    e => e.Kind == SyntaxKind.StringLiteralToken))
-                .Select(n => QuotedText.FromToken(n))
-                .FirstOrDefault();
-            var docString = rootElement
-                .GetDescendants<SyntaxElement>(n => n.Kind == SyntaxKind.DocStringKeyword)
-                .Select(n => n.Parent.GetUniqueDescendant<SyntaxToken>(
-                    "Doc string",
-                    e => e.Kind == SyntaxKind.StringLiteralToken))
-                .Select(n => QuotedText.FromToken(n))
-                .FirstOrDefault();
+            var (folder, docString) = ExtractWithProperties(rootElement);
             Func<NameDeclaration, InnerTable> tableExtraction = (table) =>
             {
                 var columns = table
@@ -105,6 +92,46 @@ namespace DeltaKustoLib.CommandModel
             return new CreateTablesCommand(tables, folder, docString);
         }
 
+        private static (QuotedText? folder, QuotedText? docString) ExtractWithProperties(
+            SyntaxElement rootElement)
+        {
+            var keywords = rootElement
+                .GetDescendants<SyntaxElement>(n => n.Kind == SyntaxKind.FolderKeyword
+                || n.Kind == SyntaxKind.DocStringKeyword);
+
+            if (!keywords.Any())
+            {
+                return (null, null);
+            }
+            else
+            {
+                var propertiesParent = keywords.First().Parent;
+                var tokenSequence = propertiesParent
+                    .GetDescendants<SyntaxToken>(n => n.Kind == SyntaxKind.StringLiteralToken)
+                    .Select(n => QuotedText.FromToken(n));
+                var zip = keywords
+                    .Select(n => n.Kind)
+                    .Zip(tokenSequence, (k, t) => (k, t))
+                    .ToImmutableArray();
+                QuotedText? folder = null;
+                QuotedText? docString = null;
+
+                foreach (var p in zip)
+                {
+                    if (p.k == SyntaxKind.FolderKeyword)
+                    {
+                        folder = p.t;
+                    }
+                    else
+                    {
+                        docString = p.t;
+                    }
+                }
+
+                return (folder, docString);
+            }
+        }
+
         public override bool Equals(CommandBase? other)
         {
             var otherTable = other as CreateTablesCommand;
@@ -119,14 +146,20 @@ namespace DeltaKustoLib.CommandModel
         public override string ToScript()
         {
             var builder = new StringBuilder();
-
-            builder.Append(".create tables ");
-            builder.AppendJoin(", ", Tables);
-            if (Folder != null)
+            var properties = new[]
             {
-                builder.Append("with (folder = ");
-                builder.Append(Folder);
-                builder.Append(")");
+                Folder != null ? $"folder={Folder}" : null,
+                DocString != null ? $"docstring={DocString}" : null
+            };
+            var nonEmptyProperties = properties.Where(p => p != null);
+
+            builder.Append(".create-merge tables ");
+            builder.AppendJoin(", ", Tables);
+            if (nonEmptyProperties.Any())
+            {
+                builder.Append(" with (");
+                builder.AppendJoin(", ", nonEmptyProperties);
+                builder.Append(") ");
             }
 
             return builder.ToString();

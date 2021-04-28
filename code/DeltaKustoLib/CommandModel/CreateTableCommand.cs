@@ -67,7 +67,9 @@ namespace DeltaKustoLib.CommandModel
             var areEqualed = otherTable != null
                 && otherTable.TableName.Equals(TableName)
                 //  Check that all columns are equal
-                && otherTable.Columns.Zip(Columns, (p1, p2) => p1.Equals(p2)).All(p => p)
+                && otherTable.Columns.OrderBy(c => c.ColumnName).Zip(
+                    Columns.OrderBy(c => c.ColumnName),
+                    (p1, p2) => p1.Equals(p2)).All(p => p)
                 && object.Equals(otherTable.Folder, Folder)
                 && object.Equals(otherTable.DocString, DocString);
 
@@ -79,12 +81,12 @@ namespace DeltaKustoLib.CommandModel
             var builder = new StringBuilder();
             var properties = new[]
             {
-                Folder!=null ? $"folder={Folder}" : null,
-                DocString!=null ? $"docstring={DocString}" : null
+                Folder != null ? $"folder={Folder}" : null,
+                DocString != null ? $"docstring={DocString}" : null
             };
             var nonEmptyProperties = properties.Where(p => p != null);
 
-            builder.Append(".create table ");
+            builder.Append(".create-merge table ");
             builder.Append(TableName);
             builder.Append(" (");
             builder.AppendJoin(", ", Columns.Select(c => c.ToString()));

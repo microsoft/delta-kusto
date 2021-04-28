@@ -1,0 +1,10 @@
+﻿jobs: 
+  main:
+    current:
+      scripts:
+        - filePath:  Tables/Scenarios/AddDocStringOnTable/current.kql
+    target:
+      scripts:
+        - filePath:  Tables/Scenarios/AddDocStringOnTable/target.kql
+    action:
+      filePath:  outputs/tables/scenarios/add-doc-string-on-table-delta.kql

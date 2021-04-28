@@ -1,4 +1,5 @@
 ﻿using DeltaKustoLib.CommandModel;
+using DeltaKustoLib.SchemaObjects;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -74,6 +75,19 @@ namespace DeltaKustoLib.KustoModel
             return tables;
         }
 
+        internal static TableModel FromTableSchema(TableSchema schema)
+        {
+            var columns = schema
+                .OrderedColumns
+                .Select(c => FromColumnSchema(c));
+
+            return new TableModel(
+                new EntityName(schema.Name),
+                columns,
+                QuotedText.FromText(schema.Folder),
+                QuotedText.FromText(schema.DocString));
+        }
+
         internal static IEnumerable<CommandBase> ComputeDelta(
             IImmutableList<TableModel> currentModels,
             IImmutableList<TableModel> targetModels)
@@ -87,7 +101,8 @@ namespace DeltaKustoLib.KustoModel
             var dropTables = dropTableNames
                 .Select(name => new DropTableCommand(name) as CommandBase);
             var createTables = createTableNames
-                .Select(name => targetTables[name].ToCreateTable() as CommandBase);
+                .Select(name => targetTables[name].ToCreateTable())
+                .SelectMany(c => c);
             var modifiedTables = targetTableNames
                 .Intersect(currentTableNames)
                 .SelectMany(name => currentTables[name].ComputeDelta(targetTables[name]));
@@ -113,13 +128,26 @@ namespace DeltaKustoLib.KustoModel
             return columns.ToImmutableArray();
         }
 
-        private CreateTableCommand ToCreateTable()
+        private IEnumerable<CommandBase> ToCreateTable()
         {
-            return new CreateTableCommand(
+            yield return new CreateTableCommand(
                 TableName,
                 Columns.Select(c => new TableColumn(c.ColumnName, c.PrimitiveType)),
                 Folder,
                 DocString);
+
+            var columnsWithDocString = Columns
+                .Where(c => c.DocString != null && !c.DocString.Equals(QuotedText.Empty))
+                .Select(c => new AlterMergeTableColumnDocStringsCommand.ColumnDocString(
+                    c.ColumnName,
+                    c.DocString!));
+
+            if (columnsWithDocString.Any())
+            {
+                yield return new AlterMergeTableColumnDocStringsCommand(
+                    TableName,
+                    columnsWithDocString);
+            }
         }
 
         private IEnumerable<CommandBase> ComputeDelta(TableModel targetModel)
@@ -174,6 +202,14 @@ namespace DeltaKustoLib.KustoModel
                     columnName,
                     targetColumns[columnName].PrimitiveType);
             }
+        }
+
+        private static ColumnModel FromColumnSchema(ColumnSchema column)
+        {
+            return new ColumnModel(
+                new EntityName(column.Name),
+                column.CslType,
+                QuotedText.FromText(column.DocString));
         }
     }
 }

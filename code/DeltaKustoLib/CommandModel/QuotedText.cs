@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DeltaKustoLib.CommandModel
 {
-    public class QuotedText
+    public class QuotedText : IComparable<QuotedText>
     {
         static QuotedText()
         {
@@ -57,6 +57,13 @@ namespace DeltaKustoLib.CommandModel
                 .Replace("\r", "\\r");
 
             return $"\"{escape}\"";
+        }
+
+        int IComparable<QuotedText>.CompareTo(QuotedText? other)
+        {
+            return other != null
+                ? Text.CompareTo(other.Text)
+                : -1;
         }
 
         #region object methods

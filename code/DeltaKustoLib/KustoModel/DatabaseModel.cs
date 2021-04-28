@@ -74,10 +74,14 @@ namespace DeltaKustoLib.KustoModel
                 .Functions
                 .Values
                 .Select(s => CreateFunctionCommand.FromFunctionSchema(s));
+            var tables = databaseSchema
+                .Tables
+                .Values
+                .Select(s => TableModel.FromTableSchema(s));
 
             return new DatabaseModel(
                 functions.ToImmutableArray(),
-                ImmutableList<TableModel>.Empty);
+                tables.ToImmutableArray());
         }
 
         public IImmutableList<CommandBase> ComputeDelta(DatabaseModel targetModel)

@@ -1,0 +1,1 @@
+﻿.create table t3 (a: real, b: int, c: string)

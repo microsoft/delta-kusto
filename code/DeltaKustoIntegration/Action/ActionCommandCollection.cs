@@ -17,15 +17,43 @@ namespace DeltaKustoIntegration.Action
         {
             DropFunctionCommands = commands
                 .OfType<DropFunctionCommand>()
-                .OrderBy(d => d.FunctionName.Name)
+                .OrderBy(d => d.FunctionName)
                 .ToImmutableArray();
             CreateFunctionCommands = commands
                 .OfType<CreateFunctionCommand>()
                 .OrderBy(d => d.Folder.Text)
-                .ThenBy(d => d.FunctionName.Name)
+                .ThenBy(d => d.FunctionName)
                 .ToImmutableArray();
-            AllDropCommands = DropFunctionCommands;
-            _allCommands = AllDropCommands
+            DropTableCommands = commands
+                .OfType<DropTableCommand>()
+                .OrderBy(d => d.TableName)
+                .ToImmutableArray();
+            DropTableColumnsCommands = commands
+                .OfType<DropTableColumnsCommand>()
+                .OrderBy(d => d.TableName)
+                .ToImmutableArray();
+            CreateTableCommands = commands
+                .OfType<CreateTableCommand>()
+                .OrderBy(d => d.Folder)
+                .ThenBy(d => d.TableName)
+                .ToImmutableArray();
+            AlterColumnTypeCommands = commands
+                .OfType<AlterColumnTypeCommand>()
+                .OrderBy(d => d.TableName)
+                .ThenBy(d => d.ColumnName)
+                .ToImmutableArray();
+            AlterMergeTableColumnDocStringsCommands = commands
+                .OfType<AlterMergeTableColumnDocStringsCommand>()
+                .OrderBy(d => d.TableName)
+                .ToImmutableArray();
+            AllDataLossCommands = DropTableCommands
+                .Cast<CommandBase>()
+                .Concat(DropTableColumnsCommands)
+                .Concat(AlterColumnTypeCommands);
+            _allCommands = AllDataLossCommands
+                .Concat(DropFunctionCommands)
+                .Concat(CreateTableCommands)
+                .Concat(AlterMergeTableColumnDocStringsCommands)
                 .Concat(CreateFunctionCommands);
         }
 
@@ -43,10 +71,22 @@ namespace DeltaKustoIntegration.Action
         }
         #endregion
 
-        public IEnumerable<CommandBase> AllDropCommands { get; }
+        public IEnumerable<CommandBase> AllDataLossCommands { get; }
 
         public IImmutableList<DropFunctionCommand> DropFunctionCommands { get; }
-        
+
         public IImmutableList<CreateFunctionCommand> CreateFunctionCommands { get; }
+
+        public IImmutableList<DropTableCommand> DropTableCommands { get; }
+
+        public IImmutableList<DropTableColumnsCommand> DropTableColumnsCommands { get; }
+
+        public IImmutableList<CreateTableCommand> CreateTableCommands { get; }
+
+        public IImmutableList<AlterColumnTypeCommand> AlterColumnTypeCommands { get; }
+
+        public IImmutableList<AlterMergeTableColumnDocStringsCommand>
+            AlterMergeTableColumnDocStringsCommands
+        { get; }
     }
 }

@@ -14,22 +14,74 @@ namespace DeltaKustoIntegration.Action
     {
         private readonly IFileGateway _fileGateway;
         private readonly string _folderPath;
+        private readonly bool _usePluralForms;
 
-        public MultiFilesActionProvider(IFileGateway fileGateway, string folderPath)
+        public MultiFilesActionProvider(
+            IFileGateway fileGateway,
+            string folderPath,
+            bool usePluralForms)
         {
             _fileGateway = fileGateway;
             _folderPath = folderPath;
+            _usePluralForms = usePluralForms;
         }
 
         async Task IActionProvider.ProcessDeltaCommandsAsync(
-            bool doNotProcessIfDrops,
+            bool doNotProcessIfDataLoss,
             ActionCommandCollection commands,
             CancellationToken ct)
         {
+            if (_usePluralForms)
+            {
+                await ProcessDeltaCommandsAsync(
+                    commands.DropTableCommands.MergeToPlural(),
+                    c => "drop",
+                    "tables",
+                    ct);
+            }
+            else
+            {
+                await ProcessDeltaCommandsAsync(
+                    commands.DropTableCommands,
+                    c => c.TableName.Name,
+                    "tables/drop",
+                    ct);
+            }
+            await ProcessDeltaCommandsAsync(
+                commands.DropTableColumnsCommands,
+                c => c.TableName.Name,
+                "columns/drop",
+                ct);
+            await ProcessDeltaCommandsAsync(
+                commands.AlterColumnTypeCommands,
+                c => c.TableName.Name,
+                "columns/alter-type",
+                ct);
             await ProcessDeltaCommandsAsync(
                 commands.DropFunctionCommands,
                 c => c.FunctionName.Name,
                 "functions/drop",
+                ct);
+            if (_usePluralForms)
+            {
+                await ProcessDeltaCommandsAsync(
+                    commands.CreateTableCommands.MergeToPlural(),
+                    c => "create",
+                    "tables",
+                    ct);
+            }
+            else
+            {
+                await ProcessDeltaCommandsAsync(
+                    commands.CreateTableCommands,
+                    c => c.TableName.Name,
+                    "tables/create",
+                    ct);
+            }
+            await ProcessDeltaCommandsAsync(
+                commands.AlterMergeTableColumnDocStringsCommands,
+                c => c.TableName.Name,
+                "columns/alter-doc-strings",
                 ct);
             await ProcessDeltaCommandsAsync(
                 commands.CreateFunctionCommands,

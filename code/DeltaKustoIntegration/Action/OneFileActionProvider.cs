@@ -12,24 +12,69 @@ namespace DeltaKustoIntegration.Action
     {
         private readonly IFileGateway _fileGateway;
         private readonly string _filePath;
+        private readonly bool _usePluralForms;
 
-        public OneFileActionProvider(IFileGateway fileGateway, string filePath)
+        public OneFileActionProvider(
+            IFileGateway fileGateway,
+            string filePath,
+            bool usePluralForms)
         {
             _fileGateway = fileGateway;
             _filePath = filePath;
+            _usePluralForms = usePluralForms;
         }
 
         async Task IActionProvider.ProcessDeltaCommandsAsync(
-            bool doNotProcessIfDrops,
+            bool doNotProcessIfDataLoss,
             ActionCommandCollection commands,
             CancellationToken ct)
         {
             var builder = new StringBuilder();
 
+            if (_usePluralForms)
+            {
+                ProcessDeltaCommands(
+                    builder,
+                    commands.DropTableCommands.MergeToPlural(),
+                    "Drop Tables");
+            }
+            else
+            {
+                ProcessDeltaCommands(
+                    builder,
+                    commands.DropTableCommands,
+                    "Drop Tables");
+            }
+            ProcessDeltaCommands(
+                builder,
+                commands.DropTableColumnsCommands,
+                "Drop Table Columns");
+            ProcessDeltaCommands(
+                builder,
+                commands.AlterColumnTypeCommands,
+                "Alter Column Type");
             ProcessDeltaCommands(
                 builder,
                 commands.DropFunctionCommands,
                 "Drop functions");
+            if (_usePluralForms)
+            {
+                ProcessDeltaCommands(
+                    builder,
+                    commands.CreateTableCommands.MergeToPlural(),
+                    "Create tables");
+            }
+            else
+            {
+                ProcessDeltaCommands(
+                    builder,
+                    commands.CreateTableCommands,
+                    "Create tables");
+            }
+            ProcessDeltaCommands(
+                builder,
+                commands.AlterMergeTableColumnDocStringsCommands,
+                "Alter merge table column doc strings");
             ProcessDeltaCommands(
                 builder,
                 commands.CreateFunctionCommands,

@@ -1,0 +1,10 @@
+﻿jobs: 
+  main:
+    current:
+      scripts:
+        - filePath:  Tables/Scenarios/ChangeColumnType/current.kql
+    target:
+      scripts:
+        - filePath:  Tables/Scenarios/ChangeColumnType/target.kql
+    action:
+      filePath:  outputs/tables/scenarios/change-column-type-delta.kql

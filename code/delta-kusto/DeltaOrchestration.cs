@@ -151,7 +151,7 @@ namespace delta_kusto
                 foreach (var actionProvider in actionProviders)
                 {
                     await actionProvider.ProcessDeltaCommandsAsync(
-                        parameters.FailIfDrops,
+                        parameters.FailIfDataLoss,
                         actions,
                         ctAction);
                 }
@@ -187,15 +187,15 @@ namespace delta_kusto
             var success = true;
 
             _tracer.WriteLine(false, $"{deltaCommands.Count()} commands in delta");
-            if (deltaCommands.AllDropCommands.Any())
+            if (deltaCommands.AllDataLossCommands.Any())
             {
                 _tracer.WriteLine(false, "Delta contains drop commands:");
-                foreach (var command in deltaCommands.AllDropCommands)
+                foreach (var command in deltaCommands.AllDataLossCommands)
                 {
                     _tracer.WriteLine(false, "  " + command.ToScript());
                 }
                 _tracer.WriteLine(false, "");
-                if (parameters.FailIfDrops)
+                if (parameters.FailIfDataLoss)
                 {
                     _tracer.WriteErrorLine("Drop commands forces failure");
                     success = false;
@@ -250,11 +250,17 @@ namespace delta_kusto
 
             if (action.FilePath != null)
             {
-                builder.Add(new OneFileActionProvider(_fileGateway, action.FilePath));
+                builder.Add(new OneFileActionProvider(
+                    _fileGateway,
+                    action.FilePath,
+                    action.UsePluralForms));
             }
             if (action.FolderPath != null)
             {
-                builder.Add(new MultiFilesActionProvider(_fileGateway, action.FolderPath));
+                builder.Add(new MultiFilesActionProvider(
+                    _fileGateway,
+                    action.FolderPath,
+                    action.UsePluralForms));
             }
             if (action.PushToCurrent)
             {

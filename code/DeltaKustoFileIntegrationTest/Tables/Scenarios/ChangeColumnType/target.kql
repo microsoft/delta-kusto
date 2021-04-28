@@ -1,0 +1,1 @@
+﻿.create table ['my-table'] (a: int, b: int, c: string) with (docstring = "bla2", folder="my-tables")

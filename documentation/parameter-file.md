@@ -11,7 +11,7 @@ Examples?
 ```yaml
 schema:  "string"
 sendErrorOptIn:  "boolean"
-failIfDrops:  "boolean"
+failIfDataLoss:  "boolean"
 jobs: 
   myJob:
     priority:  "integer"
@@ -28,6 +28,7 @@ jobs:
     action:
         filePath:  "string"
         folderPath:  "string"
+        usePluralForms:  "boolean"
         pushToConsole:  "boolean"
         pushToCurrent:  "boolean"
 tokenProvider:
@@ -51,7 +52,7 @@ Name|Type|Required|Default|Value
 -|-|-|-|-
 schema|string|No|N/A|Used to identify the schema of the parameters.  This is for future use and is currently ignored.
 sendErrorOptIn|boolean|No|false|Sends error telemetry to a centralized service for pro-active troubleshooting by Delta-Kusto development team (telemetry isn't public).  Opting in basically allows pro-active improvements on Delta-Kusto.  See [telemetry](telemetry.md) for more details.
-failIfDrops|boolean|No|false|Setting this to `true` will force Delta Kusto to fail if drop commmands are detected in deltas.  See [failIfDrops flag](failIfDrops.md) for details.
+failIfDataLoss|boolean|No|false|Setting this to `true` will force Delta Kusto to fail if commmands resulting in potential data loss are detected in deltas.  See [failIfDataLoss flag](failIfDataLoss.md) for details.
 jobs|dictionary|Yes|N/A|Dictionary mapping a job *name* to a [Job object](#job-object).
 tokenProvider|object|No|N/A|[Token Provider Object](#token-provider-object).
 
@@ -111,6 +112,7 @@ Name|Type|Required|Default|Value
 -|-|-|-|-
 filePath|string|No|N/A|Specify a file path to export all Kusto delta commands
 folderPath|string|No|N/A|Specify a folder path to export all Kusto delta commands.  Commands will be pushed in a folder structure by type (e.g. all functions will be under a *functions* folder)
+usePluralForms|boolean|No|false|If `true`, bundle commands together into plural forms for file outputs (single or multiple).  Plural forms are always used when commands are pushed to an ADX cluster.
 pushToConsole|boolean|No|false|If `true`, the delta commands are *printed* on the console during execution.
 pushToCurrent|boolean|No|false|If `true`, the commands are executed on the *current* database.  For this to work, the current source of the [Job object](#job-object) must be an [ADX source object](#adx-source-object).
 

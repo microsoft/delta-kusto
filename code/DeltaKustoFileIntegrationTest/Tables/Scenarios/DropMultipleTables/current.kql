@@ -1,0 +1,7 @@
+﻿.create table t1 (a: real, b: int, c: string)
+
+.create table t2 (a: real, b: int, c: string)
+
+.create table t3 (a: real, b: int, c: string)
+
+.create table t4 (a: real, b: int, c: string)
