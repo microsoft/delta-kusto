@@ -13,7 +13,7 @@ namespace DeltaKustoLib.CommandModel
     /// </summary>
     public class EntityName : IComparable<EntityName>
     {
-        private readonly char[] SPECIAL_CHARACTERS = new[] { ' ', '.', '-' };
+        private readonly char[] SPECIAL_CHARACTERS = new[] { ' ', '.', '-', '"', '\'' };
 
         public EntityName(string name)
         {
@@ -22,6 +22,22 @@ namespace DeltaKustoLib.CommandModel
                 throw new ArgumentNullException("Entity name can't be null or empty");
             }
             Name = name;
+
+            foreach (var c in name)
+            {
+                if (char.IsLetterOrDigit(c) || c == '_')
+                {
+                    //  Nothing special
+                }
+                else if (SPECIAL_CHARACTERS.Contains(c))
+                {
+                    NeedEscape = true;
+                }
+                else
+                {
+                    throw new DeltaException($"Unsuppored character for an entity:  '{c}'");
+                }
+            }
         }
 
         public static EntityName FromCode(SyntaxElement element)
@@ -42,12 +58,12 @@ namespace DeltaKustoLib.CommandModel
 
         public string Name { get; }
 
-        public bool NeedEscape => Name.IndexOfAny(SPECIAL_CHARACTERS) != -1;
+        public bool NeedEscape { get; }
 
         public string ToScript()
         {
             return NeedEscape
-                ? $"['{Name}']"
+                ? $"['{EscapeName()}']"
                 : Name;
         }
 
@@ -77,5 +93,14 @@ namespace DeltaKustoLib.CommandModel
             return Name.GetHashCode();
         }
         #endregion
+
+        private string EscapeName()
+        {
+            var escapedName = Name
+                .Replace("\"", "\\\"")
+                .Replace("'", "\\'");
+
+            return escapedName;
+        }
     }
 }

@@ -295,7 +295,7 @@ namespace DeltaKustoUnitTest.CommandParsing
             var body = "42";
             var command = ParseOneCommand(
                 ".create-or-alter function "
-                + $"{name} (T1:(x:long), T2:(y:double, z:dynamic), a:int) {{ {body} }}");
+                + $"{name} (T1:(x:long), T2:(y:double, ['z\"']:dynamic), a:int) {{ {body} }}");
 
             Assert.IsType<CreateFunctionCommand>(command);
 
@@ -319,7 +319,7 @@ namespace DeltaKustoUnitTest.CommandParsing
             Assert.Equal(2, param2.ComplexType!.Columns.Count);
             Assert.Equal("y", param2.ComplexType!.Columns.First().ColumnName.Name);
             Assert.Equal("double", param2.ComplexType!.Columns.First().PrimitiveType);
-            Assert.Equal("z", param2.ComplexType!.Columns.Last().ColumnName.Name);
+            Assert.Equal("z\"", param2.ComplexType!.Columns.Last().ColumnName.Name);
             Assert.Equal("dynamic", param2.ComplexType!.Columns.Last().PrimitiveType);
 
             Assert.Equal(body, createFunctionCommand.Body);
