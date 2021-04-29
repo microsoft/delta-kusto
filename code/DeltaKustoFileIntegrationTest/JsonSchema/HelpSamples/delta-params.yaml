@@ -1,0 +1,6 @@
+﻿jobs: 
+  main:
+    target:
+      jsonFilePath:  JsonSchema/HelpSamples/schema.json
+    action:
+      filePath:  outputs/json-schema/help-samples.kql
