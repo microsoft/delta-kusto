@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
 
 namespace DeltaKustoIntegration.Parameterization
 {
@@ -235,39 +236,29 @@ namespace DeltaKustoIntegration.Parameterization
             {
                 return textValue;
             }
-            else if (type == typeof(bool))
-            {
-                var upperTextValue = textValue.ToLower();
-
-                if (upperTextValue == "true")
-                {
-                    return true;
-                }
-                else if (upperTextValue == "false")
-                {
-                    return false;
-                }
-                else
-                {
-                    throw new DeltaException($"Value '{textValue}' should be a boolean");
-                }
-            }
-            else if (type == typeof(int))
-            {
-                int value;
-
-                if (!int.TryParse(textValue, out value))
-                {
-                    throw new DeltaException($"Value '{textValue}' should be an integer");
-                }
-                else
-                {
-                    return value;
-                }
-            }
             else
             {
-                throw new DeltaException($"Type '{type.Name}' isn't supported in override");
+                try
+                {
+                    var options = new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    };
+                    var value = JsonSerializer.Deserialize(textValue, type, options);
+
+                    if (value == null)
+                    {
+                        throw new DeltaException($"Following override leads to no value:  '{textValue}'");
+                    }
+
+                    return value;
+                }
+                catch (Exception ex)
+                {
+                    throw new DeltaException(
+                        $"Issue deserializing override into expected type:  '{textValue}'",
+                        ex);
+                }
             }
         }
 

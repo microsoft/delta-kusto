@@ -218,6 +218,29 @@ namespace DeltaKustoUnitTest
 
             Assert.Equal(newToken, main.TokenProvider!.Tokens!["mine"].Token);
         }
+
+        [Fact]
+        public void TestComplexPropertyInNonExistingNodePath()
+        {
+            var main = new MainParameterization
+            {
+                TokenProvider = new TokenProviderParameterization
+                {
+                }
+            };
+            var tenantId = "hello-world";
+            var clientId = "xyz_fasf";
+            var secret = "fijfdsjfdsajipof20348234";
+
+            ParameterOverrideHelper.InplaceOverride(
+                main,
+                $"tokenProvider.login={{\"tenantId\":\"{tenantId}\",\"clientId\":\"{clientId}\", \"secret\":\"{secret}\"}}");
+
+            Assert.NotNull(main.TokenProvider!.Login);
+            Assert.Equal(tenantId, main.TokenProvider!.Login!.TenantId);
+            Assert.Equal(clientId, main.TokenProvider!.Login!.ClientId);
+            Assert.Equal(secret, main.TokenProvider!.Login!.Secret);
+        }
         #endregion
     }
 }
