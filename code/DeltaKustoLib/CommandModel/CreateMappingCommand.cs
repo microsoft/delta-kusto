@@ -1,4 +1,5 @@
-﻿using DeltaKustoLib.SchemaObjects;
+﻿using DeltaKustoLib.KustoModel;
+using DeltaKustoLib.SchemaObjects;
 using Kusto.Language.Syntax;
 using System;
 using System.Collections.Generic;
@@ -99,6 +100,14 @@ namespace DeltaKustoLib.CommandModel
             builder.Append(MappingAsJson);
 
             return builder.ToString();
+        }
+
+        internal MappingModel ToModel()
+        {
+            return new MappingModel(
+                MappingName,
+                MappingKind,
+                MappingAsJson);
         }
 
         internal static IEnumerable<CommandBase> ComputeDelta(
