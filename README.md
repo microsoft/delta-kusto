@@ -86,9 +86,9 @@ This is the *Live Sync* scenario:  we want to bring an ADX database to the same 
 
 ## Limitations
 
-The [current release](https://github.com/microsoft/delta-kusto/releases) of Delta-Kusto focusses on *functions*.
+The [current release](https://github.com/microsoft/delta-kusto/releases) of Delta-Kusto includes *functions* and *tables*.
 
-[Tables are planned](https://github.com/microsoft/delta-kusto/issues/8) for the next release.
+[Ingestion mappings](https://github.com/microsoft/delta-kusto/issues/10) for the next release.
 
 See the [list of issues](https://github.com/microsoft/delta-kusto/issues/) for details on upcoming features and bugs found.
 
