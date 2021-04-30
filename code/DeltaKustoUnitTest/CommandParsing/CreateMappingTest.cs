@@ -44,5 +44,30 @@ namespace DeltaKustoUnitTest.CommandParsing
             Assert.Equal("csv", createMappingCommand.MappingKind);
             Assert.Equal(new QuotedText(format), createMappingCommand.MappingAsJson);
         }
+
+        [Fact]
+        public void CreateWithMultilines()
+        {
+            var command = ParseOneCommand(
+                ".create table MyTable ingestion csv mapping "
+                + "'Map ping1' \n"
+                + "'['\n"
+                + "  '{'\n"
+                + "    '\"column\" : \"rownumber\",'\n"
+                + "    '\"DataType\":\"int\",'\n"
+                + "    '\"Properties\":{\"Ordinal\":\"0\"}'\n"
+                + "  '}'\n"
+                + "']'\n"
+                );
+
+            Assert.IsType<CreateMappingCommand>(command);
+
+            var createMappingCommand = (CreateMappingCommand)command;
+
+            Assert.Equal(new EntityName("MyTable"), createMappingCommand.TableName);
+            Assert.Equal(new QuotedText("Map ping1"), createMappingCommand.MappingName);
+            Assert.Equal("csv", createMappingCommand.MappingKind);
+            Assert.Contains("rownumber", createMappingCommand.MappingAsJson.Text);
+        }
     }
 }

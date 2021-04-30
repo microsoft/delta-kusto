@@ -15,9 +15,9 @@ namespace DeltaKustoLib.CommandModel
     public class CreateMappingCommand : CommandBase
     {
         public EntityName TableName { get; }
-        
+
         public string MappingKind { get; }
-        
+
         public QuotedText MappingName { get; }
 
         public QuotedText MappingAsJson { get; }
@@ -50,11 +50,20 @@ namespace DeltaKustoLib.CommandModel
             var mappingFormatExpression = rootElement.GetUniqueDescendant<LiteralExpression>(
                 "Mapping Format",
                 n => n.NameInParent == "MappingFormat");
+            var mappingFormatFirstPart = QuotedText.FromLiteral(mappingFormatExpression);
+            var mappingFormatExtraParts = rootElement
+                .GetDescendants<CompoundStringLiteralExpression>()
+                .SelectMany(c => c.Tokens)
+                .Select(t => QuotedText.FromToken(t));
+            var mappingFormatParts = mappingFormatExtraParts
+                .Prepend(mappingFormatFirstPart)
+                .Select(q => q.Text);
+            var mappingFormat = string.Concat(mappingFormatParts);
             var command = new CreateMappingCommand(
                 EntityName.FromCode(tableNameDeclaration),
                 mappingKindToken.Text,
                 QuotedText.FromLiteral(mappingNameExpression),
-                QuotedText.FromLiteral(mappingFormatExpression));
+                QuotedText.FromText(mappingFormat)!);
 
             return command;
         }
