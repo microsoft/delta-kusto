@@ -116,6 +116,8 @@ namespace DeltaKustoLib.CommandModel
                         return DropTableColumnsCommand.FromCode(commandBlock);
                     case "CreateTableIngestionMapping":
                         return CreateMappingCommand.FromCode(commandBlock);
+                    case "DropTableIngestionMapping":
+                        return DropMappingCommand.FromCode(commandBlock);
 
                     default:
                         throw new DeltaException(
