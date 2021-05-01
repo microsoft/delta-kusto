@@ -24,6 +24,25 @@ namespace DeltaKustoLib.KustoModel
             MappingAsJson = mappingAsJson;
         }
 
+        #region Object methods
+        public override bool Equals(object? obj)
+        {
+            var other = obj as MappingModel;
+
+            return other!=null
+                && other.MappingName.Equals(MappingName)
+                && other.MappingKind.Equals(MappingKind)
+                && other.MappingAsJson.Equals(MappingAsJson);
+        }
+
+        public override int GetHashCode()
+        {
+            return MappingName.GetHashCode()
+                ^ MappingKind.GetHashCode()
+                ^ MappingAsJson.GetHashCode();
+        }
+        #endregion
+
         internal static IEnumerable<CommandBase> ComputeDelta(
             EntityName tableName,
             IEnumerable<MappingModel> currentMappings,
