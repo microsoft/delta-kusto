@@ -53,10 +53,6 @@ namespace DeltaKustoIntegration.Action
                 builder,
                 commands.AlterColumnTypeCommands,
                 "Alter Column Type");
-            ProcessDeltaCommands(
-                builder,
-                commands.DropFunctionCommands,
-                "Drop functions");
             if (_usePluralForms)
             {
                 ProcessDeltaCommands(
@@ -75,6 +71,14 @@ namespace DeltaKustoIntegration.Action
                 builder,
                 commands.AlterMergeTableColumnDocStringsCommands,
                 "Alter merge table column doc strings");
+            ProcessDeltaCommands(
+                builder,
+                commands.CreateMappingCommands,
+                "Create table ingestion mappings");
+            ProcessDeltaCommands(
+                builder,
+                commands.DropFunctionCommands,
+                "Drop functions");
             ProcessDeltaCommands(
                 builder,
                 commands.CreateFunctionCommands,

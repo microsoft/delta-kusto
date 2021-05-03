@@ -57,11 +57,6 @@ namespace DeltaKustoIntegration.Action
                 c => c.TableName.Name,
                 "columns/alter-type",
                 ct);
-            await ProcessDeltaCommandsAsync(
-                commands.DropFunctionCommands,
-                c => c.FunctionName.Name,
-                "functions/drop",
-                ct);
             if (_usePluralForms)
             {
                 await ProcessDeltaCommandsAsync(
@@ -82,6 +77,16 @@ namespace DeltaKustoIntegration.Action
                 commands.AlterMergeTableColumnDocStringsCommands,
                 c => c.TableName.Name,
                 "columns/alter-doc-strings",
+                ct);
+            await ProcessDeltaCommandsAsync(
+                commands.CreateMappingCommands,
+                c => $"{c.TableName.Name}-{c.MappingName}-{c.MappingKind}",
+                "tables/ingestion-mappings",
+                ct);
+            await ProcessDeltaCommandsAsync(
+                commands.DropFunctionCommands,
+                c => c.FunctionName.Name,
+                "functions/drop",
                 ct);
             await ProcessDeltaCommandsAsync(
                 commands.CreateFunctionCommands,

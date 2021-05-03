@@ -1,0 +1,10 @@
+﻿jobs: 
+  main:
+    current:
+      scripts:
+        - filePath:  Mappings/NoneToOne/current.kql
+    target:
+      scripts:
+        - filePath:  Mappings/NoneToOne/target.kql
+    action:
+      filePath:  outputs/mappings/none-to-one.kql

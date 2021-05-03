@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace DeltaKustoFileIntegrationTest.EmptyTarget
+namespace DeltaKustoFileIntegrationTest.Tables.WithCurrent
 {
     public class TableWithCurrentTest : IntegrationTestBase
     {

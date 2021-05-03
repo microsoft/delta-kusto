@@ -1,32 +1,39 @@
+using DeltaKustoLib.CommandModel;
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace DeltaKustoFileIntegrationTest.Tables.EmptyCurrent
+namespace DeltaKustoFileIntegrationTest.Mappings
 {
-    public class TableEmptyCurrentTest : IntegrationTestBase
+    public class MappingTest : IntegrationTestBase
     {
         [Fact]
-        public async Task OneTableDelta()
+        public async Task NoneToOneDelta()
         {
             var parameters = await RunParametersAsync(
-                "Tables/EmptyCurrent/OneTableDelta/delta-params.yaml",
+                "Mappings/NoneToOne/delta-params.yaml",
                 CreateCancellationToken());
-            var inputPath = parameters.Jobs!.First().Value.Target!.Scripts!.First().FilePath!;
             var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
-            var inputCommands = await LoadScriptAsync(inputPath);
             var outputCommands = await LoadScriptAsync(outputPath);
 
-            Assert.True(inputCommands.SequenceEqual(outputCommands));
+            Assert.Single(outputCommands);
+
+            var createMappingCommand = outputCommands
+                .Where(c => c is CreateMappingCommand)
+                .Cast<CreateMappingCommand>()
+                .FirstOrDefault();
+
+            Assert.NotNull(createMappingCommand);
+            Assert.Equal("my-mapping", createMappingCommand!.MappingName.Text);
         }
 
         [Fact]
         public async Task TwoFunctionsDelta()
         {
             var parameters = await RunParametersAsync(
-                "Tables/EmptyCurrent/TwoTablesDelta/delta-params.yaml",
+                "Functions/EmptyCurrent/TwoFunctionsDelta/delta-params.yaml",
                 CreateCancellationToken());
             var inputPath = parameters.Jobs!.First().Value.Target!.Scripts!.First().FilePath!;
             var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
