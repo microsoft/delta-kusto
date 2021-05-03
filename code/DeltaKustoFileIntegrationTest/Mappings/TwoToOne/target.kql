@@ -1,0 +1,4 @@
+﻿//	Random comment
+.create table ['my-table'] (a: real, b: int, c: string)
+
+.create table ['my-table'] ingestion json mapping 'my-mapping' '[{\"column\" : \"rownumber\"}]'

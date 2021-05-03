@@ -23,7 +23,22 @@ namespace DeltaKustoUnitTest.CommandParsing
         }
 
         [Fact]
-        public void DropFunkyNames()
+        public void DropFunkyTableName()
+        {
+            var command = ParseOneCommand(
+                ".drop table ['My-Table'] ingestion json mapping 'Mapping1'");
+
+            Assert.IsType<DropMappingCommand>(command);
+
+            var dropMappingCommand = (DropMappingCommand)command;
+
+            Assert.Equal(new EntityName("My-Table"), dropMappingCommand.TableName);
+            Assert.Equal(new QuotedText("Mapping1"), dropMappingCommand.MappingName);
+            Assert.Equal("json", dropMappingCommand.MappingKind);
+        }
+
+        [Fact]
+        public void DropFunkyMappingName()
         {
             var command = ParseOneCommand(
                 ".drop table MyTable ingestion json mapping 'Mapp.. ing1'");

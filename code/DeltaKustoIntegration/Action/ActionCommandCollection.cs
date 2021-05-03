@@ -23,6 +23,15 @@ namespace DeltaKustoIntegration.Action
                 .OfType<DropTableColumnsCommand>()
                 .OrderBy(d => d.TableName)
                 .ToImmutableArray();
+            DropMappingCommands = commands
+                .OfType<DropMappingCommand>()
+                .OrderBy(d => d.MappingName)
+                .ThenBy(d => d.MappingKind)
+                .ToImmutableArray();
+            DropFunctionCommands = commands
+                .OfType<DropFunctionCommand>()
+                .OrderBy(d => d.FunctionName)
+                .ToImmutableArray();
             CreateTableCommands = commands
                 .OfType<CreateTableCommand>()
                 .OrderBy(d => d.Folder)
@@ -42,10 +51,6 @@ namespace DeltaKustoIntegration.Action
                 .OrderBy(d => d.MappingName)
                 .ThenBy(d => d.MappingKind)
                 .ToImmutableArray();
-            DropFunctionCommands = commands
-                .OfType<DropFunctionCommand>()
-                .OrderBy(d => d.FunctionName)
-                .ToImmutableArray();
             CreateFunctionCommands = commands
                 .OfType<CreateFunctionCommand>()
                 .OrderBy(d => d.Folder.Text)
@@ -56,10 +61,11 @@ namespace DeltaKustoIntegration.Action
                 .Concat(DropTableColumnsCommands)
                 .Concat(AlterColumnTypeCommands);
             _allCommands = AllDataLossCommands
+                .Concat(DropMappingCommands)
+                .Concat(DropFunctionCommands)
                 .Concat(CreateTableCommands)
                 .Concat(AlterMergeTableColumnDocStringsCommands)
                 .Concat(CreateMappingCommands)
-                .Concat(DropFunctionCommands)
                 .Concat(CreateFunctionCommands);
         }
 
@@ -83,6 +89,10 @@ namespace DeltaKustoIntegration.Action
 
         public IImmutableList<DropTableColumnsCommand> DropTableColumnsCommands { get; }
 
+        public IImmutableList<DropMappingCommand> DropMappingCommands { get; }
+
+        public IImmutableList<DropFunctionCommand> DropFunctionCommands { get; }
+
         public IImmutableList<CreateTableCommand> CreateTableCommands { get; }
 
         public IImmutableList<AlterColumnTypeCommand> AlterColumnTypeCommands { get; }
@@ -92,8 +102,6 @@ namespace DeltaKustoIntegration.Action
         { get; }
 
         public IImmutableList<CreateMappingCommand> CreateMappingCommands { get; }
-
-        public IImmutableList<DropFunctionCommand> DropFunctionCommands { get; }
 
         public IImmutableList<CreateFunctionCommand> CreateFunctionCommands { get; }
     }

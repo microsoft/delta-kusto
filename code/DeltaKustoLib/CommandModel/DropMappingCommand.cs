@@ -34,7 +34,6 @@ namespace DeltaKustoLib.CommandModel
 
         internal static CommandBase FromCode(SyntaxElement rootElement)
         {
-            var q = rootElement.GetDescendants<SyntaxElement>();
             var tableNameReference = rootElement.GetUniqueDescendant<NameReference>(
                 "Table Name",
                 n => n.NameInParent == "TableName");
@@ -45,7 +44,7 @@ namespace DeltaKustoLib.CommandModel
                 "Mapping Kind",
                 n => n.NameInParent == "MappingKind");
             var command = new DropMappingCommand(
-                EntityName.FromCode(tableNameReference.Name),
+                new EntityName(tableNameReference.SimpleName),
                 mappingKindToken.Text,
                 QuotedText.FromLiteral(mappingNameExpression));
 

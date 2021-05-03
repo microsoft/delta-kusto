@@ -53,6 +53,16 @@ namespace DeltaKustoIntegration.Action
                 "columns/drop",
                 ct);
             await ProcessDeltaCommandsAsync(
+                commands.DropMappingCommands,
+                c => $"{c.TableName.Name}-{c.MappingName}-{c.MappingKind}",
+                "tables/ingestion-mappings/drop",
+                ct);
+            await ProcessDeltaCommandsAsync(
+                commands.DropFunctionCommands,
+                c => c.FunctionName.Name,
+                "functions/drop",
+                ct);
+            await ProcessDeltaCommandsAsync(
                 commands.AlterColumnTypeCommands,
                 c => c.TableName.Name,
                 "columns/alter-type",
@@ -81,12 +91,7 @@ namespace DeltaKustoIntegration.Action
             await ProcessDeltaCommandsAsync(
                 commands.CreateMappingCommands,
                 c => $"{c.TableName.Name}-{c.MappingName}-{c.MappingKind}",
-                "tables/ingestion-mappings",
-                ct);
-            await ProcessDeltaCommandsAsync(
-                commands.DropFunctionCommands,
-                c => c.FunctionName.Name,
-                "functions/drop",
+                "tables/ingestion-mappings/create",
                 ct);
             await ProcessDeltaCommandsAsync(
                 commands.CreateFunctionCommands,

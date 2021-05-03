@@ -51,6 +51,14 @@ namespace DeltaKustoIntegration.Action
                 "Drop Table Columns");
             ProcessDeltaCommands(
                 builder,
+                commands.DropMappingCommands,
+                "Drop Table Ingestion Mappings");
+            ProcessDeltaCommands(
+                builder,
+                commands.DropFunctionCommands,
+                "Drop functions");
+            ProcessDeltaCommands(
+                builder,
                 commands.AlterColumnTypeCommands,
                 "Alter Column Type");
             if (_usePluralForms)
@@ -75,10 +83,6 @@ namespace DeltaKustoIntegration.Action
                 builder,
                 commands.CreateMappingCommands,
                 "Create table ingestion mappings");
-            ProcessDeltaCommands(
-                builder,
-                commands.DropFunctionCommands,
-                "Drop functions");
             ProcessDeltaCommands(
                 builder,
                 commands.CreateFunctionCommands,

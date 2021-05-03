@@ -61,6 +61,15 @@
     <None Update="EmptyCurrent\OneFunctionDelta\target.kql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Mappings\TwoToOne\current.kql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Mappings\TwoToOne\delta-params.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Mappings\TwoToOne\target.kql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Mappings\OneToTwo\current.kql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

@@ -55,6 +55,22 @@ namespace DeltaKustoFileIntegrationTest.Mappings
             Assert.Contains("json", kinds);
         }
 
+        [Fact]
+        public async Task TwoToOne()
+        {
+            var parameters = await RunParametersAsync(
+                "Mappings/TwoToOne/delta-params.yaml",
+                CreateCancellationToken());
+            var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
+            var outputCommands = await LoadScriptAsync(outputPath);
+
+            Assert.Single(outputCommands);
+
+            var dropMappingCommand = (DropMappingCommand)outputCommands[0];
+
+            Assert.Equal("csv", dropMappingCommand.MappingKind);
+        }
+
         private CancellationToken CreateCancellationToken() =>
            new CancellationTokenSource(TimeSpan.FromSeconds(2)).Token;
     }
