@@ -1,0 +1,3 @@
+﻿.create table ['my-table'] (a: real, b: int, c: string)
+
+.create table ['my-table'] ingestion csv mapping 'my-mapping' '[{\"column\" : \"rownumber\"}]'

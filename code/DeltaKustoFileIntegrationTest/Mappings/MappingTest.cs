@@ -1,5 +1,6 @@
 using DeltaKustoLib.CommandModel;
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,7 +11,7 @@ namespace DeltaKustoFileIntegrationTest.Mappings
     public class MappingTest : IntegrationTestBase
     {
         [Fact]
-        public async Task NoneToOneDelta()
+        public async Task NoneToOne()
         {
             var parameters = await RunParametersAsync(
                 "Mappings/NoneToOne/delta-params.yaml",
@@ -30,17 +31,28 @@ namespace DeltaKustoFileIntegrationTest.Mappings
         }
 
         [Fact]
-        public async Task TwoFunctionsDelta()
+        public async Task OneToTwo()
         {
             var parameters = await RunParametersAsync(
-                "Functions/EmptyCurrent/TwoFunctionsDelta/delta-params.yaml",
+                "Mappings/OneToTwo/delta-params.yaml",
                 CreateCancellationToken());
-            var inputPath = parameters.Jobs!.First().Value.Target!.Scripts!.First().FilePath!;
             var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
-            var inputCommands = await LoadScriptAsync(inputPath);
             var outputCommands = await LoadScriptAsync(outputPath);
 
-            Assert.True(inputCommands.SequenceEqual(outputCommands));
+            Assert.Equal(2, outputCommands.Count());
+
+            var createMappingCommands = outputCommands
+                .Where(c => c is CreateMappingCommand)
+                .Cast<CreateMappingCommand>();
+
+            Assert.Equal(2, createMappingCommands.Count());
+
+            var kinds = createMappingCommands
+                .Select(c => c.MappingKind)
+                .ToImmutableHashSet();
+
+            Assert.Contains("csv", kinds);
+            Assert.Contains("json", kinds);
         }
 
         private CancellationToken CreateCancellationToken() =>
