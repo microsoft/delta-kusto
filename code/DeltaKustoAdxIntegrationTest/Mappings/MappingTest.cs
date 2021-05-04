@@ -8,28 +8,28 @@ using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace DeltaKustoAdxIntegrationTest.Tables
+namespace DeltaKustoAdxIntegrationTest.Mappings
 {
-    public class TableTest : AdxIntegrationTestBase
+    public class MappingTest : AdxIntegrationTestBase
     {
-        private const string STATES_FOLDER_PATH = "Tables/States";
+        private const string STATES_FOLDER_PATH = "Mappings/States";
 
         [Fact]
         public async Task AdxToFile()
         {
-            await TestAdxToFile(STATES_FOLDER_PATH, "outputs/tables/adx-to-file/");
+            await TestAdxToFile(STATES_FOLDER_PATH, "outputs/mappings/adx-to-file/");
         }
 
         [Fact]
         public async Task FileToAdx()
         {
-            await TestFileToAdx(STATES_FOLDER_PATH, "outputs/tables/file-to-adx/");
+            await TestFileToAdx(STATES_FOLDER_PATH, "outputs/mappings/file-to-adx/");
         }
 
         [Fact]
         public async Task AdxToAdx()
         {
-            await TestAdxToAdx(STATES_FOLDER_PATH, "outputs/tables/adx-to-adx/");
+            await TestAdxToAdx(STATES_FOLDER_PATH, "outputs/mappings/adx-to-adx/");
         }
     }
 }

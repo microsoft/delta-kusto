@@ -1,4 +1,5 @@
-﻿using DeltaKustoLib.CommandModel;
+﻿using DeltaKustoLib;
+using DeltaKustoLib.CommandModel;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -67,6 +68,11 @@ namespace DeltaKustoIntegration.Action
                 .Concat(AlterMergeTableColumnDocStringsCommands)
                 .Concat(CreateMappingCommands)
                 .Concat(CreateFunctionCommands);
+
+            if (_allCommands.Count() != commands.Count())
+            {
+                throw new DeltaException("Commands count mismatch");
+            }
         }
 
         #region IReadOnlyCollection<CommandBase> methods
