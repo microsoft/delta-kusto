@@ -24,11 +24,15 @@ namespace DeltaKustoLib.KustoModel
         private readonly IImmutableList<TableModel> _tableModels;
 
         private DatabaseModel(
-            IImmutableList<CreateFunctionCommand> functionCommands,
-            IImmutableList<TableModel> tableModels)
+            IEnumerable<CreateFunctionCommand> functionCommands,
+            IEnumerable<TableModel> tableModels)
         {
-            _functionCommands = functionCommands;
-            _tableModels = tableModels;
+            _functionCommands = functionCommands
+                .OrderBy(f => f.FunctionName)
+                .ToImmutableArray();
+            _tableModels = tableModels
+                .OrderBy(t => t.TableName)
+                .ToImmutableArray();
         }
 
         public static DatabaseModel FromCommands(
@@ -88,9 +92,7 @@ namespace DeltaKustoLib.KustoModel
                 .Values
                 .Select(s => TableModel.FromTableSchema(s));
 
-            return new DatabaseModel(
-                functions.ToImmutableArray(),
-                tables.ToImmutableArray());
+            return new DatabaseModel(functions, tables);
         }
 
         public IImmutableList<CommandBase> ComputeDelta(DatabaseModel targetModel)
@@ -104,6 +106,24 @@ namespace DeltaKustoLib.KustoModel
 
             return deltaCommands.ToImmutableArray();
         }
+
+        #region Object methods
+        public override bool Equals(object? obj)
+        {
+            var other = obj as DatabaseModel;
+            var result = other != null
+                && Enumerable.SequenceEqual(_functionCommands, other._functionCommands)
+                && Enumerable.SequenceEqual(_tableModels, other._tableModels);
+
+            return result;
+        }
+
+        public override int GetHashCode()
+        {
+            return _functionCommands.Aggregate(0, (h, f) => h ^ f.GetHashCode())
+                ^ _tableModels.Aggregate(0, (h, t) => h ^ t.GetHashCode());
+        }
+        #endregion
 
         private static IImmutableList<T> GetCommands<T>(
             IImmutableDictionary<Type, IEnumerable<CommandBase>> commandTypeIndex)

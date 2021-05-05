@@ -5,13 +5,12 @@ using DeltaKustoIntegration.Parameterization;
 using DeltaKustoIntegration.TokenProvider;
 using DeltaKustoLib;
 using DeltaKustoLib.CommandModel;
+using DeltaKustoLib.KustoModel;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -114,11 +113,13 @@ namespace DeltaKustoAdxIntegrationTest
                     await ApplyCommandsAsync(outputCommands, true, ct);
 
                     var finalCommands = await FetchDbCommandsAsync(true, ct);
-                    var finalScript = string.Join("\n", finalCommands.Select(c => c.ToScript()));
-                    var targetScript = string.Join("\n", targetCommands.Select(c => c.ToScript()));
+                    var targetModel = DatabaseModel.FromCommands(targetCommands);
+                    var finalModel = DatabaseModel.FromCommands(finalCommands);
+                    var finalScript = string.Join(";\n\n", finalCommands.Select(c => c.ToScript()));
+                    var targetScript = string.Join(";\n\n", targetCommands.Select(c => c.ToScript()));
 
                     Assert.True(
-                        finalCommands.SequenceEqual(targetCommands),
+                        finalModel.Equals(targetModel),
                         $"From {fromFile} to {toFile}:\n\n{finalScript}\nvs\n\n{targetScript}");
                 });
         }
@@ -159,11 +160,13 @@ namespace DeltaKustoAdxIntegrationTest
                         ct);
 
                     var finalCommands = await FetchDbCommandsAsync(true, ct);
-                    var finalScript = string.Join("\n", finalCommands.Select(c => c.ToScript()));
-                    var targetScript = string.Join("\n", targetCommands.Select(c => c.ToScript()));
+                    var targetModel = DatabaseModel.FromCommands(targetCommands);
+                    var finalModel = DatabaseModel.FromCommands(finalCommands);
+                    var finalScript = string.Join(";\n\n", finalCommands.Select(c => c.ToScript()));
+                    var targetScript = string.Join(";\n\n", targetCommands.Select(c => c.ToScript()));
 
                     Assert.True(
-                        finalCommands.SequenceEqual(targetCommands),
+                        finalModel.Equals(targetModel),
                         $"From {fromFile} to {toFile}:\n\n{finalScript}\nvs\n\n{targetScript}");
                 });
         }
@@ -197,11 +200,13 @@ namespace DeltaKustoAdxIntegrationTest
                     var targetCommands = CommandBase.FromScript(
                         await File.ReadAllTextAsync(toFile));
                     var finalCommands = await FetchDbCommandsAsync(false, ct);
-                    var finalScript = string.Join("\n", finalCommands.Select(c => c.ToScript()));
-                    var targetScript = string.Join("\n", targetCommands.Select(c => c.ToScript()));
+                    var targetModel = DatabaseModel.FromCommands(targetCommands);
+                    var finalModel = DatabaseModel.FromCommands(finalCommands);
+                    var finalScript = string.Join(";\n\n", finalCommands.Select(c => c.ToScript()));
+                    var targetScript = string.Join(";\n\n", targetCommands.Select(c => c.ToScript()));
 
                     Assert.True(
-                        finalCommands.SequenceEqual(targetCommands),
+                        targetModel.Equals(finalModel),
                         $"From {fromFile} to {toFile}:\n\n{finalScript}\nvs\n\n{targetScript}");
                 });
         }

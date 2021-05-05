@@ -42,13 +42,15 @@ namespace DeltaKustoLib.KustoModel
         public override bool Equals(object? obj)
         {
             var other = obj as TableModel;
-
-            return other != null
+            var result = other != null
                 && other.TableName.Equals(TableName)
                 && other.Columns.OrderBy(c => c.ColumnName).SequenceEqual(
                     Columns.OrderBy(c => c.ColumnName))
+                && other.Mappings.SequenceEqual(Mappings)
                 && object.Equals(other.Folder, Folder)
                 && object.Equals(other.DocString, DocString);
+
+            return result;
         }
 
         public override int GetHashCode()
@@ -94,11 +96,17 @@ namespace DeltaKustoLib.KustoModel
             var columns = schema
                 .OrderedColumns
                 .Select(c => FromColumnSchema(c));
+            var mappings = schema
+                .Mappings
+                .Select(m => new MappingModel(
+                    new QuotedText(m.Name),
+                    m.Kind,
+                    new QuotedText(m.MappingAsJson)));
 
             return new TableModel(
                 new EntityName(schema.Name),
                 columns,
-                ImmutableArray<MappingModel>.Empty,
+                mappings,
                 QuotedText.FromText(schema.Folder),
                 QuotedText.FromText(schema.DocString));
         }
@@ -164,7 +172,7 @@ namespace DeltaKustoLib.KustoModel
                     columnsWithDocString);
             }
 
-            foreach(var mapping in Mappings)
+            foreach (var mapping in Mappings)
             {
                 yield return mapping.ToCreateMappingCommand(TableName);
             }

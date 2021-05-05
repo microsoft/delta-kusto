@@ -28,7 +28,7 @@ namespace DeltaKustoLib.CommandModel
             QuotedText mappingName)
         {
             TableName = tableName;
-            MappingKind = mappingKind;
+            MappingKind = mappingKind.ToLower();
             MappingName = mappingName;
         }
 

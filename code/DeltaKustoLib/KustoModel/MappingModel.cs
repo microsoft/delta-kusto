@@ -3,11 +3,99 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text.Json;
 
 namespace DeltaKustoLib.KustoModel
 {
     public class MappingModel
     {
+        #region MyRegion
+        private class MappingProperties
+        {
+            public string Ordinal { get; set; } = string.Empty;
+
+            public string ConstValue { get; set; } = string.Empty;
+
+            public string Path { get; set; } = string.Empty;
+
+            public string Transform { get; set; } = string.Empty;
+
+            public string Field { get; set; } = string.Empty;
+
+            #region Object methods
+            public override bool Equals(object? obj)
+            {
+                var other = obj as MappingProperties;
+
+                return other != null
+                    && other.Ordinal.Equals(Ordinal)
+                    && other.ConstValue.Equals(ConstValue)
+                    && other.Path.Equals(Path)
+                    && other.Transform.Equals(Transform)
+                    && other.Field.Equals(Field);
+            }
+
+            public override int GetHashCode()
+            {
+                return base.GetHashCode();
+            }
+            #endregion
+        }
+
+        private class MappingElement : MappingProperties
+        {
+            public string Column { get; set; } = string.Empty;
+
+            public string Name { get; set; } = string.Empty;
+
+            public string DataType { get; set; } = string.Empty;
+
+            public MappingProperties Properties { get; set; } = new MappingProperties();
+
+            public MappingElement ToNormalize()
+            {
+                var result = new MappingElement
+                {
+                    Column = string.IsNullOrWhiteSpace(Name) ? Column : Name,
+                    DataType = DataType,
+                    Properties = new MappingProperties
+                    {
+                        Ordinal = string.IsNullOrWhiteSpace(Ordinal) ? Properties.Ordinal : Ordinal,
+                        ConstValue = string.IsNullOrWhiteSpace(ConstValue) ? Properties.ConstValue : ConstValue,
+                        Path = string.IsNullOrWhiteSpace(ConstValue) ? Properties.ConstValue : ConstValue,
+                        Transform = string.IsNullOrWhiteSpace(Transform) ? Properties.Transform : Transform,
+                        Field = string.IsNullOrWhiteSpace(Field) ? Properties.ConstValue : Field
+                    }
+                };
+
+                return result;
+            }
+
+            #region Object methods
+            public override bool Equals(object? obj)
+            {
+                var other = obj as MappingElement;
+                var result = other != null
+                    && other.Column.Equals(Column)
+                    && other.DataType.Equals(DataType)
+                    && other.Properties.Equals(Properties);
+
+                return result;
+            }
+
+            public override int GetHashCode()
+            {
+                return base.GetHashCode();
+            }
+            #endregion
+        }
+        #endregion
+
+        private readonly static JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
         public QuotedText MappingName { get; }
 
         public string MappingKind { get; }
@@ -20,7 +108,7 @@ namespace DeltaKustoLib.KustoModel
             QuotedText mappingAsJson)
         {
             MappingName = mappingName;
-            MappingKind = mappingKind;
+            MappingKind = mappingKind.ToLower();
             MappingAsJson = mappingAsJson;
         }
 
@@ -28,11 +116,12 @@ namespace DeltaKustoLib.KustoModel
         public override bool Equals(object? obj)
         {
             var other = obj as MappingModel;
-
-            return other!=null
+            var result = other != null
                 && other.MappingName.Equals(MappingName)
                 && other.MappingKind.Equals(MappingKind)
-                && other.MappingAsJson.Equals(MappingAsJson);
+                && MappingAsJsonEquals(other.MappingAsJson);
+
+            return result;
         }
 
         public override int GetHashCode()
@@ -66,9 +155,9 @@ namespace DeltaKustoLib.KustoModel
             var dropCommands = droppedModels
                 .Select(m => m.ToDropMappingCommand(tableName));
 
-            return createCommands
+            return dropCommands
                 .Cast<CommandBase>()
-                .Concat(dropCommands);
+                .Concat(createCommands);
         }
 
         internal CreateMappingCommand ToCreateMappingCommand(EntityName tableName)
@@ -78,6 +167,20 @@ namespace DeltaKustoLib.KustoModel
                 MappingKind,
                 MappingName,
                 MappingAsJson);
+        }
+
+        private bool MappingAsJsonEquals(QuotedText otherMappingAsJson)
+        {
+            var thisElements = JsonSerializer
+                .Deserialize<MappingElement[]>(MappingAsJson.Text, _jsonSerializerOptions)
+                !.Select(e => e.ToNormalize())
+                .OrderBy(e => e.Column);
+            var otherElements = JsonSerializer
+                .Deserialize<MappingElement[]>(otherMappingAsJson.Text, _jsonSerializerOptions)
+                !.Select(e => e.ToNormalize())
+                .OrderBy(e => e.Column);
+
+            return thisElements.SequenceEqual(otherElements);
         }
 
         private DropMappingCommand ToDropMappingCommand(EntityName tableName)

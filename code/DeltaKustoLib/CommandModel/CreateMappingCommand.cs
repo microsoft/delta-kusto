@@ -32,7 +32,7 @@ namespace DeltaKustoLib.CommandModel
             QuotedText mappingAsJson)
         {
             TableName = tableName;
-            MappingKind = mappingKind;
+            MappingKind = mappingKind.ToLower();
             MappingName = mappingName;
             MappingAsJson = mappingAsJson;
         }
@@ -90,7 +90,7 @@ namespace DeltaKustoLib.CommandModel
         {
             var builder = new StringBuilder();
 
-            builder.Append(".create table ");
+            builder.Append(".create-or-alter table ");
             builder.Append(TableName);
             builder.Append(" ingestion ");
             builder.Append(MappingKind);

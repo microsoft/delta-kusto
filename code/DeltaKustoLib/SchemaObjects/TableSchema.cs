@@ -1,4 +1,6 @@
-﻿namespace DeltaKustoLib.SchemaObjects
+﻿using System.Collections.Generic;
+
+namespace DeltaKustoLib.SchemaObjects
 {
     public class TableSchema
     {
@@ -9,5 +11,7 @@
         public string DocString { get; set; } = string.Empty;
 
         public ColumnSchema[] OrderedColumns { get; set; } = new ColumnSchema[0];
+
+        public MappingSchema[] Mappings { get; set; } = new MappingSchema[0];
     }
 }
