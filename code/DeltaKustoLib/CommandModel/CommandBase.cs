@@ -134,7 +134,7 @@ namespace DeltaKustoLib.CommandModel
             if (unknownCommand.Parts.Count >= 4
                 && unknownCommand.Parts[0].Kind == SyntaxKind.CreateOrAlterKeyword
                 && unknownCommand.Parts[1].Kind == SyntaxKind.TableKeyword
-                && unknownCommand.Parts[3].Kind == SyntaxKind.IngestionKeyword)
+                && unknownCommand.Parts.Skip(2).Any(p => p.Kind == SyntaxKind.IngestionKeyword))
             {
                 var cutPoint = unknownCommand.Parts[0].TextStart + unknownCommand.Parts[0].FullWidth;
                 var newScript = ".create " + script.Substring(cutPoint);
