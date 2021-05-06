@@ -15,6 +15,8 @@ namespace DeltaKustoLib.KustoModel
 
         public IImmutableList<ColumnModel> Columns { get; }
 
+        public IImmutableList<MappingModel> Mappings { get; }
+
         public QuotedText? Folder { get; }
 
         public QuotedText? DocString { get; }
@@ -22,11 +24,16 @@ namespace DeltaKustoLib.KustoModel
         private TableModel(
             EntityName tableName,
             IEnumerable<ColumnModel> columns,
+            IEnumerable<MappingModel> mappings,
             QuotedText? folder,
             QuotedText? docString)
         {
             TableName = tableName;
             Columns = columns.ToImmutableArray();
+            Mappings = mappings
+                .OrderBy(m => m.MappingName)
+                .ThenBy(m => m.MappingKind)
+                .ToImmutableArray();
             Folder = folder;
             DocString = docString;
         }
@@ -35,13 +42,15 @@ namespace DeltaKustoLib.KustoModel
         public override bool Equals(object? obj)
         {
             var other = obj as TableModel;
-
-            return other != null
+            var result = other != null
                 && other.TableName.Equals(TableName)
                 && other.Columns.OrderBy(c => c.ColumnName).SequenceEqual(
                     Columns.OrderBy(c => c.ColumnName))
+                && other.Mappings.SequenceEqual(Mappings)
                 && object.Equals(other.Folder, Folder)
                 && object.Equals(other.DocString, DocString);
+
+            return result;
         }
 
         public override int GetHashCode()
@@ -55,11 +64,15 @@ namespace DeltaKustoLib.KustoModel
 
         internal static IImmutableList<TableModel> FromCommands(
             IImmutableList<CreateTableCommand> createTables,
-            IImmutableList<AlterMergeTableColumnDocStringsCommand> alterMergeTableColumns)
+            IImmutableList<AlterMergeTableColumnDocStringsCommand> alterMergeTableColumns,
+            IImmutableList<CreateMappingCommand> createMappings)
         {
             var tableDocStringColumnMap = alterMergeTableColumns
                 .GroupBy(c => c.TableName)
                 .ToImmutableDictionary(g => g.Key, g => g.SelectMany(c => c.Columns));
+            var mappingModelMap = createMappings
+                .GroupBy(m => m.TableName)
+                .ToImmutableDictionary(g => g.Key, g => g.Select(c => c.ToModel()));
             var tables = createTables
                 .Select(ct => new TableModel(
                     ct.TableName,
@@ -68,6 +81,9 @@ namespace DeltaKustoLib.KustoModel
                         tableDocStringColumnMap.ContainsKey(ct.TableName)
                         ? tableDocStringColumnMap[ct.TableName]
                         : null),
+                    mappingModelMap.ContainsKey(ct.TableName)
+                    ? mappingModelMap[ct.TableName]
+                    : ImmutableArray<MappingModel>.Empty,
                     ct.Folder,
                     ct.DocString))
                 .ToImmutableArray();
@@ -80,10 +96,17 @@ namespace DeltaKustoLib.KustoModel
             var columns = schema
                 .OrderedColumns
                 .Select(c => FromColumnSchema(c));
+            var mappings = schema
+                .Mappings
+                .Select(m => new MappingModel(
+                    new QuotedText(m.Name),
+                    m.Kind,
+                    new QuotedText(m.MappingAsJson)));
 
             return new TableModel(
                 new EntityName(schema.Name),
                 columns,
+                mappings,
                 QuotedText.FromText(schema.Folder),
                 QuotedText.FromText(schema.DocString));
         }
@@ -101,7 +124,7 @@ namespace DeltaKustoLib.KustoModel
             var dropTables = dropTableNames
                 .Select(name => new DropTableCommand(name) as CommandBase);
             var createTables = createTableNames
-                .Select(name => targetTables[name].ToCreateTable())
+                .Select(name => targetTables[name].ToCommands())
                 .SelectMany(c => c);
             var modifiedTables = targetTableNames
                 .Intersect(currentTableNames)
@@ -128,7 +151,7 @@ namespace DeltaKustoLib.KustoModel
             return columns.ToImmutableArray();
         }
 
-        private IEnumerable<CommandBase> ToCreateTable()
+        private IEnumerable<CommandBase> ToCommands()
         {
             yield return new CreateTableCommand(
                 TableName,
@@ -148,6 +171,11 @@ namespace DeltaKustoLib.KustoModel
                     TableName,
                     columnsWithDocString);
             }
+
+            foreach (var mapping in Mappings)
+            {
+                yield return mapping.ToCreateMappingCommand(TableName);
+            }
         }
 
         private IEnumerable<CommandBase> ComputeDelta(TableModel targetModel)
@@ -165,7 +193,13 @@ namespace DeltaKustoLib.KustoModel
             var updateTypeColumnNames = keepingColumnNames
                 .Where(n => currentColumns[n].PrimitiveType != targetColumns[n].PrimitiveType);
             var updateDocStringColumnNames = keepingColumnNames
-                .Where(n => !object.Equals(currentColumns[n].DocString, targetColumns[n].DocString));
+                .Where(n => !object.Equals(
+                    currentColumns[n].DocString,
+                    targetColumns[n].DocString));
+            var mappingCommands = MappingModel.ComputeDelta(
+                TableName,
+                Mappings,
+                targetModel.Mappings);
 
             if (dropColumnNames.Any())
             {
@@ -201,6 +235,10 @@ namespace DeltaKustoLib.KustoModel
                     TableName,
                     columnName,
                     targetColumns[columnName].PrimitiveType);
+            }
+            foreach (var mappingCommand in mappingCommands)
+            {
+                yield return mappingCommand;
             }
         }
 

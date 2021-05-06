@@ -4,22 +4,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace DeltaKustoFileIntegrationTest.EmptyTarget
+namespace DeltaKustoFileIntegrationTest.Tables.EmptyCurrent
 {
     public class TableEmptyCurrentTest : IntegrationTestBase
     {
-        [Fact]
-        public async Task EmptyDelta()
-        {
-            var parameters = await RunParametersAsync(
-                "Tables/EmptyCurrent/EmptyDelta/empty-delta-params.yaml",
-                CreateCancellationToken());
-            var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
-            var commands = await LoadScriptAsync(outputPath);
-
-            Assert.Empty(commands);
-        }
-
         [Fact]
         public async Task OneTableDelta()
         {

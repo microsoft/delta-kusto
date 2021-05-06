@@ -134,26 +134,26 @@ namespace DeltaKustoLib.CommandModel
             IImmutableList<CreateFunctionCommand> currentFunctionCommands,
             IImmutableList<CreateFunctionCommand> targetFunctionCommands)
         {
-            var currentFunctions =
-                currentFunctionCommands.ToImmutableDictionary(c => c.FunctionName);
-            var currentFunctionNames = currentFunctions.Keys.ToImmutableSortedSet();
-            var targetFunctions =
-                targetFunctionCommands.ToImmutableDictionary(c => c.FunctionName);
-            var targetFunctionNames = targetFunctions.Keys.ToImmutableSortedSet();
-            var dropFunctionNames = currentFunctionNames.Except(targetFunctionNames);
-            var createFunctionNames = targetFunctionNames.Except(currentFunctionNames);
-            var changedFunctionsNames = targetFunctionNames
-                .Intersect(currentFunctionNames)
-                .Where(name => !targetFunctions[name].Equals(currentFunctions[name]));
-            var dropFunctions = dropFunctionNames
-                .Select(name => new DropFunctionCommand(name));
-            var createAlterFunctions = createFunctionNames
-                .Concat(changedFunctionsNames)
-                .Select(name => targetFunctions[name]);
+            var createdFunctions = DeltaHelper.GetCreated(
+                currentFunctionCommands,
+                targetFunctionCommands,
+                c => c.FunctionName);
+            var updatedFunctions = DeltaHelper.GetUpdated(
+                currentFunctionCommands,
+                targetFunctionCommands,
+                c => c.FunctionName);
+            var droppedFunctions = DeltaHelper.GetDropped(
+                currentFunctionCommands,
+                targetFunctionCommands,
+                c => c.FunctionName);
+            var createCommands = createdFunctions
+                .Concat(updatedFunctions.Select(p => p.after));
+            var dropCommands = droppedFunctions
+                .Select(c => new DropFunctionCommand(c.FunctionName));
 
-            return dropFunctions
+            return createCommands
                 .Cast<CommandBase>()
-                .Concat(createAlterFunctions);
+                .Concat(dropCommands);
         }
 
         private static TypedParameterModel GetParameter(FunctionParameter functionParameter)

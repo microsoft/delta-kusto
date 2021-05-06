@@ -1,0 +1,3 @@
+﻿.create table BIAzureTraceMsitScus (TIMESTAMP: datetime, PreciseTimeStamp: datetime, Tenant: string, Role: string, RoleInstance: string, Level: int, ProviderGuid: string, ProviderName: string, EventId: int, Pid: int, Tid: int, OpcodeName: string, KeywordName: string, TaskName: string, ChannelName: string, EventMessage: string, ActivityId: string, Message: string, SourceTableName: string, ExtraFields: string, Directory: string, TraceTimeStamp: datetime, InstanceId: string, TraceActivityId: string, RootActivityId: string, ActivityType: string, ClientActivityId: string, SourceId: string, EventText: string) 
+
+.create table BIAzureTraceMsitScus ingestion csv mapping 'my-mapping' '[{\"column\" : \"PreciseTimeStamp\"}]'

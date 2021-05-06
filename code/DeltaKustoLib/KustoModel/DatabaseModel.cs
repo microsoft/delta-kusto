@@ -16,18 +16,23 @@ namespace DeltaKustoLib.KustoModel
             typeof(CreateFunctionCommand),
             typeof(CreateTableCommand),
             typeof(CreateTablesCommand),
-            typeof(AlterMergeTableColumnDocStringsCommand)
+            typeof(AlterMergeTableColumnDocStringsCommand),
+            typeof(CreateMappingCommand)
         }.ToImmutableHashSet();
 
         private readonly IImmutableList<CreateFunctionCommand> _functionCommands;
         private readonly IImmutableList<TableModel> _tableModels;
 
         private DatabaseModel(
-            IImmutableList<CreateFunctionCommand> functionCommands,
-            IImmutableList<TableModel> tableModels)
+            IEnumerable<CreateFunctionCommand> functionCommands,
+            IEnumerable<TableModel> tableModels)
         {
-            _functionCommands = functionCommands;
-            _tableModels = tableModels;
+            _functionCommands = functionCommands
+                .OrderBy(f => f.FunctionName)
+                .ToImmutableArray();
+            _tableModels = tableModels
+                .OrderBy(t => t.TableName)
+                .ToImmutableArray();
         }
 
         public static DatabaseModel FromCommands(
@@ -55,15 +60,23 @@ namespace DeltaKustoLib.KustoModel
             var alterMergeTableSingleColumn = alterMergeTableColumns
                 .SelectMany(a => a.Columns.Select(
                     c => new AlterMergeTableColumnDocStringsCommand(a.TableName, new[] { c })));
+            var createMappings = GetCommands<CreateMappingCommand>(commandTypeIndex)
+                .ToImmutableArray();
 
             ValidateCommandTypes(commandTypes);
             ValidateDuplicates(createFunctions, f => f.FunctionName.Name);
             ValidateDuplicates(createTables, t => t.TableName.Name);
             ValidateDuplicates(
                 alterMergeTableSingleColumn,
-                a => $"{a.TableName.Name}_{a.Columns.First().ColumnName}");
+                a => $"{a.TableName}_{a.Columns.First().ColumnName}");
+            ValidateDuplicates(
+                createMappings,
+                m => $"{m.TableName}_{m.MappingName}_{m.MappingKind}");
 
-            var tableModels = TableModel.FromCommands(createTables, alterMergeTableColumns);
+            var tableModels = TableModel.FromCommands(
+                createTables,
+                alterMergeTableColumns,
+                createMappings);
 
             return new DatabaseModel(createFunctions, tableModels);
         }
@@ -79,9 +92,7 @@ namespace DeltaKustoLib.KustoModel
                 .Values
                 .Select(s => TableModel.FromTableSchema(s));
 
-            return new DatabaseModel(
-                functions.ToImmutableArray(),
-                tables.ToImmutableArray());
+            return new DatabaseModel(functions, tables);
         }
 
         public IImmutableList<CommandBase> ComputeDelta(DatabaseModel targetModel)
@@ -95,6 +106,24 @@ namespace DeltaKustoLib.KustoModel
 
             return deltaCommands.ToImmutableArray();
         }
+
+        #region Object methods
+        public override bool Equals(object? obj)
+        {
+            var other = obj as DatabaseModel;
+            var result = other != null
+                && Enumerable.SequenceEqual(_functionCommands, other._functionCommands)
+                && Enumerable.SequenceEqual(_tableModels, other._tableModels);
+
+            return result;
+        }
+
+        public override int GetHashCode()
+        {
+            return _functionCommands.Aggregate(0, (h, f) => h ^ f.GetHashCode())
+                ^ _tableModels.Aggregate(0, (h, t) => h ^ t.GetHashCode());
+        }
+        #endregion
 
         private static IImmutableList<T> GetCommands<T>(
             IImmutableDictionary<Type, IEnumerable<CommandBase>> commandTypeIndex)

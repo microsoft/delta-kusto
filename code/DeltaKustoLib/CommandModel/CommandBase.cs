@@ -114,6 +114,10 @@ namespace DeltaKustoLib.CommandModel
                         return AlterMergeTableColumnDocStringsCommand.FromCode(commandBlock);
                     case "DropTableColumns":
                         return DropTableColumnsCommand.FromCode(commandBlock);
+                    case "CreateTableIngestionMapping":
+                        return CreateMappingCommand.FromCode(commandBlock);
+                    case "DropTableIngestionMapping":
+                        return DropMappingCommand.FromCode(commandBlock);
 
                     default:
                         throw new DeltaException(
@@ -126,8 +130,20 @@ namespace DeltaKustoLib.CommandModel
             string script,
             UnknownCommand unknownCommand)
         {
+            //  .create-or-alter table ingestion mapping isn't a recognized command by the parser
+            if (unknownCommand.Parts.Count >= 4
+                && unknownCommand.Parts[0].Kind == SyntaxKind.CreateOrAlterKeyword
+                && unknownCommand.Parts[1].Kind == SyntaxKind.TableKeyword
+                && unknownCommand.Parts.Skip(2).Any(p => p.Kind == SyntaxKind.IngestionKeyword))
+            {
+                var cutPoint = unknownCommand.Parts[0].TextStart + unknownCommand.Parts[0].FullWidth;
+                var newScript = ".create " + script.Substring(cutPoint);
+
+                return ParseAndCreateCommand(newScript);
+            }
             //  .create merge tables isn't a recognized command by the parser (for some reason)
-            if (unknownCommand.Parts[0].Kind == SyntaxKind.CreateMergeKeyword
+            else if (unknownCommand.Parts.Count >= 2
+                && unknownCommand.Parts[0].Kind == SyntaxKind.CreateMergeKeyword
                 && unknownCommand.Parts[1].Kind == SyntaxKind.TablesKeyword)
             {
                 var cutPoint = unknownCommand.Parts[1].TextStart + unknownCommand.Parts[1].FullWidth;

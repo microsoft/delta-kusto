@@ -1,7 +1,0 @@
-﻿jobs: 
-  main:
-    target:
-      scripts:
-        - filePath:  Tables/EmptyCurrent/EmptyDelta/target.kql
-    action:
-      filePath:  outputs/tables/empty-current/empty-delta.kql

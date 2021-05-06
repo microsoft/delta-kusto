@@ -1,4 +1,5 @@
-﻿using DeltaKustoLib.CommandModel;
+﻿using DeltaKustoLib;
+using DeltaKustoLib.CommandModel;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -15,15 +16,6 @@ namespace DeltaKustoIntegration.Action
 
         public ActionCommandCollection(IEnumerable<CommandBase> commands)
         {
-            DropFunctionCommands = commands
-                .OfType<DropFunctionCommand>()
-                .OrderBy(d => d.FunctionName)
-                .ToImmutableArray();
-            CreateFunctionCommands = commands
-                .OfType<CreateFunctionCommand>()
-                .OrderBy(d => d.Folder.Text)
-                .ThenBy(d => d.FunctionName)
-                .ToImmutableArray();
             DropTableCommands = commands
                 .OfType<DropTableCommand>()
                 .OrderBy(d => d.TableName)
@@ -31,6 +23,15 @@ namespace DeltaKustoIntegration.Action
             DropTableColumnsCommands = commands
                 .OfType<DropTableColumnsCommand>()
                 .OrderBy(d => d.TableName)
+                .ToImmutableArray();
+            DropMappingCommands = commands
+                .OfType<DropMappingCommand>()
+                .OrderBy(d => d.MappingName)
+                .ThenBy(d => d.MappingKind)
+                .ToImmutableArray();
+            DropFunctionCommands = commands
+                .OfType<DropFunctionCommand>()
+                .OrderBy(d => d.FunctionName)
                 .ToImmutableArray();
             CreateTableCommands = commands
                 .OfType<CreateTableCommand>()
@@ -46,15 +47,32 @@ namespace DeltaKustoIntegration.Action
                 .OfType<AlterMergeTableColumnDocStringsCommand>()
                 .OrderBy(d => d.TableName)
                 .ToImmutableArray();
+            CreateMappingCommands = commands
+                .OfType<CreateMappingCommand>()
+                .OrderBy(d => d.MappingName)
+                .ThenBy(d => d.MappingKind)
+                .ToImmutableArray();
+            CreateFunctionCommands = commands
+                .OfType<CreateFunctionCommand>()
+                .OrderBy(d => d.Folder.Text)
+                .ThenBy(d => d.FunctionName)
+                .ToImmutableArray();
             AllDataLossCommands = DropTableCommands
                 .Cast<CommandBase>()
                 .Concat(DropTableColumnsCommands)
                 .Concat(AlterColumnTypeCommands);
             _allCommands = AllDataLossCommands
+                .Concat(DropMappingCommands)
                 .Concat(DropFunctionCommands)
                 .Concat(CreateTableCommands)
                 .Concat(AlterMergeTableColumnDocStringsCommands)
+                .Concat(CreateMappingCommands)
                 .Concat(CreateFunctionCommands);
+
+            if (_allCommands.Count() != commands.Count())
+            {
+                throw new DeltaException("Commands count mismatch");
+            }
         }
 
         #region IReadOnlyCollection<CommandBase> methods
@@ -73,13 +91,13 @@ namespace DeltaKustoIntegration.Action
 
         public IEnumerable<CommandBase> AllDataLossCommands { get; }
 
-        public IImmutableList<DropFunctionCommand> DropFunctionCommands { get; }
-
-        public IImmutableList<CreateFunctionCommand> CreateFunctionCommands { get; }
-
         public IImmutableList<DropTableCommand> DropTableCommands { get; }
 
         public IImmutableList<DropTableColumnsCommand> DropTableColumnsCommands { get; }
+
+        public IImmutableList<DropMappingCommand> DropMappingCommands { get; }
+
+        public IImmutableList<DropFunctionCommand> DropFunctionCommands { get; }
 
         public IImmutableList<CreateTableCommand> CreateTableCommands { get; }
 
@@ -88,5 +106,9 @@ namespace DeltaKustoIntegration.Action
         public IImmutableList<AlterMergeTableColumnDocStringsCommand>
             AlterMergeTableColumnDocStringsCommands
         { get; }
+
+        public IImmutableList<CreateMappingCommand> CreateMappingCommands { get; }
+
+        public IImmutableList<CreateFunctionCommand> CreateFunctionCommands { get; }
     }
 }
