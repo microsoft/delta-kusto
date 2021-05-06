@@ -34,61 +34,29 @@ The high-level view of delta-kusto is the following:
 The green boxes (*current* and *target*) represent [sources](documentation/sources.md).  A source can be:
 
 * ADX Database
-* Kusto scripts (stand alone script file or a hierarchy of folders containing Kusto script files)
+* Kusto script
 
-Delta-Script computes the *delta* between the two sources.  The *delta* can be represented as a Kusto script containing the kusto commands required to run on the *current source* so it would be identical to *target source*.   The delta script can be exported as a stand alone file or as a folder hierarchy of scripts for easier readability and git-diff.
+Delta-Kusto computes the *delta* between the two sources.  The *delta* is a Kusto script containing the kusto commands required to take the *current* source and bring it to *target* source.   The *delta script* can be exported as a stand alone file or as a folder hierarchy of scripts for easier readability and git-diff.  It can also be applied to the *current* ADX Database.
 
-This *delta script* can either be applied directly to an ADX Database or saved as a Kusto script for human validation.  Human validation often are required, especially if `.drop` commands are issued (to prevent unwanted data lost).
+Human validation often are required, especially if `.drop` commands are issued (to prevent unwanted data lost).
 
-Using different combinations of sources can enable different scenarios as we explore in the next sub sections.
+## Scenarios / Flows
 
-### 1. ADX Database (current) to Kusto scripts (target)
+Using different combinations of sources can enable different scenarios:
 
-Typical CI / CD scenario:  take an ADX database and bring its content to the state of a target set of scripts.
-
-![ADX to Script](documentation/adx-to-script.png)
-
-Delta Kusto can generate a delta script with the minimal command set to bring the database to the *state* of the target script.  For instance, if a table is missing in the database, the delta script will contain the corresponding `.create table` command.
-
-### 2. Kusto scripts (current) to ADX Database (target)
-
-Here we reverse the roles from the previous scenario.
-
-![Script to ADX](documentation/script-to-adx.png)
-
-The *current* script could represent the last state of a production database and the *target* database could be the dev database.  The delta script will show the changes done in the dev environment.
-
-This scenario is useful to reverse engineer changes done *manually* to an environment.
-
-### 3. Empty (current) to ADX Database (target)
-
-This is a special case of the previous scenario where the current script is empty or omitted.  Indeed, the *current* source is optional (target is mandatory).
-
-![Empty to ADX](documentation/empty-to-adx.png)
-
-The delta script becomes a complete script of the target database.
-
-### 4. Kusto scripts (current) to Kusto scripts (target)
-
-This is the *offline sync* scenario:  we take 2 set of scripts and generate the delta between them.
-
-![Script to Script](documentation/script-to-script.png)
-
-For instance, the *current* scripts could represent the state of a database while the target scripts could represent the desired state for that database.  The delta script is computed *offline* in the sense that no *real* ADX database is involved.
-
-This scenario can be useful in highly controlled environment where the delta can be generated without access to the database.
-
-### 5. ADX Database (current) to ADX Database (target)
-
-This is the *Live Sync* scenario:  we want to bring an ADX database to the same state than another one.
-
-![ADX to ADX](documentation/adx-to-adx.png)
+Current|Target|Scenario|Description
+-|-|-|-
+ADX Database|Kusto scripts|CI / CD scenario|Push the state if a script set to an ADX database.
+Kusto scripts|ADX Database|Determine gap between a script set and existing DB|Computed Delta script shows what would need to be added to the script set to obtain the state of the target database.
+Empty|ADX Database|Reverse engineer a database|Special case of the previous scenario.  The *delta* becomes the entire state of the *target*.
+Kusto scripts|Kusto scripts|Offline sync|Compute a delta between two script sets.  No live databases needed.
+ADX Database|Kusto scripts|Live Sync|Find gap between two databases.
 
 ## Limitations
 
-The [current release](https://github.com/microsoft/delta-kusto/releases) of Delta-Kusto includes *functions* and *tables*.
+The [current release](https://github.com/microsoft/delta-kusto/releases) of Delta-Kusto includes *functions*, *tables* and *ingestion mappings*.
 
-[Ingestion mappings](https://github.com/microsoft/delta-kusto/issues/10) for the next release.
+[Policies](https://github.com/microsoft/delta-kusto/issues/9) are planned for the next releases.
 
 See the [list of issues](https://github.com/microsoft/delta-kusto/issues/) for details on upcoming features and bugs found.
 

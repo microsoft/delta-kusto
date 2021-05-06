@@ -24,7 +24,6 @@ jobs:
                 folderPath:  "string"
                 extensions:
                 - "string"
-        jsonFilePath:  "string"
     target:  "same as current"
     action:
         filePath:  "string"
@@ -85,7 +84,6 @@ Name|Type|Required|Default|Value
 -|-|-|-|-
 adx|object|No|N/A|Configure the source as an Azure Data Explorer (ADX) database.  [ADX source object](#adx-source-object).
 scripts|object|No|N/A|Configure the source as one or many KQL scripts.  [Scripts source object](#scripts-source-object).
-jsonFilePath|string|No|N/A|Configure the source as a file containing the JSON returned by [.show database schema as json](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/show-schema-database#show-database-schema-as-json).
 
 ### ADX source object
 
