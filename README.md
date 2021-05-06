@@ -40,6 +40,8 @@ Delta-Kusto computes the *delta* between the two sources.  The *delta* is a Kust
 
 Human validation often are required, especially if `.drop` commands are issued (to prevent unwanted data lost).
 
+## Scenarios / Flows
+
 Using different combinations of sources can enable different scenarios:
 
 Current|Target|Scenario|Description
