@@ -4,15 +4,10 @@ jobs:
     current:
         adx:
             clusterUri:  to-be-overriden
-            database:  to-be-overriden
+            database:  prod
     target:
         scripts:
             - filePath:  state.kql
     action:
         pushToCurrent:  true
         pushToConsole:  true
-tokenProvider:
-    login:
-        tenantId:  to-be-overriden
-        clientId:  to-be-overriden
-        secret:  to-be-overriden
