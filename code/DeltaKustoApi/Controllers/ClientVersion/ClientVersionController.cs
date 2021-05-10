@@ -48,5 +48,20 @@ namespace DeltaKustoApi.Controllers.ClientVersion
                 Versions = newestVersions
             };
         }
+
+        [Route("unique")]
+        public async Task<string?> GetUniqueAsync(
+            [FromQuery]
+            string? fromClientVersion)
+        {
+            _telemetryWriter.PostTelemetry(
+                $"clientVersion:  {fromClientVersion}",
+                Request);
+
+            var newestVersions = await _clientVersionCacheProxy.GetNewestClientVersionsAsync(
+                fromClientVersion);
+
+            return newestVersions.LastOrDefault();
+        }
     }
 }
