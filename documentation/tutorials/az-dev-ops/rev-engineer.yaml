@@ -9,7 +9,7 @@ resources:
 
 # Stages:  https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema#stage
 stages:
-- stage:  reverse_engineer
+- stage:  revengineer
   displayName:  Reverse Engineer Database
   variables:  []
   jobs:
