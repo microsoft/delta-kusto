@@ -4,8 +4,7 @@ resources:
 - repo: self
 # Triggers:  https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema#triggers
 # No trigger for this one as it is meant to be triggered manually only
-# trigger:
-# - master
+trigger: []
 
 # Stages:  https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema#stage
 stages:
@@ -23,14 +22,6 @@ stages:
         clientVersion=$(curl https://delta-kusto.azurefd.net/clientVersion/unique?fromClientVersion=0)
         # Display the version on console
         echo "Client Version:  $clientVersion"
-        # Export the version to a variable
-        echo "##vso[task.setvariable variable=clientVersion;]$clientVersion"
-      displayName:  Find latest version of Delta Kusto
-    - bash:  |
-        echo "Client Version:  $clientVersion"
         wget https://github.com/microsoft/delta-kusto/releases/download/$clientVersion/delta-kusto-linux.tar.gz
         tar --extract --file delta-kusto-linux.tar.gz
-        cp delta-kusto /bin
       displayName:  Install Delta-Kusto
-      env:  { "clientVersion" : "$(clientVersion)" }
-      #
