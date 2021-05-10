@@ -1,0 +1,34 @@
+# YAML doc:  https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema
+
+resources:
+- repo: self
+# Triggers:  https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema#triggers
+trigger: none
+
+# Stages:  https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema#stage
+stages:
+- stage:  Staging
+  displayName:  Push to staging
+  variables:  []
+  jobs:
+  - job:  delta_kusto
+    pool:
+      vmImage: 'ubuntu-latest'
+    variables:  []
+    steps:
+    # Bash script:  https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema#bash
+    - bash:  |
+        clientVersion=$(curl https://delta-kusto.azurefd.net/clientVersion/unique?fromClientVersion=0)
+        # Display the version on console
+        echo "Client Version:  $clientVersion"
+        wget https://github.com/microsoft/delta-kusto/releases/download/$clientVersion/delta-kusto-linux.tar.gz
+        tar --extract --file delta-kusto-linux.tar.gz
+        chmod +x ./delta-kusto
+      displayName:  Install Delta-Kusto
+    - bash:  |
+        clusterUri=$(CLUSTER_URI)
+        echo "Cluster URI:  $clusterUri"
+        # Package the login in a JSON payload
+        login='{"tenantId":"$(TENANT_ID)","clientId":"$(CLIENT_ID)","secret":"$(SECRET)"}'
+        ./delta-kusto -p documentation/tutorials/az-dev-ops/reverse-engineer/rev-engineer-parameters.yaml -o jobs.push-state.current.adx.database=staging jobs.push-state.current.adx.clusterUri=$clusterUri tokenProvider.login=$login
+      displayName:  Run Delta-Kusto

@@ -1,0 +1,11 @@
+.create table GithubEvent (Id: long, Type: string, Actor: dynamic, Repo: dynamic, Payload: dynamic, Public: bool, CreatedAt: datetime) 
+
+.create table EventsFromLiveStream (Id: long, Type: string, Actor: dynamic, Repo: dynamic, Payload: dynamic, Public: bool, CreatedAt: datetime) 
+
+.create-or-alter function with (folder = "Helper") GetPayloadColumns(eventType:string,path:string) {
+DeriveEventBase(eventType)
+| project payload_=Payload.[(path)]
+| evaluate bag_unpack(payload_)
+| getschema 
+| project c=strcat(path, '_', ColumnName, '=', 'to', ColumnType, '(Payload.', path, '.', ColumnName, '),')    
+}
