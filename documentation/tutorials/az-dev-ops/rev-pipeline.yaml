@@ -27,7 +27,7 @@ stages:
         chmod +x ./delta-kusto
       displayName:  Install Delta-Kusto
     - bash:  |
-        clusterUri=$(TENANT_ID)
+        clusterUri=$(CLUSTER_URI)
         echo "Cluster URI:  $clusterUri"
         # Package the login in a JSON payload
         login='{"tenantId":"$(TENANT_ID)","clientId":"$(CLIENT_ID)","secret":"$(SECRET)"}'
