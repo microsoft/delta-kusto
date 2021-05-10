@@ -26,9 +26,10 @@ stages:
         chmod +x ./delta-kusto
       displayName:  Install Delta-Kusto
     - bash:  |
+        cd documentation/tutorials/az-dev-ops/deploy-db
         clusterUri=$(CLUSTER_URI)
         echo "Cluster URI:  $clusterUri"
         # Package the login in a JSON payload
         login='{"tenantId":"$(TENANT_ID)","clientId":"$(CLIENT_ID)","secret":"$(SECRET)"}'
-        ./delta-kusto -p documentation/tutorials/az-dev-ops/deploy-db/push-state-to-db-parameters.yaml -o jobs.push-state.current.adx.database=staging jobs.push-state.current.adx.clusterUri=$clusterUri tokenProvider.login=$login
+        ./delta-kusto -p push-state-to-db-parameters.yaml -o jobs.push-state.current.adx.database=staging jobs.push-state.current.adx.clusterUri=$clusterUri tokenProvider.login=$login
       displayName:  Run Delta-Kusto
