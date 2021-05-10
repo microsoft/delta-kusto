@@ -1,0 +1,33 @@
+# YAML doc:  https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema
+
+resources:
+- repo: self
+# Triggers:  https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema#triggers
+# No trigger for this one as it is meant to be triggered manually only
+# trigger:
+# - master
+
+# Stages:  https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema#stage
+stages:
+- stage:  reverse-engineer
+  displayName:  Reverse Engineer Database
+  variables:  []
+  jobs:
+  - job:  delta-kusto
+    pool:
+      vmImage: 'ubuntu-latest'
+    variables:  []
+    steps:
+    # Bash script:  https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema#bash
+    - bash:  |
+        clientVersion=$(curl https://delta-kusto.azurefd.net/clientVersion/unique?fromClientVersion=0)
+        # Display the version on console
+        echo "Client Version:  $clientVersion"
+        # Export the version to a variable
+        echo "##vso[task.setvariable variable=clientVersion;]$clientVersion"
+      displayName:  Latest version of Delta Kusto
+    - bash:  |
+        echo "Client Version:  $clientVersion"
+      displayName:  ABC
+      env:  { "clientVersion" : "$(clientVersion)" }
+      #https://github.com/microsoft/delta-kusto/releases/download/0.3.0.77/delta-kusto-linux.tar.gz
