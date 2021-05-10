@@ -7,7 +7,7 @@ jobs:
             database:  to-be-overriden
     target:
         scripts:
-            filePath:  state.kql
+            - filePath:  state.kql
     action:
         pushToCurrent:  true
         pushToConsole:  true
