@@ -27,6 +27,9 @@ stages:
         chmod +x ./delta-kusto
       displayName:  Install Delta-Kusto
     - bash:  |
+        mkdir kql-scripts
+      displayName:  Prep script folder
+    - bash:  |
         clusterUri=$(CLUSTER_URI)
         echo "Cluster URI:  $clusterUri"
         # Package the login in a JSON payload
