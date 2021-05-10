@@ -1,0 +1,14 @@
+sendErrorOptIn:  true
+jobs:
+  download-dev:
+    target:
+        adx:
+            clusterUri:  to-be-overriden
+            database:  dev
+    action:
+        folderPath:  kql-scripts
+tokenProvider:
+    login:
+        tenantId:  to-be-overriden
+        clientId:  to-be-overriden
+        secret:  to-be-overriden

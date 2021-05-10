@@ -25,3 +25,10 @@ stages:
         wget https://github.com/microsoft/delta-kusto/releases/download/$clientVersion/delta-kusto-linux.tar.gz
         tar --extract --file delta-kusto-linux.tar.gz
       displayName:  Install Delta-Kusto
+    - bash:  |
+        clusterUri=${{ variables.TENANT_ID }}
+        echo "Cluster URI:  $clusterUri"
+        # Package the login in a JSON payload
+        login='{"tenantId":"${{ variables.TENANT_ID }}","clientId":"${{ variables.CLIENT_ID }}","secret":"${{ variables.SECRET }}"}'
+        ./delta-kusto -p documentation/tutorials/az-dev-ops/reverse-engineer.yaml -o tokenProvider.login=$login jobs.download-dev.target.adx.clusterUri=$clusterUri
+      displayName:  Run Delta-Kusto
