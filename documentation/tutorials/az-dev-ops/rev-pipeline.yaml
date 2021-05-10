@@ -24,6 +24,7 @@ stages:
         echo "Client Version:  $clientVersion"
         wget https://github.com/microsoft/delta-kusto/releases/download/$clientVersion/delta-kusto-linux.tar.gz
         tar --extract --file delta-kusto-linux.tar.gz
+        chmod +x ./delta-kusto
       displayName:  Install Delta-Kusto
     - bash:  |
         clusterUri=${{ variables.TENANT_ID }}
