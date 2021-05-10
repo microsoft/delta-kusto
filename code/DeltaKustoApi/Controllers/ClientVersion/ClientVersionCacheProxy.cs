@@ -74,7 +74,7 @@ namespace DeltaKustoApi.Controllers.ClientVersion
                 //  Versions newer than current
                 var newerVersions = allVersions
                     .Where(v => v > currentClientVersion)
-                    .OrderBy(v => v);
+                    .OrderByDescending(v => v);
                 //  Versions newer than current with same major
                 var newerVersionsSameMajor = newerVersions
                     .Where(v => v.Major == currentClientVersion.Major);
