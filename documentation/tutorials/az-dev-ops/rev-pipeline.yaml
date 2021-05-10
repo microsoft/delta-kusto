@@ -27,10 +27,10 @@ stages:
         chmod +x ./delta-kusto
       displayName:  Install Delta-Kusto
     - bash:  |
-        clusterUri=$(variables.TENANT_ID)
+        clusterUri=$(TENANT_ID)
         echo "Cluster URI:  $clusterUri"
         # Package the login in a JSON payload
-        login='{"tenantId":"$(variables.TENANT_ID)","clientId":"$(variables.CLIENT_ID)","secret":"$(variables.SECRET)"}'
+        login='{"tenantId":"$(TENANT_ID)","clientId":"$(CLIENT_ID)","secret":"$(SECRET)"}'
         ./delta-kusto -p documentation/tutorials/az-dev-ops/reverse-engineer.yaml -o tokenProvider.login=$login jobs.download-dev.target.adx.clusterUri=$clusterUri
       displayName:  Run Delta-Kusto
     # Publish artefact:  https://docs.microsoft.com/en-us/azure/devops/pipelines/artifacts/pipeline-artifacts#publish-artifacts
