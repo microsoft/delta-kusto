@@ -50,7 +50,7 @@ namespace DeltaKustoApi.Controllers.ClientVersion
                     return versions;
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
             }
@@ -94,6 +94,8 @@ namespace DeltaKustoApi.Controllers.ClientVersion
                 var allActualVersions = allPossibleNewVersions
                     .Where(v => v != null)
                     .Distinct()
+                    //  After figuring out distincts, order them in increasing order
+                    .OrderBy(v => v)
                     .Select(v => v!.ToString())
                     .ToImmutableArray();
 
