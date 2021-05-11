@@ -9,9 +9,6 @@ jobs:
     steps:
     # Bash script:  https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema#bash
     - bash:  |
-        echo "Environment:  ${{ parameters.env }}"
-      displayName:  Output environment
-    - bash:  |
         clientVersion=$(curl https://delta-kusto.azurefd.net/clientVersion/unique?fromClientVersion=0)
         # Display the version on console
         echo "Client Version:  $clientVersion"
@@ -27,6 +24,8 @@ jobs:
         root=$(pwd)
         env=${{ parameters.env }}
         stateFolder="$(Pipeline.Workspace)/state"
+        echo "Environnement:  $env"
+        echo "State folder:  $stateFolder"
         cd documentation/tutorials/az-dev-ops/deploy-db
         clusterUri=$(CLUSTER_URI)
         echo "Cluster URI:  $clusterUri"
