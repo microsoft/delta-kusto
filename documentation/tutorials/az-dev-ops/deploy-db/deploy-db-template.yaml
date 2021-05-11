@@ -31,5 +31,5 @@ jobs:
         echo "Cluster URI:  $clusterUri"
         # Package the login in a JSON payload
         login='{"tenantId":"$(TENANT_ID)","clientId":"$(CLIENT_ID)","secret":"$(SECRET)"}'
-        $root/delta-kusto -p push-state-to-db-parameters.yaml -o jobs.push-state.current.adx.clusterUri=$clusterUri jobs.push-state.current.adx.database=$env jobs.push-state.target.scripts.folderPath=$stateFolder tokenProvider.login=$login
+        $root/delta-kusto -p push-state-to-db-parameters.yaml -o jobs.push-state.current.adx.clusterUri=$clusterUri jobs.push-state.current.adx.database=$env jobs.push-state.target.scripts[0].folderPath=$stateFolder tokenProvider.login=$login
       displayName:  Run Delta-Kusto
