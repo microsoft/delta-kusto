@@ -8,7 +8,9 @@ jobs:
     variables:  []
     steps:
     # Bash script:  https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema#bash
-    - bash:  echo "Environment:  $(parameters.env)"
+    - bash:  |
+        env=$(parameters.env)
+        echo "Environment:  $env"
       displayName:  Output environment
     - bash:  |
         clientVersion=$(curl https://delta-kusto.azurefd.net/clientVersion/unique?fromClientVersion=0)
