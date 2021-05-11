@@ -12,6 +12,24 @@ namespace DeltaKustoIntegration
 {
     public class FileGateway : IFileGateway
     {
+        private readonly string _rootFolder;
+
+        public FileGateway() : this(string.Empty)
+        {
+        }
+
+        private FileGateway(string rootFolder)
+        {
+            _rootFolder = rootFolder;
+        }
+
+        IFileGateway IFileGateway.ChangeFolder(string folderPath)
+        {
+            var newRootFolder = Path.Combine(_rootFolder, folderPath);
+
+            return new FileGateway(newRootFolder);
+        }
+
         async Task<string> IFileGateway.GetFileContentAsync(
             string filePath,
             CancellationToken ct)

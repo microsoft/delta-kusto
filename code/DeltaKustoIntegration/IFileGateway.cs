@@ -8,6 +8,8 @@ namespace DeltaKustoIntegration
 {
     public interface IFileGateway
     {
+        IFileGateway ChangeFolder(string folderPath);
+
         Task<string> GetFileContentAsync(string filePath, CancellationToken ct);
 
         Task SetFileContentAsync(string filePath, string content, CancellationToken ct);
