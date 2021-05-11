@@ -15,9 +15,9 @@ stages:
     variables:  []
     steps:
     # Publish artefact:  https://docs.microsoft.com/en-us/azure/devops/pipelines/artifacts/pipeline-artifacts#publish-artifacts
-    - publish: documentation/tutorials/az-dev-ops/state
-      artifact:  state
-      displayName: 'Publish Artifact: state'
+    - publish: documentation/tutorials/az-dev-ops
+      artifact:  scripts
+      displayName: 'Publish Artifact:  scripts'
 - stage:  Staging
   displayName:  Push to staging
   variables:  []

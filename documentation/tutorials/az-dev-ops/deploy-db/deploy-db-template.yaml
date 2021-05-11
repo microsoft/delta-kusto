@@ -22,18 +22,16 @@ jobs:
             displayName:  Install Delta-Kusto
           # Download artefacts:  https://docs.microsoft.com/en-us/azure/devops/pipelines/artifacts/pipeline-artifacts#download-artifacts
           - download: current
-            artifact: state
-            displayName:  Download artefact 'state'
+            artifact: scripts
+            displayName:  Download artefact 'scripts'
           - bash:  |
-              root=$(pwd)
               env=${{ parameters.env }}
-              stateFolder="$(Pipeline.Workspace)/state"
+              scriptFolder="$(Pipeline.Workspace)/scripts"
               echo "Environnement:  $env"
-              echo "State folder:  $stateFolder"
-              cd documentation/tutorials/az-dev-ops/deploy-db
+              echo "State folder:  $scriptFolder"
               clusterUri=$(CLUSTER_URI)
               echo "Cluster URI:  $clusterUri"
               # Package the login in a JSON payload
               login='{"tenantId":"$(TENANT_ID)","clientId":"$(CLIENT_ID)","secret":"$(SECRET)"}'
-              $root/delta-kusto -p push-state-to-db-parameters.yaml -o jobs.push-state.current.adx.clusterUri=$clusterUri jobs.push-state.current.adx.database=$env jobs.push-state.target.scripts[0].folderPath=$stateFolder tokenProvider.login=$login
+              ./delta-kusto -p $scriptFolder/deploy-db/push-state-to-db-parameters.yaml -o jobs.push-state.current.adx.clusterUri=$clusterUri jobs.push-state.current.adx.database=$env jobs.push-state.target.scripts[0].folderPath=$scriptFolder/state tokenProvider.login=$login
             displayName:  Run Delta-Kusto
