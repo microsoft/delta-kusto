@@ -14,13 +14,8 @@ stages:
       vmImage: 'ubuntu-latest'
     variables:  []
     steps:
-    # Bash script:  https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema#bash
-    - bash:  |
-        mkdir state
-        cp documentation/tutorials/az-dev-ops/deploy-db/state.kql state
-      displayName:  Copy state
     # Publish artefact:  https://docs.microsoft.com/en-us/azure/devops/pipelines/artifacts/pipeline-artifacts#publish-artifacts
-    - publish: state
+    - publish: documentation/tutorials/az-dev-ops/deploy-db/state
       artifact:  state
       displayName: 'Publish Artifact: state'
 - stage:  Staging
