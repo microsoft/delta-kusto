@@ -1,6 +1,9 @@
 sendErrorOptIn:  true
 jobs:
   download-dev:
+    current:
+        scripts:
+        - folderPath:  to-be-overriden
     target:
         adx:
             clusterUri:  to-be-overriden
