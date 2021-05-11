@@ -26,7 +26,7 @@ jobs:
     - bash:  |
         root=$(pwd)
         env=${{ parameters.env }}
-        stateFolder="$(Pipeline.Workspace)/state"
+        stateFolder='$(Pipeline.Workspace)/state'
         cd documentation/tutorials/az-dev-ops/deploy-db
         clusterUri=$(CLUSTER_URI)
         echo "Cluster URI:  $clusterUri"
