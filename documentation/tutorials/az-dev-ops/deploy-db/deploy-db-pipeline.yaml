@@ -7,8 +7,8 @@ trigger: none
 
 # Stages:  https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema#stage
 stages:
-- stage:  Prod
-  displayName:  Push to prod
+- stage:  Staging
+  displayName:  Push to staging
   variables:  []
   jobs:
   # Template reference:  https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema#template-references
