@@ -1,0 +1,27 @@
+parameters:
+  env: 'NOT_DEFINE'
+
+jobs:
+  - job:  delta_kusto_$(parameters.env)
+    pool:
+      vmImage: 'ubuntu-latest'
+    variables:  []
+    steps:
+    # Bash script:  https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema#bash
+    - bash:  |
+        clientVersion=$(curl https://delta-kusto.azurefd.net/clientVersion/unique?fromClientVersion=0)
+        # Display the version on console
+        echo "Client Version:  $clientVersion"
+        wget https://github.com/microsoft/delta-kusto/releases/download/$clientVersion/delta-kusto-linux.tar.gz
+        tar --extract --file delta-kusto-linux.tar.gz
+        chmod +x ./delta-kusto
+      displayName:  Install Delta-Kusto
+    - bash:  |
+        root=$(pwd)
+        cd documentation/tutorials/az-dev-ops/deploy-db
+        clusterUri=$(CLUSTER_URI)
+        echo "Cluster URI:  $clusterUri"
+        # Package the login in a JSON payload
+        login='{"tenantId":"$(TENANT_ID)","clientId":"$(CLIENT_ID)","secret":"$(SECRET)"}'
+        $root/delta-kusto -p push-state-to-db-parameters.yaml -o jobs.push-state.current.adx.clusterUri=$clusterUri jobs.push-state.current.adx.database=$(parameters.env) tokenProvider.login=$login
+      displayName:  Run Delta-Kusto

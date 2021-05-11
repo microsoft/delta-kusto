@@ -4,7 +4,7 @@ jobs:
     current:
         adx:
             clusterUri:  to-be-overriden
-            database:  prod
+            database:  to-be-overriden
     target:
         scripts:
             - filePath:  state.kql
