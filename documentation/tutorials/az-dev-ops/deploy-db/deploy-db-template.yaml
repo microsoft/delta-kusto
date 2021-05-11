@@ -2,7 +2,8 @@ parameters:
   env: 'NOT_DEFINE'
 
 jobs:
-  - job:  delta_kusto
+  - deployment:  delta_kusto
+    environment:  ${{ parameters.env }}
     pool:
       vmImage: 'ubuntu-latest'
     variables:  []

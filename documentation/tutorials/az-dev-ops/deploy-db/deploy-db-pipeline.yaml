@@ -26,3 +26,11 @@ stages:
   - template: deploy-db-template.yaml
     parameters:
       env: staging
+- stage:  Production
+  displayName:  Push to production
+  variables:  []
+  jobs:
+  # Template reference:  https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema#template-references
+  - template: deploy-db-template.yaml
+    parameters:
+      env: production
