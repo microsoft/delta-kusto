@@ -15,7 +15,7 @@ stages:
     variables:  []
     steps:
     # Publish artefact:  https://docs.microsoft.com/en-us/azure/devops/pipelines/artifacts/pipeline-artifacts#publish-artifacts
-    - publish: documentation/tutorials/az-dev-ops/deploy-db/state
+    - publish: documentation/tutorials/az-dev-ops/state
       artifact:  state
       displayName: 'Publish Artifact: state'
 - stage:  Staging
