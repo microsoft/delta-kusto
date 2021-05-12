@@ -26,7 +26,7 @@ stages:
         chmod +x ./delta-kusto
       displayName:  Install Delta-Kusto
     - bash:  |
-        mkdir kql-scripts
+        mkdir documentation/tutorials/az-dev-ops/reverse-engineer/kql-scripts
       displayName:  Prep script folder
     - bash:  |
         clusterUri=$(CLUSTER_URI)
@@ -36,6 +36,6 @@ stages:
         ./delta-kusto -p documentation/tutorials/az-dev-ops/reverse-engineer/rev-engineer-parameters.yaml -o jobs.download-dev.target.adx.clusterUri=$clusterUri tokenProvider.login=$login
       displayName:  Run Delta-Kusto
     # Publish artefact:  https://docs.microsoft.com/en-us/azure/devops/pipelines/artifacts/pipeline-artifacts#publish-artifacts
-    - publish: kql-scripts
+    - publish: documentation/tutorials/az-dev-ops/reverse-engineer/kql-scripts
       artifact:  kql-scripts
       displayName: 'Publish Artifact: kql-scripts'
