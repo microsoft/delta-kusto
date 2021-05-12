@@ -34,8 +34,9 @@ namespace DeltaKustoIntegration
             string filePath,
             CancellationToken ct)
         {
+            var path = Path.Combine(_rootFolder, filePath);
             var text = await File.ReadAllTextAsync(
-                filePath,
+                path,
                 Encoding.UTF8,
                 ct);
 
@@ -47,7 +48,8 @@ namespace DeltaKustoIntegration
             string content,
             CancellationToken ct)
         {
-            var directory = Path.GetDirectoryName(filePath);
+            var path = Path.Combine(_rootFolder, filePath);
+            var directory = Path.GetDirectoryName(path);
 
             if (!string.IsNullOrWhiteSpace(directory))
             {
@@ -55,37 +57,39 @@ namespace DeltaKustoIntegration
             }
 
             await File.WriteAllTextAsync(
-                filePath,
+                path,
                 content,
                 ct);
         }
 
         async IAsyncEnumerable<(string path, string content)> IFileGateway.GetFolderContentsAsync(
-            string folderPath,
             IEnumerable<string>? extensions,
             [EnumeratorCancellation]
             CancellationToken ct)
         {
             var fileGateway = (IFileGateway)this;
-            var directories = Directory.GetDirectories(folderPath);
-            var files = Directory.GetFiles(folderPath);
+            var directories = Directory.GetDirectories(_rootFolder);
+            var files = Directory.GetFiles(_rootFolder);
 
             foreach (var file in files)
             {
                 if (HasExtension(file, extensions))
                 {
-                    var script = await fileGateway.GetFileContentAsync(file, ct);
+                    var fileName = Path.GetFileName(file);
+                    var script = await fileGateway.GetFileContentAsync(fileName, ct);
 
-                    yield return (file, script);
+                    yield return (fileName, script);
                 }
             }
             foreach (var directory in directories)
             {
-                var scripts = fileGateway.GetFolderContentsAsync(directory, extensions, ct);
+                var directoryName = Path.GetDirectoryName(directory)!;
+                var localFileGateway = fileGateway.ChangeFolder(directoryName);
+                var scripts = fileGateway.GetFolderContentsAsync(extensions, ct);
 
                 await foreach (var script in scripts)
                 {
-                    yield return script;
+                    yield return (Path.Combine(directoryName, script.path), script.content);
                 }
             }
         }

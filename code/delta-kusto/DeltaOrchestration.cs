@@ -74,7 +74,7 @@ namespace delta_kusto
 
             try
             {
-                var fileGateway = _fileGateway.ChangeFolder(parameterFolderPath!);
+                var localFileGateway = _fileGateway.ChangeFolder(parameterFolderPath!);
                 var tokenProvider = _tokenProviderFactory.CreateProvider(parameters.TokenProvider);
                 var orderedJobs = parameters.Jobs.OrderBy(p => p.Value.Priority);
                 var success = true;
@@ -86,7 +86,7 @@ namespace delta_kusto
                     var (jobName, job) = jobPair;
                     var jobSuccess = await ProcessJobAsync(
                         parameters,
-                        fileGateway,
+                        localFileGateway,
                         tokenProvider,
                         jobName,
                         job);
@@ -112,7 +112,7 @@ namespace delta_kusto
 
         private async Task<bool> ProcessJobAsync(
             MainParameterization parameters,
-            IFileGateway fileGateway,
+            IFileGateway localFileGateway,
             ITokenProvider? tokenProvider,
             string jobName,
             JobParameterization job)
@@ -124,12 +124,12 @@ namespace delta_kusto
                 _tracer.WriteLine(false, "Current DB Provider...  ");
 
                 var currentDbProvider =
-                    CreateDatabaseProvider(job.Current, tokenProvider, fileGateway);
+                    CreateDatabaseProvider(job.Current, tokenProvider, localFileGateway);
 
                 _tracer.WriteLine(false, "Target DB Provider...  ");
 
                 var targetDbProvider =
-                    CreateDatabaseProvider(job.Target, tokenProvider, fileGateway);
+                    CreateDatabaseProvider(job.Target, tokenProvider, localFileGateway);
                 var tokenSourceRetrieveDb = new CancellationTokenSource(TimeOuts.RETRIEVE_DB);
                 var ctRetrieveDb = tokenSourceRetrieveDb.Token;
 
@@ -148,6 +148,7 @@ namespace delta_kusto
                 var jobSuccess = ReportOnDeltaCommands(parameters, actions);
                 var actionProviders = CreateActionProvider(
                     job.Action!,
+                    localFileGateway,
                     tokenProvider,
                     job.Current?.Adx);
                 var tokenSourceAction = new CancellationTokenSource(TimeOuts.ACTION);
@@ -247,6 +248,7 @@ namespace delta_kusto
 
         private IImmutableList<IActionProvider> CreateActionProvider(
             ActionParameterization action,
+            IFileGateway localFileGateway,
             ITokenProvider? tokenProvider,
             AdxSourceParameterization? database)
         {
@@ -257,14 +259,14 @@ namespace delta_kusto
             if (action.FilePath != null)
             {
                 builder.Add(new OneFileActionProvider(
-                    _fileGateway,
+                    localFileGateway,
                     action.FilePath,
                     action.UsePluralForms));
             }
             if (action.FolderPath != null)
             {
                 builder.Add(new MultiFilesActionProvider(
-                    _fileGateway,
+                    localFileGateway,
                     action.FolderPath,
                     action.UsePluralForms));
             }
@@ -290,7 +292,7 @@ namespace delta_kusto
         private IDatabaseProvider CreateDatabaseProvider(
             SourceParameterization? source,
             ITokenProvider? tokenProvider,
-            IFileGateway fileGateway)
+            IFileGateway localFileGateway)
         {
             if (source == null)
             {
@@ -323,13 +325,16 @@ namespace delta_kusto
                 {
                     _tracer.WriteLine(true, "Database scripts");
 
-                    return new ScriptDatabaseProvider(_tracer, _fileGateway, source.Scripts);
+                    return new ScriptDatabaseProvider(_tracer, localFileGateway, source.Scripts);
                 }
                 else if (source.JsonFilePath != null)
                 {
                     _tracer.WriteLine(true, "Json file");
 
-                    return new JsonDatabaseProvider(_tracer, _fileGateway, source.JsonFilePath);
+                    return new JsonDatabaseProvider(
+                        _tracer,
+                        localFileGateway,
+                        source.JsonFilePath);
                 }
                 else
                 {

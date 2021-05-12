@@ -13,11 +13,10 @@ namespace DeltaKustoFileIntegrationTest.Functions.WithCurrent
         [Fact]
         public async Task EmptyBoth()
         {
-            var parameters = await RunParametersAsync(
-                "Functions/WithCurrent/EmptyBoth/delta-params.json",
-                CreateCancellationToken());
+            var paramPath = "Functions/WithCurrent/EmptyBoth/delta-params.json";
+            var parameters = await RunParametersAsync(paramPath, CreateCancellationToken());
             var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
-            var commands = await LoadScriptAsync(outputPath);
+            var commands = await LoadScriptAsync(paramPath, outputPath);
 
             Assert.Empty(commands);
         }
@@ -25,11 +24,10 @@ namespace DeltaKustoFileIntegrationTest.Functions.WithCurrent
         [Fact]
         public async Task Same()
         {
-            var parameters = await RunParametersAsync(
-                "Functions/WithCurrent/Same/delta-params.json",
-                CreateCancellationToken());
+            var paramPath = "Functions/WithCurrent/Same/delta-params.json";
+            var parameters = await RunParametersAsync(paramPath, CreateCancellationToken());
             var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
-            var commands = await LoadScriptAsync(outputPath);
+            var commands = await LoadScriptAsync(paramPath, outputPath);
 
             Assert.Empty(commands);
         }
@@ -37,11 +35,10 @@ namespace DeltaKustoFileIntegrationTest.Functions.WithCurrent
         [Fact]
         public async Task TargetMore()
         {
-            var parameters = await RunParametersAsync(
-                "Functions/WithCurrent/TargetMore/delta-params.json",
-                CreateCancellationToken());
+            var paramPath = "Functions/WithCurrent/TargetMore/delta-params.json";
+            var parameters = await RunParametersAsync(paramPath, CreateCancellationToken());
             var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
-            var commands = await LoadScriptAsync(outputPath);
+            var commands = await LoadScriptAsync(paramPath, outputPath);
 
             Assert.Single(commands);
 
@@ -53,12 +50,11 @@ namespace DeltaKustoFileIntegrationTest.Functions.WithCurrent
         [Fact]
         public async Task TargetLess()
         {
-            var parameters = await RunParametersAsync(
-                "Functions/WithCurrent/TargetLess/delta-params.json",
-                CreateCancellationToken());
+            var paramPath = "Functions/WithCurrent/TargetLess/delta-params.json";
+            var parameters = await RunParametersAsync(paramPath, CreateCancellationToken());
             var outputRootFolder = parameters.Jobs!.First().Value.Action!.FolderPath!;
             var outputPath = Path.Combine(outputRootFolder, "functions/drop/YourFunction.kql");
-            var commands = await LoadScriptAsync(outputPath);
+            var commands = await LoadScriptAsync(paramPath, outputPath);
 
             Assert.Single(commands);
 

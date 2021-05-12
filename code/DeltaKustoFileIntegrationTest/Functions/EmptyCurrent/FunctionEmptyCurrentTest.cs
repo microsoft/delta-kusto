@@ -11,11 +11,10 @@ namespace DeltaKustoFileIntegrationTest.Functions.EmptyCurrent
         [Fact]
         public async Task EmptyDelta()
         {
-            var parameters = await RunParametersAsync(
-                "Functions/EmptyCurrent/EmptyDelta/empty-delta-params.yaml",
-                CreateCancellationToken());
+            var paramPath = "Functions/EmptyCurrent/EmptyDelta/empty-delta-params.yaml";
+            var parameters = await RunParametersAsync(paramPath, CreateCancellationToken());
             var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
-            var commands = await LoadScriptAsync(outputPath);
+            var commands = await LoadScriptAsync(paramPath, outputPath);
 
             Assert.Empty(commands);
         }
@@ -23,13 +22,12 @@ namespace DeltaKustoFileIntegrationTest.Functions.EmptyCurrent
         [Fact]
         public async Task OneFunctionDelta()
         {
-            var parameters = await RunParametersAsync(
-                "Functions/EmptyCurrent/OneFunctionDelta/delta-params.yaml",
-                CreateCancellationToken());
+            var paramPath = "Functions/EmptyCurrent/OneFunctionDelta/delta-params.yaml";
+            var parameters = await RunParametersAsync(paramPath, CreateCancellationToken());
             var inputPath = parameters.Jobs!.First().Value.Target!.Scripts!.First().FilePath!;
             var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
-            var inputCommands = await LoadScriptAsync(inputPath);
-            var outputCommands = await LoadScriptAsync(outputPath);
+            var inputCommands = await LoadScriptAsync(paramPath, inputPath);
+            var outputCommands = await LoadScriptAsync(paramPath, outputPath);
 
             Assert.True(inputCommands.SequenceEqual(outputCommands));
         }
@@ -37,13 +35,12 @@ namespace DeltaKustoFileIntegrationTest.Functions.EmptyCurrent
         [Fact]
         public async Task TwoFunctionsDelta()
         {
-            var parameters = await RunParametersAsync(
-                "Functions/EmptyCurrent/TwoFunctionsDelta/delta-params.yaml",
-                CreateCancellationToken());
+            var paramPath = "Functions/EmptyCurrent/TwoFunctionsDelta/delta-params.yaml";
+            var parameters = await RunParametersAsync(paramPath, CreateCancellationToken());
             var inputPath = parameters.Jobs!.First().Value.Target!.Scripts!.First().FilePath!;
             var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
-            var inputCommands = await LoadScriptAsync(inputPath);
-            var outputCommands = await LoadScriptAsync(outputPath);
+            var inputCommands = await LoadScriptAsync(paramPath, inputPath);
+            var outputCommands = await LoadScriptAsync(paramPath, outputPath);
 
             Assert.True(inputCommands.SequenceEqual(outputCommands));
         }
