@@ -301,6 +301,8 @@ namespace DeltaKustoIntegration.Kusto
         }
         #endregion
 
+        private static readonly TimeSpan TIMEOUT = TimeSpan.FromSeconds(10);
+
         private readonly Uri _clusterUri;
         private readonly string _database;
         private readonly ITokenProvider _tokenProvider;
@@ -450,6 +452,8 @@ namespace DeltaKustoIntegration.Kusto
         {
             try
             {
+                ct = CancellationTokenHelper.MergeCancellationToken(ct, TIMEOUT);
+
                 var token = await _tokenProvider.GetTokenAsync(_clusterUri, ct);
 
                 //  Implementation of https://docs.microsoft.com/en-us/azure/data-explorer/kusto/api/rest/request#examples

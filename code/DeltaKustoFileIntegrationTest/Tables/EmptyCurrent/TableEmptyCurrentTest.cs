@@ -11,13 +11,12 @@ namespace DeltaKustoFileIntegrationTest.Tables.EmptyCurrent
         [Fact]
         public async Task OneTableDelta()
         {
-            var parameters = await RunParametersAsync(
-                "Tables/EmptyCurrent/OneTableDelta/delta-params.yaml",
-                CreateCancellationToken());
+            var paramPath = "Tables/EmptyCurrent/OneTableDelta/delta-params.yaml";
+            var parameters = await RunParametersAsync(paramPath);
             var inputPath = parameters.Jobs!.First().Value.Target!.Scripts!.First().FilePath!;
             var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
-            var inputCommands = await LoadScriptAsync(inputPath);
-            var outputCommands = await LoadScriptAsync(outputPath);
+            var inputCommands = await LoadScriptAsync(paramPath, inputPath);
+            var outputCommands = await LoadScriptAsync(paramPath, outputPath);
 
             Assert.True(inputCommands.SequenceEqual(outputCommands));
         }
@@ -25,18 +24,14 @@ namespace DeltaKustoFileIntegrationTest.Tables.EmptyCurrent
         [Fact]
         public async Task TwoFunctionsDelta()
         {
-            var parameters = await RunParametersAsync(
-                "Tables/EmptyCurrent/TwoTablesDelta/delta-params.yaml",
-                CreateCancellationToken());
+            var paramPath = "Tables/EmptyCurrent/TwoTablesDelta/delta-params.yaml";
+            var parameters = await RunParametersAsync(paramPath);
             var inputPath = parameters.Jobs!.First().Value.Target!.Scripts!.First().FilePath!;
             var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
-            var inputCommands = await LoadScriptAsync(inputPath);
-            var outputCommands = await LoadScriptAsync(outputPath);
+            var inputCommands = await LoadScriptAsync(paramPath, inputPath);
+            var outputCommands = await LoadScriptAsync(paramPath, outputPath);
 
             Assert.True(inputCommands.SequenceEqual(outputCommands));
         }
-
-        private CancellationToken CreateCancellationToken() =>
-           new CancellationTokenSource(TimeSpan.FromSeconds(2)).Token;
     }
 }

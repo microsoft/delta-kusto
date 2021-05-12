@@ -62,10 +62,9 @@ namespace DeltaKustoIntegration.Database
             }
             else if (fileParametrization.FolderPath != null)
             {
-                var scripts = _fileGateway.GetFolderContentsAsync(
-                    fileParametrization.FolderPath,
-                    fileParametrization.Extensions,
-                    ct);
+                var scripts = _fileGateway
+                    .ChangeFolder(fileParametrization.FolderPath)
+                    .GetFolderContentsAsync(fileParametrization.Extensions, ct);
                 var contents = (await scripts.ToEnumerableAsync())
                     .Select(t => t.content);
 

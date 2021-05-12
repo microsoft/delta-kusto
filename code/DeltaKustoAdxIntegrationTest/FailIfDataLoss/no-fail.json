@@ -12,7 +12,7 @@
       "current": {
         "scripts": [
           {
-            "filePath": "FailIfDataLoss/source.kql"
+            "filePath": "source.kql"
           }
         ]
       },
@@ -23,7 +23,7 @@
         }
       },
       "action": {
-        "filePath": "outputs/fail-if-data-loss/no-fail.kql"
+        "filePath": "outputs/no-fail.kql"
       }
     }
   }

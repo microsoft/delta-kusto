@@ -2,9 +2,9 @@
   main:
     current:
       scripts:
-        - filePath:  Mappings/OneToTwo/current.kql
+        - filePath:  current.kql
     target:
       scripts:
-        - filePath:  Mappings/OneToTwo/target.kql
+        - filePath:  target.kql
     action:
-      filePath:  outputs/mappings/one-to-two.kql
+      filePath:  outputs/one-to-two.kql

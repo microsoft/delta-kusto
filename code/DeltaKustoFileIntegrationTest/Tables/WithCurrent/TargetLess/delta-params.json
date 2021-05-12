@@ -4,19 +4,19 @@
       "current": {
         "scripts": [
           {
-            "filePath": "Tables/WithCurrent/TargetLess/current.kql"
+            "filePath": "current.kql"
           }
         ]
       },
       "target": {
         "scripts": [
           {
-            "filePath": "Tables/WithCurrent/TargetLess/target.kql"
+            "filePath": "target.kql"
           }
         ]
       },
       "action": {
-        "folderPath": "outputs/tables/with-current/target-less"
+        "folderPath": "outputs/target-less"
       }
     }
   }

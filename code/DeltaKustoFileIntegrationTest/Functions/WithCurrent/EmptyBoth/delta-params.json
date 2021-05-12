@@ -4,19 +4,19 @@
       "current": {
         "scripts": [
           {
-            "filePath": "Functions/WithCurrent/EmptyBoth/current.kql"
+            "filePath": "current.kql"
           }
         ]
       },
       "target": {
         "scripts": [
           {
-            "filePath": "Functions/WithCurrent/EmptyBoth/target.kql"
+            "filePath": "target.kql"
           }
         ]
       },
       "action": {
-        "filePath": "outputs/functions/with-current/empty-both.kql"
+        "filePath": "outputs/empty-both.kql"
       }
     }
   }

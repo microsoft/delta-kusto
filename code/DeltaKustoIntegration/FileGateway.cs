@@ -12,14 +12,34 @@ namespace DeltaKustoIntegration
 {
     public class FileGateway : IFileGateway
     {
+        private static readonly TimeSpan TIMEOUT = TimeSpan.FromSeconds(2);
+        private readonly string _rootFolder;
+
+        public FileGateway() : this(string.Empty)
+        {
+        }
+
+        private FileGateway(string rootFolder)
+        {
+            _rootFolder = rootFolder;
+        }
+
+        IFileGateway IFileGateway.ChangeFolder(string folderPath)
+        {
+            var newRootFolder = Path.Combine(_rootFolder, folderPath);
+
+            return new FileGateway(newRootFolder);
+        }
+
         async Task<string> IFileGateway.GetFileContentAsync(
             string filePath,
             CancellationToken ct)
         {
+            var path = Path.Combine(_rootFolder, filePath);
             var text = await File.ReadAllTextAsync(
-                filePath,
+                path,
                 Encoding.UTF8,
-                ct);
+                CancellationTokenHelper.MergeCancellationToken(ct, TIMEOUT));
 
             return text;
         }
@@ -29,7 +49,8 @@ namespace DeltaKustoIntegration
             string content,
             CancellationToken ct)
         {
-            var directory = Path.GetDirectoryName(filePath);
+            var path = Path.Combine(_rootFolder, filePath);
+            var directory = Path.GetDirectoryName(path);
 
             if (!string.IsNullOrWhiteSpace(directory))
             {
@@ -37,37 +58,39 @@ namespace DeltaKustoIntegration
             }
 
             await File.WriteAllTextAsync(
-                filePath,
+                path,
                 content,
-                ct);
+                CancellationTokenHelper.MergeCancellationToken(ct, TIMEOUT));
         }
 
         async IAsyncEnumerable<(string path, string content)> IFileGateway.GetFolderContentsAsync(
-            string folderPath,
             IEnumerable<string>? extensions,
             [EnumeratorCancellation]
             CancellationToken ct)
         {
             var fileGateway = (IFileGateway)this;
-            var directories = Directory.GetDirectories(folderPath);
-            var files = Directory.GetFiles(folderPath);
+            var directories = Directory.GetDirectories(_rootFolder);
+            var files = Directory.GetFiles(_rootFolder);
 
             foreach (var file in files)
             {
                 if (HasExtension(file, extensions))
                 {
-                    var script = await fileGateway.GetFileContentAsync(file, ct);
+                    var fileName = Path.GetFileName(file);
+                    var script = await fileGateway.GetFileContentAsync(fileName, ct);
 
-                    yield return (file, script);
+                    yield return (fileName, script);
                 }
             }
             foreach (var directory in directories)
             {
-                var scripts = fileGateway.GetFolderContentsAsync(directory, extensions, ct);
+                var directoryName = Path.GetDirectoryName(directory)!;
+                var localFileGateway = fileGateway.ChangeFolder(directoryName);
+                var scripts = fileGateway.GetFolderContentsAsync(extensions, ct);
 
                 await foreach (var script in scripts)
                 {
-                    yield return script;
+                    yield return (Path.Combine(directoryName, script.path), script.content);
                 }
             }
         }

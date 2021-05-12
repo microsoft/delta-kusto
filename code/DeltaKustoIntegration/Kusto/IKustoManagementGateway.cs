@@ -10,8 +10,10 @@ namespace DeltaKustoIntegration.Kusto
 {
     public interface IKustoManagementGateway
     {
-        Task<DatabaseSchema> GetDatabaseSchemaAsync(CancellationToken ct);
-        
-        Task ExecuteCommandsAsync(IEnumerable<CommandBase> commands, CancellationToken ct);
+        Task<DatabaseSchema> GetDatabaseSchemaAsync(CancellationToken ct = default);
+
+        Task ExecuteCommandsAsync(
+            IEnumerable<CommandBase> commands,
+            CancellationToken ct = default);
     }
 }

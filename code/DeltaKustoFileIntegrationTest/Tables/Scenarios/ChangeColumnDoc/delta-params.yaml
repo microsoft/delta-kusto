@@ -2,9 +2,9 @@
   main:
     current:
       scripts:
-        - filePath:  Tables/Scenarios/ChangeColumnDoc/current.kql
+        - filePath:  current.kql
     target:
       scripts:
-        - filePath:  Tables/Scenarios/ChangeColumnDoc/target.kql
+        - filePath:  target.kql
     action:
-      filePath:  outputs/tables/scenarios/change-column-doc-delta.kql
+      filePath:  outputs/change-column-doc-delta.kql

@@ -35,4 +35,5 @@ jobs:
     - name: File-base integration tests (in-proc)
       run: |
         dotnet test code/DeltaKustoFileIntegrationTest --configuration Release \
-          --no-build --verbosity normal --blame-hang-timeout 3s
+          --no-build --verbosity normal --blame-hang-timeout 3s \
+          -p:ParallelizeTestCollections=false
