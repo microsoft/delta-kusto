@@ -70,9 +70,11 @@ namespace delta_kusto
 
             var parameters =
                 await LoadParameterizationAsync(parameterFilePath, pathOverrides);
+            var parameterFolderPath = Path.GetDirectoryName(parameterFilePath);
 
             try
             {
+                var localFileGateway = _fileGateway.ChangeFolder(parameterFolderPath!);
                 var tokenProvider = _tokenProviderFactory.CreateProvider(parameters.TokenProvider);
                 var orderedJobs = parameters.Jobs.OrderBy(p => p.Value.Priority);
                 var success = true;
@@ -84,6 +86,7 @@ namespace delta_kusto
                     var (jobName, job) = jobPair;
                     var jobSuccess = await ProcessJobAsync(
                         parameters,
+                        localFileGateway,
                         tokenProvider,
                         jobName,
                         job);
@@ -109,6 +112,7 @@ namespace delta_kusto
 
         private async Task<bool> ProcessJobAsync(
             MainParameterization parameters,
+            IFileGateway localFileGateway,
             ITokenProvider? tokenProvider,
             string jobName,
             JobParameterization job)
@@ -119,16 +123,16 @@ namespace delta_kusto
             {
                 _tracer.WriteLine(false, "Current DB Provider...  ");
 
-                var currentDbProvider = CreateDatabaseProvider(job.Current, tokenProvider);
+                var currentDbProvider =
+                    CreateDatabaseProvider(job.Current, tokenProvider, localFileGateway);
 
                 _tracer.WriteLine(false, "Target DB Provider...  ");
 
-                var targetDbProvider = CreateDatabaseProvider(job.Target, tokenProvider);
-                var tokenSourceRetrieveDb = new CancellationTokenSource(TimeOuts.RETRIEVE_DB);
-                var ctRetrieveDb = tokenSourceRetrieveDb.Token;
+                var targetDbProvider =
+                    CreateDatabaseProvider(job.Target, tokenProvider, localFileGateway);
 
-                var currentDbTask = RetrieveDatabaseAsync(currentDbProvider, "current", ctRetrieveDb);
-                var targetDbTask = RetrieveDatabaseAsync(targetDbProvider, "target", ctRetrieveDb);
+                var currentDbTask = RetrieveDatabaseAsync(currentDbProvider, "current");
+                var targetDbTask = RetrieveDatabaseAsync(targetDbProvider, "target");
 
                 await Task.WhenAll(currentDbTask, targetDbTask);
 
@@ -142,18 +146,16 @@ namespace delta_kusto
                 var jobSuccess = ReportOnDeltaCommands(parameters, actions);
                 var actionProviders = CreateActionProvider(
                     job.Action!,
+                    localFileGateway,
                     tokenProvider,
                     job.Current?.Adx);
-                var tokenSourceAction = new CancellationTokenSource(TimeOuts.ACTION);
-                var ctAction = tokenSourceRetrieveDb.Token;
 
                 _tracer.WriteLine(false, "Processing delta commands...");
                 foreach (var actionProvider in actionProviders)
                 {
                     await actionProvider.ProcessDeltaCommandsAsync(
                         parameters.FailIfDataLoss,
-                        actions,
-                        ctAction);
+                        actions);
                 }
                 _tracer.WriteLine(false, "Delta processed / Job completed");
                 _tracer.WriteLine(false, "");
@@ -168,12 +170,11 @@ namespace delta_kusto
 
         private async Task<DatabaseModel> RetrieveDatabaseAsync(
             IDatabaseProvider currentDbProvider,
-            string db,
-            CancellationToken ct)
+            string db)
         {
             _tracer.WriteLine(false, $"Retrieving {db}...");
 
-            var model = await currentDbProvider.RetrieveDatabaseAsync(ct);
+            var model = await currentDbProvider.RetrieveDatabaseAsync();
 
             _tracer.WriteLine(false, $"{db} retrieved");
 
@@ -209,15 +210,12 @@ namespace delta_kusto
             string parameterFilePath,
             IEnumerable<string> pathOverrides)
         {
-            var tokenSource = new CancellationTokenSource(TimeOuts.FILE);
-            var ct = tokenSource.Token;
-
             try
             {
                 var deserializer = new DeserializerBuilder()
                     .WithNamingConvention(CamelCaseNamingConvention.Instance)
                     .Build();
-                var parameterText = await _fileGateway.GetFileContentAsync(parameterFilePath, ct);
+                var parameterText = await _fileGateway.GetFileContentAsync(parameterFilePath);
                 var parameters = deserializer.Deserialize<MainParameterization>(parameterText);
 
                 if (parameters == null)
@@ -241,6 +239,7 @@ namespace delta_kusto
 
         private IImmutableList<IActionProvider> CreateActionProvider(
             ActionParameterization action,
+            IFileGateway localFileGateway,
             ITokenProvider? tokenProvider,
             AdxSourceParameterization? database)
         {
@@ -251,14 +250,14 @@ namespace delta_kusto
             if (action.FilePath != null)
             {
                 builder.Add(new OneFileActionProvider(
-                    _fileGateway,
+                    localFileGateway,
                     action.FilePath,
                     action.UsePluralForms));
             }
             if (action.FolderPath != null)
             {
                 builder.Add(new MultiFilesActionProvider(
-                    _fileGateway,
+                    localFileGateway,
                     action.FolderPath,
                     action.UsePluralForms));
             }
@@ -283,7 +282,8 @@ namespace delta_kusto
 
         private IDatabaseProvider CreateDatabaseProvider(
             SourceParameterization? source,
-            ITokenProvider? tokenProvider)
+            ITokenProvider? tokenProvider,
+            IFileGateway localFileGateway)
         {
             if (source == null)
             {
@@ -316,13 +316,16 @@ namespace delta_kusto
                 {
                     _tracer.WriteLine(true, "Database scripts");
 
-                    return new ScriptDatabaseProvider(_tracer, _fileGateway, source.Scripts);
+                    return new ScriptDatabaseProvider(_tracer, localFileGateway, source.Scripts);
                 }
                 else if (source.JsonFilePath != null)
                 {
                     _tracer.WriteLine(true, "Json file");
 
-                    return new JsonDatabaseProvider(_tracer, _fileGateway, source.JsonFilePath);
+                    return new JsonDatabaseProvider(
+                        _tracer,
+                        localFileGateway,
+                        source.JsonFilePath);
                 }
                 else
                 {

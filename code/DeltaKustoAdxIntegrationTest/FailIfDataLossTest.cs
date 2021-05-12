@@ -18,12 +18,11 @@ namespace DeltaKustoAdxIntegrationTest
         public async Task TestFailIfDropsNoDrop()
         {
             var toFile = "FailIfDataLoss/target.kql";
-            var ct = CreateCancellationToken();
 
-            await CleanDatabasesAsync(ct);
-            await PrepareDbAsync(toFile, false, ct);
+            await CleanDatabasesAsync();
+            await PrepareDbAsync(toFile, false);
 
-            await RunParametersAsync("FailIfDataLoss/no-fail.json", ct, TargetDbOverrides);
+            await RunParametersAsync("FailIfDataLoss/no-fail.json", TargetDbOverrides);
 
             //  We just test that this doesn't fail
         }
@@ -32,10 +31,9 @@ namespace DeltaKustoAdxIntegrationTest
         public async Task TestFailIfDrops()
         {
             var toFile = "FailIfDataLoss/target.kql";
-            var ct = CreateCancellationToken();
 
-            await CleanDatabasesAsync(ct);
-            await PrepareDbAsync(toFile, false, ct);
+            await CleanDatabasesAsync();
+            await PrepareDbAsync(toFile, false);
 
             var overrides = TargetDbOverrides
                 .Append(("failIfDrops", "true"));
@@ -44,7 +42,7 @@ namespace DeltaKustoAdxIntegrationTest
             {
                 //  The "Main" will return non-zero which will throw an exception
                 var parameters =
-                    await RunParametersAsync("FailIfDataLoss/no-fail.json", ct, overrides);
+                    await RunParametersAsync("FailIfDataLoss/no-fail.json", overrides);
 
                 Assert.True(parameters.FailIfDataLoss);
                 Assert.False(true, "Should have thrown by now");
@@ -53,8 +51,5 @@ namespace DeltaKustoAdxIntegrationTest
             {
             }
         }
-
-        private CancellationToken CreateCancellationToken() =>
-           new CancellationTokenSource(TimeSpan.FromSeconds(8)).Token;
     }
 }

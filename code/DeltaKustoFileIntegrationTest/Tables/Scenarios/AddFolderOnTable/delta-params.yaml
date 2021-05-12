@@ -2,9 +2,9 @@
   main:
     current:
       scripts:
-        - filePath:  Tables/Scenarios/AddFolderOnTable/current.kql
+        - filePath:  current.kql
     target:
       scripts:
-        - filePath:  Tables/Scenarios/AddFolderOnTable/target.kql
+        - filePath:  target.kql
     action:
-      filePath:  outputs/tables/scenarios/add-folder-on-table-delta.kql
+      filePath:  outputs/add-folder-on-table-delta.kql

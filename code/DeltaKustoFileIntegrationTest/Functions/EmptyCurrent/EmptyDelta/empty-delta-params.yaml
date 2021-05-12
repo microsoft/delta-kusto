@@ -2,6 +2,6 @@
   main:
     target:
       scripts:
-        - filePath:  Functions/EmptyCurrent/EmptyDelta/target.kql
+        - filePath:  target.kql
     action:
-      filePath:  outputs/functions/empty-current/empty-delta.kql
+      filePath:  outputs/empty-delta.kql

@@ -4,19 +4,19 @@
       "current": {
         "scripts": [
           {
-            "folderPath": "Functions/WithCurrent/TargetMore/Current"
+            "folderPath": "Current"
           }
         ]
       },
       "target": {
         "scripts": [
           {
-            "folderPath": "Functions/WithCurrent/TargetMore/Target/"
+            "folderPath": "Target/"
           }
         ]
       },
       "action": {
-        "filePath": "outputs/functions/with-current/target-more.kql"
+        "filePath": "outputs/target-more.kql"
       }
     }
   }

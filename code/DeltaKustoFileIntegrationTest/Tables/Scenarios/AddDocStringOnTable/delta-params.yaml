@@ -2,9 +2,9 @@
   main:
     current:
       scripts:
-        - filePath:  Tables/Scenarios/AddDocStringOnTable/current.kql
+        - filePath:  current.kql
     target:
       scripts:
-        - filePath:  Tables/Scenarios/AddDocStringOnTable/target.kql
+        - filePath:  target.kql
     action:
-      filePath:  outputs/tables/scenarios/add-doc-string-on-table-delta.kql
+      filePath:  outputs/add-doc-string-on-table-delta.kql

@@ -9,6 +9,6 @@ namespace DeltaKustoIntegration.Database
 {
     public interface IDatabaseProvider
     {
-        Task<DatabaseModel> RetrieveDatabaseAsync(CancellationToken ct);
+        Task<DatabaseModel> RetrieveDatabaseAsync(CancellationToken ct = default);
     }
 }
