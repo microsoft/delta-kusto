@@ -376,7 +376,7 @@ namespace DeltaKustoIntegration.Kusto
 
                 var tracerTimer = new TracerTimer(_tracer);
                 var commandScripts = commands.Select(c => c.ToScript());
-                var fullScript = ".execute database script <|"
+                var fullScript = ".execute database script with (ThrowOnErrors=true) <|"
                     + Environment.NewLine
                     + string.Join(Environment.NewLine + Environment.NewLine, commandScripts);
                 var output = await ExecuteCommandAsync(fullScript, ct);
