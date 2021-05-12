@@ -70,9 +70,11 @@ namespace delta_kusto
 
             var parameters =
                 await LoadParameterizationAsync(parameterFilePath, pathOverrides);
+            var parameterFolderPath = Path.GetDirectoryName(parameterFilePath);
 
             try
             {
+                var fileGateway = _fileGateway.ChangeFolder(parameterFolderPath!);
                 var tokenProvider = _tokenProviderFactory.CreateProvider(parameters.TokenProvider);
                 var orderedJobs = parameters.Jobs.OrderBy(p => p.Value.Priority);
                 var success = true;
@@ -84,6 +86,7 @@ namespace delta_kusto
                     var (jobName, job) = jobPair;
                     var jobSuccess = await ProcessJobAsync(
                         parameters,
+                        fileGateway,
                         tokenProvider,
                         jobName,
                         job);
@@ -109,6 +112,7 @@ namespace delta_kusto
 
         private async Task<bool> ProcessJobAsync(
             MainParameterization parameters,
+            IFileGateway fileGateway,
             ITokenProvider? tokenProvider,
             string jobName,
             JobParameterization job)
@@ -119,11 +123,13 @@ namespace delta_kusto
             {
                 _tracer.WriteLine(false, "Current DB Provider...  ");
 
-                var currentDbProvider = CreateDatabaseProvider(job.Current, tokenProvider);
+                var currentDbProvider =
+                    CreateDatabaseProvider(job.Current, tokenProvider, fileGateway);
 
                 _tracer.WriteLine(false, "Target DB Provider...  ");
 
-                var targetDbProvider = CreateDatabaseProvider(job.Target, tokenProvider);
+                var targetDbProvider =
+                    CreateDatabaseProvider(job.Target, tokenProvider, fileGateway);
                 var tokenSourceRetrieveDb = new CancellationTokenSource(TimeOuts.RETRIEVE_DB);
                 var ctRetrieveDb = tokenSourceRetrieveDb.Token;
 
@@ -283,7 +289,8 @@ namespace delta_kusto
 
         private IDatabaseProvider CreateDatabaseProvider(
             SourceParameterization? source,
-            ITokenProvider? tokenProvider)
+            ITokenProvider? tokenProvider,
+            IFileGateway fileGateway)
         {
             if (source == null)
             {
