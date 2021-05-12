@@ -301,7 +301,7 @@ namespace DeltaKustoIntegration.Kusto
         }
         #endregion
 
-        private static readonly TimeSpan TIMEOUT = TimeSpan.FromSeconds(5);
+        private static readonly TimeSpan TIMEOUT = TimeSpan.FromSeconds(10);
 
         private readonly Uri _clusterUri;
         private readonly string _database;
