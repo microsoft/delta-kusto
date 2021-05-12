@@ -106,7 +106,7 @@ namespace DeltaKustoAdxIntegrationTest
                         "adx-to-file-params.json",
                         ct,
                         overrides);
-                    var outputCommands = await LoadScriptAsync(outputPath);
+                    var outputCommands = await LoadScriptAsync("", outputPath);
                     var targetCommands = CommandBase.FromScript(
                         await File.ReadAllTextAsync(toFile));
 
@@ -148,7 +148,7 @@ namespace DeltaKustoAdxIntegrationTest
                         "file-to-adx-params.json",
                         ct,
                         overrides);
-                    var outputCommands = await LoadScriptAsync(outputPath);
+                    var outputCommands = await LoadScriptAsync("", outputPath);
                     var currentCommands = CommandBase.FromScript(
                         await File.ReadAllTextAsync(fromFile));
                     var targetCommands = CommandBase.FromScript(
