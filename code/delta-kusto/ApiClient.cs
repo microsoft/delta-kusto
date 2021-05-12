@@ -91,6 +91,7 @@ namespace delta_kusto
         #endregion
 
         private const string DEFAULT_ROOT_URL = "https://delta-kusto.azurefd.net/";
+        private static readonly TimeSpan TIMEOUT = TimeSpan.FromSeconds(10);
 
         private static readonly string ROOT_URL = ComputeRootUrl();
         private static readonly bool _doApiCalls = ComputeDoApiCalls();
@@ -108,7 +109,7 @@ namespace delta_kusto
         {
             if (_doApiCalls)
             {
-                var tokenSource = new CancellationTokenSource(TimeOuts.API);
+                var tokenSource = new CancellationTokenSource(TIMEOUT);
                 var ct = tokenSource.Token;
 
                 _tracer.WriteLine(true, "ActivateAsync - Start");
@@ -142,7 +143,7 @@ namespace delta_kusto
         {
             if (_doApiCalls)
             {
-                var tokenSource = new CancellationTokenSource(TimeOuts.API);
+                var tokenSource = new CancellationTokenSource(TIMEOUT);
                 var ct = tokenSource.Token;
 
                 _tracer.WriteLine(true, "RegisterExceptionAsync - Start");
