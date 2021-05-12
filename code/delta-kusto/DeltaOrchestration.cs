@@ -130,11 +130,9 @@ namespace delta_kusto
 
                 var targetDbProvider =
                     CreateDatabaseProvider(job.Target, tokenProvider, localFileGateway);
-                var tokenSourceRetrieveDb = new CancellationTokenSource(TimeOuts.RETRIEVE_DB);
-                var ctRetrieveDb = tokenSourceRetrieveDb.Token;
 
-                var currentDbTask = RetrieveDatabaseAsync(currentDbProvider, "current", ctRetrieveDb);
-                var targetDbTask = RetrieveDatabaseAsync(targetDbProvider, "target", ctRetrieveDb);
+                var currentDbTask = RetrieveDatabaseAsync(currentDbProvider, "current");
+                var targetDbTask = RetrieveDatabaseAsync(targetDbProvider, "target");
 
                 await Task.WhenAll(currentDbTask, targetDbTask);
 
@@ -151,16 +149,13 @@ namespace delta_kusto
                     localFileGateway,
                     tokenProvider,
                     job.Current?.Adx);
-                var tokenSourceAction = new CancellationTokenSource(TimeOuts.ACTION);
-                var ctAction = tokenSourceRetrieveDb.Token;
 
                 _tracer.WriteLine(false, "Processing delta commands...");
                 foreach (var actionProvider in actionProviders)
                 {
                     await actionProvider.ProcessDeltaCommandsAsync(
                         parameters.FailIfDataLoss,
-                        actions,
-                        ctAction);
+                        actions);
                 }
                 _tracer.WriteLine(false, "Delta processed / Job completed");
                 _tracer.WriteLine(false, "");
@@ -175,12 +170,11 @@ namespace delta_kusto
 
         private async Task<DatabaseModel> RetrieveDatabaseAsync(
             IDatabaseProvider currentDbProvider,
-            string db,
-            CancellationToken ct)
+            string db)
         {
             _tracer.WriteLine(false, $"Retrieving {db}...");
 
-            var model = await currentDbProvider.RetrieveDatabaseAsync(ct);
+            var model = await currentDbProvider.RetrieveDatabaseAsync();
 
             _tracer.WriteLine(false, $"{db} retrieved");
 
