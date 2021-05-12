@@ -2,9 +2,9 @@
   main:
     current:
       scripts:
-        - filePath:  Mappings/NoneToOne/current.kql
+        - filePath:  current.kql
     target:
       scripts:
-        - filePath:  Mappings/NoneToOne/target.kql
+        - filePath:  target.kql
     action:
-      filePath:  outputs/mappings/none-to-one.kql
+      filePath:  outputs/none-to-one.kql

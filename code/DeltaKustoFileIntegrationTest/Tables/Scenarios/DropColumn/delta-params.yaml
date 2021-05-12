@@ -2,9 +2,9 @@
   main:
     current:
       scripts:
-        - filePath:  Tables/Scenarios/DropColumn/current.kql
+        - filePath:  current.kql
     target:
       scripts:
-        - filePath:  Tables/Scenarios/DropColumn/target.kql
+        - filePath:  target.kql
     action:
-      filePath:  outputs/tables/scenarios/drop-column-delta.kql
+      filePath:  outputs/drop-column-delta.kql

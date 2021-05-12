@@ -203,11 +203,6 @@ namespace DeltaKustoFileIntegrationTest
             return parameters;
         }
 
-        protected async virtual Task<IImmutableList<CommandBase>> LoadScriptAsync(string scriptPath)
-        {
-            return await LoadScriptAsync("", scriptPath);
-        }
-
         protected async virtual Task<IImmutableList<CommandBase>> LoadScriptAsync(
             string paramPath,
             string scriptPath)

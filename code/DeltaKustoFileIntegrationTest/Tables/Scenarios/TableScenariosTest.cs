@@ -13,11 +13,10 @@ namespace DeltaKustoFileIntegrationTest.Tables.Scenarios
         [Fact]
         public async Task AddFolderOnTable()
         {
-            var parameters = await RunParametersAsync(
-                "Tables/Scenarios/AddFolderOnTable/delta-params.yaml",
-                CreateCancellationToken());
+            var paramPath = "Tables/Scenarios/AddFolderOnTable/delta-params.yaml";
+            var parameters = await RunParametersAsync(paramPath, CreateCancellationToken());
             var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
-            var commands = await LoadScriptAsync(outputPath);
+            var commands = await LoadScriptAsync(paramPath, outputPath);
 
             Assert.Single(commands);
 
@@ -29,11 +28,10 @@ namespace DeltaKustoFileIntegrationTest.Tables.Scenarios
         [Fact]
         public async Task AddDocStringOnTable()
         {
-            var parameters = await RunParametersAsync(
-                "Tables/Scenarios/AddDocStringOnTable/delta-params.yaml",
-                CreateCancellationToken());
+            var paramPath = "Tables/Scenarios/AddDocStringOnTable/delta-params.yaml";
+            var parameters = await RunParametersAsync(paramPath, CreateCancellationToken());
             var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
-            var commands = await LoadScriptAsync(outputPath);
+            var commands = await LoadScriptAsync(paramPath, outputPath);
 
             Assert.Single(commands);
 
@@ -45,11 +43,10 @@ namespace DeltaKustoFileIntegrationTest.Tables.Scenarios
         [Fact]
         public async Task ChangeColumnType()
         {
-            var parameters = await RunParametersAsync(
-                "Tables/Scenarios/ChangeColumnType/delta-params.yaml",
-                CreateCancellationToken());
+            var paramPath = "Tables/Scenarios/ChangeColumnType/delta-params.yaml";
+            var parameters = await RunParametersAsync(paramPath, CreateCancellationToken());
             var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
-            var commands = await LoadScriptAsync(outputPath);
+            var commands = await LoadScriptAsync(paramPath, outputPath);
 
             Assert.Single(commands);
 
@@ -61,11 +58,10 @@ namespace DeltaKustoFileIntegrationTest.Tables.Scenarios
         [Fact]
         public async Task DropColumn()
         {
-            var parameters = await RunParametersAsync(
-                "Tables/Scenarios/DropColumn/delta-params.yaml",
-                CreateCancellationToken());
+            var paramPath = "Tables/Scenarios/DropColumn/delta-params.yaml";
+            var parameters = await RunParametersAsync(paramPath, CreateCancellationToken());
             var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
-            var commands = await LoadScriptAsync(outputPath);
+            var commands = await LoadScriptAsync(paramPath, outputPath);
 
             Assert.Single(commands);
 
@@ -78,11 +74,10 @@ namespace DeltaKustoFileIntegrationTest.Tables.Scenarios
         [Fact]
         public async Task ChangeColumnDocString()
         {
-            var parameters = await RunParametersAsync(
-                "Tables/Scenarios/ChangeColumnDoc/delta-params.yaml",
-                CreateCancellationToken());
+            var paramPath = "Tables/Scenarios/ChangeColumnDoc/delta-params.yaml";
+            var parameters = await RunParametersAsync(paramPath, CreateCancellationToken());
             var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
-            var commands = await LoadScriptAsync(outputPath);
+            var commands = await LoadScriptAsync(paramPath, outputPath);
 
             Assert.Single(commands);
 
@@ -99,11 +94,10 @@ namespace DeltaKustoFileIntegrationTest.Tables.Scenarios
         [Fact]
         public async Task DropColumnDocString()
         {
-            var parameters = await RunParametersAsync(
-                "Tables/Scenarios/DropColumnDoc/delta-params.yaml",
-                CreateCancellationToken());
+            var paramPath = "Tables/Scenarios/DropColumnDoc/delta-params.yaml";
+            var parameters = await RunParametersAsync(paramPath, CreateCancellationToken());
             var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
-            var commands = await LoadScriptAsync(outputPath);
+            var commands = await LoadScriptAsync(paramPath, outputPath);
 
             Assert.Single(commands);
 
@@ -120,11 +114,10 @@ namespace DeltaKustoFileIntegrationTest.Tables.Scenarios
         [Fact]
         public async Task DropMultipleTablesTablesString()
         {
-            var parameters = await RunParametersAsync(
-                "Tables/Scenarios/DropMultipleTables/delta-params.yaml",
-                CreateCancellationToken());
+            var paramPath = "Tables/Scenarios/DropMultipleTables/delta-params.yaml";
+            var parameters = await RunParametersAsync(paramPath, CreateCancellationToken());
             var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
-            var commands = await LoadScriptAsync(outputPath);
+            var commands = await LoadScriptAsync(paramPath, outputPath);
 
             Assert.Single(commands);
 

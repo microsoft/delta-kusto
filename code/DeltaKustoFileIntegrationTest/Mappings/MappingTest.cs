@@ -13,11 +13,10 @@ namespace DeltaKustoFileIntegrationTest.Mappings
         [Fact]
         public async Task NoneToOne()
         {
-            var parameters = await RunParametersAsync(
-                "Mappings/NoneToOne/delta-params.yaml",
-                CreateCancellationToken());
+            var paramPath = "Mappings/NoneToOne/delta-params.yaml";
+            var parameters = await RunParametersAsync(paramPath, CreateCancellationToken());
             var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
-            var outputCommands = await LoadScriptAsync(outputPath);
+            var outputCommands = await LoadScriptAsync(paramPath, outputPath);
 
             Assert.Single(outputCommands);
 
@@ -33,11 +32,10 @@ namespace DeltaKustoFileIntegrationTest.Mappings
         [Fact]
         public async Task OneToTwo()
         {
-            var parameters = await RunParametersAsync(
-                "Mappings/OneToTwo/delta-params.yaml",
-                CreateCancellationToken());
+            var paramPath = "Mappings/OneToTwo/delta-params.yaml";
+            var parameters = await RunParametersAsync(paramPath, CreateCancellationToken());
             var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
-            var outputCommands = await LoadScriptAsync(outputPath);
+            var outputCommands = await LoadScriptAsync(paramPath, outputPath);
 
             Assert.Equal(2, outputCommands.Count());
 
@@ -58,11 +56,10 @@ namespace DeltaKustoFileIntegrationTest.Mappings
         [Fact]
         public async Task TwoToOne()
         {
-            var parameters = await RunParametersAsync(
-                "Mappings/TwoToOne/delta-params.yaml",
-                CreateCancellationToken());
+            var paramPath = "Mappings/TwoToOne/delta-params.yaml";
+            var parameters = await RunParametersAsync(paramPath, CreateCancellationToken());
             var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
-            var outputCommands = await LoadScriptAsync(outputPath);
+            var outputCommands = await LoadScriptAsync(paramPath, outputPath);
 
             Assert.Single(outputCommands);
 

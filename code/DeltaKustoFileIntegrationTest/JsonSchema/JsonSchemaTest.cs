@@ -12,11 +12,10 @@ namespace DeltaKustoFileIntegrationTest.JsonSchema
         [Fact]
         public async Task HelpSamples()
         {
-            var parameters = await RunParametersAsync(
-                "JsonSchema/HelpSamples/delta-params.yaml",
-                CreateCancellationToken());
+            var paramPath = "JsonSchema/HelpSamples/delta-params.yaml";
+            var parameters = await RunParametersAsync(paramPath, CreateCancellationToken());
             var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
-            var outputCommands = await LoadScriptAsync(outputPath);
+            var outputCommands = await LoadScriptAsync(paramPath, outputPath);
             //  Mostly a check we can process the json file
             var oneTable = outputCommands
                 .Where(c => c is CreateTableCommand)

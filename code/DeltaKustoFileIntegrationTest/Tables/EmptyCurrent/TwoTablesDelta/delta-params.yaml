@@ -2,6 +2,6 @@
   main:
     target:
       scripts:
-        - filePath:  Tables/EmptyCurrent/TwoTablesDelta/target.kql
+        - filePath:  target.kql
     action:
-      filePath:  outputs/tables/empty-current/two-tables-delta.kql
+      filePath:  outputs/two-tables-delta.kql
