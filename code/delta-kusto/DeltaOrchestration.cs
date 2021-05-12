@@ -216,15 +216,12 @@ namespace delta_kusto
             string parameterFilePath,
             IEnumerable<string> pathOverrides)
         {
-            var tokenSource = new CancellationTokenSource(TimeOuts.FILE);
-            var ct = tokenSource.Token;
-
             try
             {
                 var deserializer = new DeserializerBuilder()
                     .WithNamingConvention(CamelCaseNamingConvention.Instance)
                     .Build();
-                var parameterText = await _fileGateway.GetFileContentAsync(parameterFilePath, ct);
+                var parameterText = await _fileGateway.GetFileContentAsync(parameterFilePath);
                 var parameters = deserializer.Deserialize<MainParameterization>(parameterText);
 
                 if (parameters == null)
