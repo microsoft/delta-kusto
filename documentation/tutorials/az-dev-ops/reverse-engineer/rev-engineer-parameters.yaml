@@ -9,7 +9,8 @@ jobs:
             clusterUri:  to-be-overriden
             database:  dev
     action:
-        folderPath:  kql-scripts
+        pushToConsole:  true
+        filePath:  kql-scripts/delta.kql
 tokenProvider:
     login:
         tenantId:  to-be-overriden
