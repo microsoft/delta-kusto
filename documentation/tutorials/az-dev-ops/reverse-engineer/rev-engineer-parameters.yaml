@@ -3,7 +3,7 @@ jobs:
   download-dev:
     current:
         scripts:
-        - folderPath:  to-be-overriden
+        - folderPath:  ../state
     target:
         adx:
             clusterUri:  to-be-overriden
