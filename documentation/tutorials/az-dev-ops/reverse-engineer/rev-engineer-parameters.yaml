@@ -1,6 +1,13 @@
 sendErrorOptIn:  true
 jobs:
   download-dev:
+    target:
+        adx:
+            clusterUri:  to-be-overriden
+            database:  dev
+    action:
+        folderPath:  kql-scripts/complete
+  delta-dev:
     current:
         scripts:
         - folderPath:  ../state

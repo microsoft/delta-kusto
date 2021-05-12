@@ -27,13 +27,14 @@ stages:
       displayName:  Install Delta-Kusto
     - bash:  |
         mkdir documentation/tutorials/az-dev-ops/reverse-engineer/kql-scripts
+        mkdir documentation/tutorials/az-dev-ops/reverse-engineer/kql-scripts/complete
       displayName:  Prep script folder
     - bash:  |
         clusterUri=$(CLUSTER_URI)
         echo "Cluster URI:  $clusterUri"
         # Package the login in a JSON payload
         login='{"tenantId":"$(TENANT_ID)","clientId":"$(CLIENT_ID)","secret":"$(SECRET)"}'
-        ./delta-kusto -p documentation/tutorials/az-dev-ops/reverse-engineer/rev-engineer-parameters.yaml -o jobs.download-dev.target.adx.clusterUri=$clusterUri tokenProvider.login=$login
+        ./delta-kusto -p documentation/tutorials/az-dev-ops/reverse-engineer/rev-engineer-parameters.yaml -o jobs.download-dev.target.adx.clusterUri=$clusterUri jobs.delta-dev.target.adx.clusterUri=$clusterUri tokenProvider.login=$login
       displayName:  Run Delta-Kusto
     # Publish artefact:  https://docs.microsoft.com/en-us/azure/devops/pipelines/artifacts/pipeline-artifacts#publish-artifacts
     - publish: documentation/tutorials/az-dev-ops/reverse-engineer/kql-scripts
