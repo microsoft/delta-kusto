@@ -12,7 +12,7 @@ namespace DeltaKustoFileIntegrationTest.Tables.EmptyCurrent
         public async Task OneTableDelta()
         {
             var paramPath = "Tables/EmptyCurrent/OneTableDelta/delta-params.yaml";
-            var parameters = await RunParametersAsync(paramPath, CreateCancellationToken());
+            var parameters = await RunParametersAsync(paramPath);
             var inputPath = parameters.Jobs!.First().Value.Target!.Scripts!.First().FilePath!;
             var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
             var inputCommands = await LoadScriptAsync(paramPath, inputPath);
@@ -25,7 +25,7 @@ namespace DeltaKustoFileIntegrationTest.Tables.EmptyCurrent
         public async Task TwoFunctionsDelta()
         {
             var paramPath = "Tables/EmptyCurrent/TwoTablesDelta/delta-params.yaml";
-            var parameters = await RunParametersAsync(paramPath, CreateCancellationToken());
+            var parameters = await RunParametersAsync(paramPath);
             var inputPath = parameters.Jobs!.First().Value.Target!.Scripts!.First().FilePath!;
             var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
             var inputCommands = await LoadScriptAsync(paramPath, inputPath);
@@ -33,8 +33,5 @@ namespace DeltaKustoFileIntegrationTest.Tables.EmptyCurrent
 
             Assert.True(inputCommands.SequenceEqual(outputCommands));
         }
-
-        private CancellationToken CreateCancellationToken() =>
-           new CancellationTokenSource(TimeSpan.FromSeconds(2)).Token;
     }
 }

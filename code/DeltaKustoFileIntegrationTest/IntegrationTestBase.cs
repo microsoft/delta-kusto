@@ -54,6 +54,8 @@ namespace DeltaKustoFileIntegrationTest
         }
         #endregion
 
+        private static readonly TimeSpan PROCESS_TIMEOUT = TimeSpan.FromSeconds(20);
+
         private readonly string? _executablePath;
 
         static IntegrationTestBase()
@@ -85,9 +87,9 @@ namespace DeltaKustoFileIntegrationTest
         }
 
         protected SimpleHttpClientFactory HttpClientFactory { get; }
-        
+
         protected IKustoManagementGatewayFactory GatewayFactory { get; }
-        
+
         protected ITokenProviderFactory TokenProviderFactory { get; }
 
         protected IntegrationTestBase()
@@ -109,15 +111,13 @@ namespace DeltaKustoFileIntegrationTest
             }
 
             var tracer = new ConsoleTracer(false);
-            
+
             HttpClientFactory = new SimpleHttpClientFactory(tracer);
             GatewayFactory = new KustoManagementGatewayFactory(tracer, HttpClientFactory);
             TokenProviderFactory = new TokenProviderFactory(tracer, HttpClientFactory);
         }
 
-        protected async virtual Task<int> RunMainAsync(
-            CancellationToken ct,
-            params string[] args)
+        protected async virtual Task<int> RunMainAsync(params string[] args)
         {
             if (_executablePath == null)
             {
@@ -148,6 +148,8 @@ namespace DeltaKustoFileIntegrationTest
 
                     if (started)
                     {
+                        var ct = new CancellationTokenSource(PROCESS_TIMEOUT).Token;
+
                         await process.WaitForExitAsync(ct);
 
                         return process.ExitCode;
@@ -161,18 +163,15 @@ namespace DeltaKustoFileIntegrationTest
             }
         }
 
-        protected async virtual Task RunSuccessfulMainAsync(
-            CancellationToken ct,
-            params string[] args)
+        protected async virtual Task RunSuccessfulMainAsync(params string[] args)
         {
-            var returnedValue = await RunMainAsync(ct, args);
+            var returnedValue = await RunMainAsync(args);
 
             Assert.Equal(0, returnedValue);
         }
 
         protected async virtual Task<MainParameterization> RunParametersAsync(
             string parameterFilePath,
-            CancellationToken ct,
             IEnumerable<(string path, string value)>? overrides = null)
         {
             var pathOverrides = overrides != null
@@ -182,7 +181,7 @@ namespace DeltaKustoFileIntegrationTest
             var cliParameters = overrides != null
                 ? baseParameters.Append("-o").Concat(pathOverrides)
                 : baseParameters;
-            var returnedValue = await RunMainAsync(ct, cliParameters.ToArray());
+            var returnedValue = await RunMainAsync(cliParameters.ToArray());
 
             if (returnedValue != 0)
             {
@@ -210,7 +209,7 @@ namespace DeltaKustoFileIntegrationTest
             var rootFolder = Path.GetDirectoryName(paramPath) ?? "";
             var path = Path.Combine(rootFolder!, scriptPath);
 
-            if(!File.Exists(path))
+            if (!File.Exists(path))
             {
                 throw new InvalidOperationException($"Can't find '{path}'");
             }

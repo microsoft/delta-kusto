@@ -14,7 +14,7 @@ namespace DeltaKustoFileIntegrationTest.Mappings
         public async Task NoneToOne()
         {
             var paramPath = "Mappings/NoneToOne/delta-params.yaml";
-            var parameters = await RunParametersAsync(paramPath, CreateCancellationToken());
+            var parameters = await RunParametersAsync(paramPath);
             var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
             var outputCommands = await LoadScriptAsync(paramPath, outputPath);
 
@@ -33,7 +33,7 @@ namespace DeltaKustoFileIntegrationTest.Mappings
         public async Task OneToTwo()
         {
             var paramPath = "Mappings/OneToTwo/delta-params.yaml";
-            var parameters = await RunParametersAsync(paramPath, CreateCancellationToken());
+            var parameters = await RunParametersAsync(paramPath);
             var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
             var outputCommands = await LoadScriptAsync(paramPath, outputPath);
 
@@ -57,7 +57,7 @@ namespace DeltaKustoFileIntegrationTest.Mappings
         public async Task TwoToOne()
         {
             var paramPath = "Mappings/TwoToOne/delta-params.yaml";
-            var parameters = await RunParametersAsync(paramPath, CreateCancellationToken());
+            var parameters = await RunParametersAsync(paramPath);
             var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
             var outputCommands = await LoadScriptAsync(paramPath, outputPath);
 
@@ -67,8 +67,5 @@ namespace DeltaKustoFileIntegrationTest.Mappings
 
             Assert.Equal("csv", dropMappingCommand.MappingKind);
         }
-
-        private CancellationToken CreateCancellationToken() =>
-           new CancellationTokenSource(TimeSpan.FromSeconds(2)).Token;
     }
 }

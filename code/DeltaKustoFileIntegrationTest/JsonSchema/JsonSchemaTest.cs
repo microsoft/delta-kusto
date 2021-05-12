@@ -13,7 +13,7 @@ namespace DeltaKustoFileIntegrationTest.JsonSchema
         public async Task HelpSamples()
         {
             var paramPath = "JsonSchema/HelpSamples/delta-params.yaml";
-            var parameters = await RunParametersAsync(paramPath, CreateCancellationToken());
+            var parameters = await RunParametersAsync(paramPath);
             var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
             var outputCommands = await LoadScriptAsync(paramPath, outputPath);
             //  Mostly a check we can process the json file
@@ -24,8 +24,5 @@ namespace DeltaKustoFileIntegrationTest.JsonSchema
 
             Assert.Single(oneTable);
         }
- 
-        private CancellationToken CreateCancellationToken() =>
-            new CancellationTokenSource(TimeSpan.FromSeconds(2)).Token;
     }
 }
