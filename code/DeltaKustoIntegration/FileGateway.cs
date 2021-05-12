@@ -12,6 +12,7 @@ namespace DeltaKustoIntegration
 {
     public class FileGateway : IFileGateway
     {
+        private static readonly TimeSpan TIMEOUT = TimeSpan.FromSeconds(2);
         private readonly string _rootFolder;
 
         public FileGateway() : this(string.Empty)
@@ -38,7 +39,7 @@ namespace DeltaKustoIntegration
             var text = await File.ReadAllTextAsync(
                 path,
                 Encoding.UTF8,
-                ct);
+                CancellationTokenHelper.MergeCancellationToken(ct, TIMEOUT));
 
             return text;
         }
@@ -59,7 +60,7 @@ namespace DeltaKustoIntegration
             await File.WriteAllTextAsync(
                 path,
                 content,
-                ct);
+                CancellationTokenHelper.MergeCancellationToken(ct, TIMEOUT));
         }
 
         async IAsyncEnumerable<(string path, string content)> IFileGateway.GetFolderContentsAsync(
