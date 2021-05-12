@@ -13,6 +13,8 @@ namespace DeltaKustoIntegration.TokenProvider
 {
     internal class LoginTokenProvider : ITokenProvider
     {
+        private static readonly TimeSpan TIMEOUT = TimeSpan.FromSeconds(5);
+        
         private readonly ITracer _tracer;
         private readonly SimpleHttpClientFactory _httpClientFactory;
         private readonly string _tenantId;
@@ -69,6 +71,7 @@ namespace DeltaKustoIntegration.TokenProvider
 
         private async Task<string> RetrieveTokenAsync(Uri clusterUri, CancellationToken ct)
         {
+            ct = CancellationTokenHelper.MergeCancellationToken(ct, TIMEOUT);
             _tracer.WriteLine(true, "LoginTokenProvider.RetrieveTokenAsync start");
 
             //  Implementation of https://docs.microsoft.com/en-us/azure/data-explorer/kusto/api/rest/request#examples
