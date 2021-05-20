@@ -2,6 +2,8 @@
 
 This article shows how to use [Delta Kusto](https://github.com/microsoft/delta-kusto) in an [Azure DevOps YAML Pipeline](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema).
 
+In order to use this tutorial in an Azure DevOps project, we need to copy this GitHub folder to a Git repo, create the 2 pipelines by pointing to the YAML files (details below) and add required pipeline variables.
+
 ## Scenarios
 
 We are going to look at two different scenarios quite typical in CI / CD processes.
@@ -141,16 +143,33 @@ This allows the scripts to be consulted by the pipeline user.
 
 ### Deploy DB
 
-Let's look at the YAML pipeline in [deploy-db/deploy-db-template.yaml](deploy-db/deploy-db-template.yaml).
+Let's look at the YAML pipeline in [deploy-db/deploy-db-pipeline.yaml](deploy-db/deploy-db-pipeline.yaml).
 
-It has one job with four steps.
+It has 3 stages with one job each:
 
-#### Install Delta-Kusto|
+Stage|Description
+-|-
+Packaging|Packages the scripts to be used by the other two stages
+Staging|Deploy the KQL scripts to the staging database
+Production|Deploy the KQL scripts to the production database
 
-## Install...
+The last two scripts uses the YAML pipeline template [deploy-db/deploy-db-template.yaml](deploy-db/deploy-db-template.yaml).  That pipeline has three steps:
 
-### Reverse Engineer
+1.    Download Delta Kusto CLI
+1. Download pipeline artefact
+1. Run Delta Kusto CLI
 
-### Deploy DB
+The last step uses [deploy-db/push-state-to-db-parameters.yaml](deploy-db/push-state-to-db-parameters.yaml) as parameter file which dictates the behaviour of Delta Kusto CLI.
+
+In this case, Delta Kusto pushes the content of [../state](../state) to the ADX database (via its delta).
 
 ## Summary
+
+We've covered 2 different Azure DevOps pipeline examples to show the possibility of using Delta Kusto with Azure DevOps.
+
+Those pipelines can be altered to fit any project's needs.
+
+The key steps are:
+
+1.    Download the Delta Kusto CLI
+1. Invoke the CLI with a parameter file
