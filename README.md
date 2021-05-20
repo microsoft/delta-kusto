@@ -23,7 +23,7 @@ Delta-Kusto works on database structure, **not data**:
 
 ## Documentations
 
-See the [documentation](documentation/README.md) for details and [tutorial section](documentation/tutorials/README.md) for different tutorials on Delta-Kusto.
+See the [documentation](documentation/README.md) for details and [tutorial section](documentation/README.md#tutorials) for different tutorials on Delta-Kusto.
 
 ## Overview
 

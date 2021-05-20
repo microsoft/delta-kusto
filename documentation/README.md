@@ -15,5 +15,5 @@ Here is the list of tutorials for Delta-Kusto:
 * [Authenticating to ADX Clusters](tutorials/authentication/README.md)
 * [Multi tenant](tutorials/multi-tenant/README.md)
 * Use API to find the latest client version
-* Using Delta Kusto in Azure DevOps
+* [Using Delta Kusto in Azure DevOps](tutorials/az-dev-ops/README.md)
 * Using Delta Kusto in GitHub Actions
