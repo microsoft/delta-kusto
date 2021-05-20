@@ -2,7 +2,7 @@
 
 This article shows how to use [Delta Kusto](https://github.com/microsoft/delta-kusto) in an [Azure DevOps YAML Pipeline](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema).
 
-In order to use this tutorial in an Azure DevOps project, we need to copy this GitHub folder to a Git repo, create the 2 pipelines by pointing to the YAML files (details below) and add required pipeline variables.
+To use this tutorial in an Azure DevOps project, we need to copy this GitHub folder to a Git repo, create the 2 pipelines by pointing to the YAML files (details below) and add required pipeline variables.
 
 ## Scenarios
 
@@ -10,21 +10,21 @@ We are going to look at two different scenarios quite typical in CI / CD process
 
 ### Reverse Engineer
 
-In this scenario we want to reverse engineer a *development* database.  We want to find the gap between a git-stored KQL script which represent what we think the database is and the actual database.
+In this scenario we want to reverse engineer a *development* database.  We want to find the gap between a Git-stored KQL script which represent what we think the database is and the actual database.
 
 ![Reverse Engineer](reverse-engineer.png)
 
 The delta (script) between those two is going to be persisted as a pipeline artefact.
 
-This pipeline uses two Delta Kusto jobs.  One does what was just described.  The other completely reverse engineer the database and export the complete database script into a script folder within the same artefact.
+This pipeline uses two Delta Kusto jobs.  The first one does what was just described.  The second one completely reverse engineer the database and export the complete database script into a script folder within the same artefact.
 
-Typically that pipeline is used to detect changes (or configuration drift).  For this reason, it **isn't** triggered automatically (e.g. on commits).  The delta can be used to adjust the git-stored KQL script.
+Typically, that pipeline is used to detect changes (or configuration drift).  For this reason, it **isn't** triggered automatically (e.g. on commits).  The delta can be used to adjust the Git-stored KQL script.
 
 The [pipeline is available here](reverse-engineer).
 
 ### Deploy DB
 
-In this scenario we want to deploy the git-stored KQL script to our staging database and then to production.
+In this scenario we want to deploy the Git-stored KQL script to our staging database and then to production.
 
 ![Deploy DB Pipeline](deploy-db-pipeline.png)
 
@@ -40,7 +40,7 @@ The [pipeline is available here](deploy-db).
 
 ## Final results
 
-Let's see how the solution looks like when executed.  We will look how the pipelines are implemented after.
+Let us see how the solution looks like when executed (we will look how the pipelines are implemented in another section).
 
 ### Reverse Engineer
 
@@ -54,7 +54,7 @@ If we look at the artefacts
 
 We can see one artefact.  
 
-If we look at it we see a `complete` folder containing the scripts to create the entire database while the file `delta.kql` contains the delta between our original script and the database.
+If we look at it, we see a `complete` folder containing the scripts to create the entire database while the file `delta.kql` contains the delta between our original script and the database.
 
 ![Artefact](reverse-engineer-artefact.png)
 
@@ -68,17 +68,17 @@ When the deploy-db pipeline is run, we notice it has 3 stages:
 
 The first stage, `packaging` simply packages the scripts.  This is equivalent to a *build* stage where we take a snapshot of the scripts before pushing it to different environment.
 
-The second stage, `Push to staging`, is run immediately while the third one, `Push to production`, is waiting for approval.
+The second stage, `Push to staging`, is ran immediately while the third one, `Push to production`, is waiting for approval.
 
 If we looked at the staging database, we would see it is now matching the script we have in Git.
 
 ## Pipelines explained
 
-Let's now look at the pipelines themselves.
+Let us now look at the pipelines themselves.
 
 ### Reverse Engineer
 
-Let's look at the YAML pipeline in [reverse-engineer/rev-pipeline.yaml](reverse-engineer/rev-pipeline.yaml).
+Let us look at the YAML pipeline in [reverse-engineer/rev-pipeline.yaml](reverse-engineer/rev-pipeline.yaml).
 
 It has one job with four steps.
 
@@ -131,7 +131,7 @@ The parameter file point the `delta-dev` job to the Git [state](state) folder as
 
 #### Publish Artifact: kql-scripts
 
-Finally we publish the scripts as a pipeline artefact:
+Finally, we publish the scripts as a pipeline artefact:
 
 ```yaml
 - publish: documentation/tutorials/az-dev-ops/reverse-engineer/kql-scripts
@@ -139,7 +139,7 @@ Finally we publish the scripts as a pipeline artefact:
     displayName: 'Publish Artifact: kql-scripts'
 ```
 
-This allows the scripts to be consulted by the pipeline user.
+This allows pipeline users to consult the scripts.
 
 ### Deploy DB
 
@@ -149,7 +149,7 @@ It has 3 stages with one job each:
 
 Stage|Description
 -|-
-Packaging|Packages the scripts to be used by the other two stages
+Packaging|Packages scripts used by the other two stages
 Staging|Deploy the KQL scripts to the staging database
 Production|Deploy the KQL scripts to the production database
 
@@ -167,7 +167,7 @@ In this case, Delta Kusto pushes the content of [../state](../state) to the ADX 
 
 We've covered 2 different Azure DevOps pipeline examples to show the possibility of using Delta Kusto with Azure DevOps.
 
-Those pipelines can be altered to fit any project's needs.
+Those pipelines can be adapted to fit any project's needs.
 
 The key steps are:
 
