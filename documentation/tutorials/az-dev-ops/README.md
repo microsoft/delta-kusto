@@ -4,6 +4,8 @@ This article shows how to use [Delta Kusto](https://github.com/microsoft/delta-k
 
 To use this tutorial in an Azure DevOps project, we need to copy this GitHub folder to a Git repo, create the 2 pipelines by pointing to the YAML files (details below) and add required pipeline variables.
 
+This tutorial is also [available as a YouTube video](https://www.youtube.com/watch?v=zL792Xm7VM8).
+
 ## Scenarios
 
 We are going to look at two different scenarios quite typical in CI / CD processes.

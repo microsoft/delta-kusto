@@ -2,7 +2,7 @@
 
 This tutorial explains how the Delta Kusto CLI can authenticate against an Azure Data Explorer (ADX) cluster.
 
-This tutorial is also [available as a YouTube video](https://www.youtube.com/watch?v=ErLSCKCkGXI&t=5s).
+This tutorial is also [available as a YouTube video](https://www.youtube.com/watch?v=ErLSCKCkGXI).
 
 The [parameter file](../../parameter-file.md) shows 2 methods to authenticate in the `tokenProvider` section:
 
