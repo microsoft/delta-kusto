@@ -141,7 +141,7 @@ jobs:
     env:
       # See OS catalog here:  https://docs.microsoft.com/en-us/dotnet/core/rid-catalog
       dotnetOs:  osx-x64
-      exec:  delta-kusto.exe
+      exec:  delta-kusto
       deltaKustoCurrentDb:  mac-current
       deltaKustoTargetDb:  mac-target
 
