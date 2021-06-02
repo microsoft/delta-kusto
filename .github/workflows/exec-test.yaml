@@ -10,6 +10,8 @@ jobs:
     env:
       dotnetOs:  linux-x64
       exec:  delta-kusto
+      deltaKustoCurrentDb:  linux-current
+      deltaKustoTargetDb:  linux-target
 
     steps:
     - uses: actions/checkout@v2
@@ -44,8 +46,6 @@ jobs:
         echo "deltaKustoSingleExecPath=$(pwd)/bin/$exec" >> $GITHUB_ENV
         # ADX integration
         echo "deltaKustoClusterUri=${{ secrets.CLUSTER_URI }}" >> $GITHUB_ENV
-        echo "deltaKustoCurrentDb=${{ secrets.CURRENT_DB }}" >> $GITHUB_ENV
-        echo "deltaKustoTargetDb=${{ secrets.TARGET_DB }}" >> $GITHUB_ENV
         echo "deltaKustoTenantId=${{ secrets.TENANT_ID }}" >> $GITHUB_ENV
         echo "deltaKustoSpId=${{ secrets.KUSTO_SP_ID }}" >> $GITHUB_ENV
         echo "deltaKustoSpSecret=${{ secrets.KUSTO_SP_SECRET }}" >> $GITHUB_ENV
@@ -68,15 +68,14 @@ jobs:
         -p:ParallelizeTestCollections=false
 
   windows:
-    # This creates a dependency with the previous job so they do not run in parallel
-    # (which would wreck the integration tests)
-    needs:  linux
-
+    # This can run in parallel with the other job as they target different databases
     runs-on: windows-latest
     
     env:
       dotnetOs:  win-x64
       exec:  delta-kusto.exe
+      deltaKustoCurrentDb:  windows-current
+      deltaKustoTargetDb:  windows-target
 
     steps:
     - uses: actions/checkout@v2
@@ -110,8 +109,6 @@ jobs:
         echo "deltaKustoSingleExecPath=$(pwd)/bin/$exec" >> $GITHUB_ENV
         # ADX integration
         echo "deltaKustoClusterUri=${{ secrets.CLUSTER_URI }}" >> $GITHUB_ENV
-        echo "deltaKustoCurrentDb=${{ secrets.CURRENT_DB }}" >> $GITHUB_ENV
-        echo "deltaKustoTargetDb=${{ secrets.TARGET_DB }}" >> $GITHUB_ENV
         echo "deltaKustoTenantId=${{ secrets.TENANT_ID }}" >> $GITHUB_ENV
         echo "deltaKustoSpId=${{ secrets.KUSTO_SP_ID }}" >> $GITHUB_ENV
         echo "deltaKustoSpSecret=${{ secrets.KUSTO_SP_SECRET }}" >> $GITHUB_ENV
