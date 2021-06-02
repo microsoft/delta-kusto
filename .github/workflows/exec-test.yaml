@@ -8,6 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
+      # See OS catalog here:  https://docs.microsoft.com/en-us/dotnet/core/rid-catalog
       dotnetOs:  linux-x64
       exec:  delta-kusto
       deltaKustoCurrentDb:  linux-current
@@ -72,6 +73,7 @@ jobs:
     runs-on: windows-latest
     
     env:
+      # See OS catalog here:  https://docs.microsoft.com/en-us/dotnet/core/rid-catalog
       dotnetOs:  win-x64
       exec:  delta-kusto.exe
       deltaKustoCurrentDb:  windows-current
@@ -137,7 +139,8 @@ jobs:
     runs-on: macos-latest
     
     env:
-      dotnetOs:  osx.10.15-x64
+      # See OS catalog here:  https://docs.microsoft.com/en-us/dotnet/core/rid-catalog
+      dotnetOs:  osx-x64
       exec:  delta-kusto.exe
       deltaKustoCurrentDb:  mac-current
       deltaKustoTargetDb:  mac-target
