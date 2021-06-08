@@ -54,8 +54,9 @@ namespace DeltaKustoLib.CommandModel
                 rootElement.GetUniqueDescendant<SyntaxElement>(
                     "Function Name",
                     e => e.NameInParent == "FunctionName"));
-            var functionDeclaration = rootElement.GetUniqueDescendant<FunctionDeclaration>(
-                "Function declaration");
+            var functionDeclaration = rootElement
+                .GetAtLeastOneDescendant<FunctionDeclaration>("Function declaration")
+                .First();
             var body = TrimFunctionSchemaBody(functionDeclaration.Body.ToString());
             var parameters = functionDeclaration
                 .Parameters

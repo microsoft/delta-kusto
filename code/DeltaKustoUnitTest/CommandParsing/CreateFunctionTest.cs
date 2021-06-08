@@ -119,6 +119,22 @@ namespace DeltaKustoUnitTest.CommandParsing
         }
 
         [Fact]
+        public void WithInnerFunction()
+        {
+            var name = "MyFunction12";
+            var body = "let limitVar = 100; let add42 = (a:int, b:int) {a + b}; add42(4,5)";
+            var command = ParseOneCommand(
+                $".create-or-alter function {name}() {{ {body} }}");
+
+            Assert.IsType<CreateFunctionCommand>(command);
+
+            var createFunctionCommand = (CreateFunctionCommand)command;
+
+            Assert.Equal(name, createFunctionCommand.FunctionName.Name);
+            Assert.Equal(body, createFunctionCommand.Body);
+        }
+
+        [Fact]
         public void AllScalarTypes()
         {
             var name = "AllScalarTypesFct";

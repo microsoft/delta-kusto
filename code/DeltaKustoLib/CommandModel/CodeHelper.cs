@@ -10,6 +10,24 @@ namespace DeltaKustoLib.CommandModel
 {
     internal static class CodeHelper
     {
+        public static IEnumerable<TElement> GetAtLeastOneDescendant<TElement>(
+            this SyntaxElement parent,
+            string descendantNameForExceptionMessage,
+            Func<TElement, bool>? predicate = null)
+            where TElement : SyntaxElement
+        {
+            var descendants = parent.GetDescendants<TElement>(predicate);
+
+            if (!descendants.Any())
+            {
+                throw new DeltaException(
+                    $"There should be at least one {descendantNameForExceptionMessage} but there are none",
+                    parent.Root.ToString(IncludeTrivia.All));
+            }
+
+            return descendants;
+        }
+
         public static TElement GetUniqueDescendant<TElement>(
             this SyntaxElement parent,
             string descendantNameForExceptionMessage,
