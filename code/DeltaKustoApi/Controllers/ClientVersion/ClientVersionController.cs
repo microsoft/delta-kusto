@@ -61,7 +61,7 @@ namespace DeltaKustoApi.Controllers.ClientVersion
             var newestVersions = await _clientVersionCacheProxy.GetNewestClientVersionsAsync(
                 fromClientVersion);
 
-            return newestVersions.LastOrDefault();
+            return newestVersions.FirstOrDefault();
         }
     }
 }

@@ -66,68 +66,74 @@ namespace DeltaKustoApi.Controllers.ClientVersion
             var allVersions = allReleases
                 .Select(r => ParseVersion(r.Name))
                 .Where(v => v != null)
-                .Select(v => v!);
-            var currentClientVersion = ParseVersion(fromClientVersionText);
-
-            if (currentClientVersion != null)
+                .Select(v => v!)
+                .OrderByDescending(v => v[0])
+                .ThenByDescending(v => v[1])
+                .ThenByDescending(v => v[2])
+                .ThenByDescending(v => v[3]);
+            var search = ParseVersion(fromClientVersionText);
+            //  Versions newer than current with same major
+            var newerVersionsSameMajor = allVersions
+                .Where(v => search[0] == null || v[0] == search[0]);
+            //  Versions newer than current with same major & minor
+            var newerVersionsSameMajorMinor = newerVersionsSameMajor
+                .Where(v => search[1] == null || v[1] == search[1]);
+            //  Versions newer than current with same major & minor & build
+            var newerVersionsSameMajorMinorBuild = newerVersionsSameMajorMinor
+                .Where(v => search[2] == null || v[2] == search[2]);
+            var allPossibleNewVersions = new[]
             {
-                //  Versions newer than current
-                var newerVersions = allVersions
-                    .Where(v => v > currentClientVersion)
-                    .OrderByDescending(v => v);
-                //  Versions newer than current with same major
-                var newerVersionsSameMajor = newerVersions
-                    .Where(v => v.Major == currentClientVersion.Major);
-                //  Versions newer than current with same major & minor
-                var newerVersionsSameMajorMinor = newerVersionsSameMajor
-                    .Where(v => v.Minor == currentClientVersion.Minor);
-                //  Versions newer than current with same major & minor & build
-                var newerVersionsSameMajorMinorBuild = newerVersionsSameMajorMinor
-                    .Where(v => v.Build == currentClientVersion.Build);
-                var allPossibleNewVersions = new[]
-                {
-                        newerVersionsSameMajor.FirstOrDefault(),
-                        newerVersionsSameMajorMinor.FirstOrDefault(),
-                        newerVersionsSameMajorMinorBuild.FirstOrDefault(),
-                        newerVersions.FirstOrDefault()
-                    };
-                var allActualVersions = allPossibleNewVersions
-                    .Where(v => v != null)
-                    .Distinct()
-                    //  After figuring out distincts, order them in increasing order
-                    .OrderBy(v => v)
-                    .Select(v => v!.ToString())
-                    .ToImmutableArray();
+                newerVersionsSameMajor.FirstOrDefault(),
+                newerVersionsSameMajorMinor.FirstOrDefault(),
+                newerVersionsSameMajorMinorBuild.FirstOrDefault()
+            };
+            var allActualVersions = allPossibleNewVersions
+                .Where(v => v != null)
+                .Select(v => v!)
+                .Select(v => new Version(v[0]!.Value, v[1]!.Value, v[2]!.Value, v[3]!.Value))
+                .Distinct()
+                //  After figuring out distincts, order them in increasing order
+                .OrderBy(v => v)
+                .Select(v => v!.ToString())
+                .ToImmutableArray();
 
-                return allActualVersions;
-            }
-            else
-            {
-                var latestVersions = new Version?[] { allVersions.Max() }
-                    .Where(v => v != null)
-                    .Select(v => v!.ToString())
-                    .ToImmutableArray();
-
-                return latestVersions;
-            }
+            return allActualVersions;
         }
 
-        private static Version? ParseVersion(string? versionText)
+        private static IImmutableList<int?> ParseVersion(string? versionText)
         {
             try
             {
                 if (versionText != null)
                 {
-                    var version = new Version(versionText);
+                    var numbers = versionText
+                        .Split('.')
+                        .Select(p => (int?)int.Parse(p))
+                        .ToImmutableArray();
 
-                    return version;
+                    if (numbers.Length == 4)
+                    {
+                        return numbers;
+                    }
+                    else if (numbers.Length < 4 && numbers.Length > 0)
+                    {
+                        var fullVersion = Enumerable
+                            .Range(0, 4)
+                            .Select(i => i < numbers.Length ? numbers[i] : null)
+                            .ToImmutableArray();
+
+                        return fullVersion;
+                    }
                 }
             }
             catch
             {
             }
 
-            return null;
+            return Enumerable
+                .Range(0, 4)
+                .Select(i => (int?)null)
+                .ToImmutableArray();
         }
 
         private async Task<IImmutableList<GitHubRelease>?> CacheOrFetchAllAvailableReleasesAsync()
