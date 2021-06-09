@@ -1,0 +1,17 @@
+﻿tokenProvider:
+  tokens:
+    myToken:
+      clusterUri:  to-be-overriden
+      token:  to-be-overriden
+
+jobs:
+  main:
+    current:
+      scripts:
+      - filePath:  source.kql
+    target:
+      adx:
+        clusterUri:  to-be-overriden
+        database:  to-be-overriden
+    action:
+      filePath:  outputs/success.kql

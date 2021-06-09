@@ -39,7 +39,7 @@ namespace DeltaKustoIntegration.TokenProvider
                 }
                 else if (parameterization.Tokens != null)
                 {
-                    throw new NotImplementedException();
+                    return new GivenTokenProvider(_tracer, parameterization.Tokens.Values);
                 }
                 else
                 {
