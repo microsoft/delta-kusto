@@ -127,6 +127,8 @@ token|string|Yes|N/A|Value of the bearer token
 
 Token object is used in order not to have to provide a principal secret.  Authentication can be done outside Delta Kusto with only the produced token passed to it.
 
+Token should be bearer token for the resource `clusterUri` (e.g. retrieved using the [AAD REST API](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/api/rest/request#examples)).
+
 ### Login object
 
 Name|Type|Required|Default|Value
