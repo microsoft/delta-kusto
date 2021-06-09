@@ -16,6 +16,7 @@ namespace DeltaKustoAdxIntegrationTest
     public class GivenTokenProviderTest : AdxIntegrationTestBase
     {
         public GivenTokenProviderTest()
+            //  We do not want the login provider as we are testing the given token provider
             : base(false)
         {
         }
