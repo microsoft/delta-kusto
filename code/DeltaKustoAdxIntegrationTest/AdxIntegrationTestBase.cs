@@ -22,11 +22,9 @@ namespace DeltaKustoAdxIntegrationTest
         private readonly Uri _clusterUri;
         private readonly string _currentDb;
         private readonly string _targetDb;
-        private readonly string _tenantId;
-        private readonly string _servicePrincipalId;
-        private readonly string _servicePrincipalSecret;
+        private readonly bool _overrideLoginTokenProvider;
 
-        protected AdxIntegrationTestBase()
+        protected AdxIntegrationTestBase(bool overrideLoginTokenProvider = true)
         {
             var clusterUri = Environment.GetEnvironmentVariable("deltaKustoClusterUri");
             var currentDb = Environment.GetEnvironmentVariable("deltaKustoCurrentDb");
@@ -60,12 +58,13 @@ namespace DeltaKustoAdxIntegrationTest
                 throw new ArgumentNullException(nameof(servicePrincipalSecret));
             }
 
+            _overrideLoginTokenProvider = overrideLoginTokenProvider;
             _clusterUri = new Uri(clusterUri);
             _currentDb = currentDb;
             _targetDb = targetDb;
-            _tenantId = tenantId;
-            _servicePrincipalId = servicePrincipalId;
-            _servicePrincipalSecret = servicePrincipalSecret;
+            TenantId = tenantId;
+            ServicePrincipalId = servicePrincipalId;
+            ServicePrincipalSecret = servicePrincipalSecret;
             CurrentDbOverrides = ImmutableArray<(string path, string value)>
                 .Empty
                 .Add(("jobs.main.current.adx.clusterUri", _clusterUri.ToString()))
@@ -79,6 +78,12 @@ namespace DeltaKustoAdxIntegrationTest
         protected IEnumerable<(string path, string value)> CurrentDbOverrides { get; }
 
         protected IEnumerable<(string path, string value)> TargetDbOverrides { get; }
+
+        protected string TenantId { get; }
+
+        protected string ServicePrincipalId { get; }
+
+        protected string ServicePrincipalSecret { get; }
 
         protected async Task TestAdxToFile(string statesFolderPath, string outputFolder)
         {
@@ -245,10 +250,13 @@ namespace DeltaKustoAdxIntegrationTest
                 ? overrides
                 : ImmutableList<(string path, string value)>.Empty;
 
-            adjustedOverrides = adjustedOverrides
-                .Append(("tokenProvider.login.tenantId", _tenantId))
-                .Append(("tokenProvider.login.clientId", _servicePrincipalId))
-                .Append(("tokenProvider.login.secret", _servicePrincipalSecret));
+            if (_overrideLoginTokenProvider)
+            {
+                adjustedOverrides = adjustedOverrides
+                    .Append(("tokenProvider.login.tenantId", TenantId))
+                    .Append(("tokenProvider.login.clientId", ServicePrincipalId))
+                    .Append(("tokenProvider.login.secret", ServicePrincipalSecret));
+            }
 
             return base.RunParametersAsync(parameterFilePath, adjustedOverrides);
         }
@@ -300,9 +308,9 @@ namespace DeltaKustoAdxIntegrationTest
                 {
                     Login = new ServicePrincipalLoginParameterization
                     {
-                        TenantId = _tenantId,
-                        ClientId = _servicePrincipalId,
-                        Secret = _servicePrincipalSecret
+                        TenantId = TenantId,
+                        ClientId = ServicePrincipalId,
+                        Secret = ServicePrincipalSecret
                     }
                 });
 
