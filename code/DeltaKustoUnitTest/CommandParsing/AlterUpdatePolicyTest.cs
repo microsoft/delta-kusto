@@ -35,6 +35,34 @@ namespace DeltaKustoUnitTest.CommandParsing
                 new UpdatePolicy { Source = "C", Query = "C" });
         }
 
+        [Fact]
+        public void PolicyWithFunkyTableName()
+        {
+            TestUpdatePolicy(
+                "B 1",
+                new UpdatePolicy
+                {
+                    IsEnabled = true,
+                    IsTransactional = true,
+                    Source = "A-1",
+                    Query = "A-1"
+                });
+        }
+
+        [Fact]
+        public void PolicyWithFunkyQuery()
+        {
+            TestUpdatePolicy(
+                "B 1",
+                new UpdatePolicy
+                {
+                    IsEnabled = true,
+                    IsTransactional = true,
+                    Source = "A-1",
+                    Query = "A-1 | where ['c.42'] == \\\"ABC\\\""
+                });
+        }
+
         private void TestUpdatePolicy(string tableName, params UpdatePolicy[] policies)
         {
             var table = new EntityName(tableName);
