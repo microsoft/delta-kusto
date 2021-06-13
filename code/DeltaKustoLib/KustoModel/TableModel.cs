@@ -17,6 +17,8 @@ namespace DeltaKustoLib.KustoModel
 
         public IImmutableList<MappingModel> Mappings { get; }
 
+        public AlterUpdatePolicyCommand? UpdatePolicy { get; }
+
         public QuotedText? Folder { get; }
 
         public QuotedText? DocString { get; }
@@ -25,6 +27,7 @@ namespace DeltaKustoLib.KustoModel
             EntityName tableName,
             IEnumerable<ColumnModel> columns,
             IEnumerable<MappingModel> mappings,
+            AlterUpdatePolicyCommand? updatePolicy,
             QuotedText? folder,
             QuotedText? docString)
         {
@@ -34,6 +37,7 @@ namespace DeltaKustoLib.KustoModel
                 .OrderBy(m => m.MappingName)
                 .ThenBy(m => m.MappingKind)
                 .ToImmutableArray();
+            UpdatePolicy = updatePolicy;
             Folder = folder;
             DocString = docString;
         }
@@ -65,7 +69,8 @@ namespace DeltaKustoLib.KustoModel
         internal static IImmutableList<TableModel> FromCommands(
             IImmutableList<CreateTableCommand> createTables,
             IImmutableList<AlterMergeTableColumnDocStringsCommand> alterMergeTableColumns,
-            IImmutableList<CreateMappingCommand> createMappings)
+            IImmutableList<CreateMappingCommand> createMappings,
+            IImmutableList<AlterUpdatePolicyCommand> updatePolicies)
         {
             var tableDocStringColumnMap = alterMergeTableColumns
                 .GroupBy(c => c.TableName)
@@ -73,6 +78,7 @@ namespace DeltaKustoLib.KustoModel
             var mappingModelMap = createMappings
                 .GroupBy(m => m.TableName)
                 .ToImmutableDictionary(g => g.Key, g => g.Select(c => c.ToModel()));
+            var updatePolicyMap = updatePolicies.ToImmutableDictionary(c => c.TableName);
             var tables = createTables
                 .Select(ct => new TableModel(
                     ct.TableName,
@@ -84,6 +90,9 @@ namespace DeltaKustoLib.KustoModel
                     mappingModelMap.ContainsKey(ct.TableName)
                     ? mappingModelMap[ct.TableName]
                     : ImmutableArray<MappingModel>.Empty,
+                    updatePolicyMap.ContainsKey(ct.TableName)
+                    ? updatePolicyMap[ct.TableName]
+                    : null,
                     ct.Folder,
                     ct.DocString))
                 .ToImmutableArray();
@@ -107,6 +116,7 @@ namespace DeltaKustoLib.KustoModel
                 new EntityName(schema.Name),
                 columns,
                 mappings,
+                null,
                 QuotedText.FromText(schema.Folder),
                 QuotedText.FromText(schema.DocString));
         }
@@ -176,6 +186,11 @@ namespace DeltaKustoLib.KustoModel
             {
                 yield return mapping.ToCreateMappingCommand(TableName);
             }
+
+            if (UpdatePolicy != null)
+            {
+                yield return UpdatePolicy;
+            }
         }
 
         private IEnumerable<CommandBase> ComputeDelta(TableModel targetModel)
@@ -200,6 +215,8 @@ namespace DeltaKustoLib.KustoModel
                 TableName,
                 Mappings,
                 targetModel.Mappings);
+            var updatePolicyCommands =
+                AlterUpdatePolicyCommand.ComputeDelta(UpdatePolicy, targetModel.UpdatePolicy);
 
             if (dropColumnNames.Any())
             {

@@ -26,7 +26,13 @@ namespace DeltaKustoLib.CommandModel
             IEnumerable<UpdatePolicy> updatePolicies)
         {
             TableName = tableName;
-            UpdatePolicies = updatePolicies.ToImmutableArray();
+            UpdatePolicies = updatePolicies
+                .OrderBy(p => p.Source)
+                .ThenBy(p => p.IsEnabled)
+                .ThenBy(p => p.Query)
+                .ThenBy(p => p.PropagateIngestionProperties)
+                .ThenBy(p => p.IsTransactional)
+                .ToImmutableArray();
         }
 
         internal static CommandBase FromCode(SyntaxElement rootElement)
@@ -88,10 +94,33 @@ namespace DeltaKustoLib.CommandModel
         }
 
         internal static IEnumerable<CommandBase> ComputeDelta(
-            IImmutableList<CreateFunctionCommand> currentFunctionCommands,
-            IImmutableList<CreateFunctionCommand> targetFunctionCommands)
+            AlterUpdatePolicyCommand? currentUpdatePolicyCommand,
+            AlterUpdatePolicyCommand? targetUpdatePolicyCommand)
         {
-            throw new NotImplementedException();
+            var hasCurrent = currentUpdatePolicyCommand != null
+                && !currentUpdatePolicyCommand.UpdatePolicies.Any();
+            var hasTarget = targetUpdatePolicyCommand != null
+                && !targetUpdatePolicyCommand.UpdatePolicies.Any();
+
+            if (hasCurrent && !hasTarget)
+            {   //  No target, we remove the current policy objects
+                yield return new AlterUpdatePolicyCommand(
+                    currentUpdatePolicyCommand!.TableName,
+                    new UpdatePolicy[0]);
+            }
+            else if (hasTarget)
+            {
+                if (!hasCurrent
+                    || currentUpdatePolicyCommand!
+                    .UpdatePolicies
+                    .SequenceEqual(targetUpdatePolicyCommand!.UpdatePolicies))
+                {   //  There is a target and either no current or the current is different
+                    yield return targetUpdatePolicyCommand!;
+                }
+            }
+            else
+            {   //  Both target and current are null:  no delta
+            }
         }
     }
 }
