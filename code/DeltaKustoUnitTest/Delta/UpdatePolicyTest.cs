@@ -52,5 +52,43 @@ namespace DeltaKustoUnitTest.Delta
 
             Assert.Empty(policies);
         }
+
+        [Fact]
+        public void Delta()
+        {
+            var currentCommands = Parse(
+                ".create table A (a:int)"
+                + "\n\n"
+                + ".alter table A policy update @'[{ \"Source\" : \"A\", \"Query\" : \"A\" }]");
+            var currentDatabase = DatabaseModel.FromCommands(currentCommands);
+            var targetCommands = Parse(
+                ".create table A (a:int)"
+                + "\n\n"
+                + ".alter table A policy update @'[{ \"Source\" : \"B\", \"Query\" : \"B\" }]");
+            var targetDatabase = DatabaseModel.FromCommands(targetCommands);
+            var delta = currentDatabase.ComputeDelta(targetDatabase);
+
+            Assert.Single(delta);
+            Assert.IsType<AlterUpdatePolicyCommand>(delta[0]);
+
+            var policyCommand = (AlterUpdatePolicyCommand)delta[0];
+
+            Assert.Equal(targetCommands[1], policyCommand);
+        }
+
+        [Fact]
+        public void Same()
+        {
+            var currentCommands = Parse(
+                ".create table A (a:int)"
+                + "\n\n"
+                + ".alter table A policy update @'[{ \"Source\" : \"A\", \"Query\" : \"A\" }]");
+            var currentDatabase = DatabaseModel.FromCommands(currentCommands);
+            var targetCommands = currentCommands;
+            var targetDatabase = DatabaseModel.FromCommands(targetCommands);
+            var delta = currentDatabase.ComputeDelta(targetDatabase);
+
+            Assert.Empty(delta);
+        }
     }
 }

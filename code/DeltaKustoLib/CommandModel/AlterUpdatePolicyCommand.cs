@@ -111,7 +111,7 @@ namespace DeltaKustoLib.CommandModel
             else if (hasTarget)
             {
                 if (!hasCurrent
-                    || currentUpdatePolicyCommand!
+                    || !currentUpdatePolicyCommand!
                     .UpdatePolicies
                     .SequenceEqual(targetUpdatePolicyCommand!.UpdatePolicies))
                 {   //  There is a target and either no current or the current is different
