@@ -42,5 +42,28 @@ namespace DeltaKustoFileIntegrationTest.Policies.Update
 
             Assert.Empty(outputCommands);
         }
+
+        [Fact]
+        public async Task OneToOneWithChange()
+        {
+            var paramPath = "Policies/Update/OneToOneWithChange/delta-params.yaml";
+            var parameters = await RunParametersAsync(paramPath);
+            var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
+            var outputCommands = await LoadScriptAsync(paramPath, outputPath);
+
+            Assert.Single(outputCommands);
+
+            var alterPolicyCommand = outputCommands
+                .Where(c => c is AlterUpdatePolicyCommand)
+                .Cast<AlterUpdatePolicyCommand>()
+                .FirstOrDefault();
+
+            Assert.NotNull(alterPolicyCommand);
+            Assert.Equal("my-table", alterPolicyCommand!.TableName.Name);
+
+            Assert.Single(alterPolicyCommand!.UpdatePolicies);
+            Assert.Equal("A", alterPolicyCommand!.UpdatePolicies[0].Source);
+            Assert.EndsWith("t", alterPolicyCommand!.UpdatePolicies[0].Query!);
+        }
     }
 }
