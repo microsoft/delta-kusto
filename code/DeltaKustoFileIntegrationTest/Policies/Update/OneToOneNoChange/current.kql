@@ -1,0 +1,3 @@
+﻿.create table ['my-table'] (a: real, b: int, c: string)
+
+.alter table ['my-table'] policy update @'[{ "Source" : "A", "Query" : "A | project x, y, z" }]'
