@@ -94,6 +94,11 @@ namespace DeltaKustoIntegration.Action
                 "tables/ingestion-mappings/create",
                 ct);
             await ProcessDeltaCommandsAsync(
+                commands.AlterUpdatePolicyCommands,
+                c => $"{c.TableName.Name}",
+                "tables/policies/update",
+                ct);
+            await ProcessDeltaCommandsAsync(
                 commands.CreateFunctionCommands,
                 c => c.FunctionName.Name,
                 "functions/create",

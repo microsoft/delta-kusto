@@ -52,6 +52,10 @@ namespace DeltaKustoIntegration.Action
                 .OrderBy(d => d.MappingName)
                 .ThenBy(d => d.MappingKind)
                 .ToImmutableArray();
+            AlterUpdatePolicyCommands = commands
+                .OfType<AlterUpdatePolicyCommand>()
+                .OrderBy(p => p.TableName)
+                .ToImmutableArray();
             CreateFunctionCommands = commands
                 .OfType<CreateFunctionCommand>()
                 .OrderBy(d => d.Folder.Text)
@@ -67,6 +71,7 @@ namespace DeltaKustoIntegration.Action
                 .Concat(CreateTableCommands)
                 .Concat(AlterMergeTableColumnDocStringsCommands)
                 .Concat(CreateMappingCommands)
+                .Concat(AlterUpdatePolicyCommands)
                 .Concat(CreateFunctionCommands);
 
             if (_allCommands.Count() != commands.Count())
@@ -108,6 +113,8 @@ namespace DeltaKustoIntegration.Action
         { get; }
 
         public IImmutableList<CreateMappingCommand> CreateMappingCommands { get; }
+        
+        public IImmutableList<AlterUpdatePolicyCommand> AlterUpdatePolicyCommands { get; }
 
         public IImmutableList<CreateFunctionCommand> CreateFunctionCommands { get; }
     }
