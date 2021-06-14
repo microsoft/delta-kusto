@@ -253,9 +253,13 @@ namespace DeltaKustoLib.KustoModel
                     columnName,
                     targetColumns[columnName].PrimitiveType);
             }
-            foreach (var mappingCommand in mappingCommands)
+            foreach (var command in mappingCommands)
             {
-                yield return mappingCommand;
+                yield return command;
+            }
+            foreach (var command in updatePolicyCommands)
+            {
+                yield return command;
             }
         }
 

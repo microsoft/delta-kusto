@@ -98,9 +98,9 @@ namespace DeltaKustoLib.CommandModel
             AlterUpdatePolicyCommand? targetUpdatePolicyCommand)
         {
             var hasCurrent = currentUpdatePolicyCommand != null
-                && !currentUpdatePolicyCommand.UpdatePolicies.Any();
+                && currentUpdatePolicyCommand.UpdatePolicies.Any();
             var hasTarget = targetUpdatePolicyCommand != null
-                && !targetUpdatePolicyCommand.UpdatePolicies.Any();
+                && targetUpdatePolicyCommand.UpdatePolicies.Any();
 
             if (hasCurrent && !hasTarget)
             {   //  No target, we remove the current policy objects
