@@ -1,6 +1,0 @@
-﻿jobs: 
-  main:
-    target:
-      jsonFilePath:  schema.json
-    action:
-      filePath:  outputs/help-samples.kql
