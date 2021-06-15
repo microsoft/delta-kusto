@@ -19,10 +19,10 @@ namespace DeltaKustoLib.CommandModel
             Text = text;
         }
 
-        public static QuotedText? FromText(string? text)
+        public static QuotedText FromText(string? text)
         {
             return string.IsNullOrWhiteSpace(text)
-                ? null
+                ? Empty
                 : new QuotedText(text);
         }
 

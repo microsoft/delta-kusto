@@ -16,16 +16,16 @@ namespace DeltaKustoLib.KustoModel
 
         public IImmutableList<MappingModel> Mappings { get; }
 
-        public QuotedText? Folder { get; }
+        public QuotedText Folder { get; }
 
-        public QuotedText? DocString { get; }
+        public QuotedText DocString { get; }
 
         private TableModel(
             EntityName tableName,
             IEnumerable<ColumnModel> columns,
             IEnumerable<MappingModel> mappings,
-            QuotedText? folder,
-            QuotedText? docString)
+            QuotedText folder,
+            QuotedText docString)
         {
             TableName = tableName;
             Columns = columns.ToImmutableArray();
@@ -83,8 +83,8 @@ namespace DeltaKustoLib.KustoModel
                     mappingModelMap.ContainsKey(ct.TableName)
                     ? mappingModelMap[ct.TableName]
                     : ImmutableArray<MappingModel>.Empty,
-                    ct.Folder,
-                    ct.DocString))
+                    ct.Folder == null ? QuotedText.Empty : ct.Folder,
+                    ct.DocString == null ? QuotedText.Empty : ct.DocString))
                 .ToImmutableArray();
 
             return tables;
