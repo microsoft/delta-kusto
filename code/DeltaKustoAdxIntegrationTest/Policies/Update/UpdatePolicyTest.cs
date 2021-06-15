@@ -8,11 +8,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace DeltaKustoAdxIntegrationTest.Mappings
+namespace DeltaKustoAdxIntegrationTest.Policies.Update
 {
-    public class MappingTest : AdxIntegrationTestBase
+    public class UpdatePolicyTest : AdxIntegrationTestBase
     {
-        private const string STATES_FOLDER_PATH = "Mappings";
+        private const string STATES_FOLDER_PATH = "Policies/Update";
 
         [Fact]
         public async Task AdxToFile()

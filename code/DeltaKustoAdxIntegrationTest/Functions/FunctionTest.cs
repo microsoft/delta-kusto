@@ -12,24 +12,24 @@ namespace DeltaKustoAdxIntegrationTest.Functions
 {
     public class FunctionTest : AdxIntegrationTestBase
     {
-        private const string STATES_FOLDER_PATH = "Functions/States";
+        private const string STATES_FOLDER_PATH = "Functions";
 
         [Fact]
         public async Task AdxToFile()
         {
-            await TestAdxToFile(STATES_FOLDER_PATH, "outputs/functions/adx-to-file/");
+            await TestAdxToFile(STATES_FOLDER_PATH);
         }
 
         [Fact]
         public async Task FileToAdx()
         {
-            await TestFileToAdx(STATES_FOLDER_PATH, "outputs/functions/file-to-adx/");
+            await TestFileToAdx(STATES_FOLDER_PATH);
         }
 
         [Fact]
         public async Task AdxToAdx()
         {
-            await TestAdxToAdx(STATES_FOLDER_PATH, "outputs/functions/adx-to-adx/");
+            await TestAdxToAdx(STATES_FOLDER_PATH);
         }
     }
 }

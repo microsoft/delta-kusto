@@ -1,0 +1,4 @@
+﻿//	Random comment
+
+.create table BIAzureTraceMsitScus (TIMESTAMP: datetime, PreciseTimeStamp: datetime, Level: int, ProviderGuid: string, ProviderName: string, KeywordName: string, TaskName: string, ChannelName: string, EventMessage: string, ActivityId: string, Message: string, SourceTableName: string, ExtraFields: string, Directory: string, TraceTimeStamp: datetime, InstanceId: string, TraceActivityId: string, RootActivityId: string, ActivityType: string, ClientActivityId: string, SourceId: string, EventText: string)
+

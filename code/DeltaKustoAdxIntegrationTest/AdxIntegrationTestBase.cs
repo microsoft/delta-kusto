@@ -85,15 +85,15 @@ namespace DeltaKustoAdxIntegrationTest
 
         protected string ServicePrincipalSecret { get; }
 
-        protected async Task TestAdxToFile(string statesFolderPath, string outputFolder)
+        protected async Task TestAdxToFile(string statesFolderPath)
         {
             await LoopThroughStateFilesAsync(
-                statesFolderPath,
+                Path.Combine(statesFolderPath, "States"),
                 async (fromFile, toFile) =>
                 {
                     await PrepareDbAsync(fromFile, true);
 
-                    var outputPath = outputFolder
+                    var outputPath = Path.Combine("outputs", statesFolderPath, "adx-to-file/")
                         + Path.GetFileNameWithoutExtension(fromFile)
                         + "_2_"
                         + Path.GetFileNameWithoutExtension(toFile)
@@ -122,15 +122,15 @@ namespace DeltaKustoAdxIntegrationTest
                 });
         }
 
-        protected async Task TestFileToAdx(string statesFolderPath, string outputFolder)
+        protected async Task TestFileToAdx(string statesFolderPath)
         {
             await LoopThroughStateFilesAsync(
-                statesFolderPath,
+                Path.Combine(statesFolderPath, "States"),
                 async (fromFile, toFile) =>
                 {
                     await PrepareDbAsync(toFile, false);
 
-                    var outputPath = outputFolder
+                    var outputPath = Path.Combine("outputs", statesFolderPath, "file-to-adx/")
                         + Path.GetFileNameWithoutExtension(fromFile)
                         + "_2_"
                         + Path.GetFileNameWithoutExtension(toFile)
@@ -163,17 +163,17 @@ namespace DeltaKustoAdxIntegrationTest
                 });
         }
 
-        protected async Task TestAdxToAdx(string statesFolderPath, string outputFolder)
+        protected async Task TestAdxToAdx(string statesFolderPath)
         {
             await LoopThroughStateFilesAsync(
-                statesFolderPath,
+                Path.Combine(statesFolderPath, "States"),
                 async (fromFile, toFile) =>
                 {
                     await Task.WhenAll(
                         PrepareDbAsync(fromFile, true),
                         PrepareDbAsync(toFile, false));
 
-                    var outputPath = outputFolder
+                    var outputPath = Path.Combine("outputs", statesFolderPath, "adx-to-adx/")
                         + Path.GetFileNameWithoutExtension(fromFile)
                         + "_2_"
                         + Path.GetFileNameWithoutExtension(toFile)

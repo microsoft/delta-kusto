@@ -129,6 +129,8 @@ namespace DeltaKustoLib.CommandModel
                         return CreateMappingCommand.FromCode(commandBlock);
                     case "DropTableIngestionMapping":
                         return DropMappingCommand.FromCode(commandBlock);
+                    case "AlterTablePolicyUpdate":
+                        return AlterUpdatePolicyCommand.FromCode(commandBlock);
 
                     default:
                         if (ignoreUnknownCommands)

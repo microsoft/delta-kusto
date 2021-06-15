@@ -85,6 +85,10 @@ namespace DeltaKustoIntegration.Action
                 "Create table ingestion mappings");
             ProcessDeltaCommands(
                 builder,
+                commands.AlterUpdatePolicyCommands,
+                "Alter Update Policies");
+            ProcessDeltaCommands(
+                builder,
                 commands.CreateFunctionCommands,
                 "Create functions");
 

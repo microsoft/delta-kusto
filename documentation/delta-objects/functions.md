@@ -14,7 +14,7 @@ A function consists of:
 
 ## Inputs
 
-The only input for functions are:
+Inputs for functions are:
 
 * [.create function](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/create-function)
 * [.create-or-alter function](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/create-alter-function)

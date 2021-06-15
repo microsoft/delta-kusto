@@ -12,7 +12,7 @@ An ingestion mapping consists of:
 
 ## Inputs
 
-The only input for ingestion mappings are:
+Inputs for ingestion mappings are:
 
 * [.create ingestion mapping](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/create-ingestion-mapping-command)
 * [.create-or-alter ingestion mapping](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/create-ingestion-mapping-command)

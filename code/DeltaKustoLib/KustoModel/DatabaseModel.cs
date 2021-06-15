@@ -16,7 +16,8 @@ namespace DeltaKustoLib.KustoModel
             typeof(CreateTableCommand),
             typeof(CreateTablesCommand),
             typeof(AlterMergeTableColumnDocStringsCommand),
-            typeof(CreateMappingCommand)
+            typeof(CreateMappingCommand),
+            typeof(AlterUpdatePolicyCommand)
         }.ToImmutableHashSet();
 
         private readonly IImmutableList<CreateFunctionCommand> _functionCommands;
@@ -61,6 +62,8 @@ namespace DeltaKustoLib.KustoModel
                     c => new AlterMergeTableColumnDocStringsCommand(a.TableName, new[] { c })));
             var createMappings = GetCommands<CreateMappingCommand>(commandTypeIndex)
                 .ToImmutableArray();
+            var updatePolicies = GetCommands<AlterUpdatePolicyCommand>(commandTypeIndex)
+                .ToImmutableArray();
 
             ValidateCommandTypes(commandTypes);
             ValidateDuplicates(createFunctions, f => f.FunctionName.Name);
@@ -71,11 +74,15 @@ namespace DeltaKustoLib.KustoModel
             ValidateDuplicates(
                 createMappings,
                 m => $"{m.TableName}_{m.MappingName}_{m.MappingKind}");
+            ValidateDuplicates(
+                updatePolicies,
+                m => m.TableName.Name);
 
             var tableModels = TableModel.FromCommands(
                 createTables,
                 alterMergeTableColumns,
-                createMappings);
+                createMappings,
+                updatePolicies);
 
             return new DatabaseModel(createFunctions, tableModels);
         }
