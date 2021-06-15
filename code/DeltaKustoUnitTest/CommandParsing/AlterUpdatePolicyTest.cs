@@ -59,7 +59,7 @@ namespace DeltaKustoUnitTest.CommandParsing
                     IsEnabled = true,
                     IsTransactional = true,
                     Source = "A-1",
-                    Query = "A-1 | where ['c.42'] == \\\"ABC\\\""
+                    Query = "['A-1'] | where ['c.42'] == \\\"ABC\\\""
                 });
         }
 

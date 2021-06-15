@@ -15,6 +15,11 @@ namespace DeltaKustoLib.CommandModel
     /// </summary>
     public class AlterUpdatePolicyCommand : CommandBase
     {
+        private static readonly JsonSerializerOptions _policiesSerializerOptions = new JsonSerializerOptions
+        {
+            WriteIndented = true
+        };
+
         public EntityName TableName { get; }
 
         public IImmutableList<UpdatePolicy> UpdatePolicies { get; }
@@ -86,9 +91,12 @@ namespace DeltaKustoLib.CommandModel
 
             builder.Append(".alter table ");
             builder.Append(TableName);
-            builder.Append(" policy update @'");
-            builder.Append(JsonSerializer.Serialize(UpdatePolicies));
-            builder.Append("'");
+            builder.Append(" policy update");
+            builder.AppendLine();
+            builder.Append("```");
+            builder.Append(JsonSerializer.Serialize(UpdatePolicies, _policiesSerializerOptions));
+            builder.AppendLine();
+            builder.Append("```");
 
             return builder.ToString();
         }
