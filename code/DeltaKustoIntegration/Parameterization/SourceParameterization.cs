@@ -10,8 +10,6 @@ namespace DeltaKustoIntegration.Parameterization
 
         public SourceFileParametrization[]? Scripts { get; set; } = null;
 
-        public string? JsonFilePath { get; set; } = null;
-
         internal void Validate()
         {
             if (Adx != null && Scripts != null)
@@ -19,20 +17,10 @@ namespace DeltaKustoIntegration.Parameterization
                 throw new DeltaException(
                     "Both 'adx' and 'scripts' can't both be populated in a source");
             }
-            if (Adx != null && JsonFilePath != null)
+            if (Adx == null && Scripts == null)
             {
                 throw new DeltaException(
-                    "Both 'adx' and 'jsonFilePath' can't both be populated in a source");
-            }
-            if (Scripts != null && JsonFilePath != null)
-            {
-                throw new DeltaException(
-                    "Both 'scripts' and 'jsonFilePath' can't both be populated in a source");
-            }
-            if (Adx == null && Scripts == null && JsonFilePath == null)
-            {
-                throw new DeltaException(
-                    "Either 'adx', 'scripts' or 'jsonFilePath' must be populated in a source");
+                    "Either 'adx' or 'scripts' must be populated in a source");
             }
             if (Adx != null)
             {
@@ -43,13 +31,6 @@ namespace DeltaKustoIntegration.Parameterization
                 catch (DeltaException ex)
                 {
                     throw new DeltaException("Issue with 'adx'", ex);
-                }
-            }
-            else if (JsonFilePath != null)
-            {
-                if (string.IsNullOrWhiteSpace(JsonFilePath))
-                {
-                    throw new DeltaException("'jsonFilePath' can't be empty");
                 }
             }
             else if (!Scripts!.Any())

@@ -1,5 +1,4 @@
-﻿using DeltaKustoLib.SchemaObjects;
-using Kusto.Language.Syntax;
+﻿using Kusto.Language.Syntax;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;

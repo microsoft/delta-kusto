@@ -1,5 +1,4 @@
 ﻿using DeltaKustoLib.CommandModel;
-using DeltaKustoLib.SchemaObjects;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -19,17 +18,17 @@ namespace DeltaKustoLib.KustoModel
 
         public AlterUpdatePolicyCommand? UpdatePolicy { get; }
 
-        public QuotedText? Folder { get; }
+        public QuotedText Folder { get; }
 
-        public QuotedText? DocString { get; }
+        public QuotedText DocString { get; }
 
         private TableModel(
             EntityName tableName,
             IEnumerable<ColumnModel> columns,
             IEnumerable<MappingModel> mappings,
             AlterUpdatePolicyCommand? updatePolicy,
-            QuotedText? folder,
-            QuotedText? docString)
+            QuotedText folder,
+            QuotedText docString)
         {
             TableName = tableName;
             Columns = columns.ToImmutableArray();
@@ -93,32 +92,11 @@ namespace DeltaKustoLib.KustoModel
                     updatePolicyMap.ContainsKey(ct.TableName)
                     ? updatePolicyMap[ct.TableName]
                     : null,
-                    ct.Folder,
-                    ct.DocString))
+                    ct.Folder == null ? QuotedText.Empty : ct.Folder,
+                    ct.DocString == null ? QuotedText.Empty : ct.DocString))
                 .ToImmutableArray();
 
             return tables;
-        }
-
-        internal static TableModel FromTableSchema(TableSchema schema)
-        {
-            var columns = schema
-                .OrderedColumns
-                .Select(c => FromColumnSchema(c));
-            var mappings = schema
-                .Mappings
-                .Select(m => new MappingModel(
-                    new QuotedText(m.Name),
-                    m.Kind,
-                    new QuotedText(m.MappingAsJson)));
-
-            return new TableModel(
-                new EntityName(schema.Name),
-                columns,
-                mappings,
-                null,
-                QuotedText.FromText(schema.Folder),
-                QuotedText.FromText(schema.DocString));
         }
 
         internal static IEnumerable<CommandBase> ComputeDelta(
@@ -261,14 +239,6 @@ namespace DeltaKustoLib.KustoModel
             {
                 yield return command;
             }
-        }
-
-        private static ColumnModel FromColumnSchema(ColumnSchema column)
-        {
-            return new ColumnModel(
-                new EntityName(column.Name),
-                column.CslType,
-                QuotedText.FromText(column.DocString));
         }
     }
 }
