@@ -1,5 +1,5 @@
-﻿using DeltaKustoLib.KustoModel;
-using DeltaKustoLib.SchemaObjects;
+﻿using DeltaKustoLib.CommandModel;
+using DeltaKustoLib.KustoModel;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,12 +10,12 @@ namespace DeltaKustoIntegration.Database
 {
     public class EmptyDatabaseProvider : IDatabaseProvider
     {
+        private static readonly DatabaseModel EMPTY_MODEL = DatabaseModel.FromCommands(new CommandBase[0]);
+
         Task<DatabaseModel> IDatabaseProvider.RetrieveDatabaseAsync(
             CancellationToken ct)
         {
-            var db = DatabaseModel.FromDatabaseSchema(new DatabaseSchema());
-
-            return Task.FromResult(db);
+            return Task.FromResult(EMPTY_MODEL);
         }
     }
 }

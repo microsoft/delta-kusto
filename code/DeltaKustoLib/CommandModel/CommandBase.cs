@@ -11,11 +11,15 @@ namespace DeltaKustoLib.CommandModel
 {
     public abstract class CommandBase : IEquatable<CommandBase>
     {
-        public static IImmutableList<CommandBase> FromScript(string script)
+        public static IImmutableList<CommandBase> FromScript(
+            string script,
+            bool ignoreUnknownCommands = false)
         {
             var scripts = SplitCommandScripts(script);
             var commands = scripts
-                .Select(s => ParseAndCreateCommand(s))
+                .Select(s => ParseAndCreateCommand(s, ignoreUnknownCommands))
+                .Where(c => c != null)
+                .Cast<CommandBase>()
                 .ToImmutableArray();
 
             return commands;
@@ -46,12 +50,14 @@ namespace DeltaKustoLib.CommandModel
         }
         #endregion
 
-        private static CommandBase ParseAndCreateCommand(string script)
+        private static CommandBase? ParseAndCreateCommand(
+            string script,
+            bool ignoreUnknownCommands)
         {
             try
             {
                 var code = KustoCode.Parse(script);
-                var command = CreateCommand(script, code);
+                var command = CreateCommand(script, code, ignoreUnknownCommands);
 
                 return command;
             }
@@ -64,7 +70,10 @@ namespace DeltaKustoLib.CommandModel
             }
         }
 
-        private static CommandBase CreateCommand(string script, KustoCode code)
+        private static CommandBase? CreateCommand(
+            string script,
+            KustoCode code,
+            bool ignoreUnknownCommands)
         {
             var commandBlock = code.Syntax as CommandBlock;
 
@@ -77,7 +86,7 @@ namespace DeltaKustoLib.CommandModel
 
             if (unknownCommand != null)
             {
-                return RerouteUnknownCommand(script, unknownCommand);
+                return RerouteUnknownCommand(script, unknownCommand, ignoreUnknownCommands);
             }
             else
             {
@@ -98,10 +107,12 @@ namespace DeltaKustoLib.CommandModel
                         //  We need to do this since the parsing is quite different with the with-node
                         //  between a .create and .create-merge (for unknown reasons)
                         return ParseAndCreateCommand(
-                            ReplaceFirstOccurence(script, "create-merge", "create"));
+                            ReplaceFirstOccurence(script, "create-merge", "create"),
+                            ignoreUnknownCommands);
                     case "AlterMergeTable":
                         return ParseAndCreateCommand(
-                            ReplaceFirstOccurence(script, "alter-merge", "create"));
+                            ReplaceFirstOccurence(script, "alter-merge", "create"),
+                            ignoreUnknownCommands);
                     case "CreateTables":
                         return CreateTablesCommand.FromCode(commandBlock);
                     case "DropTable":
@@ -120,15 +131,23 @@ namespace DeltaKustoLib.CommandModel
                         return DropMappingCommand.FromCode(commandBlock);
 
                     default:
-                        throw new DeltaException(
-                            $"Can't handle CommandKind '{customCommand.CommandKind}'");
+                        if (ignoreUnknownCommands)
+                        {
+                            return null;
+                        }
+                        else
+                        {
+                            throw new DeltaException(
+                                $"Can't handle CommandKind '{customCommand.CommandKind}'");
+                        }
                 }
             }
         }
 
-        private static CommandBase RerouteUnknownCommand(
+        private static CommandBase? RerouteUnknownCommand(
             string script,
-            UnknownCommand unknownCommand)
+            UnknownCommand unknownCommand,
+            bool ignoreUnknownCommands)
         {
             //  .create-or-alter table ingestion mapping isn't a recognized command by the parser
             if (unknownCommand.Parts.Count >= 4
@@ -139,7 +158,7 @@ namespace DeltaKustoLib.CommandModel
                 var cutPoint = unknownCommand.Parts[0].TextStart + unknownCommand.Parts[0].FullWidth;
                 var newScript = ".create " + script.Substring(cutPoint);
 
-                return ParseAndCreateCommand(newScript);
+                return ParseAndCreateCommand(newScript, ignoreUnknownCommands);
             }
             //  .create merge tables isn't a recognized command by the parser (for some reason)
             else if (unknownCommand.Parts.Count >= 2
@@ -149,7 +168,7 @@ namespace DeltaKustoLib.CommandModel
                 var cutPoint = unknownCommand.Parts[1].TextStart + unknownCommand.Parts[1].FullWidth;
                 var newScript = ".create tables " + script.Substring(cutPoint);
 
-                return ParseAndCreateCommand(newScript);
+                return ParseAndCreateCommand(newScript, ignoreUnknownCommands);
             }
             else
             {

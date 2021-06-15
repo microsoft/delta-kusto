@@ -1,7 +1,6 @@
 ﻿using DeltaKustoIntegration.TokenProvider;
 using DeltaKustoLib;
 using DeltaKustoLib.CommandModel;
-using DeltaKustoLib.SchemaObjects;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -38,6 +37,16 @@ namespace DeltaKustoIntegration.Kusto
                 {
                     table.Validate(json);
                 }
+            }
+
+            public TableOutput GetFirstTable()
+            {
+                if (Tables == null || !Tables.Any())
+                {
+                    throw new DeltaException("No table were returned from API call to Kusto");
+                }
+
+                return Tables.First();
             }
 
             public T GetSingleElement<T>()
@@ -323,24 +332,14 @@ namespace DeltaKustoIntegration.Kusto
             _httpClientFactory = httpClientFactory;
         }
 
-        /// <summary>
-        /// Possible approach:
-        /// .show functions to grab all functions (including folder / doc-string) ; Parameters column need to be parsed
-        /// .show tables details to grab table name, folder, doc-string and a few policies(e.g.update policies aren’t in)
-        /// .show database schema details to grab table schemas
-        /// .show ingestion mappings to grab all the ingestion mappings
-        /// Different commands to get database / table level policies not present in .show tables details, e.g. .show table * policy update
-        /// </summary>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        async Task<DatabaseSchema> IKustoManagementGateway.GetDatabaseSchemaAsync(
+        async Task<IImmutableList<CommandBase>> IKustoManagementGateway.ReverseEngineerDatabase(
             CancellationToken ct)
         {
             var tracerTimer = new TracerTimer(_tracer);
 
             _tracer.WriteLine(true, "Fetch schema commands start");
 
-            var schemaOutputTask = ExecuteCommandAsync(".show database schema as json", ct);
+            var schemaOutputTask = ExecuteCommandAsync(".show database schema as csl script", ct);
             var mappingsOutputTask = ExecuteCommandAsync(
                 ".show ingestion mappings | where Database==current_database()",
                 ct);
@@ -350,20 +349,15 @@ namespace DeltaKustoIntegration.Kusto
             _tracer.WriteLine(true, "Fetch schema commands end");
             tracerTimer.WriteTime(true, "Fetch schema commands time");
 
-            var schemaText = schemaOutput.GetSingleElement<string>();
-            var rootSchema = RootSchema.FromJson(schemaText);
+            var schemaCommandText =
+                schemaOutput.GetFirstTable().ProjectRows<string>("DatabaseSchemaScript");
+            var schemaCommands = CommandBase.FromScript(string.Join("\n\n", schemaCommandText), true);
+            var mappingCommands = ExtractMappingCommands(mappingsOutput.GetFirstTable());
+            var allCommands = schemaCommands
+                .Concat(mappingCommands)
+                .ToImmutableArray();
 
-            if (rootSchema.Databases.Count != 1)
-            {
-                throw new InvalidOperationException(
-                    $"Schema doesn't contain a database:  '{schemaText}'");
-            }
-
-            var databaseSchema = rootSchema.Databases.First().Value;
-
-            InsertMappings(databaseSchema, mappingsOutput.Tables![0]);
-
-            return databaseSchema;
+            return allCommands;
         }
 
         async Task IKustoManagementGateway.ExecuteCommandsAsync(
@@ -416,7 +410,7 @@ namespace DeltaKustoIntegration.Kusto
             return text.Replace("\n", "\\n").Replace("\r", "\\r");
         }
 
-        private void InsertMappings(DatabaseSchema databaseSchema, TableOutput mappingTable)
+        private IImmutableList<CommandBase> ExtractMappingCommands(TableOutput mappingTable)
         {
             IEnumerable<(string name, string kind, string mapping, string table)> mappingRows =
                 mappingTable.ProjectRows<string, string, string, string>(
@@ -424,26 +418,16 @@ namespace DeltaKustoIntegration.Kusto
                     "Kind",
                     "Mapping",
                     "Table");
-            Func<string, string, string, MappingSchema> mappingFactory = (name, kind, mapping) =>
-            {
-                return new MappingSchema
-                {
-                    Name = name,
-                    Kind = kind,
-                    MappingAsJson = mapping
-                };
-            };
-            var mappingGroups = mappingRows
-                .GroupBy(r => r.table, r => mappingFactory(r.name, r.kind, r.mapping));
+            var commands = mappingRows
+                .Select(t => new CreateMappingCommand(
+                    new EntityName(t.table),
+                    t.kind,
+                    new QuotedText(t.name),
+                    new QuotedText(t.mapping)))
+                .Cast<CommandBase>()
+                .ToImmutableArray();
 
-            foreach (var group in mappingGroups)
-            {
-                if (!databaseSchema.Tables.ContainsKey(group.Key))
-                {
-                    throw new DeltaException($"Can't find table for ingestion mapping:  '{group.Key}'");
-                }
-                databaseSchema.Tables[group.Key].Mappings = group.ToArray();
-            }
+            return commands;
         }
 
         private async Task<ApiOutput> ExecuteCommandAsync(

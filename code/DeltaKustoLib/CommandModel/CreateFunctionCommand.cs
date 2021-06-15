@@ -1,5 +1,4 @@
-﻿using DeltaKustoLib.SchemaObjects;
-using Kusto.Language.Syntax;
+﻿using Kusto.Language.Syntax;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -72,21 +71,6 @@ namespace DeltaKustoLib.CommandModel
                 body,
                 folder,
                 docString);
-        }
-
-        internal static CreateFunctionCommand FromFunctionSchema(FunctionSchema schema)
-        {
-            var parameters = schema
-                .InputParameters
-                .Select(i => FromParameterSchema(i));
-            var body = TrimFunctionSchemaBody(schema.Body);
-
-            return new CreateFunctionCommand(
-                new EntityName(schema.Name),
-                parameters,
-                body,
-                QuotedText.FromText(schema.Folder) ?? QuotedText.Empty,
-                QuotedText.FromText(schema.DocString) ?? QuotedText.Empty);
         }
 
         public override bool Equals(CommandBase? other)
@@ -274,20 +258,6 @@ namespace DeltaKustoLib.CommandModel
                 .Trim();
 
             return actualBody;
-        }
-
-        private static TypedParameterModel FromParameterSchema(InputParameterSchema input)
-        {
-            return input.CslType == null
-                ? new TypedParameterModel(
-                    new EntityName(input.Name),
-                    new TableParameterModel(
-                        input.Columns.Select(
-                            c => new TableColumn(new EntityName(c.Name), c.CslType))))
-                : new TypedParameterModel(
-                    new EntityName(input.Name),
-                    input.CslType,
-                    input.CslDefaultValue != null ? "=" + input.CslDefaultValue : null);
         }
     }
 }
