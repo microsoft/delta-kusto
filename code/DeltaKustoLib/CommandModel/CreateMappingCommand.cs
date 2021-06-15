@@ -1,5 +1,4 @@
 ﻿using DeltaKustoLib.KustoModel;
-using DeltaKustoLib.SchemaObjects;
 using Kusto.Language.Syntax;
 using System;
 using System.Collections.Generic;
@@ -67,11 +66,6 @@ namespace DeltaKustoLib.CommandModel
                 QuotedText.FromText(mappingFormat)!);
 
             return command;
-        }
-
-        internal static CreateFunctionCommand FromFunctionSchema(FunctionSchema schema)
-        {
-            throw new NotImplementedException();
         }
 
         public override bool Equals(CommandBase? other)

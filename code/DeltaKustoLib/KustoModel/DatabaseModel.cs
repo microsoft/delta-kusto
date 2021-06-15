@@ -1,5 +1,4 @@
 ﻿using DeltaKustoLib.CommandModel;
-using DeltaKustoLib.SchemaObjects;
 using Kusto.Language.Syntax;
 using System;
 using System.Collections.Generic;
@@ -79,20 +78,6 @@ namespace DeltaKustoLib.KustoModel
                 createMappings);
 
             return new DatabaseModel(createFunctions, tableModels);
-        }
-
-        public static DatabaseModel FromDatabaseSchema(DatabaseSchema databaseSchema)
-        {
-            var functions = databaseSchema
-                .Functions
-                .Values
-                .Select(s => CreateFunctionCommand.FromFunctionSchema(s));
-            var tables = databaseSchema
-                .Tables
-                .Values
-                .Select(s => TableModel.FromTableSchema(s));
-
-            return new DatabaseModel(functions, tables);
         }
 
         public IImmutableList<CommandBase> ComputeDelta(DatabaseModel targetModel)

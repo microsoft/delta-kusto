@@ -27,11 +27,11 @@ namespace DeltaKustoIntegration.Database
         {
             _tracer.WriteLine(true, "Retrieve Kusto DB start");
 
-            var databaseSchema = await _kustoManagementGateway.GetDatabaseSchemaAsync(ct);
+            var commands = await _kustoManagementGateway.ReverseEngineerDatabase(ct);
 
             _tracer.WriteLine(true, "Retrieve Kusto DB end");
 
-            return DatabaseModel.FromDatabaseSchema(databaseSchema);
+            return DatabaseModel.FromCommands(commands);
         }
     }
 }
