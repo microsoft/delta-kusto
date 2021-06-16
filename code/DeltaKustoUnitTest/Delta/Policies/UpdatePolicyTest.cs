@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Text;
 using Xunit;
 
-namespace DeltaKustoUnitTest.Delta
+namespace DeltaKustoUnitTest.Delta.Policies
 {
     public class UpdatePolicyTest : ParsingTestBase
     {
