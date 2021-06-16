@@ -131,6 +131,9 @@ namespace DeltaKustoLib.CommandModel
                         return DropMappingCommand.FromCode(commandBlock);
                     case "AlterTablePolicyUpdate":
                         return AlterUpdatePolicyCommand.FromCode(commandBlock);
+                    case "AlterDatabasePolicyCaching":
+                    case "AlterTablePolicyCaching":
+                        return AlterCachingPolicyCommand.FromCode(commandBlock);
 
                     default:
                         if (ignoreUnknownCommands)
