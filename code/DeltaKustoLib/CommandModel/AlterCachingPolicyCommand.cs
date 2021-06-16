@@ -103,11 +103,13 @@ namespace DeltaKustoLib.CommandModel
 
             if (hasCurrent && !hasTarget)
             {   //  No target, we remove the current policy
-                throw new NotImplementedException();
+                yield return new DeleteCachingPolicyCommand(
+                    currentCommand!.EntityType,
+                    currentCommand!.EntityName);
             }
             else if (hasTarget)
             {
-                if (!hasCurrent || currentCommand!.Equals(targetCommand!))
+                if (!hasCurrent || !currentCommand!.Equals(targetCommand!))
                 {   //  There is a target and either no current or the current is different
                     yield return targetCommand!;
                 }
