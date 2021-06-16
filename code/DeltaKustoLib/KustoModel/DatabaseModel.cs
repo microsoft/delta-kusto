@@ -17,7 +17,8 @@ namespace DeltaKustoLib.KustoModel
             typeof(CreateTablesCommand),
             typeof(AlterMergeTableColumnDocStringsCommand),
             typeof(CreateMappingCommand),
-            typeof(AlterUpdatePolicyCommand)
+            typeof(AlterUpdatePolicyCommand),
+            typeof(AlterCachingPolicyCommand)
         }.ToImmutableHashSet();
 
         private readonly IImmutableList<CreateFunctionCommand> _functionCommands;
@@ -64,6 +65,12 @@ namespace DeltaKustoLib.KustoModel
                 .ToImmutableArray();
             var updatePolicies = GetCommands<AlterUpdatePolicyCommand>(commandTypeIndex)
                 .ToImmutableArray();
+            var cachingPolicies = GetCommands<AlterCachingPolicyCommand>(commandTypeIndex)
+                .ToImmutableArray();
+            var tableCachingPolicies = cachingPolicies
+                .Where(p => p.EntityType == EntityType.Table);
+            var dbCachingPolicies = cachingPolicies
+                .Where(p => p.EntityType == EntityType.Database);
 
             ValidateCommandTypes(commandTypes);
             ValidateDuplicates(createFunctions, f => f.FunctionName.Name);
@@ -74,15 +81,16 @@ namespace DeltaKustoLib.KustoModel
             ValidateDuplicates(
                 createMappings,
                 m => $"{m.TableName}_{m.MappingName}_{m.MappingKind}");
-            ValidateDuplicates(
-                updatePolicies,
-                m => m.TableName.Name);
+            ValidateDuplicates(updatePolicies, m => m.TableName.Name);
+            ValidateDuplicates(tableCachingPolicies, m => m.EntityName.Name);
+            ValidateDuplicates(dbCachingPolicies, m => "Database caching policy");
 
             var tableModels = TableModel.FromCommands(
                 createTables,
                 alterMergeTableColumns,
                 createMappings,
-                updatePolicies);
+                updatePolicies,
+                tableCachingPolicies);
 
             return new DatabaseModel(createFunctions, tableModels);
         }

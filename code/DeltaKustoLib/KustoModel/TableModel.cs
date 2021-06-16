@@ -18,6 +18,8 @@ namespace DeltaKustoLib.KustoModel
 
         public AlterUpdatePolicyCommand? UpdatePolicy { get; }
 
+        public AlterCachingPolicyCommand? CachingPolicy { get; }
+
         public QuotedText Folder { get; }
 
         public QuotedText DocString { get; }
@@ -27,6 +29,7 @@ namespace DeltaKustoLib.KustoModel
             IEnumerable<ColumnModel> columns,
             IEnumerable<MappingModel> mappings,
             AlterUpdatePolicyCommand? updatePolicy,
+            AlterCachingPolicyCommand? cachingPolicy,
             QuotedText folder,
             QuotedText docString)
         {
@@ -37,6 +40,7 @@ namespace DeltaKustoLib.KustoModel
                 .ThenBy(m => m.MappingKind)
                 .ToImmutableArray();
             UpdatePolicy = updatePolicy;
+            CachingPolicy = cachingPolicy;
             Folder = folder;
             DocString = docString;
         }
@@ -66,10 +70,11 @@ namespace DeltaKustoLib.KustoModel
         #endregion
 
         internal static IImmutableList<TableModel> FromCommands(
-            IImmutableList<CreateTableCommand> createTables,
-            IImmutableList<AlterMergeTableColumnDocStringsCommand> alterMergeTableColumns,
-            IImmutableList<CreateMappingCommand> createMappings,
-            IImmutableList<AlterUpdatePolicyCommand> updatePolicies)
+            IEnumerable<CreateTableCommand> createTables,
+            IEnumerable<AlterMergeTableColumnDocStringsCommand> alterMergeTableColumns,
+            IEnumerable<CreateMappingCommand> createMappings,
+            IEnumerable<AlterUpdatePolicyCommand> updatePolicies,
+            IEnumerable<AlterCachingPolicyCommand> cachingPolicies)
         {
             var tableDocStringColumnMap = alterMergeTableColumns
                 .GroupBy(c => c.TableName)
@@ -78,6 +83,7 @@ namespace DeltaKustoLib.KustoModel
                 .GroupBy(m => m.TableName)
                 .ToImmutableDictionary(g => g.Key, g => g.Select(c => c.ToModel()));
             var updatePolicyMap = updatePolicies.ToImmutableDictionary(c => c.TableName);
+            var cachingPolicyMap = cachingPolicies.ToImmutableDictionary(c => c.EntityName);
             var tables = createTables
                 .Select(ct => new TableModel(
                     ct.TableName,
@@ -91,6 +97,9 @@ namespace DeltaKustoLib.KustoModel
                     : ImmutableArray<MappingModel>.Empty,
                     updatePolicyMap.ContainsKey(ct.TableName)
                     ? updatePolicyMap[ct.TableName]
+                    : null,
+                    cachingPolicyMap.ContainsKey(ct.TableName)
+                    ? cachingPolicyMap[ct.TableName]
                     : null,
                     ct.Folder == null ? QuotedText.Empty : ct.Folder,
                     ct.DocString == null ? QuotedText.Empty : ct.DocString))
@@ -169,6 +178,10 @@ namespace DeltaKustoLib.KustoModel
             {
                 yield return UpdatePolicy;
             }
+            if (CachingPolicy != null)
+            {
+                yield return CachingPolicy;
+            }
         }
 
         private IEnumerable<CommandBase> ComputeDelta(TableModel targetModel)
@@ -195,6 +208,8 @@ namespace DeltaKustoLib.KustoModel
                 targetModel.Mappings);
             var updatePolicyCommands =
                 AlterUpdatePolicyCommand.ComputeDelta(UpdatePolicy, targetModel.UpdatePolicy);
+            var cachingPolicyCommands =
+                AlterCachingPolicyCommand.ComputeDelta(CachingPolicy, targetModel.CachingPolicy);
 
             if (dropColumnNames.Any())
             {
@@ -231,7 +246,9 @@ namespace DeltaKustoLib.KustoModel
                     columnName,
                     targetColumns[columnName].PrimitiveType);
             }
-            foreach (var command in mappingCommands)
+            foreach (var command in mappingCommands
+                .Concat(updatePolicyCommands)
+                .Concat(cachingPolicyCommands))
             {
                 yield return command;
             }

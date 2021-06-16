@@ -93,5 +93,28 @@ namespace DeltaKustoLib.CommandModel
 
             return builder.ToString();
         }
+
+        internal static IEnumerable<CommandBase> ComputeDelta(
+            AlterCachingPolicyCommand? currentCommand,
+            AlterCachingPolicyCommand? targetCommand)
+        {
+            var hasCurrent = currentCommand != null;
+            var hasTarget = targetCommand != null;
+
+            if (hasCurrent && !hasTarget)
+            {   //  No target, we remove the current policy
+                throw new NotImplementedException();
+            }
+            else if (hasTarget)
+            {
+                if (!hasCurrent || currentCommand!.Equals(targetCommand!))
+                {   //  There is a target and either no current or the current is different
+                    yield return targetCommand!;
+                }
+            }
+            else
+            {   //  Both target and current are null:  no delta
+            }
+        }
     }
 }
