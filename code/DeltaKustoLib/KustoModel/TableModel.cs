@@ -252,10 +252,6 @@ namespace DeltaKustoLib.KustoModel
             {
                 yield return command;
             }
-            foreach (var command in updatePolicyCommands)
-            {
-                yield return command;
-            }
         }
     }
 }
