@@ -29,6 +29,10 @@ namespace DeltaKustoIntegration.Action
                 .OrderBy(d => d.MappingName)
                 .ThenBy(d => d.MappingKind)
                 .ToImmutableArray();
+            DeleteCachingPolicyCommands = commands
+                .OfType<DeleteCachingPolicyCommand>()
+                .OrderBy(d => $"{(d.EntityType == EntityType.Database ? 1 : 2)}{d.EntityName}")
+                .ToImmutableArray();
             DropFunctionCommands = commands
                 .OfType<DropFunctionCommand>()
                 .OrderBy(d => d.FunctionName)
@@ -56,6 +60,10 @@ namespace DeltaKustoIntegration.Action
                 .OfType<AlterUpdatePolicyCommand>()
                 .OrderBy(p => p.TableName)
                 .ToImmutableArray();
+            AlterCachingPolicyCommands = commands
+                .OfType<AlterCachingPolicyCommand>()
+                .OrderBy(d => $"{(d.EntityType == EntityType.Database ? 1 : 2)}{d.EntityName}")
+                .ToImmutableArray();
             CreateFunctionCommands = commands
                 .OfType<CreateFunctionCommand>()
                 .OrderBy(d => d.Folder.Text)
@@ -67,11 +75,13 @@ namespace DeltaKustoIntegration.Action
                 .Concat(AlterColumnTypeCommands);
             _allCommands = AllDataLossCommands
                 .Concat(DropMappingCommands)
+                .Concat(DeleteCachingPolicyCommands)
                 .Concat(DropFunctionCommands)
                 .Concat(CreateTableCommands)
                 .Concat(AlterMergeTableColumnDocStringsCommands)
                 .Concat(CreateMappingCommands)
                 .Concat(AlterUpdatePolicyCommands)
+                .Concat(AlterCachingPolicyCommands)
                 .Concat(CreateFunctionCommands);
 
             if (_allCommands.Count() != commands.Count())
@@ -102,6 +112,8 @@ namespace DeltaKustoIntegration.Action
 
         public IImmutableList<DropMappingCommand> DropMappingCommands { get; }
 
+        public IImmutableList<DeleteCachingPolicyCommand> DeleteCachingPolicyCommands { get; }
+
         public IImmutableList<DropFunctionCommand> DropFunctionCommands { get; }
 
         public IImmutableList<CreateTableCommand> CreateTableCommands { get; }
@@ -113,8 +125,10 @@ namespace DeltaKustoIntegration.Action
         { get; }
 
         public IImmutableList<CreateMappingCommand> CreateMappingCommands { get; }
-        
+
         public IImmutableList<AlterUpdatePolicyCommand> AlterUpdatePolicyCommands { get; }
+
+        public IImmutableList<AlterCachingPolicyCommand> AlterCachingPolicyCommands { get; }
 
         public IImmutableList<CreateFunctionCommand> CreateFunctionCommands { get; }
     }

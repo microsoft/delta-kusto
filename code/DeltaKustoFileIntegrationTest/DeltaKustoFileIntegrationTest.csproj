@@ -106,6 +106,42 @@
     <None Update="JsonSchema\HelpSamples\schema.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Policies\Caching\Table\OneToNone\current.kql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Policies\Caching\Table\OneToNone\delta-params.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Policies\Caching\Table\OneToNone\target.kql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Policies\Caching\Table\NoneToOne\current.kql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Policies\Caching\Table\NoneToOne\delta-params.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Policies\Caching\Table\NoneToOne\target.kql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Policies\Caching\Table\OneToOneNoChange\current.kql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Policies\Caching\Table\OneToOneNoChange\delta-params.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Policies\Caching\Table\OneToOneNoChange\target.kql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Policies\Caching\Table\OneToOneWithChange\current.kql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Policies\Caching\Table\OneToOneWithChange\delta-params.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Policies\Caching\Table\OneToOneWithChange\target.kql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Policies\Update\OneToOneWithChange\current.kql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

@@ -55,6 +55,10 @@ namespace DeltaKustoIntegration.Action
                 "Drop Table Ingestion Mappings");
             ProcessDeltaCommands(
                 builder,
+                commands.DeleteCachingPolicyCommands,
+                "Delete Caching Policies");
+            ProcessDeltaCommands(
+                builder,
                 commands.DropFunctionCommands,
                 "Drop functions");
             ProcessDeltaCommands(
@@ -87,6 +91,10 @@ namespace DeltaKustoIntegration.Action
                 builder,
                 commands.AlterUpdatePolicyCommands,
                 "Alter Update Policies");
+            ProcessDeltaCommands(
+                builder,
+                commands.AlterCachingPolicyCommands,
+                "Alter Caching Policies");
             ProcessDeltaCommands(
                 builder,
                 commands.CreateFunctionCommands,

@@ -58,6 +58,11 @@ namespace DeltaKustoIntegration.Action
                 "tables/ingestion-mappings/drop",
                 ct);
             await ProcessDeltaCommandsAsync(
+                commands.DeleteCachingPolicyCommands,
+                c => $"{c.EntityName.Name}",
+                "tables/policies/caching/delete",
+                ct);
+            await ProcessDeltaCommandsAsync(
                 commands.DropFunctionCommands,
                 c => c.FunctionName.Name,
                 "functions/drop",
@@ -80,7 +85,7 @@ namespace DeltaKustoIntegration.Action
                 await ProcessDeltaCommandsAsync(
                     commands.CreateTableCommands,
                     c => c.TableName.Name,
-                    "tables/create",
+                    "tables",
                     ct);
             }
             await ProcessDeltaCommandsAsync(
@@ -91,7 +96,7 @@ namespace DeltaKustoIntegration.Action
             await ProcessDeltaCommandsAsync(
                 commands.CreateMappingCommands,
                 c => $"{c.TableName.Name}-{c.MappingName}-{c.MappingKind}",
-                "tables/ingestion-mappings/create",
+                "tables/ingestion-mappings",
                 ct);
             await ProcessDeltaCommandsAsync(
                 commands.AlterUpdatePolicyCommands,
@@ -99,9 +104,14 @@ namespace DeltaKustoIntegration.Action
                 "tables/policies/update",
                 ct);
             await ProcessDeltaCommandsAsync(
+                commands.AlterCachingPolicyCommands,
+                c => $"{c.EntityName.Name}",
+                "tables/policies/caching",
+                ct);
+            await ProcessDeltaCommandsAsync(
                 commands.CreateFunctionCommands,
                 c => c.FunctionName.Name,
-                "functions/create",
+                "functions",
                 ct);
         }
 
