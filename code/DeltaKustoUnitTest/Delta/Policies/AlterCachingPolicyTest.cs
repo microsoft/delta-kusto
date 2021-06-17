@@ -3,6 +3,7 @@ using DeltaKustoLib.CommandModel;
 using DeltaKustoLib.KustoModel;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Xunit;
 
@@ -13,87 +14,102 @@ namespace DeltaKustoUnitTest.Delta.Policies
         [Fact]
         public void TableFromEmptyToSomething()
         {
-            var currentCommands = Parse(".create table A (a:int)");
-            var currentDatabase = DatabaseModel.FromCommands(currentCommands);
-            var targetCommands = Parse(
-                ".create table A (a:int)"
-                + "\n\n"
-                + ".alter table A policy caching hot=3d");
-            var targetDatabase = DatabaseModel.FromCommands(targetCommands);
-            var delta = currentDatabase.ComputeDelta(targetDatabase);
-
-            Assert.Single(delta);
-            Assert.IsType<AlterCachingPolicyCommand>(delta[0]);
-
-            var cachingCommand = (AlterCachingPolicyCommand)delta[0];
-
-            Assert.Equal(EntityType.Table, cachingCommand.EntityType);
-            Assert.Equal("A", cachingCommand.EntityName.Name);
-            Assert.Equal("3d", cachingCommand.DurationText);
+            TestCaching(
+                null,
+                "3d",
+                c => Assert.Equal("3d", c.DurationText),
+                null);
         }
 
         [Fact]
         public void TableFromSomethingToEmpty()
         {
-            var currentCommands = Parse(
-                ".create table A (a:int)"
-                + "\n\n"
-                + ".alter table A policy caching hot=3d");
-            var currentDatabase = DatabaseModel.FromCommands(currentCommands);
-            var targetCommands = Parse(".create table A (a:int)"); 
-            var targetDatabase = DatabaseModel.FromCommands(targetCommands);
-            var delta = currentDatabase.ComputeDelta(targetDatabase);
-
-            Assert.Single(delta);
-            Assert.IsType<DeleteCachingPolicyCommand>(delta[0]);
-
-            var cachingCommand = (DeleteCachingPolicyCommand)delta[0];
-
-            Assert.Equal(EntityType.Table, cachingCommand.EntityType);
-            Assert.Equal("A", cachingCommand.EntityName.Name);
+            TestCaching(
+                "3d",
+                null,
+                null,
+                c => { });
         }
 
         [Fact]
         public void TableDelta()
         {
-            var currentCommands = Parse(
-                ".create table A (a:int)"
-                + "\n\n"
-                + ".alter table A policy caching hot=3d");
-            var currentDatabase = DatabaseModel.FromCommands(currentCommands);
-            var targetCommands = Parse(
-                ".create table A (a:int)"
-                + "\n\n"
-                + ".alter table A policy caching hot=40h");
-            var targetDatabase = DatabaseModel.FromCommands(targetCommands);
-            var delta = currentDatabase.ComputeDelta(targetDatabase);
-
-            Assert.Single(delta);
-            Assert.IsType<AlterCachingPolicyCommand>(delta[0]);
-
-            var cachingCommand = (AlterCachingPolicyCommand)delta[0];
-
-            Assert.Equal(EntityType.Table, cachingCommand.EntityType);
-            Assert.Equal("A", cachingCommand.EntityName.Name);
-            Assert.Equal("40h", cachingCommand.DurationText);
+            TestCaching(
+                "3d",
+                "40h",
+                c => Assert.Equal("40h", c.DurationText),
+                null);
         }
 
         [Fact]
         public void TableSame()
         {
-            var currentCommands = Parse(
-                ".create table A (a:int)"
-                + "\n\n"
-                + ".alter table A policy caching hot=3d");
-            var currentDatabase = DatabaseModel.FromCommands(currentCommands);
-            var targetCommands = Parse(
-                ".create table A (a:int)"
-                + "\n\n"
-                + ".alter table A policy caching hot=3d");
-            var targetDatabase = DatabaseModel.FromCommands(targetCommands);
-            var delta = currentDatabase.ComputeDelta(targetDatabase);
+            TestCaching(
+                "5m",
+                "5m",
+                null,
+                null);
+        }
 
-            Assert.Empty(delta);
+        private void TestCaching(
+            string? currentDurationText,
+            string? targetDurationText,
+            Action<AlterCachingPolicyCommand>? alterAction,
+            Action<DeleteCachingPolicyCommand>? deleteAction)
+        {
+            var createTableCommandText = ".create table A (a:int)\n\n";
+
+            foreach (var entityType in new[] { EntityType.Database, EntityType.Table })
+            {
+                var currentCachingText = currentDurationText != null
+                    ? new AlterCachingPolicyCommand(
+                        entityType,
+                        new EntityName("A"),
+                        TimeSpan.FromSeconds(3),
+                        currentDurationText).ToScript()
+                    : string.Empty;
+                var currentCommandText = createTableCommandText + currentCachingText;
+                var currentCommands = Parse(currentCommandText);
+                var currentDatabase = DatabaseModel.FromCommands(currentCommands);
+                var targetCachingText = targetDurationText != null
+                    ? new AlterCachingPolicyCommand(
+                        entityType,
+                        new EntityName("A"),
+                        TimeSpan.FromSeconds(3),
+                        targetDurationText).ToScript()
+                    : string.Empty;
+                var targetCommandText = createTableCommandText + targetCachingText;
+                var targetCommands = Parse(targetCommandText);
+                var targetDatabase = DatabaseModel.FromCommands(targetCommands);
+                var delta = currentDatabase.ComputeDelta(targetDatabase);
+
+                if (alterAction == null && deleteAction == null)
+                {
+                    Assert.Empty(delta);
+                }
+                else if (alterAction != null)
+                {
+                    Assert.Single(delta);
+                    Assert.IsType<AlterCachingPolicyCommand>(delta[0]);
+
+                    var cachingCommand = (AlterCachingPolicyCommand)delta[0];
+
+                    Assert.Equal(entityType, cachingCommand.EntityType);
+                    Assert.Equal("A", cachingCommand.EntityName.Name);
+                    alterAction(cachingCommand);
+                }
+                else if (deleteAction != null)
+                {
+                    Assert.Single(delta);
+                    Assert.IsType<DeleteCachingPolicyCommand>(delta[0]);
+
+                    var cachingCommand = (DeleteCachingPolicyCommand)delta[0];
+
+                    Assert.Equal(entityType, cachingCommand.EntityType);
+                    Assert.Equal("A", cachingCommand.EntityName.Name);
+                    deleteAction(cachingCommand);
+                }
+            }
         }
     }
 }

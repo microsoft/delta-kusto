@@ -23,17 +23,24 @@ namespace DeltaKustoLib.KustoModel
 
         private readonly IImmutableList<CreateFunctionCommand> _functionCommands;
         private readonly IImmutableList<TableModel> _tableModels;
+        private readonly AlterCachingPolicyCommand? _cachingPolicy;
 
         private DatabaseModel(
             IEnumerable<CreateFunctionCommand> functionCommands,
-            IEnumerable<TableModel> tableModels)
+            IEnumerable<TableModel> tableModels,
+            AlterCachingPolicyCommand? cachingPolicy)
         {
+            if (cachingPolicy != null && cachingPolicy.EntityType != EntityType.Database)
+            {
+                throw new NotSupportedException("Only db caching policy is supported in this context");
+            }
             _functionCommands = functionCommands
                 .OrderBy(f => f.FunctionName)
                 .ToImmutableArray();
             _tableModels = tableModels
                 .OrderBy(t => t.TableName)
                 .ToImmutableArray();
+            _cachingPolicy = cachingPolicy;
         }
 
         public static DatabaseModel FromCommands(
@@ -92,7 +99,10 @@ namespace DeltaKustoLib.KustoModel
                 updatePolicies,
                 tableCachingPolicies);
 
-            return new DatabaseModel(createFunctions, tableModels);
+            return new DatabaseModel(
+                createFunctions,
+                tableModels,
+                dbCachingPolicies.FirstOrDefault());
         }
 
         public IImmutableList<CommandBase> ComputeDelta(DatabaseModel targetModel)
@@ -101,8 +111,11 @@ namespace DeltaKustoLib.KustoModel
                 CreateFunctionCommand.ComputeDelta(_functionCommands, targetModel._functionCommands);
             var tableCommands =
                 TableModel.ComputeDelta(_tableModels, targetModel._tableModels);
+            var cachingPolicyCommands =
+                AlterCachingPolicyCommand.ComputeDelta(_cachingPolicy, targetModel._cachingPolicy);
             var deltaCommands = functionCommands
-                .Concat(tableCommands);
+                .Concat(tableCommands)
+                .Concat(cachingPolicyCommands);
 
             return deltaCommands.ToImmutableArray();
         }
