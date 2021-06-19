@@ -1,0 +1,2 @@
+﻿//	Random comment
+.alter database mydb policy caching hot = 12h
