@@ -15,6 +15,20 @@ namespace DeltaKustoLib
 
         public TimeSpan? Duration { get; }
 
+        #region object methods
+        public override bool Equals(object? obj)
+        {
+            var other = obj as KustoTimeSpan;
+
+            return other!=null
+                && other.Duration.Equals(Duration);
+        }
+
+        public override int GetHashCode()
+        {
+            return Duration.GetHashCode();
+        }
+
         public override string ToString()
         {
             if (Duration == null)
@@ -53,6 +67,7 @@ namespace DeltaKustoLib
                 }
             }
         }
+        #endregion
 
         private static string MakeLiteral(double number, string suffix)
         {

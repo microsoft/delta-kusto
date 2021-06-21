@@ -16,17 +16,14 @@ namespace DeltaKustoLib.CommandModel
 
         public EntityName EntityName { get; }
 
-        public TimeSpan Duration { get; }
-
-        public string DurationText { get; }
+        public KustoTimeSpan Duration { get; }
 
         public override string CommandFriendlyName => ".alter <entity> policy caching";
 
         public AlterCachingPolicyCommand(
             EntityType entityType,
             EntityName entityName,
-            TimeSpan duration,
-            string durationText)
+            TimeSpan duration)
         {
             if (entityType != EntityType.Database && entityType != EntityType.Table)
             {
@@ -35,8 +32,7 @@ namespace DeltaKustoLib.CommandModel
             }
             EntityType = entityType;
             EntityName = entityName;
-            Duration = duration;
-            DurationText = durationText;
+            Duration = new KustoTimeSpan(duration);
         }
 
         internal static CommandBase FromCode(SyntaxElement rootElement)
@@ -59,13 +55,11 @@ namespace DeltaKustoLib.CommandModel
                 "Duration",
                 ex => ex.NameInParent == "Timespan");
             var duration = (TimeSpan)durationExpression.LiteralValue;
-            var durationText = durationExpression.Token.Text;
 
             return new AlterCachingPolicyCommand(
                 entityType,
                 EntityName.FromCode(entityName.Name),
-                duration,
-                durationText);
+                duration);
         }
 
         public override bool Equals(CommandBase? other)
@@ -74,8 +68,7 @@ namespace DeltaKustoLib.CommandModel
             var areEqualed = otherFunction != null
                 && otherFunction.EntityType.Equals(EntityType)
                 && otherFunction.EntityName.Equals(EntityName)
-                && otherFunction.Duration.Equals(Duration)
-                && otherFunction.DurationText.Equals(DurationText);
+                && otherFunction.Duration.Equals(Duration);
 
             return areEqualed;
         }
@@ -89,7 +82,7 @@ namespace DeltaKustoLib.CommandModel
             builder.Append(" ");
             builder.Append(EntityName.ToScript());
             builder.Append(" policy caching hot = ");
-            builder.Append(DurationText);
+            builder.Append(Duration);
 
             return builder.ToString();
         }

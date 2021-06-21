@@ -16,8 +16,8 @@ namespace DeltaKustoUnitTest.Delta.Policies
         {
             TestCaching(
                 null,
-                "3d",
-                c => Assert.Equal("3d", c.DurationText),
+                TimeSpan.FromDays(3),
+                c => Assert.Equal(TimeSpan.FromDays(3), c.Duration.Duration),
                 null);
         }
 
@@ -25,7 +25,7 @@ namespace DeltaKustoUnitTest.Delta.Policies
         public void TableFromSomethingToEmpty()
         {
             TestCaching(
-                "3d",
+                TimeSpan.FromMinutes(7),
                 null,
                 null,
                 c => { });
@@ -34,10 +34,12 @@ namespace DeltaKustoUnitTest.Delta.Policies
         [Fact]
         public void TableDelta()
         {
+            var targetDuration = TimeSpan.FromDays(25) + TimeSpan.FromHours(4);
+
             TestCaching(
-                "3d",
-                "40h",
-                c => Assert.Equal("40h", c.DurationText),
+                TimeSpan.FromDays(3),
+                targetDuration,
+                c => Assert.Equal(targetDuration, c.Duration.Duration),
                 null);
         }
 
@@ -45,15 +47,15 @@ namespace DeltaKustoUnitTest.Delta.Policies
         public void TableSame()
         {
             TestCaching(
-                "5m",
-                "5m",
+                TimeSpan.FromMilliseconds(45),
+                TimeSpan.FromMilliseconds(45),
                 null,
                 null);
         }
 
         private void TestCaching(
-            string? currentDurationText,
-            string? targetDurationText,
+            TimeSpan? currentDuration,
+            TimeSpan? targetDuration,
             Action<AlterCachingPolicyCommand>? alterAction,
             Action<DeleteCachingPolicyCommand>? deleteAction)
         {
@@ -61,22 +63,20 @@ namespace DeltaKustoUnitTest.Delta.Policies
 
             foreach (var entityType in new[] { EntityType.Database, EntityType.Table })
             {
-                var currentCachingText = currentDurationText != null
+                var currentCachingText = currentDuration != null
                     ? new AlterCachingPolicyCommand(
                         entityType,
                         new EntityName("A"),
-                        TimeSpan.FromSeconds(3),
-                        currentDurationText).ToScript()
+                        currentDuration.Value).ToScript()
                     : string.Empty;
                 var currentCommandText = createTableCommandText + currentCachingText;
                 var currentCommands = Parse(currentCommandText);
                 var currentDatabase = DatabaseModel.FromCommands(currentCommands);
-                var targetCachingText = targetDurationText != null
+                var targetCachingText = targetDuration != null
                     ? new AlterCachingPolicyCommand(
                         entityType,
                         new EntityName("A"),
-                        TimeSpan.FromSeconds(3),
-                        targetDurationText).ToScript()
+                        targetDuration.Value).ToScript()
                     : string.Empty;
                 var targetCommandText = createTableCommandText + targetCachingText;
                 var targetCommands = Parse(targetCommandText);
