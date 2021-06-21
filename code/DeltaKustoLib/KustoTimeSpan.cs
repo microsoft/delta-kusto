@@ -10,6 +10,7 @@ namespace DeltaKustoLib
     {
         public KustoTimeSpan(TimeSpan? duration)
         {
+            Duration = duration;
         }
 
         public TimeSpan? Duration { get; }
@@ -28,21 +29,21 @@ namespace DeltaKustoLib
                 {
                     return MakeLiteral(duration.TotalDays, "d");
                 }
-                else if (IsSimpleDecimal(duration.Hours))
+                else if (duration.TotalHours <= 120 && IsSimpleDecimal(duration.TotalHours))
                 {
-                    return MakeLiteral(duration.Hours, "h");
+                    return MakeLiteral(duration.TotalHours, "h");
                 }
-                else if (IsSimpleDecimal(duration.Minutes))
+                else if (duration.TotalMinutes <= 120 && IsSimpleDecimal(duration.TotalMinutes))
                 {
-                    return MakeLiteral(duration.Minutes, "m");
+                    return MakeLiteral(duration.TotalMinutes, "m");
                 }
-                else if (IsSimpleDecimal(duration.Seconds))
+                else if (duration.TotalSeconds <= 120 && IsSimpleDecimal(duration.TotalSeconds))
                 {
-                    return MakeLiteral(duration.Seconds, "s");
+                    return MakeLiteral(duration.TotalSeconds, "s");
                 }
-                else if (IsSimpleDecimal(duration.Milliseconds))
+                else if (duration.TotalMilliseconds <= 1000 && IsSimpleDecimal(duration.TotalMilliseconds))
                 {
-                    return MakeLiteral(duration.Milliseconds, "ms");
+                    return MakeLiteral(duration.TotalMilliseconds, "ms");
                 }
                 else
                 {
@@ -67,7 +68,7 @@ namespace DeltaKustoLib
 
         private static bool IsSimpleDecimal(double number)
         {
-            return number * 10 == (int)(number * 10);
+            return number != 0 && number * 10 == (int)(number * 10);
         }
     }
 }
