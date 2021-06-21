@@ -16,14 +16,17 @@ namespace DeltaKustoLib.CommandModel
 
         public EntityName EntityName { get; }
 
-        public KustoTimeSpan Duration { get; }
+        public KustoTimeSpan HotData { get; }
+
+        public KustoTimeSpan HotIndex { get; }
 
         public override string CommandFriendlyName => ".alter <entity> policy caching";
 
         public AlterCachingPolicyCommand(
             EntityType entityType,
             EntityName entityName,
-            TimeSpan duration)
+            TimeSpan hotData,
+            TimeSpan hotIndex)
         {
             if (entityType != EntityType.Database && entityType != EntityType.Table)
             {
@@ -32,7 +35,8 @@ namespace DeltaKustoLib.CommandModel
             }
             EntityType = entityType;
             EntityName = entityName;
-            Duration = new KustoTimeSpan(duration);
+            HotData = new KustoTimeSpan(hotData);
+            HotIndex = new KustoTimeSpan(hotIndex);
         }
 
         internal static CommandBase FromCode(SyntaxElement rootElement)
@@ -59,6 +63,7 @@ namespace DeltaKustoLib.CommandModel
             return new AlterCachingPolicyCommand(
                 entityType,
                 EntityName.FromCode(entityName.Name),
+                duration,
                 duration);
         }
 
@@ -68,7 +73,8 @@ namespace DeltaKustoLib.CommandModel
             var areEqualed = otherFunction != null
                 && otherFunction.EntityType.Equals(EntityType)
                 && otherFunction.EntityName.Equals(EntityName)
-                && otherFunction.Duration.Equals(Duration);
+                && otherFunction.HotData.Equals(HotData)
+                && otherFunction.HotIndex.Equals(HotIndex);
 
             return areEqualed;
         }
@@ -81,8 +87,19 @@ namespace DeltaKustoLib.CommandModel
             builder.Append(EntityType == EntityType.Table ? "table" : "database");
             builder.Append(" ");
             builder.Append(EntityName.ToScript());
-            builder.Append(" policy caching hot = ");
-            builder.Append(Duration);
+            builder.Append(" policy caching ");
+            if (HotData.Equals(HotIndex))
+            {
+                builder.Append("hot = ");
+                builder.Append(HotData);
+            }
+            else
+            {
+                builder.Append("hotdata = ");
+                builder.Append(HotData);
+                builder.Append(" hotindex = ");
+                builder.Append(HotIndex);
+            }
 
             return builder.ToString();
         }

@@ -17,7 +17,7 @@ namespace DeltaKustoUnitTest.Delta.Policies
             TestCaching(
                 null,
                 TimeSpan.FromDays(3),
-                c => Assert.Equal(TimeSpan.FromDays(3), c.Duration.Duration),
+                c => Assert.Equal(TimeSpan.FromDays(3), c.HotData.Duration),
                 null);
         }
 
@@ -39,7 +39,7 @@ namespace DeltaKustoUnitTest.Delta.Policies
             TestCaching(
                 TimeSpan.FromDays(3),
                 targetDuration,
-                c => Assert.Equal(targetDuration, c.Duration.Duration),
+                c => Assert.Equal(targetDuration, c.HotData.Duration),
                 null);
         }
 
@@ -67,6 +67,7 @@ namespace DeltaKustoUnitTest.Delta.Policies
                     ? new AlterCachingPolicyCommand(
                         entityType,
                         new EntityName("A"),
+                        currentDuration.Value,
                         currentDuration.Value).ToScript()
                     : string.Empty;
                 var currentCommandText = createTableCommandText + currentCachingText;
@@ -76,6 +77,7 @@ namespace DeltaKustoUnitTest.Delta.Policies
                     ? new AlterCachingPolicyCommand(
                         entityType,
                         new EntityName("A"),
+                        targetDuration.Value,
                         targetDuration.Value).ToScript()
                     : string.Empty;
                 var targetCommandText = createTableCommandText + targetCachingText;

@@ -28,7 +28,7 @@ namespace DeltaKustoFileIntegrationTest.Policies.Caching
             Assert.NotNull(policyCommand);
             Assert.Equal(EntityType.Table, policyCommand!.EntityType);
             Assert.Equal("my-table", policyCommand!.EntityName.Name);
-            Assert.Equal(TimeSpan.FromHours(12), policyCommand!.Duration.Duration);
+            Assert.Equal(TimeSpan.FromHours(12), policyCommand!.HotData.Duration);
         }
 
         [Fact]
@@ -80,7 +80,7 @@ namespace DeltaKustoFileIntegrationTest.Policies.Caching
             Assert.NotNull(policyCommand);
             Assert.Equal(EntityType.Table, policyCommand!.EntityType);
             Assert.Equal("my-table", policyCommand!.EntityName.Name);
-            Assert.Equal(TimeSpan.FromDays(10), policyCommand!.Duration.Duration);
+            Assert.Equal(TimeSpan.FromDays(10), policyCommand!.HotData.Duration);
         }
     }
 }

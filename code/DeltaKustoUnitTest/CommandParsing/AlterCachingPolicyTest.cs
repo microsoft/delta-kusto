@@ -37,6 +37,7 @@ namespace DeltaKustoUnitTest.CommandParsing
             var commandText = new AlterCachingPolicyCommand(
                 type,
                 new EntityName(name),
+                duration,
                 duration)
                 .ToScript();
             var command = ParseOneCommand(commandText);
@@ -47,7 +48,7 @@ namespace DeltaKustoUnitTest.CommandParsing
 
             Assert.Equal(type, alterCachingPolicyCommand.EntityType);
             Assert.Equal(name, alterCachingPolicyCommand.EntityName.Name);
-            Assert.Equal(duration, alterCachingPolicyCommand.Duration.Duration);
+            Assert.Equal(duration, alterCachingPolicyCommand.HotData.Duration);
         }
     }
 }
