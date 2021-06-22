@@ -1,6 +1,7 @@
 ﻿using Kusto.Language.Syntax;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -54,17 +55,14 @@ namespace DeltaKustoLib.CommandModel
             var entityType = entityKind == SyntaxKind.TableKeyword
                 ? EntityType.Table
                 : EntityType.Database;
-            var entityName = rootElement.GetUniqueDescendant<NameReference>("Name reference");
-            var durationExpression = rootElement.GetUniqueDescendant<LiteralExpression>(
-                "Duration",
-                ex => ex.NameInParent == "Timespan");
-            var duration = (TimeSpan)durationExpression.LiteralValue;
+            var entityName = rootElement.GetFirstDescendant<NameReference>();
+            var (hotData, hotIndex) = ExtractHotDurations(rootElement);
 
             return new AlterCachingPolicyCommand(
                 entityType,
                 EntityName.FromCode(entityName.Name),
-                duration,
-                duration);
+                hotData,
+                hotIndex);
         }
 
         public override bool Equals(CommandBase? other)
@@ -127,6 +125,68 @@ namespace DeltaKustoLib.CommandModel
             else
             {   //  Both target and current are null:  no delta
             }
+        }
+
+        private static (TimeSpan hotData, TimeSpan hotIndex) ExtractHotDurations(
+            SyntaxElement rootElement)
+        {
+            var durations = GetHotDurations(rootElement);
+
+            if (durations.Count == 1 && durations.ContainsKey(SyntaxKind.HotKeyword))
+            {
+                var duration = durations.First().Value;
+
+                return (duration, duration);
+            }
+            else if (durations.Count == 2
+                && durations.ContainsKey(SyntaxKind.HotDataKeyword)
+                && durations.ContainsKey(SyntaxKind.HotIndexKeyword))
+            {
+                var dataDuration = durations[SyntaxKind.HotDataKeyword];
+                var indexDuration = durations[SyntaxKind.HotIndexKeyword];
+
+                return (dataDuration, indexDuration);
+            }
+            else
+            {
+                throw new DeltaException("Caching policy expect either a 'hot' parameter or a 'hotdata' and 'hotindex'");
+            }
+        }
+
+        private static IImmutableDictionary<SyntaxKind, TimeSpan> GetHotDurations(SyntaxElement rootElement)
+        {
+            var elements = rootElement.GetDescendants<SyntaxElement>();
+            var builder = ImmutableDictionary<SyntaxKind, TimeSpan>.Empty.ToBuilder();
+            SyntaxKind? kind = null;
+
+            foreach (var e in elements)
+            {
+                if (kind == null)
+                {
+                    if (e.Kind == SyntaxKind.HotKeyword
+                        || e.Kind == SyntaxKind.HotDataKeyword
+                        || e.Kind == SyntaxKind.HotIndexKeyword)
+                    {
+                        if (!e.IsMissing)
+                        {
+                            kind = e.Kind;
+                        }
+                    }
+                }
+                else
+                {
+                    if (e.Kind == SyntaxKind.TimespanLiteralToken)
+                    {
+                        var token = (SyntaxToken)e;
+                        var t = (TimeSpan)token.Value;
+
+                        builder.Add(kind.Value, t);
+                        kind = null;
+                    }
+                }
+            }
+
+            return builder.ToImmutable();
         }
     }
 }

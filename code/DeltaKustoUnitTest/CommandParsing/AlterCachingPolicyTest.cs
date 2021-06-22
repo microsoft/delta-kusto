@@ -32,23 +32,31 @@ namespace DeltaKustoUnitTest.CommandParsing
             TestCachingPolicy(EntityType.Database, "db.mine", TimeSpan.FromHours(90));
         }
 
-        private void TestCachingPolicy(EntityType type, string name, TimeSpan duration)
+        private void TestCachingPolicy(
+            EntityType type,
+            string name,
+            TimeSpan hotData)
         {
-            var commandText = new AlterCachingPolicyCommand(
-                type,
-                new EntityName(name),
-                duration,
-                duration)
-                .ToScript();
-            var command = ParseOneCommand(commandText);
+            for (var i = 0; i != 2; ++i)
+            {
+                var hotIndex = hotData + TimeSpan.FromMinutes(i);
+                var commandText = new AlterCachingPolicyCommand(
+                    type,
+                    new EntityName(name),
+                    hotData,
+                    hotIndex)
+                    .ToScript();
+                var command = ParseOneCommand(commandText);
 
-            Assert.IsType<AlterCachingPolicyCommand>(command);
+                Assert.IsType<AlterCachingPolicyCommand>(command);
 
-            var alterCachingPolicyCommand = (AlterCachingPolicyCommand)command;
+                var alterCachingPolicyCommand = (AlterCachingPolicyCommand)command;
 
-            Assert.Equal(type, alterCachingPolicyCommand.EntityType);
-            Assert.Equal(name, alterCachingPolicyCommand.EntityName.Name);
-            Assert.Equal(duration, alterCachingPolicyCommand.HotData.Duration);
+                Assert.Equal(type, alterCachingPolicyCommand.EntityType);
+                Assert.Equal(name, alterCachingPolicyCommand.EntityName.Name);
+                Assert.Equal(hotData, alterCachingPolicyCommand.HotData.Duration);
+                Assert.Equal(hotIndex, alterCachingPolicyCommand.HotIndex.Duration);
+            }
         }
     }
 }
