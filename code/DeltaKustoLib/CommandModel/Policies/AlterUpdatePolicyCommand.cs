@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 
-namespace DeltaKustoLib.CommandModel
+namespace DeltaKustoLib.CommandModel.Policies
 {
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/update-policy#alter-update-policy"/>

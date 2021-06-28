@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 
-namespace DeltaKustoLib.CommandModel
+namespace DeltaKustoLib.CommandModel.Policies
 {
     public class DeleteCachingPolicyCommand : CommandBase
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace DeltaKustoLib.CommandModel
+namespace DeltaKustoLib.CommandModel.Policies
 {
     public record UpdatePolicy
     {

@@ -1,10 +1,11 @@
 using DeltaKustoLib.CommandModel;
+using DeltaKustoLib.CommandModel.Policies;
 using System;
 using System.Linq;
 using System.Text.Json;
 using Xunit;
 
-namespace DeltaKustoUnitTest.CommandParsing
+namespace DeltaKustoUnitTest.CommandParsing.Policies
 {
     public class DeleteCachingPolicyTest : ParsingTestBase
     {

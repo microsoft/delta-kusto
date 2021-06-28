@@ -1,4 +1,5 @@
-﻿using Kusto.Language;
+﻿using DeltaKustoLib.CommandModel.Policies;
+using Kusto.Language;
 using Kusto.Language.Syntax;
 using System;
 using System.Collections.Generic;
