@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace DeltaKustoLib
 {
+    /// <summary>Renders <see cref="TimeSpan"/> for Kusto (e.g. 3h) if it can, otherwise uses long-form.</summary>
     public class KustoTimeSpan
     {
         public KustoTimeSpan(TimeSpan? duration)

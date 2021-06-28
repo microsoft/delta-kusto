@@ -41,7 +41,6 @@ namespace DeltaKustoLib.CommandModel.Policies
 
         internal static CommandBase FromCode(SyntaxElement rootElement)
         {
-            var q = rootElement.GetDescendants<SyntaxElement>();
             var cleanTableName = rootElement
                 .GetDescendants<TokenName>(e => e.NameInParent == "Name")
                 .FirstOrDefault();
