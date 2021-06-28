@@ -22,4 +22,5 @@ This page documents how those delta are computed on different objects:
 * [Tables](tables.md)
 * [Ingestion Mappings](ingestion-mappings.md)
 * Policies
+    * [Retention Policy](policies/retention.md)
     * [Update Policy](policies/update.md)
