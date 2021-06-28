@@ -1,6 +1,6 @@
 # Delta on Caching Policy
 
-This page documents how a delta is computed on Caching Policy.
+This page documents how a delta is computed on [Caching Policy](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/cachepolicy).
 
 ## Model
 
@@ -8,8 +8,8 @@ A cache policy consists of:
 
 * Entity type (either *Database* or *Table*)
 * Entity name (either database name or table name)
-* `HotData` timespan
-* `HotIndex` timespan
+* `HotData` (timespan)
+* `HotIndex` (timespan)
 
 The most common way to configure the policy is to set a unique `hot` timespan which sets both the `HotData` and `HotIndex`.
 
