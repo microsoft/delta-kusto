@@ -9,7 +9,7 @@ using Xunit;
 
 namespace DeltaKustoUnitTest.Delta.Policies
 {
-    public class UpdatePolicyTest : ParsingTestBase
+    public class DeltaUpdatePolicyTest : ParsingTestBase
     {
         [Fact]
         public void FromEmptyToSomething()

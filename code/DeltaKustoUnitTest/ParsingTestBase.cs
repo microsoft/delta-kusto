@@ -13,7 +13,7 @@ namespace DeltaKustoUnitTest
         protected IImmutableList<CommandBase> Parse(string script)
         {
             var commands = CommandBase.FromScript(script);
-            var reformedScript = string.Join("\n", commands.Select(c => c.ToScript()));
+            var reformedScript = string.Join("\n\n", commands.Select(c => c.ToScript()));
             var reformedCommands = CommandBase.FromScript(reformedScript);
 
             //  Make sure we can go from script to command and vise versa without losing anything

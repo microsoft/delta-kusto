@@ -10,7 +10,7 @@ using Xunit;
 
 namespace DeltaKustoUnitTest.Delta.Policies
 {
-    public class AlterCachingPolicyTest : ParsingTestBase
+    public class DeltaCachingPolicyTest : ParsingTestBase
     {
         [Fact]
         public void TableFromEmptyToSomething()

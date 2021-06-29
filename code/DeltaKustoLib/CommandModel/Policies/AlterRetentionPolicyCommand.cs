@@ -117,7 +117,25 @@ namespace DeltaKustoLib.CommandModel.Policies
             AlterRetentionPolicyCommand? currentCommand,
             AlterRetentionPolicyCommand? targetCommand)
         {
-            throw new NotImplementedException();
+            var hasCurrent = currentCommand != null;
+            var hasTarget = targetCommand != null;
+
+            if (hasCurrent && !hasTarget)
+            {   //  No target, we remove the current policy
+                yield return new DeleteRetentionPolicyCommand(
+                    currentCommand!.EntityType,
+                    currentCommand!.EntityName);
+            }
+            else if (hasTarget)
+            {
+                if (!hasCurrent || !currentCommand!.Equals(targetCommand!))
+                {   //  There is a target and either no current or the current is different
+                    yield return targetCommand!;
+                }
+            }
+            else
+            {   //  Both target and current are null:  no delta
+            }
         }
     }
 }

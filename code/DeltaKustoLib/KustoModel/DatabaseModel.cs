@@ -19,17 +19,21 @@ namespace DeltaKustoLib.KustoModel
             typeof(AlterMergeTableColumnDocStringsCommand),
             typeof(CreateMappingCommand),
             typeof(AlterUpdatePolicyCommand),
-            typeof(AlterCachingPolicyCommand)
+            typeof(AlterCachingPolicyCommand),
+            typeof(AlterRetentionPolicyCommand),
+            typeof(AlterTablesRetentionPolicyCommand)
         }.ToImmutableHashSet();
 
         private readonly IImmutableList<CreateFunctionCommand> _functionCommands;
         private readonly IImmutableList<TableModel> _tableModels;
         private readonly AlterCachingPolicyCommand? _cachingPolicy;
+        private readonly AlterRetentionPolicyCommand? _retentionPolicy;
 
         private DatabaseModel(
             IEnumerable<CreateFunctionCommand> functionCommands,
             IEnumerable<TableModel> tableModels,
-            AlterCachingPolicyCommand? cachingPolicy)
+            AlterCachingPolicyCommand? cachingPolicy,
+            AlterRetentionPolicyCommand? retentionPolicy)
         {
             if (cachingPolicy != null && cachingPolicy.EntityType != EntityType.Database)
             {
@@ -42,6 +46,7 @@ namespace DeltaKustoLib.KustoModel
                 .OrderBy(t => t.TableName)
                 .ToImmutableArray();
             _cachingPolicy = cachingPolicy;
+            _retentionPolicy = retentionPolicy;
         }
 
         public static DatabaseModel FromCommands(
@@ -79,6 +84,19 @@ namespace DeltaKustoLib.KustoModel
                 .Where(p => p.EntityType == EntityType.Table);
             var dbCachingPolicies = cachingPolicies
                 .Where(p => p.EntityType == EntityType.Database);
+            var retentionTablePluralPolicies = GetCommands<AlterTablesRetentionPolicyCommand>(commandTypeIndex)
+                .SelectMany(c => c.TableNames.Select(t => new AlterRetentionPolicyCommand(
+                    EntityType.Table,
+                    t,
+                    c.SoftDelete,
+                    c.Recoverability)));
+            var retentionPolicies = GetCommands<AlterRetentionPolicyCommand>(commandTypeIndex)
+                .ToImmutableArray();
+            var tableRetentionPolicies = retentionPolicies
+                .Where(p => p.EntityType == EntityType.Table)
+                .Concat(retentionTablePluralPolicies);
+            var dbRetentionPolicies = retentionPolicies
+                .Where(p => p.EntityType == EntityType.Database);
 
             ValidateCommandTypes(commandTypes);
             ValidateDuplicates(createFunctions, f => f.FunctionName.Name);
@@ -92,18 +110,22 @@ namespace DeltaKustoLib.KustoModel
             ValidateDuplicates(updatePolicies, m => m.TableName.Name);
             ValidateDuplicates(tableCachingPolicies, m => m.EntityName.Name);
             ValidateDuplicates(dbCachingPolicies, m => "Database caching policy");
+            ValidateDuplicates(tableRetentionPolicies, m => m.EntityName.Name);
+            ValidateDuplicates(dbRetentionPolicies, m => "Database retention policy");
 
             var tableModels = TableModel.FromCommands(
                 createTables,
                 alterMergeTableColumns,
                 createMappings,
                 updatePolicies,
-                tableCachingPolicies);
+                tableCachingPolicies,
+                tableRetentionPolicies);
 
             return new DatabaseModel(
                 createFunctions,
                 tableModels,
-                dbCachingPolicies.FirstOrDefault());
+                dbCachingPolicies.FirstOrDefault(),
+                dbRetentionPolicies.FirstOrDefault());
         }
 
         public IImmutableList<CommandBase> ComputeDelta(DatabaseModel targetModel)
@@ -114,9 +136,12 @@ namespace DeltaKustoLib.KustoModel
                 TableModel.ComputeDelta(_tableModels, targetModel._tableModels);
             var cachingPolicyCommands =
                 AlterCachingPolicyCommand.ComputeDelta(_cachingPolicy, targetModel._cachingPolicy);
+            var retentionPolicyCommands =
+                AlterRetentionPolicyCommand.ComputeDelta(_retentionPolicy, targetModel._retentionPolicy);
             var deltaCommands = functionCommands
                 .Concat(tableCommands)
-                .Concat(cachingPolicyCommands);
+                .Concat(cachingPolicyCommands)
+                .Concat(retentionPolicyCommands);
 
             return deltaCommands.ToImmutableArray();
         }
