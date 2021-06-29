@@ -19,8 +19,9 @@ This is both for simplicity but also because Delta Kusto doesn't enforce a scrip
 This page documents how those delta are computed on different objects:
 
 * [Functions](functions.md)
-* [Tables](tables.md)
 * [Ingestion Mappings](ingestion-mappings.md)
 * Policies
+    * [Caching Policy](policies/caching.md)
     * [Retention Policy](policies/retention.md)
     * [Update Policy](policies/update.md)
+* [Tables](tables.md)
