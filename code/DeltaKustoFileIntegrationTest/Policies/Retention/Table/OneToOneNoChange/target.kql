@@ -1,0 +1,9 @@
+﻿//	Random comment
+.create table ['my-table'] (a: real, b: int, c: string)
+
+.alter table ['my-table'] policy retention
+```
+{
+	"SoftDeletePeriod": "12:00:00"
+}
+```
