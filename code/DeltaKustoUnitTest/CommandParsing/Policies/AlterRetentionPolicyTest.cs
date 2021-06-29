@@ -39,7 +39,7 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
             TimeSpan softDelete,
             bool recoverability)
         {
-            var commandText = new AlterTableRetentionPolicyCommand(
+            var commandText = new AlterRetentionPolicyCommand(
                 type,
                 new EntityName(name),
                 softDelete,
@@ -47,9 +47,9 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
                 .ToScript();
             var command = ParseOneCommand(commandText);
 
-            Assert.IsType<AlterTableRetentionPolicyCommand>(command);
+            Assert.IsType<AlterRetentionPolicyCommand>(command);
 
-            var realCommand = (AlterTableRetentionPolicyCommand)command;
+            var realCommand = (AlterRetentionPolicyCommand)command;
 
             Assert.Equal(type, realCommand.EntityType);
             Assert.Equal(name, realCommand.EntityName.Name);

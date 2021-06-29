@@ -12,7 +12,7 @@ namespace DeltaKustoLib.CommandModel.Policies
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/cache-policy#altering-the-cache-policy"/>
     /// </summary>
-    public class AlterTableRetentionPolicyCommand : CommandBase
+    public class AlterTablesRetentionPolicyCommand : CommandBase
     {
         #region Inner Types
         private record RetentionPolicy
@@ -70,49 +70,40 @@ namespace DeltaKustoLib.CommandModel.Policies
             PropertyNameCaseInsensitive = true
         };
 
-        public EntityType EntityType { get; }
-
-        public EntityName EntityName { get; }
+        public IImmutableList<EntityName> TableNames { get; }
 
         public TimeSpan SoftDelete { get; }
 
         public bool Recoverability { get; }
 
-        public override string CommandFriendlyName => ".alter <entity> policy retention";
+        public override string CommandFriendlyName => ".alter tables policy retention";
 
-        public AlterTableRetentionPolicyCommand(
-            EntityType entityType,
-            EntityName entityName,
+        public AlterTablesRetentionPolicyCommand(
+            IEnumerable<EntityName> tableNames,
             TimeSpan softDelete,
             bool recoverability)
         {
-            if (entityType != EntityType.Database && entityType != EntityType.Table)
-            {
-                throw new NotSupportedException(
-                    $"Entity type {entityType} isn't supported in this context");
-            }
-            EntityType = entityType;
-            EntityName = entityName;
+            TableNames = tableNames.ToImmutableArray();
             SoftDelete = softDelete;
             Recoverability = recoverability;
+
+            if(!TableNames.Any())
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(tableNames),
+                    "Should contain at least one table name");
+            }
         }
 
         internal static CommandBase FromCode(SyntaxElement rootElement)
         {
-            var entityKinds = rootElement
-                .GetDescendants<SyntaxElement>(s => s.Kind == SyntaxKind.TableKeyword
-                || s.Kind == SyntaxKind.DatabaseKeyword)
-                .Select(s => s.Kind);
-
-            if (!entityKinds.Any())
-            {
-                throw new DeltaException("Alter retention policy requires to act on a table or database (cluster isn't supported)");
-            }
-            var entityKind = entityKinds.First();
-            var entityType = entityKind == SyntaxKind.TableKeyword
-                ? EntityType.Table
-                : EntityType.Database;
-            var entityName = rootElement.GetFirstDescendant<NameReference>();
+            var tableNames = rootElement
+                .GetDescendants<SyntaxElement>(n => n.NameInParent == "Name"
+                //  Different type depending if it's a simple name or not
+                && (n is TokenName || n is LiteralExpression))
+                //.GetDescendants<LiteralExpression>(n => n.NameInParent == "Name")
+                //.GetDescendants<TokenName>(n => n.NameInParent == "Name")
+                .Select(t => EntityName.FromCode(t));
             var policyText = QuotedText.FromLiteral(
                 rootElement.GetUniqueDescendant<LiteralExpression>(
                     "RetentionPolicy",
@@ -125,21 +116,17 @@ namespace DeltaKustoLib.CommandModel.Policies
                     $"Can't extract policy objects from {policyText.ToScript()}");
             }
 
-            return new AlterTableRetentionPolicyCommand(
-                entityType,
-                EntityName.FromCode(entityName.Name),
+            return new AlterTablesRetentionPolicyCommand(
+                tableNames,
                 policy.GetSoftDelete(),
                 policy.GetRecoverability());
-
-            throw new NotImplementedException();
         }
 
         public override bool Equals(CommandBase? other)
         {
-            var otherFunction = other as AlterTableRetentionPolicyCommand;
+            var otherFunction = other as AlterTablesRetentionPolicyCommand;
             var areEqualed = otherFunction != null
-                && otherFunction.EntityType.Equals(EntityType)
-                && otherFunction.EntityName.Equals(EntityName)
+                && otherFunction.TableNames.SequenceEqual(TableNames)
                 && otherFunction.SoftDelete.Equals(SoftDelete)
                 && otherFunction.Recoverability.Equals(Recoverability);
 
@@ -151,11 +138,9 @@ namespace DeltaKustoLib.CommandModel.Policies
             var builder = new StringBuilder();
             var policy = RetentionPolicy.Create(SoftDelete, Recoverability);
 
-            builder.Append(".alter ");
-            builder.Append(EntityType == EntityType.Table ? "table" : "database");
-            builder.Append(" ");
-            builder.Append(EntityName.ToScript());
-            builder.Append(" policy retention");
+            builder.Append(".alter tables (");
+            builder.Append(string.Join(", ", TableNames.Select(t => t.ToScript())));
+            builder.Append(") policy retention");
             builder.AppendLine();
             builder.Append("```");
             builder.Append(JsonSerializer.Serialize(policy, _policiesSerializerOptions));
@@ -163,13 +148,6 @@ namespace DeltaKustoLib.CommandModel.Policies
             builder.Append("```");
 
             return builder.ToString();
-        }
-
-        internal static IEnumerable<CommandBase> ComputeDelta(
-            AlterTableRetentionPolicyCommand? currentCommand,
-            AlterTableRetentionPolicyCommand? targetCommand)
-        {
-            throw new NotImplementedException();
         }
     }
 }
