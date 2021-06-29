@@ -10,60 +10,10 @@ using System.Threading.Tasks;
 namespace DeltaKustoLib.CommandModel.Policies
 {
     /// <summary>
-    /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/cache-policy#altering-the-cache-policy"/>
+    /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/retention-policy#alter-retention-policy"/>
     /// </summary>
     public class AlterTablesRetentionPolicyCommand : CommandBase
     {
-        #region Inner Types
-        private record RetentionPolicy
-        {
-            public static RetentionPolicy Create(TimeSpan softDelete, bool recoverability)
-            {
-                return new RetentionPolicy
-                {
-                    SoftDelete = softDelete.ToString(),
-                    Recoverability = recoverability
-                    ? EnableBoolean.Enabled.ToString()
-                    : EnableBoolean.Disabled.ToString()
-                };
-            }
-
-            public string SoftDelete { get; init; } = TimeSpan.FromDays(36500).ToString();
-
-            public string Recoverability { get; init; } = EnableBoolean.Enabled.ToString();
-
-            public TimeSpan GetSoftDelete()
-            {
-                TimeSpan time;
-
-                if (TimeSpan.TryParse(SoftDelete, out time))
-                {
-                    return time;
-                }
-                else
-                {
-                    throw new DeltaException(
-                        $"Can't parse 'SoftDelete' value '{SoftDelete}'");
-                }
-            }
-
-            public bool GetRecoverability()
-            {
-                EnableBoolean flag;
-
-                if (Enum.TryParse<EnableBoolean>(Recoverability, out flag))
-                {
-                    return flag == EnableBoolean.Enabled;
-                }
-                else
-                {
-                    throw new DeltaException(
-                        $"Can't parse 'Recoverability' flag value '{Recoverability}'");
-                }
-            }
-        }
-        #endregion
-
         private static readonly JsonSerializerOptions _policiesSerializerOptions = new JsonSerializerOptions
         {
             WriteIndented = true,

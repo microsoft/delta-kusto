@@ -135,7 +135,7 @@ namespace DeltaKustoLib.CommandModel
                     case "AlterDatabasePolicyCaching":
                     case "AlterTablePolicyCaching":
                         return AlterCachingPolicyCommand.FromCode(commandBlock);
-                    case "DeleteDatabasePolicyRetention":
+                    case "DeleteDatabasePolicyCaching":
                     case "DeleteTablePolicyCaching":
                         return DeleteCachingPolicyCommand.FromCode(commandBlock);
                     case "AlterDatabasePolicyRetention":
@@ -143,6 +143,9 @@ namespace DeltaKustoLib.CommandModel
                         return AlterRetentionPolicyCommand.FromCode(commandBlock);
                     case "AlterTablesPolicyRetention":
                         return AlterTablesRetentionPolicyCommand.FromCode(commandBlock);
+                    case "DeleteDatabasePolicyRetention":
+                    case "DeleteTablePolicyRetention":
+                        return DeleteRetentionPolicyCommand.FromCode(commandBlock);
 
                     default:
                         if (ignoreUnknownCommands)
