@@ -369,7 +369,11 @@ namespace DeltaKustoIntegration.Kusto
                 _tracer.WriteLine(true, ".execute database script commands start");
 
                 var tracerTimer = new TracerTimer(_tracer);
-                var commandScripts = commands.Select(c => c.ToScript());
+                var scriptingContext = new ScriptingContext
+                {
+                    CurrentDatabaseName = new EntityName(_database)
+                };
+                var commandScripts = commands.Select(c => c.ToScript(scriptingContext));
                 var fullScript = ".execute database script with (ThrowOnErrors=true) <|"
                     + Environment.NewLine
                     + string.Join(Environment.NewLine + Environment.NewLine, commandScripts);

@@ -8,6 +8,6 @@ namespace DeltaKustoLib.CommandModel
 {
     public record ScriptingContext
     {
-        public string? CurrentDatabaseName { get; init; } = null;
+        public EntityName? CurrentDatabaseName { get; init; } = null;
     }
 }

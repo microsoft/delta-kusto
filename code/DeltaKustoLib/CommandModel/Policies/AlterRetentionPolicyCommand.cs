@@ -104,7 +104,7 @@ namespace DeltaKustoLib.CommandModel.Policies
             builder.Append(" ");
             if (EntityType == EntityType.Database && context?.CurrentDatabaseName != null)
             {
-                builder.Append(context.CurrentDatabaseName);
+                builder.Append(context.CurrentDatabaseName.ToScript());
             }
             else
             {
