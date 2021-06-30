@@ -62,7 +62,7 @@ namespace DeltaKustoLib.CommandModel.Policies
             var entityType = entityKind == SyntaxKind.TableKeyword
                 ? EntityType.Table
                 : EntityType.Database;
-            var entityName = rootElement.GetFirstDescendant<NameReference>();
+            var entityName = rootElement.GetDescendants<NameReference>().Last();
             var policyText = QuotedText.FromLiteral(
                 rootElement.GetUniqueDescendant<LiteralExpression>(
                     "RetentionPolicy",

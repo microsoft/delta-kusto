@@ -22,6 +22,32 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
         }
 
         [Fact]
+        public void DbComposedTableName()
+        {
+            var command = ParseOneCommand(".alter table mydb.mytable policy caching hot=3d");
+
+            Assert.IsType<AlterCachingPolicyCommand>(command);
+
+            var realCommand = (AlterCachingPolicyCommand)command;
+
+            Assert.Equal(EntityType.Table, realCommand.EntityType);
+            Assert.Equal("mytable", realCommand.EntityName.Name);
+        }
+
+        [Fact]
+        public void ClusterComposedTableName()
+        {
+            var command = ParseOneCommand(".alter table ['my cluster'].mydb.mytable policy caching hot=3d");
+
+            Assert.IsType<AlterCachingPolicyCommand>(command);
+
+            var realCommand = (AlterCachingPolicyCommand)command;
+
+            Assert.Equal(EntityType.Table, realCommand.EntityType);
+            Assert.Equal("mytable", realCommand.EntityName.Name);
+        }
+
+        [Fact]
         public void SimpleDatabase()
         {
             TestCachingPolicy(EntityType.Database, "Db", TimeSpan.FromSeconds(40));

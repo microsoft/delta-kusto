@@ -22,6 +22,36 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
         }
 
         [Fact]
+        public void DbComposedTableName()
+        {
+            var command = ParseOneCommand(
+                ".alter table mydb.mytable policy retention "
+                + "@'{\"SoftDeletePeriod\":\"90.00:00:00\"}'");
+
+            Assert.IsType<AlterRetentionPolicyCommand>(command);
+
+            var realCommand = (AlterRetentionPolicyCommand)command;
+
+            Assert.Equal(EntityType.Table, realCommand.EntityType);
+            Assert.Equal("mytable", realCommand.EntityName.Name);
+        }
+
+        [Fact]
+        public void ClusterComposedTableName()
+        {
+            var command = ParseOneCommand(
+                ".alter table mycluster.['my db'].mytable policy retention "
+                + "@'{\"SoftDeletePeriod\":\"90.00:00:00\"}'");
+
+            Assert.IsType<AlterRetentionPolicyCommand>(command);
+
+            var realCommand = (AlterRetentionPolicyCommand)command;
+
+            Assert.Equal(EntityType.Table, realCommand.EntityType);
+            Assert.Equal("mytable", realCommand.EntityName.Name);
+        }
+
+        [Fact]
         public void SimpleDatabase()
         {
             TestRetentionPolicy(EntityType.Database, "Db", TimeSpan.FromSeconds(40), true);

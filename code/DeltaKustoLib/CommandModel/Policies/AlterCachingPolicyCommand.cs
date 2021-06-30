@@ -55,7 +55,11 @@ namespace DeltaKustoLib.CommandModel.Policies
             var entityType = entityKind == SyntaxKind.TableKeyword
                 ? EntityType.Table
                 : EntityType.Database;
-            var entityName = rootElement.GetFirstDescendant<NameReference>();
+            var entityName = rootElement
+                .GetDescendants<NameReference>(n => n.NameInParent == "TableName"
+                || n.NameInParent == "DatabaseName"
+                || n.NameInParent == "Selector")
+                .Last();
             var (hotData, hotIndex) = ExtractHotDurations(rootElement);
 
             return new AlterCachingPolicyCommand(
