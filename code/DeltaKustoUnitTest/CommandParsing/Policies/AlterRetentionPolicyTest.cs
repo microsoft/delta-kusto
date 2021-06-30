@@ -44,7 +44,7 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
                 new EntityName(name),
                 softDelete,
                 recoverability)
-                .ToScript();
+                .ToScript(null);
             var command = ParseOneCommand(commandText);
 
             Assert.IsType<AlterRetentionPolicyCommand>(command);

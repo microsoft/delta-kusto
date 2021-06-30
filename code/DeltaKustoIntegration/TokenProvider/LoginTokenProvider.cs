@@ -13,7 +13,7 @@ namespace DeltaKustoIntegration.TokenProvider
 {
     internal class LoginTokenProvider : ITokenProvider
     {
-        private static readonly TimeSpan TIMEOUT = TimeSpan.FromSeconds(5);
+        private static readonly TimeSpan TIMEOUT = TimeSpan.FromSeconds(10);
         
         private readonly ITracer _tracer;
         private readonly SimpleHttpClientFactory _httpClientFactory;

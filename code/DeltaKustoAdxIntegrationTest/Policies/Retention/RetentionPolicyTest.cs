@@ -8,10 +8,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace DeltaKustoAdxIntegrationTest.Functions
+namespace DeltaKustoAdxIntegrationTest.Policies.Retention
 {
-    public class FunctionTest : AdxAutoIntegrationTestBase
+    public class RetentionPolicyTest : AdxAutoIntegrationTestBase
     {
-        protected override string StatesFolderPath => "Functions";
+        protected override string StatesFolderPath => "Policies/Retention";
     }
 }

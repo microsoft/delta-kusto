@@ -69,7 +69,7 @@ namespace DeltaKustoUnitTest.Delta.Policies
                         entityType,
                         new EntityName("A"),
                         currentDuration.Value,
-                        currentDuration.Value).ToScript()
+                        currentDuration.Value).ToScript(null)
                     : string.Empty;
                 var currentCommandText = createTableCommandText + currentCachingText;
                 var currentCommands = Parse(currentCommandText);
@@ -79,7 +79,7 @@ namespace DeltaKustoUnitTest.Delta.Policies
                         entityType,
                         new EntityName("A"),
                         targetDuration.Value,
-                        targetDuration.Value).ToScript()
+                        targetDuration.Value).ToScript(null)
                     : string.Empty;
                 var targetCommandText = createTableCommandText + targetCachingText;
                 var targetCommands = Parse(targetCommandText);

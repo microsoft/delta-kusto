@@ -36,7 +36,7 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
         private void TestRetentionPolicy(EntityType type, string name)
         {
             var commandText = new DeleteRetentionPolicyCommand(type, new EntityName(name))
-                .ToScript();
+                .ToScript(null);
             var command = ParseOneCommand(commandText);
 
             Assert.IsType<DeleteRetentionPolicyCommand>(command);

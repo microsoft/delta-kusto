@@ -45,7 +45,7 @@ namespace DeltaKustoLib.CommandModel
             return areEqualed;
         }
 
-        public override string ToScript()
+        public override string ToScript(ScriptingContext? context)
         {
             return $".drop tables ({string.Join(", ", TableNames.Select(t => t.ToScript()))})";
         }

@@ -30,7 +30,7 @@ namespace DeltaKustoLib.CommandModel
 
         public abstract bool Equals([AllowNull] CommandBase other);
 
-        public abstract string ToScript();
+        public abstract string ToScript(ScriptingContext? context = default(ScriptingContext));
 
         #region Object methods
         public override string ToString()

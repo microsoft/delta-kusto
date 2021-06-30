@@ -38,7 +38,7 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
             var commandText = new DeleteCachingPolicyCommand(
                 type,
                 new EntityName(name))
-                .ToScript();
+                .ToScript(null);
             var command = ParseOneCommand(commandText);
 
             Assert.IsType<DeleteCachingPolicyCommand>(command);

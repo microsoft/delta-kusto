@@ -77,14 +77,21 @@ namespace DeltaKustoLib.CommandModel.Policies
             return areEqualed;
         }
 
-        public override string ToScript()
+        public override string ToScript(ScriptingContext? context)
         {
             var builder = new StringBuilder();
 
             builder.Append(".alter ");
             builder.Append(EntityType == EntityType.Table ? "table" : "database");
             builder.Append(" ");
-            builder.Append(EntityName.ToScript());
+            if (EntityType == EntityType.Database && context?.CurrentDatabaseName != null)
+            {
+                builder.Append(context.CurrentDatabaseName);
+            }
+            else
+            {
+                builder.Append(EntityName.ToScript());
+            }
             builder.Append(" policy caching ");
             if (HotData.Equals(HotIndex))
             {

@@ -46,7 +46,7 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
                     new EntityName(name),
                     hotData,
                     hotIndex)
-                    .ToScript();
+                    .ToScript(null);
                 var command = ParseOneCommand(commandText);
 
                 Assert.IsType<AlterCachingPolicyCommand>(command);

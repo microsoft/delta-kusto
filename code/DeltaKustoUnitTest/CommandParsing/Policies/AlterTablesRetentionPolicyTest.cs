@@ -42,7 +42,7 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
                 names.Select(n => new EntityName(n)),
                 softDeletePeriod,
                 recoverability)
-                .ToScript();
+                .ToScript(null);
             var command = ParseOneCommand(commandText);
 
             Assert.IsType<AlterTablesRetentionPolicyCommand>(command);

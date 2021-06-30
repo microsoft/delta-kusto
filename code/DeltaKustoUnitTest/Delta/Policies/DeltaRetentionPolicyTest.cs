@@ -73,7 +73,7 @@ namespace DeltaKustoUnitTest.Delta.Policies
                         entityType,
                         new EntityName("A"),
                         currentPolicy.GetSoftDeletePeriod(),
-                        currentPolicy.GetRecoverability()).ToScript()
+                        currentPolicy.GetRecoverability()).ToScript(null)
                     : string.Empty;
                 var currentCommands = Parse(createTableCommandText + currentText);
                 var currentDatabase = DatabaseModel.FromCommands(currentCommands);
@@ -82,7 +82,7 @@ namespace DeltaKustoUnitTest.Delta.Policies
                         entityType,
                         new EntityName("A"),
                         targetPolicy.GetSoftDeletePeriod(),
-                        targetPolicy.GetRecoverability()).ToScript()
+                        targetPolicy.GetRecoverability()).ToScript(null)
                     : string.Empty;
                 var targetCommands = Parse(createTableCommandText + targetText);
                 var targetDatabase = DatabaseModel.FromCommands(targetCommands);

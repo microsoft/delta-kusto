@@ -42,7 +42,7 @@ namespace DeltaKustoLib.CommandModel.Policies
         {
             EnableBoolean flag;
 
-            if (Enum.TryParse<EnableBoolean>(Recoverability, out flag))
+            if (Enum.TryParse<EnableBoolean>(Recoverability, true, out flag))
             {
                 return flag == EnableBoolean.Enabled;
             }
