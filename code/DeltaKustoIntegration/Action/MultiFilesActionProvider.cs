@@ -63,6 +63,11 @@ namespace DeltaKustoIntegration.Action
                 "tables/policies/caching/delete",
                 ct);
             await ProcessDeltaCommandsAsync(
+                commands.DeleteRetentionPolicyCommands,
+                c => $"{c.EntityName.Name}",
+                "tables/policies/retention/delete",
+                ct);
+            await ProcessDeltaCommandsAsync(
                 commands.DropFunctionCommands,
                 c => c.FunctionName.Name,
                 "functions/drop",
@@ -107,6 +112,21 @@ namespace DeltaKustoIntegration.Action
                 commands.AlterCachingPolicyCommands,
                 c => $"{c.EntityName.Name}",
                 "tables/policies/caching",
+                ct);
+            await ProcessDeltaCommandsAsync(
+                commands.AlterRetentionPolicyCommands.Where(c => c.EntityType == EntityType.Table),
+                c => c.EntityName.Name,
+                "tables/policies/retention",
+                ct);
+            await ProcessDeltaCommandsAsync(
+                commands.AlterRetentionPolicyCommands.Where(c => c.EntityType == EntityType.Database),
+                c => "db",
+                "tables/policies/retention/db",
+                ct);
+            await ProcessDeltaCommandsAsync(
+                commands.AlterTablesRetentionPolicyCommands,
+                c => c.TableNames.First().Name,
+                "tables/policies/retention/multiple",
                 ct);
             await ProcessDeltaCommandsAsync(
                 commands.CreateFunctionCommands,

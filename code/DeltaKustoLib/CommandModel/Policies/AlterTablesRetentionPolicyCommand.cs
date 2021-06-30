@@ -22,7 +22,7 @@ namespace DeltaKustoLib.CommandModel.Policies
 
         public IImmutableList<EntityName> TableNames { get; }
 
-        public TimeSpan SoftDelete { get; }
+        public TimeSpan SoftDeletePeriod { get; }
 
         public bool Recoverability { get; }
 
@@ -33,11 +33,13 @@ namespace DeltaKustoLib.CommandModel.Policies
             TimeSpan softDelete,
             bool recoverability)
         {
-            TableNames = tableNames.ToImmutableArray();
-            SoftDelete = softDelete;
+            TableNames = tableNames
+                .OrderBy(t => t.Name)
+                .ToImmutableArray();
+            SoftDeletePeriod = softDelete;
             Recoverability = recoverability;
 
-            if(!TableNames.Any())
+            if (!TableNames.Any())
             {
                 throw new ArgumentOutOfRangeException(
                     nameof(tableNames),
@@ -68,7 +70,7 @@ namespace DeltaKustoLib.CommandModel.Policies
 
             return new AlterTablesRetentionPolicyCommand(
                 tableNames,
-                policy.GetSoftDelete(),
+                policy.GetSoftDeletePeriod(),
                 policy.GetRecoverability());
         }
 
@@ -77,7 +79,7 @@ namespace DeltaKustoLib.CommandModel.Policies
             var otherFunction = other as AlterTablesRetentionPolicyCommand;
             var areEqualed = otherFunction != null
                 && otherFunction.TableNames.SequenceEqual(TableNames)
-                && otherFunction.SoftDelete.Equals(SoftDelete)
+                && otherFunction.SoftDeletePeriod.Equals(SoftDeletePeriod)
                 && otherFunction.Recoverability.Equals(Recoverability);
 
             return areEqualed;
@@ -86,7 +88,7 @@ namespace DeltaKustoLib.CommandModel.Policies
         public override string ToScript()
         {
             var builder = new StringBuilder();
-            var policy = RetentionPolicy.Create(SoftDelete, Recoverability);
+            var policy = RetentionPolicy.Create(SoftDeletePeriod, Recoverability);
 
             builder.Append(".alter tables (");
             builder.Append(string.Join(", ", TableNames.Select(t => t.ToScript())));

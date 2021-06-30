@@ -59,6 +59,10 @@ namespace DeltaKustoIntegration.Action
                 "Delete Caching Policies");
             ProcessDeltaCommands(
                 builder,
+                commands.DeleteRetentionPolicyCommands,
+                "Delete Retention Policies");
+            ProcessDeltaCommands(
+                builder,
                 commands.DropFunctionCommands,
                 "Drop functions");
             ProcessDeltaCommands(
@@ -95,6 +99,14 @@ namespace DeltaKustoIntegration.Action
                 builder,
                 commands.AlterCachingPolicyCommands,
                 "Alter Caching Policies");
+            ProcessDeltaCommands(
+                builder,
+                commands.AlterRetentionPolicyCommands,
+                "Alter Retention Policies");
+            ProcessDeltaCommands(
+                builder,
+                commands.AlterTablesRetentionPolicyCommands,
+                "Alter Tables Retention Policies");
             ProcessDeltaCommands(
                 builder,
                 commands.CreateFunctionCommands,

@@ -34,6 +34,10 @@ namespace DeltaKustoIntegration.Action
                 .OfType<DeleteCachingPolicyCommand>()
                 .OrderBy(d => $"{(d.EntityType == EntityType.Database ? 1 : 2)}{d.EntityName}")
                 .ToImmutableArray();
+            DeleteRetentionPolicyCommands = commands
+                .OfType<DeleteRetentionPolicyCommand>()
+                .OrderBy(d => $"{(d.EntityType == EntityType.Database ? 1 : 2)}{d.EntityName}")
+                .ToImmutableArray();
             DropFunctionCommands = commands
                 .OfType<DropFunctionCommand>()
                 .OrderBy(d => d.FunctionName)
@@ -65,6 +69,14 @@ namespace DeltaKustoIntegration.Action
                 .OfType<AlterCachingPolicyCommand>()
                 .OrderBy(d => $"{(d.EntityType == EntityType.Database ? 1 : 2)}{d.EntityName}")
                 .ToImmutableArray();
+            AlterRetentionPolicyCommands = commands
+                .OfType<AlterRetentionPolicyCommand>()
+                .OrderBy(d => $"{(d.EntityType == EntityType.Database ? 1 : 2)}{d.EntityName}")
+                .ToImmutableArray();
+            AlterTablesRetentionPolicyCommands = commands
+                .OfType<AlterTablesRetentionPolicyCommand>()
+                .OrderBy(d => d.TableNames.First().Name)
+                .ToImmutableArray();
             CreateFunctionCommands = commands
                 .OfType<CreateFunctionCommand>()
                 .OrderBy(d => d.Folder.Text)
@@ -77,12 +89,15 @@ namespace DeltaKustoIntegration.Action
             _allCommands = AllDataLossCommands
                 .Concat(DropMappingCommands)
                 .Concat(DeleteCachingPolicyCommands)
+                .Concat(DeleteRetentionPolicyCommands)
                 .Concat(DropFunctionCommands)
                 .Concat(CreateTableCommands)
                 .Concat(AlterMergeTableColumnDocStringsCommands)
                 .Concat(CreateMappingCommands)
                 .Concat(AlterUpdatePolicyCommands)
                 .Concat(AlterCachingPolicyCommands)
+                .Concat(AlterRetentionPolicyCommands)
+                .Concat(AlterTablesRetentionPolicyCommands)
                 .Concat(CreateFunctionCommands);
 
             if (_allCommands.Count() != commands.Count())
@@ -115,6 +130,8 @@ namespace DeltaKustoIntegration.Action
 
         public IImmutableList<DeleteCachingPolicyCommand> DeleteCachingPolicyCommands { get; }
 
+        public IImmutableList<DeleteRetentionPolicyCommand> DeleteRetentionPolicyCommands { get; }
+
         public IImmutableList<DropFunctionCommand> DropFunctionCommands { get; }
 
         public IImmutableList<CreateTableCommand> CreateTableCommands { get; }
@@ -130,6 +147,10 @@ namespace DeltaKustoIntegration.Action
         public IImmutableList<AlterUpdatePolicyCommand> AlterUpdatePolicyCommands { get; }
 
         public IImmutableList<AlterCachingPolicyCommand> AlterCachingPolicyCommands { get; }
+
+        public IImmutableList<AlterRetentionPolicyCommand> AlterRetentionPolicyCommands { get; }
+
+        public IImmutableList<AlterTablesRetentionPolicyCommand> AlterTablesRetentionPolicyCommands { get; }
 
         public IImmutableList<CreateFunctionCommand> CreateFunctionCommands { get; }
     }

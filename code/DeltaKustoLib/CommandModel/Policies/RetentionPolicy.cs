@@ -12,29 +12,29 @@ namespace DeltaKustoLib.CommandModel.Policies
         {
             return new RetentionPolicy
             {
-                SoftDelete = softDelete.ToString(),
+                SoftDeletePeriod = softDelete.ToString(),
                 Recoverability = recoverability
                 ? EnableBoolean.Enabled.ToString()
                 : EnableBoolean.Disabled.ToString()
             };
         }
 
-        public string SoftDelete { get; init; } = TimeSpan.FromDays(36500).ToString();
+        public string SoftDeletePeriod { get; init; } = TimeSpan.FromDays(36500).ToString();
 
         public string Recoverability { get; init; } = EnableBoolean.Enabled.ToString();
 
-        public TimeSpan GetSoftDelete()
+        public TimeSpan GetSoftDeletePeriod()
         {
             TimeSpan time;
 
-            if (TimeSpan.TryParse(SoftDelete, out time))
+            if (TimeSpan.TryParse(SoftDeletePeriod, out time))
             {
                 return time;
             }
             else
             {
                 throw new DeltaException(
-                    $"Can't parse 'SoftDelete' value '{SoftDelete}'");
+                    $"Can't parse 'SoftDelete' value '{SoftDeletePeriod}'");
             }
         }
 

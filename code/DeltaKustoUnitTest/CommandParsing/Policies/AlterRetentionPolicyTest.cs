@@ -53,7 +53,7 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
 
             Assert.Equal(type, realCommand.EntityType);
             Assert.Equal(name, realCommand.EntityName.Name);
-            Assert.Equal(softDelete, realCommand.SoftDelete);
+            Assert.Equal(softDelete, realCommand.SoftDeletePeriod);
             Assert.Equal(recoverability, realCommand.Recoverability);
         }
     }

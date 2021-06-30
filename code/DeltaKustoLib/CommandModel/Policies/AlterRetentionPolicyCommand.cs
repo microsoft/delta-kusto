@@ -24,7 +24,7 @@ namespace DeltaKustoLib.CommandModel.Policies
 
         public EntityName EntityName { get; }
 
-        public TimeSpan SoftDelete { get; }
+        public TimeSpan SoftDeletePeriod { get; }
 
         public bool Recoverability { get; }
 
@@ -33,7 +33,7 @@ namespace DeltaKustoLib.CommandModel.Policies
         public AlterRetentionPolicyCommand(
             EntityType entityType,
             EntityName entityName,
-            TimeSpan softDelete,
+            TimeSpan softDeletePeriod,
             bool recoverability)
         {
             if (entityType != EntityType.Database && entityType != EntityType.Table)
@@ -43,7 +43,7 @@ namespace DeltaKustoLib.CommandModel.Policies
             }
             EntityType = entityType;
             EntityName = entityName;
-            SoftDelete = softDelete;
+            SoftDeletePeriod = softDeletePeriod;
             Recoverability = recoverability;
         }
 
@@ -78,7 +78,7 @@ namespace DeltaKustoLib.CommandModel.Policies
             return new AlterRetentionPolicyCommand(
                 entityType,
                 EntityName.FromCode(entityName.Name),
-                policy.GetSoftDelete(),
+                policy.GetSoftDeletePeriod(),
                 policy.GetRecoverability());
         }
 
@@ -88,7 +88,7 @@ namespace DeltaKustoLib.CommandModel.Policies
             var areEqualed = otherFunction != null
                 && otherFunction.EntityType.Equals(EntityType)
                 && otherFunction.EntityName.Equals(EntityName)
-                && otherFunction.SoftDelete.Equals(SoftDelete)
+                && otherFunction.SoftDeletePeriod.Equals(SoftDeletePeriod)
                 && otherFunction.Recoverability.Equals(Recoverability);
 
             return areEqualed;
@@ -97,7 +97,7 @@ namespace DeltaKustoLib.CommandModel.Policies
         public override string ToScript()
         {
             var builder = new StringBuilder();
-            var policy = RetentionPolicy.Create(SoftDelete, Recoverability);
+            var policy = RetentionPolicy.Create(SoftDeletePeriod, Recoverability);
 
             builder.Append(".alter ");
             builder.Append(EntityType == EntityType.Table ? "table" : "database");

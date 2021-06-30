@@ -29,7 +29,7 @@ namespace DeltaKustoFileIntegrationTest.Policies.Retention
             Assert.NotNull(policyCommand);
             Assert.Equal(EntityType.Database, policyCommand!.EntityType);
             Assert.Equal("mydb", policyCommand!.EntityName.Name);
-            Assert.Equal(TimeSpan.FromHours(12), policyCommand!.SoftDelete);
+            Assert.Equal(TimeSpan.FromHours(12), policyCommand!.SoftDeletePeriod);
         }
 
         [Fact]
@@ -43,13 +43,13 @@ namespace DeltaKustoFileIntegrationTest.Policies.Retention
             Assert.Single(outputCommands);
 
             var policyCommand = outputCommands
-                .Where(c => c is DeleteCachingPolicyCommand)
-                .Cast<DeleteCachingPolicyCommand>()
+                .Where(c => c is DeleteRetentionPolicyCommand)
+                .Cast<DeleteRetentionPolicyCommand>()
                 .FirstOrDefault();
 
             Assert.NotNull(policyCommand);
             Assert.Equal(EntityType.Database, policyCommand!.EntityType);
-            Assert.Equal("my-db", policyCommand!.EntityName.Name);
+            Assert.Equal("mydb", policyCommand!.EntityName.Name);
         }
 
         [Fact]
@@ -80,8 +80,8 @@ namespace DeltaKustoFileIntegrationTest.Policies.Retention
 
             Assert.NotNull(policyCommand);
             Assert.Equal(EntityType.Database, policyCommand!.EntityType);
-            Assert.Equal("my db", policyCommand!.EntityName.Name);
-            Assert.Equal(TimeSpan.FromDays(10), policyCommand!.SoftDelete);
+            Assert.Equal("mydb", policyCommand!.EntityName.Name);
+            Assert.Equal(TimeSpan.FromDays(10), policyCommand!.SoftDeletePeriod);
         }
     }
 }

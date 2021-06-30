@@ -88,7 +88,7 @@ namespace DeltaKustoLib.KustoModel
                 .SelectMany(c => c.TableNames.Select(t => new AlterRetentionPolicyCommand(
                     EntityType.Table,
                     t,
-                    c.SoftDelete,
+                    c.SoftDeletePeriod,
                     c.Recoverability)));
             var retentionPolicies = GetCommands<AlterRetentionPolicyCommand>(commandTypeIndex)
                 .ToImmutableArray();

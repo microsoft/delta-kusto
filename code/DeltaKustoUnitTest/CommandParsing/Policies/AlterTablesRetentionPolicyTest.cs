@@ -34,13 +34,13 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
         }
 
         private void TestRetentionPolicy(
-            TimeSpan softDelete,
+            TimeSpan softDeletePeriod,
             bool recoverability,
             params string[] names)
         {
             var commandText = new AlterTablesRetentionPolicyCommand(
                 names.Select(n => new EntityName(n)),
-                softDelete,
+                softDeletePeriod,
                 recoverability)
                 .ToScript();
             var command = ParseOneCommand(commandText);
@@ -50,7 +50,7 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
             var realCommand = (AlterTablesRetentionPolicyCommand)command;
 
             Assert.Equal(names, realCommand.TableNames.Select(t => t.Name));
-            Assert.Equal(softDelete, realCommand.SoftDelete);
+            Assert.Equal(softDeletePeriod, realCommand.SoftDeletePeriod);
             Assert.Equal(recoverability, realCommand.Recoverability);
         }
     }

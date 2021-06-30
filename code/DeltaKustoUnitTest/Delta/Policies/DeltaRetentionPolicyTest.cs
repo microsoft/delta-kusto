@@ -17,8 +17,8 @@ namespace DeltaKustoUnitTest.Delta.Policies
         {
             TestRetention(
                 null,
-                new RetentionPolicy { SoftDelete = TimeSpan.FromDays(3).ToString() },
-                c => Assert.Equal(TimeSpan.FromDays(3), c.SoftDelete),
+                new RetentionPolicy { SoftDeletePeriod = TimeSpan.FromDays(3).ToString() },
+                c => Assert.Equal(TimeSpan.FromDays(3), c.SoftDeletePeriod),
                 null);
         }
 
@@ -28,7 +28,7 @@ namespace DeltaKustoUnitTest.Delta.Policies
             TestRetention(
                 new RetentionPolicy
                 {
-                    SoftDelete = TimeSpan.FromMinutes(7).ToString(),
+                    SoftDeletePeriod = TimeSpan.FromMinutes(7).ToString(),
                     Recoverability = EnableBoolean.Disabled.ToString()
                 },
                 null,
@@ -42,9 +42,9 @@ namespace DeltaKustoUnitTest.Delta.Policies
             var targetDuration = TimeSpan.FromDays(25) + TimeSpan.FromHours(4);
 
             TestRetention(
-                new RetentionPolicy { SoftDelete = TimeSpan.FromDays(3).ToString() },
-                new RetentionPolicy { SoftDelete = targetDuration.ToString() },
-                c => Assert.Equal(targetDuration, c.SoftDelete),
+                new RetentionPolicy { SoftDeletePeriod = TimeSpan.FromDays(3).ToString() },
+                new RetentionPolicy { SoftDeletePeriod = targetDuration.ToString() },
+                c => Assert.Equal(targetDuration, c.SoftDeletePeriod),
                 null);
         }
 
@@ -52,8 +52,8 @@ namespace DeltaKustoUnitTest.Delta.Policies
         public void TableSame()
         {
             TestRetention(
-                new RetentionPolicy { SoftDelete = TimeSpan.FromMilliseconds(45).ToString() },
-                new RetentionPolicy { SoftDelete = TimeSpan.FromMilliseconds(45).ToString() },
+                new RetentionPolicy { SoftDeletePeriod = TimeSpan.FromMilliseconds(45).ToString() },
+                new RetentionPolicy { SoftDeletePeriod = TimeSpan.FromMilliseconds(45).ToString() },
                 null,
                 null);
         }
@@ -72,7 +72,7 @@ namespace DeltaKustoUnitTest.Delta.Policies
                     ? new AlterRetentionPolicyCommand(
                         entityType,
                         new EntityName("A"),
-                        currentPolicy.GetSoftDelete(),
+                        currentPolicy.GetSoftDeletePeriod(),
                         currentPolicy.GetRecoverability()).ToScript()
                     : string.Empty;
                 var currentCommands = Parse(createTableCommandText + currentText);
@@ -81,7 +81,7 @@ namespace DeltaKustoUnitTest.Delta.Policies
                     ? new AlterRetentionPolicyCommand(
                         entityType,
                         new EntityName("A"),
-                        targetPolicy.GetSoftDelete(),
+                        targetPolicy.GetSoftDeletePeriod(),
                         targetPolicy.GetRecoverability()).ToScript()
                     : string.Empty;
                 var targetCommands = Parse(createTableCommandText + targetText);

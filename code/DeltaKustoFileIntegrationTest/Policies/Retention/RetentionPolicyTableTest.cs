@@ -29,7 +29,7 @@ namespace DeltaKustoFileIntegrationTest.Policies.Retention
             Assert.NotNull(policyCommand);
             Assert.Equal(EntityType.Table, policyCommand!.EntityType);
             Assert.Equal("my-table", policyCommand!.EntityName.Name);
-            Assert.Equal(TimeSpan.FromHours(12), policyCommand!.SoftDelete);
+            Assert.Equal(TimeSpan.FromDays(12), policyCommand!.SoftDeletePeriod);
         }
 
         [Fact]
@@ -81,7 +81,7 @@ namespace DeltaKustoFileIntegrationTest.Policies.Retention
             Assert.NotNull(policyCommand);
             Assert.Equal(EntityType.Table, policyCommand!.EntityType);
             Assert.Equal("my-table", policyCommand!.EntityName.Name);
-            Assert.Equal(TimeSpan.FromDays(10), policyCommand!.SoftDelete);
+            Assert.Equal(TimeSpan.FromDays(10), policyCommand!.SoftDeletePeriod);
         }
     }
 }
