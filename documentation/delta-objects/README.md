@@ -21,7 +21,11 @@ This page documents how those delta are computed on different objects:
 * [Functions](functions.md)
 * [Ingestion Mappings](ingestion-mappings.md)
 * Policies
+    * [Auto Delete Policy](policies/auto-delete.md)
     * [Caching Policy](policies/caching.md)
+    * [Ingestion Batching Policy](policies/ingestion-batching.md)
+    * [Merge Policy](policies/merge.md)
     * [Retention Policy](policies/retention.md)
+    * [Sharding Policy](policies/sharding.md)
     * [Update Policy](policies/update.md)
 * [Tables](tables.md)
