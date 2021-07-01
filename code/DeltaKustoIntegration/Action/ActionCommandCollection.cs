@@ -73,10 +73,6 @@ namespace DeltaKustoIntegration.Action
                 .OfType<AlterRetentionPolicyCommand>()
                 .OrderBy(d => $"{(d.EntityType == EntityType.Database ? 1 : 2)}{d.EntityName}")
                 .ToImmutableArray();
-            AlterTablesRetentionPolicyCommands = commands
-                .OfType<AlterTablesRetentionPolicyCommand>()
-                .OrderBy(d => d.TableNames.First().Name)
-                .ToImmutableArray();
             CreateFunctionCommands = commands
                 .OfType<CreateFunctionCommand>()
                 .OrderBy(d => d.Folder.Text)
@@ -97,8 +93,17 @@ namespace DeltaKustoIntegration.Action
                 .Concat(AlterUpdatePolicyCommands)
                 .Concat(AlterCachingPolicyCommands)
                 .Concat(AlterRetentionPolicyCommands)
-                .Concat(AlterTablesRetentionPolicyCommands)
                 .Concat(CreateFunctionCommands);
+            AllCommandsWithPluralForms = _allCommands
+                .Where(c => !(c is DropTableCommand))
+                .Concat(DropTableCommands.MergeToPlural())
+                .Where(c => !(c is CreateTableCommand))
+                .Concat(DropTableCommands.MergeToPlural())
+                .Where(c => !(c is DropFunctionCommand))
+                .Concat(DropFunctionCommands.MergeToPlural())
+                .Where(c => !(c is AlterRetentionPolicyCommand
+                && ((AlterRetentionPolicyCommand)c).EntityType == EntityType.Table))
+                .Concat(AlterRetentionPolicyCommands.Where(c => c.EntityType == EntityType.Table).MergeToPlural());
 
             if (_allCommands.Count() != commands.Count())
             {
@@ -121,6 +126,8 @@ namespace DeltaKustoIntegration.Action
         #endregion
 
         public IEnumerable<CommandBase> AllDataLossCommands { get; }
+
+        public IEnumerable<CommandBase> AllCommandsWithPluralForms { get; }
 
         public IImmutableList<DropTableCommand> DropTableCommands { get; }
 
@@ -149,8 +156,6 @@ namespace DeltaKustoIntegration.Action
         public IImmutableList<AlterCachingPolicyCommand> AlterCachingPolicyCommands { get; }
 
         public IImmutableList<AlterRetentionPolicyCommand> AlterRetentionPolicyCommands { get; }
-
-        public IImmutableList<AlterTablesRetentionPolicyCommand> AlterTablesRetentionPolicyCommands { get; }
 
         public IImmutableList<CreateFunctionCommand> CreateFunctionCommands { get; }
     }

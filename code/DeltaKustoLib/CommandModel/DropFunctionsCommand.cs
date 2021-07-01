@@ -19,6 +19,10 @@ namespace DeltaKustoLib.CommandModel
 
         internal DropFunctionsCommand(IImmutableList<EntityName> functionNames)
         {
+            if(!functionNames.Any())
+            {
+                throw new ArgumentException("Empty", nameof(functionNames));
+            }
             FunctionNames = functionNames;
         }
 

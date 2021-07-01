@@ -31,20 +31,12 @@ namespace DeltaKustoIntegration.Action
         {
             var builder = new StringBuilder();
 
-            if (_usePluralForms)
-            {
-                ProcessDeltaCommands(
-                    builder,
-                    commands.DropTableCommands.MergeToPlural(),
-                    "Drop Tables");
-            }
-            else
-            {
-                ProcessDeltaCommands(
-                    builder,
-                    commands.DropTableCommands,
-                    "Drop Tables");
-            }
+            ProcessDeltaCommands(
+                builder,
+                _usePluralForms
+                ? commands.DropTableCommands.MergeToPlural()
+                : commands.DropTableCommands,
+                "Drop Tables");
             ProcessDeltaCommands(
                 builder,
                 commands.DropTableColumnsCommands,
@@ -63,26 +55,20 @@ namespace DeltaKustoIntegration.Action
                 "Delete Retention Policies");
             ProcessDeltaCommands(
                 builder,
-                commands.DropFunctionCommands,
+                _usePluralForms
+                ? commands.DropFunctionCommands.MergeToPlural()
+                : commands.DropFunctionCommands,
                 "Drop functions");
             ProcessDeltaCommands(
                 builder,
                 commands.AlterColumnTypeCommands,
                 "Alter Column Type");
-            if (_usePluralForms)
-            {
-                ProcessDeltaCommands(
-                    builder,
-                    commands.CreateTableCommands.MergeToPlural(),
-                    "Create tables");
-            }
-            else
-            {
-                ProcessDeltaCommands(
-                    builder,
-                    commands.CreateTableCommands,
-                    "Create tables");
-            }
+            ProcessDeltaCommands(
+                builder,
+                _usePluralForms
+                ? commands.CreateTableCommands.MergeToPlural()
+                : commands.CreateTableCommands,
+                "Create tables");
             ProcessDeltaCommands(
                 builder,
                 commands.AlterMergeTableColumnDocStringsCommands,
@@ -101,12 +87,18 @@ namespace DeltaKustoIntegration.Action
                 "Alter Caching Policies");
             ProcessDeltaCommands(
                 builder,
-                commands.AlterRetentionPolicyCommands,
+                _usePluralForms
+                ? commands
+                .AlterRetentionPolicyCommands
+                .Where(c => c.EntityType != EntityType.Table)
+                .Cast<CommandBase>()
+                .Concat(
+                    commands
+                    .AlterRetentionPolicyCommands
+                    .Where(c => c.EntityType == EntityType.Table)
+                    .MergeToPlural())
+                : commands.AlterRetentionPolicyCommands,
                 "Alter Retention Policies");
-            ProcessDeltaCommands(
-                builder,
-                commands.AlterTablesRetentionPolicyCommands,
-                "Alter Tables Retention Policies");
             ProcessDeltaCommands(
                 builder,
                 commands.CreateFunctionCommands,
@@ -118,11 +110,10 @@ namespace DeltaKustoIntegration.Action
                 ct);
         }
 
-        private void ProcessDeltaCommands<CT>(
+        private void ProcessDeltaCommands(
             StringBuilder builder,
-            IEnumerable<CT> commands,
+            IEnumerable<CommandBase> commands,
             string comment)
-            where CT : CommandBase
         {
             if (commands.Any())
             {

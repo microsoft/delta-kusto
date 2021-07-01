@@ -31,22 +31,13 @@ namespace DeltaKustoIntegration.Action
             ActionCommandCollection commands,
             CancellationToken ct)
         {
-            if (_usePluralForms)
-            {
-                await ProcessDeltaCommandsAsync(
-                    commands.DropTableCommands.MergeToPlural(),
-                    c => "drop",
-                    "tables",
-                    ct);
-            }
-            else
-            {
-                await ProcessDeltaCommandsAsync(
-                    commands.DropTableCommands,
-                    c => c.TableName.Name,
-                    "tables/drop",
-                    ct);
-            }
+            await ProcessDeltaCommandsAsync(
+                _usePluralForms
+                ? commands.DropTableCommands.MergeToPlural().Cast<CommandBase>()
+                : commands.DropTableCommands,
+                c => "drop",
+                "tables",
+                ct);
             await ProcessDeltaCommandsAsync(
                 commands.DropTableColumnsCommands,
                 c => c.TableName.Name,
@@ -68,31 +59,24 @@ namespace DeltaKustoIntegration.Action
                 "tables/policies/retention/delete",
                 ct);
             await ProcessDeltaCommandsAsync(
-                commands.DropFunctionCommands,
-                c => c.FunctionName.Name,
-                "functions/drop",
+                _usePluralForms
+                ? commands.DropFunctionCommands.MergeToPlural().Cast<CommandBase>()
+                : commands.DropFunctionCommands,
+                c => "drop",
+                "functions",
                 ct);
             await ProcessDeltaCommandsAsync(
                 commands.AlterColumnTypeCommands,
                 c => c.TableName.Name,
                 "columns/alter-type",
                 ct);
-            if (_usePluralForms)
-            {
-                await ProcessDeltaCommandsAsync(
-                    commands.CreateTableCommands.MergeToPlural(),
-                    c => "create",
-                    "tables",
-                    ct);
-            }
-            else
-            {
-                await ProcessDeltaCommandsAsync(
-                    commands.CreateTableCommands,
-                    c => c.TableName.Name,
-                    "tables",
-                    ct);
-            }
+            await ProcessDeltaCommandsAsync(
+                _usePluralForms
+                ? commands.CreateTableCommands.MergeToPlural().Cast<CommandBase>()
+                : commands.CreateTableCommands,
+                c => "create",
+                "tables",
+                ct);
             await ProcessDeltaCommandsAsync(
                 commands.AlterMergeTableColumnDocStringsCommands,
                 c => c.TableName.Name,
@@ -113,20 +97,29 @@ namespace DeltaKustoIntegration.Action
                 c => $"{c.EntityName.Name}",
                 "tables/policies/caching",
                 ct);
-            await ProcessDeltaCommandsAsync(
-                commands.AlterRetentionPolicyCommands.Where(c => c.EntityType == EntityType.Table),
-                c => c.EntityName.Name,
-                "tables/policies/retention",
-                ct);
+            if(_usePluralForms)
+            {
+                await ProcessDeltaCommandsAsync(
+                    commands
+                    .AlterRetentionPolicyCommands
+                    .Where(c => c.EntityType == EntityType.Table)
+                    .MergeToPlural(),
+                    c => "retention",
+                    "tables/policies",
+                    ct);
+            }
+            else
+            {
+                await ProcessDeltaCommandsAsync(
+                    commands.AlterRetentionPolicyCommands.Where(c => c.EntityType == EntityType.Table),
+                    c => c.EntityName.Name,
+                    "tables/policies/retention",
+                    ct);
+            }
             await ProcessDeltaCommandsAsync(
                 commands.AlterRetentionPolicyCommands.Where(c => c.EntityType == EntityType.Database),
-                c => "db",
-                "tables/policies/retention/db",
-                ct);
-            await ProcessDeltaCommandsAsync(
-                commands.AlterTablesRetentionPolicyCommands,
-                c => c.TableNames.First().Name,
-                "tables/policies/retention/multiple",
+                c => "retention",
+                "db/policies",
                 ct);
             await ProcessDeltaCommandsAsync(
                 commands.CreateFunctionCommands,
@@ -142,13 +135,24 @@ namespace DeltaKustoIntegration.Action
             CancellationToken ct)
             where CT : CommandBase
         {
-            foreach (var command in commands)
-            {
-                var fileName = $"{fileNameExtractor(command)}.kql";
-                var script = command.ToScript();
-                var fullPath = Path.Combine(_folderPath, folder, fileName);
+            var commandGroups = commands
+                .GroupBy(c => fileNameExtractor(c));
 
-                await _fileGateway.SetFileContentAsync(fullPath, script, ct);
+            foreach (var group in commandGroups)
+            {
+                var fileName = $"{group.Key}.kql";
+                var fullPath = Path.Combine(_folderPath, folder, fileName);
+                var builder = new StringBuilder();
+
+                foreach (var command in commands)
+                {
+                    var script = command.ToScript();
+
+                    builder.Append(script);
+                    builder.AppendLine();
+                    builder.AppendLine();
+                }
+                await _fileGateway.SetFileContentAsync(fullPath, builder.ToString(), ct);
             }
         }
     }
