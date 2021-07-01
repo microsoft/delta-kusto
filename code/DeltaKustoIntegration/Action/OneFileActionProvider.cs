@@ -12,16 +12,11 @@ namespace DeltaKustoIntegration.Action
     {
         private readonly IFileGateway _fileGateway;
         private readonly string _filePath;
-        private readonly bool _usePluralForms;
 
-        public OneFileActionProvider(
-            IFileGateway fileGateway,
-            string filePath,
-            bool usePluralForms)
+        public OneFileActionProvider(IFileGateway fileGateway, string filePath)
         {
             _fileGateway = fileGateway;
             _filePath = filePath;
-            _usePluralForms = usePluralForms;
         }
 
         async Task IActionProvider.ProcessDeltaCommandsAsync(
@@ -33,9 +28,11 @@ namespace DeltaKustoIntegration.Action
 
             ProcessDeltaCommands(
                 builder,
-                _usePluralForms
-                ? commands.DropTableCommands.MergeToPlural()
-                : commands.DropTableCommands,
+                commands.DropTableCommands,
+                "Drop Tables");
+            ProcessDeltaCommands(
+                builder,
+                commands.DropTablesCommands,
                 "Drop Tables");
             ProcessDeltaCommands(
                 builder,
@@ -55,9 +52,11 @@ namespace DeltaKustoIntegration.Action
                 "Delete Retention Policies");
             ProcessDeltaCommands(
                 builder,
-                _usePluralForms
-                ? commands.DropFunctionCommands.MergeToPlural()
-                : commands.DropFunctionCommands,
+                commands.DropFunctionCommands,
+                "Drop functions");
+            ProcessDeltaCommands(
+                builder,
+                commands.DropFunctionsCommands,
                 "Drop functions");
             ProcessDeltaCommands(
                 builder,
@@ -65,9 +64,11 @@ namespace DeltaKustoIntegration.Action
                 "Alter Column Type");
             ProcessDeltaCommands(
                 builder,
-                _usePluralForms
-                ? commands.CreateTableCommands.MergeToPlural()
-                : commands.CreateTableCommands,
+                commands.CreateTableCommands,
+                "Create tables");
+            ProcessDeltaCommands(
+                builder,
+                commands.CreateTablesCommands,
                 "Create tables");
             ProcessDeltaCommands(
                 builder,
@@ -87,17 +88,10 @@ namespace DeltaKustoIntegration.Action
                 "Alter Caching Policies");
             ProcessDeltaCommands(
                 builder,
-                _usePluralForms
-                ? commands
-                .AlterRetentionPolicyCommands
-                .Where(c => c.EntityType != EntityType.Table)
+                commands
+                .AlterTablesRetentionPolicyCommands
                 .Cast<CommandBase>()
-                .Concat(
-                    commands
-                    .AlterRetentionPolicyCommands
-                    .Where(c => c.EntityType == EntityType.Table)
-                    .MergeToPlural())
-                : commands.AlterRetentionPolicyCommands,
+                .Concat(commands.AlterRetentionPolicyCommands),
                 "Alter Retention Policies");
             ProcessDeltaCommands(
                 builder,

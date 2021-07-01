@@ -15,12 +15,66 @@ namespace DeltaKustoIntegration.Action
     {
         private readonly IEnumerable<CommandBase> _allCommands;
 
-        public ActionCommandCollection(IEnumerable<CommandBase> commands)
+        public ActionCommandCollection(bool usePluralForms, IEnumerable<CommandBase> commands)
         {
-            DropTableCommands = commands
-                .OfType<DropTableCommand>()
-                .OrderBy(d => d.TableName)
-                .ToImmutableArray();
+            if (usePluralForms)
+            {
+                DropTableCommands = ImmutableArray<DropTableCommand>.Empty;
+                DropTablesCommands = commands
+                    .OfType<DropTableCommand>()
+                    .MergeToPlural()
+                    .OrderBy(c => c.TableNames.First().Name)
+                    .ToImmutableArray();
+                DropFunctionCommands = ImmutableArray<DropFunctionCommand>.Empty;
+                DropFunctionsCommands = commands
+                    .OfType<DropFunctionCommand>()
+                    .MergeToPlural()
+                    .OrderBy(d => d.FunctionNames.First().Name)
+                    .ToImmutableArray();
+                CreateTableCommands = ImmutableArray<CreateTableCommand>.Empty;
+                CreateTablesCommands = commands
+                    .OfType<CreateTableCommand>()
+                    .MergeToPlural()
+                    .OrderBy(d => d.Folder)
+                    .ThenBy(d => d.Tables.First().TableName)
+                    .ToImmutableArray();
+                AlterRetentionPolicyCommands = commands
+                    .OfType<AlterRetentionPolicyCommand>()
+                    .Where(c => c.EntityType != EntityType.Table)
+                    .OrderBy(c => c.EntityName)
+                    .ToImmutableArray();
+                AlterTablesRetentionPolicyCommands = commands
+                    .OfType<AlterRetentionPolicyCommand>()
+                    .Where(c => c.EntityType == EntityType.Table)
+                    .MergeToPlural()
+                    .OrderBy(c => c.TableNames.First())
+                    .ToImmutableArray();
+            }
+            else
+            {
+                DropTableCommands = commands
+                    .OfType<DropTableCommand>()
+                    .OrderBy(d => d.TableName)
+                    .ToImmutableArray();
+                DropTablesCommands = ImmutableArray<DropTablesCommand>.Empty;
+                DropFunctionCommands = commands
+                    .OfType<DropFunctionCommand>()
+                    .OrderBy(d => d.FunctionName)
+                    .ToImmutableArray();
+                DropFunctionsCommands = ImmutableArray<DropFunctionsCommand>.Empty;
+                CreateTableCommands = commands
+                    .OfType<CreateTableCommand>()
+                    .OrderBy(d => d.Folder)
+                    .ThenBy(d => d.TableName)
+                    .ToImmutableArray();
+                CreateTablesCommands = ImmutableArray<CreateTablesCommand>.Empty;
+                AlterRetentionPolicyCommands = commands
+                    .OfType<AlterRetentionPolicyCommand>()
+                    .OrderBy(d => $"{(d.EntityType == EntityType.Database ? 1 : 2)}{d.EntityName}")
+                    .ToImmutableArray();
+                AlterTablesRetentionPolicyCommands =
+                    ImmutableArray<AlterTablesRetentionPolicyCommand>.Empty;
+            }
             DropTableColumnsCommands = commands
                 .OfType<DropTableColumnsCommand>()
                 .OrderBy(d => d.TableName)
@@ -37,15 +91,6 @@ namespace DeltaKustoIntegration.Action
             DeleteRetentionPolicyCommands = commands
                 .OfType<DeleteRetentionPolicyCommand>()
                 .OrderBy(d => $"{(d.EntityType == EntityType.Database ? 1 : 2)}{d.EntityName}")
-                .ToImmutableArray();
-            DropFunctionCommands = commands
-                .OfType<DropFunctionCommand>()
-                .OrderBy(d => d.FunctionName)
-                .ToImmutableArray();
-            CreateTableCommands = commands
-                .OfType<CreateTableCommand>()
-                .OrderBy(d => d.Folder)
-                .ThenBy(d => d.TableName)
                 .ToImmutableArray();
             AlterColumnTypeCommands = commands
                 .OfType<AlterColumnTypeCommand>()
@@ -69,10 +114,6 @@ namespace DeltaKustoIntegration.Action
                 .OfType<AlterCachingPolicyCommand>()
                 .OrderBy(d => $"{(d.EntityType == EntityType.Database ? 1 : 2)}{d.EntityName}")
                 .ToImmutableArray();
-            AlterRetentionPolicyCommands = commands
-                .OfType<AlterRetentionPolicyCommand>()
-                .OrderBy(d => $"{(d.EntityType == EntityType.Database ? 1 : 2)}{d.EntityName}")
-                .ToImmutableArray();
             CreateFunctionCommands = commands
                 .OfType<CreateFunctionCommand>()
                 .OrderBy(d => d.Folder.Text)
@@ -94,16 +135,6 @@ namespace DeltaKustoIntegration.Action
                 .Concat(AlterCachingPolicyCommands)
                 .Concat(AlterRetentionPolicyCommands)
                 .Concat(CreateFunctionCommands);
-            AllCommandsWithPluralForms = _allCommands
-                .Where(c => !(c is DropTableCommand))
-                .Concat(DropTableCommands.MergeToPlural())
-                .Where(c => !(c is CreateTableCommand))
-                .Concat(DropTableCommands.MergeToPlural())
-                .Where(c => !(c is DropFunctionCommand))
-                .Concat(DropFunctionCommands.MergeToPlural())
-                .Where(c => !(c is AlterRetentionPolicyCommand
-                && ((AlterRetentionPolicyCommand)c).EntityType == EntityType.Table))
-                .Concat(AlterRetentionPolicyCommands.Where(c => c.EntityType == EntityType.Table).MergeToPlural());
 
             if (_allCommands.Count() != commands.Count())
             {
@@ -127,9 +158,9 @@ namespace DeltaKustoIntegration.Action
 
         public IEnumerable<CommandBase> AllDataLossCommands { get; }
 
-        public IEnumerable<CommandBase> AllCommandsWithPluralForms { get; }
-
         public IImmutableList<DropTableCommand> DropTableCommands { get; }
+
+        public IImmutableList<DropTablesCommand> DropTablesCommands { get; }
 
         public IImmutableList<DropTableColumnsCommand> DropTableColumnsCommands { get; }
 
@@ -141,7 +172,11 @@ namespace DeltaKustoIntegration.Action
 
         public IImmutableList<DropFunctionCommand> DropFunctionCommands { get; }
 
+        public IImmutableList<DropFunctionsCommand> DropFunctionsCommands { get; }
+
         public IImmutableList<CreateTableCommand> CreateTableCommands { get; }
+
+        public IImmutableList<CreateTablesCommand> CreateTablesCommands { get; }
 
         public IImmutableList<AlterColumnTypeCommand> AlterColumnTypeCommands { get; }
 
@@ -156,6 +191,8 @@ namespace DeltaKustoIntegration.Action
         public IImmutableList<AlterCachingPolicyCommand> AlterCachingPolicyCommands { get; }
 
         public IImmutableList<AlterRetentionPolicyCommand> AlterRetentionPolicyCommands { get; }
+
+        public IImmutableList<AlterTablesRetentionPolicyCommand> AlterTablesRetentionPolicyCommands { get; }
 
         public IImmutableList<CreateFunctionCommand> CreateFunctionCommands { get; }
     }

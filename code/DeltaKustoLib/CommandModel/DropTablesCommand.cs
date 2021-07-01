@@ -23,7 +23,7 @@ namespace DeltaKustoLib.CommandModel
             {
                 throw new ArgumentNullException(nameof(tableNames), "At least one table name is needed");
             }
-            TableNames = tableNames;
+            TableNames = tableNames.OrderBy(n => n.Name).ToImmutableArray();
         }
 
         internal static CommandBase FromCode(SyntaxElement rootElement)

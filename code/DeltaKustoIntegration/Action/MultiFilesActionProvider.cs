@@ -14,16 +14,13 @@ namespace DeltaKustoIntegration.Action
     {
         private readonly IFileGateway _fileGateway;
         private readonly string _folderPath;
-        private readonly bool _usePluralForms;
 
         public MultiFilesActionProvider(
             IFileGateway fileGateway,
-            string folderPath,
-            bool usePluralForms)
+            string folderPath)
         {
             _fileGateway = fileGateway;
             _folderPath = folderPath;
-            _usePluralForms = usePluralForms;
         }
 
         async Task IActionProvider.ProcessDeltaCommandsAsync(
@@ -32,9 +29,12 @@ namespace DeltaKustoIntegration.Action
             CancellationToken ct)
         {
             await ProcessDeltaCommandsAsync(
-                _usePluralForms
-                ? commands.DropTableCommands.MergeToPlural().Cast<CommandBase>()
-                : commands.DropTableCommands,
+                commands.DropTableCommands,
+                c => "drop",
+                "tables",
+                ct);
+            await ProcessDeltaCommandsAsync(
+                commands.DropTablesCommands,
                 c => "drop",
                 "tables",
                 ct);
@@ -59,9 +59,12 @@ namespace DeltaKustoIntegration.Action
                 "tables/policies/retention/delete",
                 ct);
             await ProcessDeltaCommandsAsync(
-                _usePluralForms
-                ? commands.DropFunctionCommands.MergeToPlural().Cast<CommandBase>()
-                : commands.DropFunctionCommands,
+                commands.DropFunctionCommands,
+                c => "drop",
+                "functions",
+                ct);
+            await ProcessDeltaCommandsAsync(
+                commands.DropFunctionsCommands,
                 c => "drop",
                 "functions",
                 ct);
@@ -71,9 +74,12 @@ namespace DeltaKustoIntegration.Action
                 "columns/alter-type",
                 ct);
             await ProcessDeltaCommandsAsync(
-                _usePluralForms
-                ? commands.CreateTableCommands.MergeToPlural().Cast<CommandBase>()
-                : commands.CreateTableCommands,
+                commands.CreateTableCommands,
+                c => c.TableName.Name,
+                "tables/create",
+                ct);
+            await ProcessDeltaCommandsAsync(
+                commands.CreateTablesCommands,
                 c => "create",
                 "tables",
                 ct);
@@ -93,31 +99,35 @@ namespace DeltaKustoIntegration.Action
                 "tables/policies/update",
                 ct);
             await ProcessDeltaCommandsAsync(
-                commands.AlterCachingPolicyCommands,
+                commands
+                .AlterCachingPolicyCommands
+                .Where(c => c.EntityType == EntityType.Table),
                 c => $"{c.EntityName.Name}",
                 "tables/policies/caching",
                 ct);
-            if(_usePluralForms)
-            {
-                await ProcessDeltaCommandsAsync(
-                    commands
-                    .AlterRetentionPolicyCommands
-                    .Where(c => c.EntityType == EntityType.Table)
-                    .MergeToPlural(),
-                    c => "retention",
-                    "tables/policies",
-                    ct);
-            }
-            else
-            {
-                await ProcessDeltaCommandsAsync(
-                    commands.AlterRetentionPolicyCommands.Where(c => c.EntityType == EntityType.Table),
-                    c => c.EntityName.Name,
-                    "tables/policies/retention",
-                    ct);
-            }
             await ProcessDeltaCommandsAsync(
-                commands.AlterRetentionPolicyCommands.Where(c => c.EntityType == EntityType.Database),
+                commands
+                .AlterCachingPolicyCommands
+                .Where(c => c.EntityType == EntityType.Table),
+                c => "caching",
+                "db/policies",
+                ct);
+            await ProcessDeltaCommandsAsync(
+                commands.AlterTablesRetentionPolicyCommands,
+                c => "retention",
+                "tables/policies",
+                ct);
+            await ProcessDeltaCommandsAsync(
+                commands
+                .AlterRetentionPolicyCommands
+                .Where(c => c.EntityType == EntityType.Table),
+                c => c.EntityName.Name,
+                "tables/policies/retention",
+                ct);
+            await ProcessDeltaCommandsAsync(
+                commands
+                .AlterRetentionPolicyCommands
+                .Where(c => c.EntityType == EntityType.Database),
                 c => "retention",
                 "db/policies",
                 ct);

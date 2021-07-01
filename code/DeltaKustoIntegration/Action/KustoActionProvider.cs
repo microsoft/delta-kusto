@@ -25,9 +25,7 @@ namespace DeltaKustoIntegration.Action
         {
             if (!doNotProcessIfDataLoss || !commands.AllDataLossCommands.Any())
             {
-                await _kustoManagementGateway.ExecuteCommandsAsync(
-                    commands.AllCommandsWithPluralForms,
-                    ct);
+                await _kustoManagementGateway.ExecuteCommandsAsync(commands, ct);
             }
         }
     }

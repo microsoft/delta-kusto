@@ -142,7 +142,7 @@ namespace delta_kusto
                 _tracer.WriteLine(false, "Compute Delta...");
 
                 var delta = currentDb.ComputeDelta(targetDb);
-                var actions = new ActionCommandCollection(delta);
+                var actions = new ActionCommandCollection(job.Action!.UsePluralForms, delta);
                 var jobSuccess = ReportOnDeltaCommands(parameters, actions);
                 var actionProviders = CreateActionProvider(
                     job.Action!,
@@ -249,17 +249,11 @@ namespace delta_kusto
 
             if (action.FilePath != null)
             {
-                builder.Add(new OneFileActionProvider(
-                    localFileGateway,
-                    action.FilePath,
-                    action.UsePluralForms));
+                builder.Add(new OneFileActionProvider(localFileGateway, action.FilePath));
             }
             if (action.FolderPath != null)
             {
-                builder.Add(new MultiFilesActionProvider(
-                    localFileGateway,
-                    action.FolderPath,
-                    action.UsePluralForms));
+                builder.Add(new MultiFilesActionProvider(localFileGateway, action.FolderPath));
             }
             if (action.PushToCurrent)
             {
