@@ -11,6 +11,10 @@ A sharding policy consists of:
 * `MaxRowCount` (integer)
 * `MaxExtentSizeInMb` (integer)
 * `MaxOriginalSizeInMb` (integer)
+* `UseShardEngine` (boolean)
+* `ShardEngineMaxRowCount` (integer)
+* `ShardEngineMaxExtentSizeInMb` (integer)
+* `ShardEngineMaxOriginalSizeInMb` (integer)
 
 ## Inputs
 
