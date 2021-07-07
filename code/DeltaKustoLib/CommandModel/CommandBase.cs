@@ -154,6 +154,9 @@ namespace DeltaKustoLib.CommandModel
                     case "AlterDatabasePolicySharding":
                     case "AlterTablePolicySharding":
                         return AlterShardingCommand.FromCode(commandBlock);
+                    case "AlterDatabasePolicyMerge":
+                    case "AlterTablePolicyMerge":
+                        return AlterMergeCommand.FromCode(commandBlock);
 
                     default:
                         if (ignoreUnknownCommands)

@@ -7,30 +7,30 @@ using Xunit;
 
 namespace DeltaKustoUnitTest.CommandParsing.Policies
 {
-    public class AlterShardingPolicyTest : ParsingTestBase
+    public class AlterMergePolicyTest : ParsingTestBase
     {
         [Fact]
         public void SimpleTable()
         {
-            TestShardingPolicy(EntityType.Table, "A", 1000000, 1000, 100);
+            TestMergePolicy(EntityType.Table, "A", 1000000, 10, TimeSpan.FromDays(1));
         }
 
         [Fact]
         public void FunkyTable()
         {
-            TestShardingPolicy(EntityType.Table, "A- 1", 2000000, 2000, 150);
+            TestMergePolicy(EntityType.Table, "A- 1", 2000000, 20, TimeSpan.FromDays(2));
         }
 
         [Fact]
         public void DbComposedTableName()
         {
             var command = ParseOneCommand(
-                ".alter table mydb.mytable policy sharding "
-                + "@'{\"MaxRowCount\":\"200000\"}'");
+                ".alter table mydb.mytable policy merge "
+                + "@'{\"RowCountUpperBoundForMerge\":\"200000\"}'");
 
-            Assert.IsType<AlterShardingCommand>(command);
+            Assert.IsType<AlterMergeCommand>(command);
 
-            var realCommand = (AlterShardingCommand)command;
+            var realCommand = (AlterMergeCommand)command;
 
             Assert.Equal(EntityType.Table, realCommand.EntityType);
             Assert.Equal("mytable", realCommand.EntityName.Name);
@@ -40,12 +40,12 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
         public void ClusterComposedTableName()
         {
             var command = ParseOneCommand(
-                ".alter table mycluster.['my db'].mytable policy sharding "
-                + "@'{\"MaxRowCount\":\"300000\"}'");
+                ".alter table mycluster.['my db'].mytable policy merge "
+                + "@'{\"RowCountUpperBoundForMerge\":\"300000\"}'");
 
-            Assert.IsType<AlterShardingCommand>(command);
+            Assert.IsType<AlterMergeCommand>(command);
 
-            var realCommand = (AlterShardingCommand)command;
+            var realCommand = (AlterMergeCommand)command;
 
             Assert.Equal(EntityType.Table, realCommand.EntityType);
             Assert.Equal("mytable", realCommand.EntityName.Name);
@@ -54,32 +54,32 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
         [Fact]
         public void SimpleDatabase()
         {
-            TestShardingPolicy(EntityType.Database, "Db", 1500000, 2000, 150);
+            TestMergePolicy(EntityType.Database, "Db", 3000000, 30, TimeSpan.FromDays(3));
         }
 
         [Fact]
         public void FunkyDatabase()
         {
-            TestShardingPolicy(EntityType.Database, "db.mine", 2000000, 3500, 240);
+            TestMergePolicy(EntityType.Database, "db.mine", 4000000, 40, TimeSpan.FromDays(4));
         }
 
-        private void TestShardingPolicy(
+        private void TestMergePolicy(
             EntityType type,
             string name,
-            int maxRowCount,
-            int maxExtentSizeInMb,
-            int maxOriginalSizeInMb)
+            int rowCountUpperBoundForMerge,
+            int maxExtentsToMerge,
+            TimeSpan loopPeriod)
         {
-            var command = new AlterShardingCommand(
+            var command = new AlterMergeCommand(
                 type,
                 new EntityName(name),
-                maxRowCount,
-                maxExtentSizeInMb,
-                maxOriginalSizeInMb);
+                rowCountUpperBoundForMerge,
+                maxExtentsToMerge,
+                loopPeriod);
             var commandText = command.ToScript(null);
             var parsedCommand = ParseOneCommand(commandText);
 
-            Assert.IsType<AlterShardingCommand>(parsedCommand);
+            Assert.IsType<AlterMergeCommand>(parsedCommand);
         }
     }
 }

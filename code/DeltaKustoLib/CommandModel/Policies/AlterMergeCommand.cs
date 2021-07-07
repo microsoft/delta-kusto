@@ -10,17 +10,17 @@ using System.Threading.Tasks;
 namespace DeltaKustoLib.CommandModel.Policies
 {
     /// <summary>
-    /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/sharding-policy#alter-policy"/>
+    /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/merge-policy#alter-policy"/>
     /// </summary>
-    public class AlterShardingCommand : PolicyCommandBase
+    public class AlterMergeCommand : PolicyCommandBase
     {
         public EntityType EntityType { get; }
 
         public EntityName EntityName { get; }
 
-        public override string CommandFriendlyName => ".alter <entity> policy sharding";
+        public override string CommandFriendlyName => ".alter <entity> policy merge";
 
-        public AlterShardingCommand(
+        public AlterMergeCommand(
             EntityType entityType,
             EntityName entityName,
             JsonDocument policy) : base(policy)
@@ -34,20 +34,20 @@ namespace DeltaKustoLib.CommandModel.Policies
             EntityName = entityName;
         }
 
-        public AlterShardingCommand(
+        public AlterMergeCommand(
             EntityType entityType,
             EntityName entityName,
-            int maxRowCount,
-            int maxExtentSizeInMb,
-            int maxOriginalSizeInMb)
+            int rowCountUpperBoundForMerge,
+            int maxExtentsToMerge,
+            TimeSpan loopPeriod)
             : this(
                   entityType,
                   entityName,
                   ToJsonDocument(new
                   {
-                      MaxRowCount = maxRowCount,
-                      MaxExtentSizeInMb = maxExtentSizeInMb,
-                      MaxOriginalSizeInMb = maxOriginalSizeInMb
+                      RowCountUpperBoundForMerge = rowCountUpperBoundForMerge,
+                      MaxExtentsToMerge = maxExtentsToMerge,
+                      LoopPeriod = loopPeriod.ToString()
                   }))
         {
         }
@@ -61,7 +61,7 @@ namespace DeltaKustoLib.CommandModel.Policies
 
             if (!entityKinds.Any())
             {
-                throw new DeltaException("Alter sharding requires to act on a table or database (cluster isn't supported)");
+                throw new DeltaException("Alter merge policy requires to act on a table or database (cluster isn't supported)");
             }
             var entityKind = entityKinds.First();
             var entityType = entityKind == SyntaxKind.TableKeyword
@@ -70,8 +70,8 @@ namespace DeltaKustoLib.CommandModel.Policies
             var entityName = rootElement.GetDescendants<NameReference>().Last();
             var policyText = QuotedText.FromLiteral(
                 rootElement.GetUniqueDescendant<LiteralExpression>(
-                    "Sharding",
-                    e => e.NameInParent == "ShardingPolicy"));
+                    "Merge",
+                    e => e.NameInParent == "MergePolicy"));
             var policy = JsonSerializer.Deserialize<JsonDocument>(policyText.Text);
 
             if (policy == null)
@@ -80,7 +80,7 @@ namespace DeltaKustoLib.CommandModel.Policies
                     $"Can't extract policy objects from {policyText.ToScript()}");
             }
 
-            return new AlterShardingCommand(
+            return new AlterMergeCommand(
                 entityType,
                 EntityName.FromCode(entityName.Name),
                 policy);
@@ -88,7 +88,7 @@ namespace DeltaKustoLib.CommandModel.Policies
 
         public override bool Equals(CommandBase? other)
         {
-            var otherFunction = other as AlterShardingCommand;
+            var otherFunction = other as AlterMergeCommand;
             var areEqualed = otherFunction != null
                 && otherFunction.EntityType.Equals(EntityType)
                 && otherFunction.EntityName.Equals(EntityName)
@@ -112,7 +112,7 @@ namespace DeltaKustoLib.CommandModel.Policies
             {
                 builder.Append(EntityName.ToScript());
             }
-            builder.Append(" policy sharding");
+            builder.Append(" policy merge");
             builder.AppendLine();
             builder.Append("```");
             builder.Append(SerializePolicy());
