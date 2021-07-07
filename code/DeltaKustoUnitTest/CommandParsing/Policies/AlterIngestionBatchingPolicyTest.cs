@@ -80,14 +80,6 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
             var command = ParseOneCommand(commandText);
 
             Assert.IsType<AlterIngestionBatchingCommand>(command);
-
-            var realCommand = (AlterIngestionBatchingCommand)command;
-
-            Assert.Equal(type, realCommand.EntityType);
-            Assert.Equal(name, realCommand.EntityName.Name);
-            Assert.Equal(maximumBatchingTimeSpan, realCommand.MaximumBatchingTimeSpan);
-            Assert.Equal(maximumNumberOfItems, realCommand.MaximumNumberOfItems);
-            Assert.Equal(maximumRawDataSizeMb, realCommand.MaximumRawDataSizeMb);
         }
     }
 }

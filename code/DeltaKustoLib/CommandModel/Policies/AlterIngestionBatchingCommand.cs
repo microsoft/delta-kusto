@@ -12,32 +12,18 @@ namespace DeltaKustoLib.CommandModel.Policies
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/batching-policy#altering-the-ingestionbatching-policy"/>
     /// </summary>
-    public class AlterIngestionBatchingCommand : CommandBase
+    public class AlterIngestionBatchingCommand : PolicyCommandBase
     {
-        private static readonly JsonSerializerOptions _policiesSerializerOptions = new JsonSerializerOptions
-        {
-            WriteIndented = true,
-            PropertyNameCaseInsensitive = true
-        };
-
         public EntityType EntityType { get; }
 
         public EntityName EntityName { get; }
-
-        public TimeSpan MaximumBatchingTimeSpan { get; }
-
-        public int MaximumNumberOfItems { get; }
-        
-        public int MaximumRawDataSizeMb { get; }
 
         public override string CommandFriendlyName => ".alter <entity> policy ingestionbatching";
 
         public AlterIngestionBatchingCommand(
             EntityType entityType,
             EntityName entityName,
-            TimeSpan maximumBatchingTimeSpan,
-            int maximumNumberOfItems,
-            int maximumRawDataSizeMb)
+            JsonDocument policy) : base(policy)
         {
             if (entityType != EntityType.Database && entityType != EntityType.Table)
             {
@@ -46,9 +32,24 @@ namespace DeltaKustoLib.CommandModel.Policies
             }
             EntityType = entityType;
             EntityName = entityName;
-            MaximumBatchingTimeSpan = maximumBatchingTimeSpan;
-            MaximumNumberOfItems = maximumNumberOfItems;
-            MaximumRawDataSizeMb = maximumRawDataSizeMb;
+        }
+
+        public AlterIngestionBatchingCommand(
+            EntityType entityType,
+            EntityName entityName,
+            TimeSpan maximumBatchingTimeSpan,
+            int maximumNumberOfItems,
+            int maximumRawDataSizeMb)
+            : this(
+                  entityType,
+                  entityName,
+                  ToJsonDocument(new
+                  {
+                      MaximumBatchingTimeSpan = maximumBatchingTimeSpan.ToString(),
+                      MaximumNumberOfItems = maximumNumberOfItems,
+                      MaximumRawDataSizeMb = maximumRawDataSizeMb
+                  }))
+        {
         }
 
         internal static CommandBase FromCode(SyntaxElement rootElement)
@@ -71,7 +72,7 @@ namespace DeltaKustoLib.CommandModel.Policies
                 rootElement.GetUniqueDescendant<LiteralExpression>(
                     "IngestionBatching",
                     e => e.NameInParent == "IngestionBatchingPolicy"));
-            var policy = JsonSerializer.Deserialize<IngestionBatchingPolicy>(policyText.Text);
+            var policy = JsonSerializer.Deserialize<JsonDocument>(policyText.Text);
 
             if (policy == null)
             {
@@ -82,9 +83,7 @@ namespace DeltaKustoLib.CommandModel.Policies
             return new AlterIngestionBatchingCommand(
                 entityType,
                 EntityName.FromCode(entityName.Name),
-                policy.GetMaximumBatchingTimeSpan(),
-                policy.MaximumNumberOfItems,
-                policy.MaximumRawDataSizeMb);
+                policy);
         }
 
         public override bool Equals(CommandBase? other)
@@ -93,9 +92,7 @@ namespace DeltaKustoLib.CommandModel.Policies
             var areEqualed = otherFunction != null
                 && otherFunction.EntityType.Equals(EntityType)
                 && otherFunction.EntityName.Equals(EntityName)
-                && otherFunction.MaximumBatchingTimeSpan.Equals(MaximumBatchingTimeSpan)
-                && otherFunction.MaximumNumberOfItems.Equals(MaximumNumberOfItems)
-                && otherFunction.MaximumRawDataSizeMb.Equals(MaximumRawDataSizeMb);
+                && PolicyEquals(otherFunction);
 
             return areEqualed;
         }
@@ -103,10 +100,6 @@ namespace DeltaKustoLib.CommandModel.Policies
         public override string ToScript(ScriptingContext? context)
         {
             var builder = new StringBuilder();
-            var policy = IngestionBatchingPolicy.Create(
-                MaximumBatchingTimeSpan,
-                MaximumNumberOfItems,
-                MaximumRawDataSizeMb);
 
             builder.Append(".alter ");
             builder.Append(EntityType == EntityType.Table ? "table" : "database");
@@ -122,7 +115,7 @@ namespace DeltaKustoLib.CommandModel.Policies
             builder.Append(" policy ingestionbatching");
             builder.AppendLine();
             builder.Append("```");
-            builder.Append(JsonSerializer.Serialize(policy, _policiesSerializerOptions));
+            builder.Append(SerializePolicy());
             builder.AppendLine();
             builder.Append("```");
 
