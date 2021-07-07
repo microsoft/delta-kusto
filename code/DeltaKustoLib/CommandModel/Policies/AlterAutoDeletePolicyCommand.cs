@@ -12,30 +12,31 @@ namespace DeltaKustoLib.CommandModel.Policies
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/auto-delete-policy-command#alter-policy"/>
     /// </summary>
-    public class AlterAutoDeletePolicyCommand : CommandBase
+    public class AlterAutoDeletePolicyCommand : PolicyCommandBase
     {
-        private static readonly JsonSerializerOptions _policiesSerializerOptions = new JsonSerializerOptions
-        {
-            WriteIndented = true,
-            PropertyNameCaseInsensitive = true
-        };
-
         public EntityName TableName { get; }
-
-        public DateTime ExpiryDate { get; }
-
-        public bool DeleteIfNotEmpty { get; }
 
         public override string CommandFriendlyName => ".alter <entity> policy auto_delete";
 
         public AlterAutoDeletePolicyCommand(
             EntityName tableName,
-            DateTime expiryDate,
-            bool deleteIfNotEmpty)
+            JsonDocument policy) : base(policy)
         {
             TableName = tableName;
-            ExpiryDate = expiryDate;
-            DeleteIfNotEmpty = deleteIfNotEmpty;
+        }
+
+        public AlterAutoDeletePolicyCommand(
+            EntityName tableName,
+            DateTime expiryDate,
+            bool deleteIfNotEmpty)
+            : this(
+                  tableName,
+                  ToJsonDocument(new
+                  {
+                      ExpiryDate = expiryDate.ToString(),
+                      DeleteIfNotEmpty = deleteIfNotEmpty
+                  }))
+        {
         }
 
         internal static CommandBase FromCode(SyntaxElement rootElement)
@@ -45,7 +46,7 @@ namespace DeltaKustoLib.CommandModel.Policies
                 rootElement.GetUniqueDescendant<LiteralExpression>(
                     "AutoDeletePolicy",
                     e => e.NameInParent == "AutoDeletePolicy"));
-            var policy = JsonSerializer.Deserialize<AutoDeletePolicy>(policyText.Text);
+            var policy = JsonSerializer.Deserialize<JsonDocument>(policyText.Text);
 
             if (policy == null)
             {
@@ -53,10 +54,7 @@ namespace DeltaKustoLib.CommandModel.Policies
                     $"Can't extract policy objects from {policyText.ToScript()}");
             }
 
-            return new AlterAutoDeletePolicyCommand(
-                EntityName.FromCode(tableName.Name),
-                policy.GetExpiryDate(),
-                policy.DeleteIfNotEmpty);
+            return new AlterAutoDeletePolicyCommand(EntityName.FromCode(tableName.Name), policy);
         }
 
         public override bool Equals(CommandBase? other)
@@ -64,8 +62,7 @@ namespace DeltaKustoLib.CommandModel.Policies
             var otherFunction = other as AlterAutoDeletePolicyCommand;
             var areEqualed = otherFunction != null
                 && otherFunction.TableName.Equals(TableName)
-                && otherFunction.ExpiryDate.Equals(ExpiryDate)
-                && otherFunction.DeleteIfNotEmpty.Equals(DeleteIfNotEmpty);
+                && PolicyEquals(otherFunction);
 
             return areEqualed;
         }
@@ -73,14 +70,13 @@ namespace DeltaKustoLib.CommandModel.Policies
         public override string ToScript(ScriptingContext? context)
         {
             var builder = new StringBuilder();
-            var policy = AutoDeletePolicy.Create(ExpiryDate, DeleteIfNotEmpty);
 
             builder.Append(".alter table ");
             builder.Append(TableName);
             builder.Append(" policy auto_delete");
             builder.AppendLine();
             builder.Append("```");
-            builder.Append(JsonSerializer.Serialize(policy, _policiesSerializerOptions));
+            builder.Append(SerializePolicy());
             builder.AppendLine();
             builder.Append("```");
 

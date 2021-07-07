@@ -62,12 +62,6 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
             var command = ParseOneCommand(commandText);
 
             Assert.IsType<AlterAutoDeletePolicyCommand>(command);
-
-            var realCommand = (AlterAutoDeletePolicyCommand)command;
-
-            Assert.Equal(tableName, realCommand.TableName.Name);
-            Assert.Equal(expiryDate, realCommand.ExpiryDate);
-            Assert.Equal(deleteIfNotEmpty, realCommand.DeleteIfNotEmpty);
         }
     }
 }
