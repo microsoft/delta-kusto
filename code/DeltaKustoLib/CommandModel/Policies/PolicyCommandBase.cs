@@ -26,14 +26,26 @@ namespace DeltaKustoLib.CommandModel.Policies
         {
         }
 
+        public string SerializePolicy()
+        {
+            return JsonSerializer.Serialize(Policy, _policiesSerializerOptions);
+        }
+
+        public T DeserializePolicy<T>()
+        {
+            var obj = JsonSerializer.Deserialize<T>(SerializePolicy());
+
+            if (obj == null)
+            {
+                throw new DeltaException("Can't deserialize a policy");
+            }
+
+            return obj;
+        }
+
         protected bool PolicyEquals(PolicyCommandBase other)
         {
             return ElementEquals(Policy.RootElement, other.Policy.RootElement);
-        }
-
-        protected string SerializePolicy()
-        {
-            return JsonSerializer.Serialize(Policy, _policiesSerializerOptions);
         }
 
         protected static JsonDocument ToJsonDocument(object obj)

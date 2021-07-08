@@ -12,13 +12,27 @@ namespace DeltaKustoUnitTest.Delta.Policies
 {
     public class DeltaRetentionPolicyTest : ParsingTestBase
     {
+        #region Inner types
+        private record RetentionPolicy
+        {
+            public string SoftDeletePeriod { get; init; } = string.Empty;
+
+            public TimeSpan GetSoftDeletePeriod() => TimeSpan.Parse(SoftDeletePeriod);
+        }
+        #endregion
+
         [Fact]
         public void TableFromEmptyToSomething()
         {
             TestRetention(
                 null,
-                new RetentionPolicy { SoftDeletePeriod = TimeSpan.FromDays(3).ToString() },
-                c => Assert.Equal(TimeSpan.FromDays(3), c.SoftDeletePeriod),
+                (TimeSpan.FromDays(3), true),
+                c =>
+                {
+                    var policy = c.DeserializePolicy<RetentionPolicy>();
+
+                    Assert.Equal(TimeSpan.FromDays(3), policy.GetSoftDeletePeriod());
+                },
                 null);
         }
 
@@ -26,11 +40,7 @@ namespace DeltaKustoUnitTest.Delta.Policies
         public void TableFromSomethingToEmpty()
         {
             TestRetention(
-                new RetentionPolicy
-                {
-                    SoftDeletePeriod = TimeSpan.FromMinutes(7).ToString(),
-                    Recoverability = EnableBoolean.Disabled.ToString()
-                },
+                (TimeSpan.FromMinutes(7), false),
                 null,
                 null,
                 c => { });
@@ -42,9 +52,14 @@ namespace DeltaKustoUnitTest.Delta.Policies
             var targetDuration = TimeSpan.FromDays(25) + TimeSpan.FromHours(4);
 
             TestRetention(
-                new RetentionPolicy { SoftDeletePeriod = TimeSpan.FromDays(3).ToString() },
-                new RetentionPolicy { SoftDeletePeriod = targetDuration.ToString() },
-                c => Assert.Equal(targetDuration, c.SoftDeletePeriod),
+                (TimeSpan.FromDays(3), true),
+                (targetDuration, true),
+                c =>
+                {
+                    var policy = c.DeserializePolicy<RetentionPolicy>();
+                    
+                    Assert.Equal(targetDuration, policy.GetSoftDeletePeriod());
+                },
                 null);
         }
 
@@ -52,15 +67,15 @@ namespace DeltaKustoUnitTest.Delta.Policies
         public void TableSame()
         {
             TestRetention(
-                new RetentionPolicy { SoftDeletePeriod = TimeSpan.FromMilliseconds(45).ToString() },
-                new RetentionPolicy { SoftDeletePeriod = TimeSpan.FromMilliseconds(45).ToString() },
+                (TimeSpan.FromMilliseconds(45), false),
+                (TimeSpan.FromMilliseconds(45), false),
                 null,
                 null);
         }
 
         private void TestRetention(
-            RetentionPolicy? currentPolicy,
-            RetentionPolicy? targetPolicy,
+            (TimeSpan softDeletePeriod, bool recoverability)? currentPolicy,
+            (TimeSpan softDeletePeriod, bool recoverability)? targetPolicy,
             Action<AlterRetentionPolicyCommand>? alterAction,
             Action<DeleteRetentionPolicyCommand>? deleteAction)
         {
@@ -72,8 +87,8 @@ namespace DeltaKustoUnitTest.Delta.Policies
                     ? new AlterRetentionPolicyCommand(
                         entityType,
                         new EntityName("A"),
-                        currentPolicy.GetSoftDeletePeriod(),
-                        currentPolicy.GetRecoverability()).ToScript(null)
+                        currentPolicy.Value.softDeletePeriod,
+                        currentPolicy.Value.recoverability).ToScript(null)
                     : string.Empty;
                 var currentCommands = Parse(createTableCommandText + currentText);
                 var currentDatabase = DatabaseModel.FromCommands(currentCommands);
@@ -81,8 +96,8 @@ namespace DeltaKustoUnitTest.Delta.Policies
                     ? new AlterRetentionPolicyCommand(
                         entityType,
                         new EntityName("A"),
-                        targetPolicy.GetSoftDeletePeriod(),
-                        targetPolicy.GetRecoverability()).ToScript(null)
+                        targetPolicy.Value.softDeletePeriod,
+                        targetPolicy.Value.recoverability).ToScript(null)
                     : string.Empty;
                 var targetCommands = Parse(createTableCommandText + targetText);
                 var targetDatabase = DatabaseModel.FromCommands(targetCommands);

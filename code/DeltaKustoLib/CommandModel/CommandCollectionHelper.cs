@@ -79,12 +79,11 @@ namespace DeltaKustoLib.CommandModel
 
             //  We might want to cap batches to a maximum size?
             var pluralCommands = singularCommands
-                .Select(c => new { Key = (c.SoftDeletePeriod, c.Recoverability), Value = c })
+                .Select(c => new { Key = (c.SerializePolicy()), Value = c })
                 .GroupBy(c => c.Key)
                 .Select(g => new AlterTablesRetentionPolicyCommand(
                     g.Select(a => a.Value.EntityName),
-                    g.Key.SoftDeletePeriod,
-                    g.Key.Recoverability));
+                    g.First().Value.Policy));
 
             return pluralCommands.ToImmutableArray();
         }

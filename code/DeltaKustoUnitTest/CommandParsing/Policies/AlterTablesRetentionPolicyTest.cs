@@ -46,12 +46,6 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
             var command = ParseOneCommand(commandText);
 
             Assert.IsType<AlterTablesRetentionPolicyCommand>(command);
-
-            var realCommand = (AlterTablesRetentionPolicyCommand)command;
-
-            Assert.Equal(names, realCommand.TableNames.Select(t => t.Name));
-            Assert.Equal(softDeletePeriod, realCommand.SoftDeletePeriod);
-            Assert.Equal(recoverability, realCommand.Recoverability);
         }
     }
 }

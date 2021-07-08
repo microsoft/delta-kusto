@@ -12,29 +12,18 @@ namespace DeltaKustoLib.CommandModel.Policies
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/retention-policy#alter-retention-policy"/>
     /// </summary>
-    public class AlterRetentionPolicyCommand : CommandBase
+    public class AlterRetentionPolicyCommand : PolicyCommandBase
     {
-        private static readonly JsonSerializerOptions _policiesSerializerOptions = new JsonSerializerOptions
-        {
-            WriteIndented = true,
-            PropertyNameCaseInsensitive = true
-        };
-
         public EntityType EntityType { get; }
 
         public EntityName EntityName { get; }
-
-        public TimeSpan SoftDeletePeriod { get; }
-
-        public bool Recoverability { get; }
 
         public override string CommandFriendlyName => ".alter <entity> policy retention";
 
         public AlterRetentionPolicyCommand(
             EntityType entityType,
             EntityName entityName,
-            TimeSpan softDeletePeriod,
-            bool recoverability)
+            JsonDocument policy) : base(policy)
         {
             if (entityType != EntityType.Database && entityType != EntityType.Table)
             {
@@ -43,8 +32,29 @@ namespace DeltaKustoLib.CommandModel.Policies
             }
             EntityType = entityType;
             EntityName = entityName;
-            SoftDeletePeriod = softDeletePeriod;
-            Recoverability = recoverability;
+        }
+
+        public AlterRetentionPolicyCommand(
+            EntityType entityType,
+            EntityName entityName,
+            TimeSpan softDeletePeriod,
+            bool recoverability)
+            : this(
+                  entityType,
+                  entityName,
+                  ToJsonDocument(new
+                  {
+                      SoftDeletePeriod = softDeletePeriod.ToString(),
+                      Recoverability = recoverability ? "Enabled" : "Disabled"
+                  }))
+        {
+            if (entityType != EntityType.Database && entityType != EntityType.Table)
+            {
+                throw new NotSupportedException(
+                    $"Entity type {entityType} isn't supported in this context");
+            }
+            EntityType = entityType;
+            EntityName = entityName;
         }
 
         internal static CommandBase FromCode(SyntaxElement rootElement)
@@ -67,7 +77,7 @@ namespace DeltaKustoLib.CommandModel.Policies
                 rootElement.GetUniqueDescendant<LiteralExpression>(
                     "RetentionPolicy",
                     e => e.NameInParent == "RetentionPolicy"));
-            var policy = JsonSerializer.Deserialize<RetentionPolicy>(policyText.Text);
+            var policy = JsonSerializer.Deserialize<JsonDocument>(policyText.Text);
 
             if (policy == null)
             {
@@ -78,8 +88,7 @@ namespace DeltaKustoLib.CommandModel.Policies
             return new AlterRetentionPolicyCommand(
                 entityType,
                 EntityName.FromCode(entityName.Name),
-                policy.GetSoftDeletePeriod(),
-                policy.GetRecoverability());
+                policy);
         }
 
         public override bool Equals(CommandBase? other)
@@ -88,8 +97,7 @@ namespace DeltaKustoLib.CommandModel.Policies
             var areEqualed = otherFunction != null
                 && otherFunction.EntityType.Equals(EntityType)
                 && otherFunction.EntityName.Equals(EntityName)
-                && otherFunction.SoftDeletePeriod.Equals(SoftDeletePeriod)
-                && otherFunction.Recoverability.Equals(Recoverability);
+                && PolicyEquals(otherFunction);
 
             return areEqualed;
         }
@@ -97,7 +105,6 @@ namespace DeltaKustoLib.CommandModel.Policies
         public override string ToScript(ScriptingContext? context)
         {
             var builder = new StringBuilder();
-            var policy = RetentionPolicy.Create(SoftDeletePeriod, Recoverability);
 
             builder.Append(".alter ");
             builder.Append(EntityType == EntityType.Table ? "table" : "database");
@@ -113,7 +120,7 @@ namespace DeltaKustoLib.CommandModel.Policies
             builder.Append(" policy retention");
             builder.AppendLine();
             builder.Append("```");
-            builder.Append(JsonSerializer.Serialize(policy, _policiesSerializerOptions));
+            builder.Append(SerializePolicy());
             builder.AppendLine();
             builder.Append("```");
 

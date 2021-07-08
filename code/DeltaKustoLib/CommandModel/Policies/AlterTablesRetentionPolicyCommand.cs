@@ -12,32 +12,19 @@ namespace DeltaKustoLib.CommandModel.Policies
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/retention-policy#alter-retention-policy"/>
     /// </summary>
-    public class AlterTablesRetentionPolicyCommand : CommandBase
+    public class AlterTablesRetentionPolicyCommand : PolicyCommandBase
     {
-        private static readonly JsonSerializerOptions _policiesSerializerOptions = new JsonSerializerOptions
-        {
-            WriteIndented = true,
-            PropertyNameCaseInsensitive = true
-        };
-
         public IImmutableList<EntityName> TableNames { get; }
-
-        public TimeSpan SoftDeletePeriod { get; }
-
-        public bool Recoverability { get; }
 
         public override string CommandFriendlyName => ".alter tables policy retention";
 
         public AlterTablesRetentionPolicyCommand(
             IEnumerable<EntityName> tableNames,
-            TimeSpan softDelete,
-            bool recoverability)
+            JsonDocument policy) : base(policy)
         {
             TableNames = tableNames
                 .OrderBy(t => t.Name)
                 .ToImmutableArray();
-            SoftDeletePeriod = softDelete;
-            Recoverability = recoverability;
 
             if (!TableNames.Any())
             {
@@ -45,6 +32,20 @@ namespace DeltaKustoLib.CommandModel.Policies
                     nameof(tableNames),
                     "Should contain at least one table name");
             }
+        }
+
+        public AlterTablesRetentionPolicyCommand(
+            IEnumerable<EntityName> tableNames,
+            TimeSpan softDeletePeriod,
+            bool recoverability)
+            : this(
+                  tableNames,
+                  ToJsonDocument(new
+                  {
+                      SoftDeletePeriod = softDeletePeriod.ToString(),
+                      Recoverability = recoverability ? "Enabled" : "Disabled"
+                  }))
+        {
         }
 
         internal static CommandBase FromCode(SyntaxElement rootElement)
@@ -60,7 +61,7 @@ namespace DeltaKustoLib.CommandModel.Policies
                 rootElement.GetUniqueDescendant<LiteralExpression>(
                     "RetentionPolicy",
                     e => e.NameInParent == "RetentionPolicy"));
-            var policy = JsonSerializer.Deserialize<RetentionPolicy>(policyText.Text);
+            var policy = JsonSerializer.Deserialize<JsonDocument>(policyText.Text);
 
             if (policy == null)
             {
@@ -68,10 +69,7 @@ namespace DeltaKustoLib.CommandModel.Policies
                     $"Can't extract policy objects from {policyText.ToScript()}");
             }
 
-            return new AlterTablesRetentionPolicyCommand(
-                tableNames,
-                policy.GetSoftDeletePeriod(),
-                policy.GetRecoverability());
+            return new AlterTablesRetentionPolicyCommand(tableNames, policy);
         }
 
         public override bool Equals(CommandBase? other)
@@ -79,8 +77,7 @@ namespace DeltaKustoLib.CommandModel.Policies
             var otherFunction = other as AlterTablesRetentionPolicyCommand;
             var areEqualed = otherFunction != null
                 && otherFunction.TableNames.SequenceEqual(TableNames)
-                && otherFunction.SoftDeletePeriod.Equals(SoftDeletePeriod)
-                && otherFunction.Recoverability.Equals(Recoverability);
+                && PolicyEquals(otherFunction);
 
             return areEqualed;
         }
@@ -88,14 +85,13 @@ namespace DeltaKustoLib.CommandModel.Policies
         public override string ToScript(ScriptingContext? context)
         {
             var builder = new StringBuilder();
-            var policy = RetentionPolicy.Create(SoftDeletePeriod, Recoverability);
 
             builder.Append(".alter tables (");
             builder.Append(string.Join(", ", TableNames.Select(t => t.ToScript())));
             builder.Append(") policy retention");
             builder.AppendLine();
             builder.Append("```");
-            builder.Append(JsonSerializer.Serialize(policy, _policiesSerializerOptions));
+            builder.Append(SerializePolicy());
             builder.AppendLine();
             builder.Append("```");
 

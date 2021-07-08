@@ -11,6 +11,15 @@ namespace DeltaKustoFileIntegrationTest.Policies.Retention
 {
     public class RetentionPolicyTableTest : IntegrationTestBase
     {
+        #region Inner types
+        private record RetentionPolicy
+        {
+            public string SoftDeletePeriod { get; init; } = string.Empty;
+
+            public TimeSpan GetSoftDeletePeriod() => TimeSpan.Parse(SoftDeletePeriod);
+        }
+        #endregion
+
         [Fact]
         public async Task NoneToOne()
         {
@@ -29,7 +38,9 @@ namespace DeltaKustoFileIntegrationTest.Policies.Retention
             Assert.NotNull(policyCommand);
             Assert.Equal(EntityType.Table, policyCommand!.EntityType);
             Assert.Equal("my-table", policyCommand!.EntityName.Name);
-            Assert.Equal(TimeSpan.FromDays(12), policyCommand!.SoftDeletePeriod);
+            Assert.Equal(
+                TimeSpan.FromDays(12),
+                policyCommand!.DeserializePolicy<RetentionPolicy>().GetSoftDeletePeriod());
         }
 
         [Fact]
@@ -81,7 +92,9 @@ namespace DeltaKustoFileIntegrationTest.Policies.Retention
             Assert.NotNull(policyCommand);
             Assert.Equal(EntityType.Table, policyCommand!.EntityType);
             Assert.Equal("my-table", policyCommand!.EntityName.Name);
-            Assert.Equal(TimeSpan.FromDays(10), policyCommand!.SoftDeletePeriod);
+            Assert.Equal(
+                TimeSpan.FromDays(10),
+                policyCommand!.DeserializePolicy<RetentionPolicy>().GetSoftDeletePeriod());
         }
     }
 }
