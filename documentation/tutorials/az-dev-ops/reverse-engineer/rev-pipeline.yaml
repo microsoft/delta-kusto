@@ -18,6 +18,8 @@ stages:
     steps:
     # Bash script:  https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema#bash
     - bash:  |
+        # Fails if one of the command fails in the script
+        set -e
         clientVersion=$(curl https://delta-kusto.azurefd.net/clientVersion/unique?fromClientVersion=0)
         # Display the version on console
         echo "Client Version:  $clientVersion"
@@ -26,10 +28,14 @@ stages:
         chmod +x ./delta-kusto
       displayName:  Install Delta-Kusto
     - bash:  |
+        # Fails if one of the command fails in the script
+        set -e
         mkdir documentation/tutorials/az-dev-ops/reverse-engineer/kql-scripts
         mkdir documentation/tutorials/az-dev-ops/reverse-engineer/kql-scripts/complete
       displayName:  Prep script folder
     - bash:  |
+        # Fails if one of the command fails in the script
+        set -e
         clusterUri=$(CLUSTER_URI)
         echo "Cluster URI:  $clusterUri"
         # Package the login in a JSON payload
