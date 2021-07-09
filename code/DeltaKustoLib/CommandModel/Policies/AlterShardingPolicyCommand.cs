@@ -131,10 +131,9 @@ namespace DeltaKustoLib.CommandModel.Policies
 
             if (hasCurrent && !hasTarget)
             {   //  No target, we remove the current policy
-                throw new NotImplementedException();
-                //yield return new DeleteRetentionPolicyCommand(
-                //    currentCommand!.EntityType,
-                //    currentCommand!.EntityName);
+                yield return new DeleteShardingPolicyCommand(
+                    currentCommand!.EntityType,
+                    currentCommand!.EntityName);
             }
             else if (hasTarget)
             {
