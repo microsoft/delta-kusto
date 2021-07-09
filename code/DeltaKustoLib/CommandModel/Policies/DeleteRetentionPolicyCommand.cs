@@ -40,7 +40,7 @@ namespace DeltaKustoLib.CommandModel.Policies
 
             if (!entityKinds.Any())
             {
-                throw new DeltaException("Alter retention policy requires to act on a table or database (cluster isn't supported)");
+                throw new DeltaException("Delete retention policy requires to act on a table or database (cluster isn't supported)");
             }
             var entityKind = entityKinds.First();
             var entityType = entityKind == SyntaxKind.TableKeyword
