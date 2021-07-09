@@ -123,8 +123,8 @@ namespace DeltaKustoLib.CommandModel.Policies
         }
 
         internal static IEnumerable<CommandBase> ComputeDelta(
-            AlterRetentionPolicyCommand? currentCommand,
-            AlterRetentionPolicyCommand? targetCommand)
+            AlterShardingCommand? currentCommand,
+            AlterShardingCommand? targetCommand)
         {
             var hasCurrent = currentCommand != null;
             var hasTarget = targetCommand != null;

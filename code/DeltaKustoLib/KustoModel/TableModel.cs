@@ -17,11 +17,19 @@ namespace DeltaKustoLib.KustoModel
 
         public IImmutableList<MappingModel> Mappings { get; }
 
-        public AlterUpdatePolicyCommand? UpdatePolicy { get; }
+        public AlterAutoDeletePolicyCommand? AutoDeletePolicy { get; }
 
         public AlterCachingPolicyCommand? CachingPolicy { get; }
 
+        public AlterIngestionBatchingCommand? IngestionBatchingPolicy { get; }
+
+        public AlterMergeCommand? MergePolicy { get; }
+
         public AlterRetentionPolicyCommand? RetentionPolicy { get; }
+
+        public AlterShardingCommand? ShardingPolicy { get; }
+
+        public AlterUpdatePolicyCommand? UpdatePolicy { get; }
 
         public QuotedText Folder { get; }
 
@@ -31,9 +39,13 @@ namespace DeltaKustoLib.KustoModel
             EntityName tableName,
             IEnumerable<ColumnModel> columns,
             IEnumerable<MappingModel> mappings,
-            AlterUpdatePolicyCommand? updatePolicy,
+            AlterAutoDeletePolicyCommand? autoDeletePolicy,
             AlterCachingPolicyCommand? cachingPolicy,
+            AlterIngestionBatchingCommand? ingestionBatchingPolicy,
+            AlterMergeCommand? mergePolicy,
             AlterRetentionPolicyCommand? retentionPolicy,
+            AlterShardingCommand? shardingPolicy,
+            AlterUpdatePolicyCommand? updatePolicy,
             QuotedText folder,
             QuotedText docString)
         {
@@ -43,9 +55,13 @@ namespace DeltaKustoLib.KustoModel
                 .OrderBy(m => m.MappingName)
                 .ThenBy(m => m.MappingKind)
                 .ToImmutableArray();
-            UpdatePolicy = updatePolicy;
+            AutoDeletePolicy = autoDeletePolicy;
             CachingPolicy = cachingPolicy;
+            IngestionBatchingPolicy = ingestionBatchingPolicy;
+            MergePolicy = mergePolicy;
             RetentionPolicy = retentionPolicy;
+            ShardingPolicy = shardingPolicy;
+            UpdatePolicy = updatePolicy;
             Folder = folder;
             DocString = docString;
         }
@@ -59,6 +75,10 @@ namespace DeltaKustoLib.KustoModel
                 && other.Columns.OrderBy(c => c.ColumnName).SequenceEqual(
                     Columns.OrderBy(c => c.ColumnName))
                 && other.Mappings.SequenceEqual(Mappings)
+                && object.Equals(other.UpdatePolicy, UpdatePolicy)
+                && object.Equals(other.CachingPolicy, CachingPolicy)
+                && object.Equals(other.RetentionPolicy, RetentionPolicy)
+                && object.Equals(other.AutoDeletePolicy, AutoDeletePolicy)
                 && object.Equals(other.Folder, Folder)
                 && object.Equals(other.DocString, DocString);
 
@@ -78,9 +98,13 @@ namespace DeltaKustoLib.KustoModel
             IEnumerable<CreateTableCommand> createTables,
             IEnumerable<AlterMergeTableColumnDocStringsCommand> alterMergeTableColumns,
             IEnumerable<CreateMappingCommand> createMappings,
-            IEnumerable<AlterUpdatePolicyCommand> updatePolicies,
+            IEnumerable<AlterAutoDeletePolicyCommand> autoDeletePolicies,
             IEnumerable<AlterCachingPolicyCommand> cachingPolicies,
-            IEnumerable<AlterRetentionPolicyCommand> retentionPolicies)
+            IEnumerable<AlterIngestionBatchingCommand> ingestionBatchingPolicies,
+            IEnumerable<AlterMergeCommand> mergePolicies,
+            IEnumerable<AlterRetentionPolicyCommand> retentionPolicies,
+            IEnumerable<AlterShardingCommand> shardingPolicies,
+            IEnumerable<AlterUpdatePolicyCommand> updatePolicies)
         {
             var tableDocStringColumnMap = alterMergeTableColumns
                 .GroupBy(c => c.TableName)
@@ -88,9 +112,13 @@ namespace DeltaKustoLib.KustoModel
             var mappingModelMap = createMappings
                 .GroupBy(m => m.TableName)
                 .ToImmutableDictionary(g => g.Key, g => g.Select(c => c.ToModel()));
-            var updatePolicyMap = updatePolicies.ToImmutableDictionary(c => c.TableName);
+            var autoDeletePolicyMap = autoDeletePolicies.ToImmutableDictionary(c => c.TableName);
             var cachingPolicyMap = cachingPolicies.ToImmutableDictionary(c => c.EntityName);
+            var ingestionBatchingPolicyMap = ingestionBatchingPolicies.ToImmutableDictionary(c => c.EntityName);
+            var mergePolicyMap = mergePolicies.ToImmutableDictionary(c => c.EntityName);
             var retentionPolicyMap = retentionPolicies.ToImmutableDictionary(c => c.EntityName);
+            var shardingPolicyMap = shardingPolicies.ToImmutableDictionary(c => c.EntityName);
+            var updatePolicyMap = updatePolicies.ToImmutableDictionary(c => c.TableName);
             var tables = createTables
                 .Select(ct => new TableModel(
                     ct.TableName,
@@ -102,14 +130,26 @@ namespace DeltaKustoLib.KustoModel
                     mappingModelMap.ContainsKey(ct.TableName)
                     ? mappingModelMap[ct.TableName]
                     : ImmutableArray<MappingModel>.Empty,
-                    updatePolicyMap.ContainsKey(ct.TableName)
-                    ? updatePolicyMap[ct.TableName]
+                    autoDeletePolicyMap.ContainsKey(ct.TableName)
+                    ? autoDeletePolicyMap[ct.TableName]
                     : null,
                     cachingPolicyMap.ContainsKey(ct.TableName)
                     ? cachingPolicyMap[ct.TableName]
                     : null,
+                    ingestionBatchingPolicyMap.ContainsKey(ct.TableName)
+                    ? ingestionBatchingPolicyMap[ct.TableName]
+                    : null,
+                    mergePolicyMap.ContainsKey(ct.TableName)
+                    ? mergePolicyMap[ct.TableName]
+                    : null,
                     retentionPolicyMap.ContainsKey(ct.TableName)
                     ? retentionPolicyMap[ct.TableName]
+                    : null,
+                    shardingPolicyMap.ContainsKey(ct.TableName)
+                    ? shardingPolicyMap[ct.TableName]
+                    : null,
+                    updatePolicyMap.ContainsKey(ct.TableName)
+                    ? updatePolicyMap[ct.TableName]
                     : null,
                     ct.Folder == null ? QuotedText.Empty : ct.Folder,
                     ct.DocString == null ? QuotedText.Empty : ct.DocString))
@@ -216,13 +256,25 @@ namespace DeltaKustoLib.KustoModel
                 TableName,
                 Mappings,
                 targetModel.Mappings);
-            var updatePolicyCommands =
-                AlterUpdatePolicyCommand.ComputeDelta(UpdatePolicy, targetModel.UpdatePolicy);
+            var autoDeletePolicyCommands = AlterAutoDeletePolicyCommand.ComputeDelta(
+                AutoDeletePolicy,
+                targetModel.AutoDeletePolicy);
             var cachingPolicyCommands =
                 AlterCachingPolicyCommand.ComputeDelta(CachingPolicy, targetModel.CachingPolicy);
+            var ingestionBatchingPolicyCommands = AlterIngestionBatchingCommand.ComputeDelta(
+                IngestionBatchingPolicy,
+                targetModel.IngestionBatchingPolicy);
+            var mergePolicyCommands = AlterMergeCommand.ComputeDelta(
+                MergePolicy,
+                targetModel.MergePolicy);
             var retentionPolicyCommands = AlterRetentionPolicyCommand.ComputeDelta(
                 RetentionPolicy,
                 targetModel.RetentionPolicy);
+            var shardingPolicyCommands = AlterShardingCommand.ComputeDelta(
+                ShardingPolicy,
+                targetModel.ShardingPolicy);
+            var updatePolicyCommands =
+                AlterUpdatePolicyCommand.ComputeDelta(UpdatePolicy, targetModel.UpdatePolicy);
 
             if (dropColumnNames.Any())
             {
@@ -260,9 +312,13 @@ namespace DeltaKustoLib.KustoModel
                     targetColumns[columnName].PrimitiveType);
             }
             foreach (var command in mappingCommands
-                .Concat(updatePolicyCommands)
+                .Concat(autoDeletePolicyCommands)
                 .Concat(cachingPolicyCommands)
-                .Concat(retentionPolicyCommands))
+                .Concat(ingestionBatchingPolicyCommands)
+                .Concat(mergePolicyCommands)
+                .Concat(retentionPolicyCommands)
+                .Concat(shardingPolicyCommands)
+                .Concat(updatePolicyCommands))
             {
                 yield return command;
             }

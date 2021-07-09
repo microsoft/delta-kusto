@@ -21,23 +21,45 @@ namespace DeltaKustoLib.KustoModel
             typeof(AlterUpdatePolicyCommand),
             typeof(AlterCachingPolicyCommand),
             typeof(AlterRetentionPolicyCommand),
-            typeof(AlterTablesRetentionPolicyCommand)
+            typeof(AlterTablesRetentionPolicyCommand),
+            typeof(AlterAutoDeletePolicyCommand),
+            typeof(AlterMergeCommand),
+            typeof(AlterIngestionBatchingCommand),
+            typeof(AlterShardingCommand)
         }.ToImmutableHashSet();
 
         private readonly IImmutableList<CreateFunctionCommand> _functionCommands;
         private readonly IImmutableList<TableModel> _tableModels;
         private readonly AlterCachingPolicyCommand? _cachingPolicy;
+        private readonly AlterIngestionBatchingCommand? _ingestionBatchingPolicy;
+        private readonly AlterMergeCommand? _mergePolicy;
         private readonly AlterRetentionPolicyCommand? _retentionPolicy;
+        private readonly AlterShardingCommand? _shardingPolicy;
 
         private DatabaseModel(
             IEnumerable<CreateFunctionCommand> functionCommands,
             IEnumerable<TableModel> tableModels,
             AlterCachingPolicyCommand? cachingPolicy,
-            AlterRetentionPolicyCommand? retentionPolicy)
+            AlterIngestionBatchingCommand? ingestionBatchingPolicy,
+            AlterMergeCommand? mergePolicy,
+            AlterRetentionPolicyCommand? retentionPolicy,
+            AlterShardingCommand? shardingPolicy)
         {
             if (cachingPolicy != null && cachingPolicy.EntityType != EntityType.Database)
             {
                 throw new NotSupportedException("Only db caching policy is supported in this context");
+            }
+            if (ingestionBatchingPolicy != null && ingestionBatchingPolicy.EntityType != EntityType.Database)
+            {
+                throw new NotSupportedException("Only db ingestion batching policy is supported in this context");
+            }
+            if (mergePolicy != null && mergePolicy.EntityType != EntityType.Database)
+            {
+                throw new NotSupportedException("Only db merge policy is supported in this context");
+            }
+            if (shardingPolicy != null && shardingPolicy.EntityType != EntityType.Database)
+            {
+                throw new NotSupportedException("Only db sharding policy is supported in this context");
             }
             _functionCommands = functionCommands
                 .OrderBy(f => f.FunctionName)
@@ -46,7 +68,10 @@ namespace DeltaKustoLib.KustoModel
                 .OrderBy(t => t.TableName)
                 .ToImmutableArray();
             _cachingPolicy = cachingPolicy;
+            _ingestionBatchingPolicy = ingestionBatchingPolicy;
+            _mergePolicy = mergePolicy;
             _retentionPolicy = retentionPolicy;
+            _shardingPolicy = shardingPolicy;
         }
 
         public static DatabaseModel FromCommands(
@@ -76,7 +101,7 @@ namespace DeltaKustoLib.KustoModel
                     c => new AlterMergeTableColumnDocStringsCommand(a.TableName, new[] { c })));
             var createMappings = GetCommands<CreateMappingCommand>(commandTypeIndex)
                 .ToImmutableArray();
-            var updatePolicies = GetCommands<AlterUpdatePolicyCommand>(commandTypeIndex)
+            var autoDeletePolicies = GetCommands<AlterAutoDeletePolicyCommand>(commandTypeIndex)
                 .ToImmutableArray();
             var cachingPolicies = GetCommands<AlterCachingPolicyCommand>(commandTypeIndex)
                 .ToImmutableArray();
@@ -84,11 +109,29 @@ namespace DeltaKustoLib.KustoModel
                 .Where(p => p.EntityType == EntityType.Table);
             var dbCachingPolicies = cachingPolicies
                 .Where(p => p.EntityType == EntityType.Database);
+            var ingestionBatchingPolicies = GetCommands<AlterIngestionBatchingCommand>(commandTypeIndex)
+                .ToImmutableArray();
+            var tableIngestionBatchingPolicies = ingestionBatchingPolicies
+                .Where(p => p.EntityType == EntityType.Table);
+            var dbIngestionBatchingPolicies = ingestionBatchingPolicies
+                .Where(p => p.EntityType == EntityType.Database);
+            var mergePolicies = GetCommands<AlterMergeCommand>(commandTypeIndex)
+                .ToImmutableArray();
+            var tableMergePolicies = mergePolicies
+                .Where(p => p.EntityType == EntityType.Table);
+            var dbMergePolicies = mergePolicies
+                .Where(p => p.EntityType == EntityType.Database);
             var retentionTablePluralPolicies = GetCommands<AlterTablesRetentionPolicyCommand>(commandTypeIndex)
                 .SelectMany(c => c.TableNames.Select(t => new AlterRetentionPolicyCommand(
                     EntityType.Table,
                     t,
                     c.Policy)));
+            var shardingPolicies = GetCommands<AlterShardingCommand>(commandTypeIndex)
+                .ToImmutableArray();
+            var tableShardingPolicies = shardingPolicies
+                .Where(p => p.EntityType == EntityType.Table);
+            var dbShardingPolicies = shardingPolicies
+                .Where(p => p.EntityType == EntityType.Database);
             var retentionPolicies = GetCommands<AlterRetentionPolicyCommand>(commandTypeIndex)
                 .ToImmutableArray();
             var tableRetentionPolicies = retentionPolicies
@@ -96,6 +139,8 @@ namespace DeltaKustoLib.KustoModel
                 .Concat(retentionTablePluralPolicies);
             var dbRetentionPolicies = retentionPolicies
                 .Where(p => p.EntityType == EntityType.Database);
+            var updatePolicies = GetCommands<AlterUpdatePolicyCommand>(commandTypeIndex)
+                .ToImmutableArray();
 
             ValidateCommandTypes(commandTypes);
             ValidateDuplicates(createFunctions, f => f.FunctionName.Name);
@@ -106,25 +151,39 @@ namespace DeltaKustoLib.KustoModel
             ValidateDuplicates(
                 createMappings,
                 m => $"{m.TableName}_{m.MappingName}_{m.MappingKind}");
-            ValidateDuplicates(updatePolicies, m => m.TableName.Name);
+            ValidateDuplicates(autoDeletePolicies, m => m.TableName.Name);
             ValidateDuplicates(tableCachingPolicies, m => m.EntityName.Name);
             ValidateDuplicates(dbCachingPolicies, m => "Database caching policy");
+            ValidateDuplicates(tableIngestionBatchingPolicies, m => m.EntityName.Name);
+            ValidateDuplicates(dbIngestionBatchingPolicies, m => "Database ingestion batching policy");
+            ValidateDuplicates(tableMergePolicies, m => m.EntityName.Name);
+            ValidateDuplicates(dbMergePolicies, m => "Database merge policy");
+            ValidateDuplicates(tableShardingPolicies, m => m.EntityName.Name);
+            ValidateDuplicates(dbShardingPolicies, m => "Database sharding policy");
             ValidateDuplicates(tableRetentionPolicies, m => m.EntityName.Name);
             ValidateDuplicates(dbRetentionPolicies, m => "Database retention policy");
+            ValidateDuplicates(updatePolicies, m => m.TableName.Name);
 
             var tableModels = TableModel.FromCommands(
                 createTables,
                 alterMergeTableColumns,
                 createMappings,
-                updatePolicies,
+                autoDeletePolicies,
                 tableCachingPolicies,
-                tableRetentionPolicies);
+                tableIngestionBatchingPolicies,
+                tableMergePolicies,
+                tableRetentionPolicies,
+                tableShardingPolicies,
+                updatePolicies);
 
             return new DatabaseModel(
                 createFunctions,
                 tableModels,
                 dbCachingPolicies.FirstOrDefault(),
-                dbRetentionPolicies.FirstOrDefault());
+                dbIngestionBatchingPolicies.FirstOrDefault(),
+                dbMergePolicies.FirstOrDefault(),
+                dbRetentionPolicies.FirstOrDefault(),
+                dbShardingPolicies.FirstOrDefault());
         }
 
         public IImmutableList<CommandBase> ComputeDelta(DatabaseModel targetModel)
@@ -135,12 +194,23 @@ namespace DeltaKustoLib.KustoModel
                 TableModel.ComputeDelta(_tableModels, targetModel._tableModels);
             var cachingPolicyCommands =
                 AlterCachingPolicyCommand.ComputeDelta(_cachingPolicy, targetModel._cachingPolicy);
-            var retentionPolicyCommands =
-                AlterRetentionPolicyCommand.ComputeDelta(_retentionPolicy, targetModel._retentionPolicy);
+            var ingestionBatchingPolicyCommands = AlterIngestionBatchingCommand.ComputeDelta(
+                _ingestionBatchingPolicy,
+                targetModel._ingestionBatchingPolicy);
+            var mergePolicyCommands =
+                AlterMergeCommand.ComputeDelta(_mergePolicy, targetModel._mergePolicy);
+            var retentionPolicyCommands = AlterRetentionPolicyCommand.ComputeDelta(
+                _retentionPolicy,
+                targetModel._retentionPolicy);
+            var shardingPolicyCommands =
+                AlterShardingCommand.ComputeDelta(_shardingPolicy, targetModel._shardingPolicy);
             var deltaCommands = functionCommands
                 .Concat(tableCommands)
                 .Concat(cachingPolicyCommands)
-                .Concat(retentionPolicyCommands);
+                .Concat(ingestionBatchingPolicyCommands)
+                .Concat(mergePolicyCommands)
+                .Concat(retentionPolicyCommands)
+                .Concat(shardingPolicyCommands);
 
             return deltaCommands.ToImmutableArray();
         }

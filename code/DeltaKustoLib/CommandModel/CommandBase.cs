@@ -148,6 +148,8 @@ namespace DeltaKustoLib.CommandModel
                         return DeleteRetentionPolicyCommand.FromCode(commandBlock);
                     case "AlterTablePolicyAutoDelete":
                         return AlterAutoDeletePolicyCommand.FromCode(commandBlock);
+                    case "DeleteTablePolicyAutoDelete":
+                        return DeleteAutoDeletePolicyCommand.FromCode(commandBlock);
                     case "AlterDatabasePolicyIngestionBatching":
                     case "AlterTablePolicyIngestionBatching":
                         return AlterIngestionBatchingCommand.FromCode(commandBlock);

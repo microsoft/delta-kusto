@@ -84,16 +84,15 @@ namespace DeltaKustoLib.CommandModel.Policies
         }
 
         internal static IEnumerable<CommandBase> ComputeDelta(
-            AlterRetentionPolicyCommand? currentCommand,
-            AlterRetentionPolicyCommand? targetCommand)
+            AlterAutoDeletePolicyCommand? currentCommand,
+            AlterAutoDeletePolicyCommand? targetCommand)
         {
             var hasCurrent = currentCommand != null;
             var hasTarget = targetCommand != null;
 
             if (hasCurrent && !hasTarget)
             {   //  No target, we remove the current policy
-                throw new NotImplementedException();
-                //yield return new DeleteAutoDeletePolicyCommand(currentCommand!.EntityName);
+                yield return new DeleteAutoDeletePolicyCommand(currentCommand!.TableName);
             }
             else if (hasTarget)
             {
