@@ -153,6 +153,9 @@ namespace DeltaKustoLib.CommandModel
                     case "AlterDatabasePolicyIngestionBatching":
                     case "AlterTablePolicyIngestionBatching":
                         return AlterIngestionBatchingPolicyCommand.FromCode(commandBlock);
+                    case "DeleteDatabasePolicyIngestionBatching":
+                    case "DeleteTablePolicyIngestionBatching":
+                        return DeleteIngestionBatchingPolicyCommand.FromCode(commandBlock);
                     case "AlterDatabasePolicySharding":
                     case "AlterTablePolicySharding":
                         return AlterShardingPolicyCommand.FromCode(commandBlock);

@@ -40,11 +40,6 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
             var command = ParseOneCommand(commandText);
 
             Assert.IsType<DeleteRetentionPolicyCommand>(command);
-
-            var realCommand = (DeleteRetentionPolicyCommand)command;
-
-            Assert.Equal(type, realCommand.EntityType);
-            Assert.Equal(name, realCommand.EntityName.Name);
         }
     }
 }

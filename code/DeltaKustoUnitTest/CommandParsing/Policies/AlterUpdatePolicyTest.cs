@@ -72,11 +72,6 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
             var command = ParseOneCommand(commandText);
 
             Assert.IsType<AlterUpdatePolicyCommand>(command);
-
-            var alterUpdatePolicyCommand = (AlterUpdatePolicyCommand)command;
-
-            Assert.Equal(tableName, alterUpdatePolicyCommand.TableName.Name);
-            Assert.Equal(policies, alterUpdatePolicyCommand.UpdatePolicies);
         }
     }
 }

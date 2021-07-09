@@ -76,13 +76,6 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
                 var command = ParseOneCommand(commandText);
 
                 Assert.IsType<AlterCachingPolicyCommand>(command);
-
-                var alterCachingPolicyCommand = (AlterCachingPolicyCommand)command;
-
-                Assert.Equal(type, alterCachingPolicyCommand.EntityType);
-                Assert.Equal(name, alterCachingPolicyCommand.EntityName.Name);
-                Assert.Equal(hotData, alterCachingPolicyCommand.HotData.Duration);
-                Assert.Equal(hotIndex, alterCachingPolicyCommand.HotIndex.Duration);
             }
         }
     }

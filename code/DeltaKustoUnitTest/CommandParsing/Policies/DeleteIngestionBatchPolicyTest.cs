@@ -7,41 +7,39 @@ using Xunit;
 
 namespace DeltaKustoUnitTest.CommandParsing.Policies
 {
-    public class DeleteCachingPolicyTest : ParsingTestBase
+    public class DeleteIngestionBatchPolicyTest : ParsingTestBase
     {
         [Fact]
         public void SimpleTable()
         {
-            TestDeleteCachingPolicy(EntityType.Table, "A", "3d");
+            TestIngestionBatchingPolicy(EntityType.Table, "A");
         }
 
         [Fact]
         public void FunkyTable()
         {
-            TestDeleteCachingPolicy(EntityType.Table, "A- 1", "90m");
+            TestIngestionBatchingPolicy(EntityType.Table, "A- 1");
         }
 
         [Fact]
         public void SimpleDatabase()
         {
-            TestDeleteCachingPolicy(EntityType.Database, "Db", "40s");
+            TestIngestionBatchingPolicy(EntityType.Database, "Db");
         }
 
         [Fact]
         public void FunkyDatabase()
         {
-            TestDeleteCachingPolicy(EntityType.Database, "db.mine", "90h");
+            TestIngestionBatchingPolicy(EntityType.Database, "db.mine");
         }
 
-        private void TestDeleteCachingPolicy(EntityType type, string name, string duration)
+        private void TestIngestionBatchingPolicy(EntityType type, string name)
         {
-            var commandText = new DeleteCachingPolicyCommand(
-                type,
-                new EntityName(name))
+            var commandText = new DeleteIngestionBatchingPolicyCommand(type, new EntityName(name))
                 .ToScript(null);
             var command = ParseOneCommand(commandText);
 
-            Assert.IsType<DeleteCachingPolicyCommand>(command);
+            Assert.IsType<DeleteIngestionBatchingPolicyCommand>(command);
         }
     }
 }
