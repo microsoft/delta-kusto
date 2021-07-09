@@ -10,17 +10,17 @@ using System.Threading.Tasks;
 namespace DeltaKustoLib.CommandModel.Policies
 {
     /// <summary>
-    /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/sharding-policy#alter-policy"/>
+    /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/batching-policy#altering-the-ingestionbatching-policy"/>
     /// </summary>
-    public class AlterShardingCommand : PolicyCommandBase
+    public class AlterIngestionBatchingPolicyCommand : PolicyCommandBase
     {
         public EntityType EntityType { get; }
 
         public EntityName EntityName { get; }
 
-        public override string CommandFriendlyName => ".alter <entity> policy sharding";
+        public override string CommandFriendlyName => ".alter <entity> policy ingestionbatching";
 
-        public AlterShardingCommand(
+        public AlterIngestionBatchingPolicyCommand(
             EntityType entityType,
             EntityName entityName,
             JsonDocument policy) : base(policy)
@@ -34,20 +34,20 @@ namespace DeltaKustoLib.CommandModel.Policies
             EntityName = entityName;
         }
 
-        public AlterShardingCommand(
+        public AlterIngestionBatchingPolicyCommand(
             EntityType entityType,
             EntityName entityName,
-            int maxRowCount,
-            int maxExtentSizeInMb,
-            int maxOriginalSizeInMb)
+            TimeSpan maximumBatchingTimeSpan,
+            int maximumNumberOfItems,
+            int maximumRawDataSizeMb)
             : this(
                   entityType,
                   entityName,
                   ToJsonDocument(new
                   {
-                      MaxRowCount = maxRowCount,
-                      MaxExtentSizeInMb = maxExtentSizeInMb,
-                      MaxOriginalSizeInMb = maxOriginalSizeInMb
+                      MaximumBatchingTimeSpan = maximumBatchingTimeSpan.ToString(),
+                      MaximumNumberOfItems = maximumNumberOfItems,
+                      MaximumRawDataSizeMb = maximumRawDataSizeMb
                   }))
         {
         }
@@ -61,7 +61,7 @@ namespace DeltaKustoLib.CommandModel.Policies
 
             if (!entityKinds.Any())
             {
-                throw new DeltaException("Alter sharding requires to act on a table or database (cluster isn't supported)");
+                throw new DeltaException("Alter ingestion batching policy requires to act on a table or database (cluster isn't supported)");
             }
             var entityKind = entityKinds.First();
             var entityType = entityKind == SyntaxKind.TableKeyword
@@ -70,8 +70,8 @@ namespace DeltaKustoLib.CommandModel.Policies
             var entityName = rootElement.GetDescendants<NameReference>().Last();
             var policyText = QuotedText.FromLiteral(
                 rootElement.GetUniqueDescendant<LiteralExpression>(
-                    "Sharding",
-                    e => e.NameInParent == "ShardingPolicy"));
+                    "IngestionBatching",
+                    e => e.NameInParent == "IngestionBatchingPolicy"));
             var policy = JsonSerializer.Deserialize<JsonDocument>(policyText.Text);
 
             if (policy == null)
@@ -80,7 +80,7 @@ namespace DeltaKustoLib.CommandModel.Policies
                     $"Can't extract policy objects from {policyText.ToScript()}");
             }
 
-            return new AlterShardingCommand(
+            return new AlterIngestionBatchingPolicyCommand(
                 entityType,
                 EntityName.FromCode(entityName.Name),
                 policy);
@@ -88,7 +88,7 @@ namespace DeltaKustoLib.CommandModel.Policies
 
         public override bool Equals(CommandBase? other)
         {
-            var otherFunction = other as AlterShardingCommand;
+            var otherFunction = other as AlterIngestionBatchingPolicyCommand;
             var areEqualed = otherFunction != null
                 && otherFunction.EntityType.Equals(EntityType)
                 && otherFunction.EntityName.Equals(EntityName)
@@ -112,7 +112,7 @@ namespace DeltaKustoLib.CommandModel.Policies
             {
                 builder.Append(EntityName.ToScript());
             }
-            builder.Append(" policy sharding");
+            builder.Append(" policy ingestionbatching");
             builder.AppendLine();
             builder.Append("```");
             builder.Append(SerializePolicy());
@@ -123,18 +123,17 @@ namespace DeltaKustoLib.CommandModel.Policies
         }
 
         internal static IEnumerable<CommandBase> ComputeDelta(
-            AlterShardingCommand? currentCommand,
-            AlterShardingCommand? targetCommand)
+            AlterIngestionBatchingPolicyCommand? currentCommand,
+            AlterIngestionBatchingPolicyCommand? targetCommand)
         {
             var hasCurrent = currentCommand != null;
             var hasTarget = targetCommand != null;
 
             if (hasCurrent && !hasTarget)
             {   //  No target, we remove the current policy
-                throw new NotImplementedException();
-                //yield return new DeleteRetentionPolicyCommand(
-                //    currentCommand!.EntityType,
-                //    currentCommand!.EntityName);
+                yield return new DeleteIngestionBatchingPolicyCommand(
+                    currentCommand!.EntityType,
+                    currentCommand!.EntityName);
             }
             else if (hasTarget)
             {

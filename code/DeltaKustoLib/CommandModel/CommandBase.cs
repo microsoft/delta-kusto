@@ -152,13 +152,13 @@ namespace DeltaKustoLib.CommandModel
                         return DeleteAutoDeletePolicyCommand.FromCode(commandBlock);
                     case "AlterDatabasePolicyIngestionBatching":
                     case "AlterTablePolicyIngestionBatching":
-                        return AlterIngestionBatchingCommand.FromCode(commandBlock);
+                        return AlterIngestionBatchingPolicyCommand.FromCode(commandBlock);
                     case "AlterDatabasePolicySharding":
                     case "AlterTablePolicySharding":
-                        return AlterShardingCommand.FromCode(commandBlock);
+                        return AlterShardingPolicyCommand.FromCode(commandBlock);
                     case "AlterDatabasePolicyMerge":
                     case "AlterTablePolicyMerge":
-                        return AlterMergeCommand.FromCode(commandBlock);
+                        return AlterMergePolicyCommand.FromCode(commandBlock);
 
                     default:
                         if (ignoreUnknownCommands)

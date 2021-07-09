@@ -28,9 +28,9 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
                 ".alter table mydb.mytable policy ingestionbatching "
                 + "@'{\"MaximumBatchingTimeSpan\":\"90.00:00:00\"}'");
 
-            Assert.IsType<AlterIngestionBatchingCommand>(command);
+            Assert.IsType<AlterIngestionBatchingPolicyCommand>(command);
 
-            var realCommand = (AlterIngestionBatchingCommand)command;
+            var realCommand = (AlterIngestionBatchingPolicyCommand)command;
 
             Assert.Equal(EntityType.Table, realCommand.EntityType);
             Assert.Equal("mytable", realCommand.EntityName.Name);
@@ -43,9 +43,9 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
                 ".alter table mycluster.['my db'].mytable policy ingestionbatching  "
                 + "@'{\"MaximumBatchingTimeSpan\":\"90.00:00:00\"}'");
 
-            Assert.IsType<AlterIngestionBatchingCommand>(command);
+            Assert.IsType<AlterIngestionBatchingPolicyCommand>(command);
 
-            var realCommand = (AlterIngestionBatchingCommand)command;
+            var realCommand = (AlterIngestionBatchingPolicyCommand)command;
 
             Assert.Equal(EntityType.Table, realCommand.EntityType);
             Assert.Equal("mytable", realCommand.EntityName.Name);
@@ -70,7 +70,7 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
             int maximumNumberOfItems,
             int maximumRawDataSizeMb)
         {
-            var commandText = new AlterIngestionBatchingCommand(
+            var commandText = new AlterIngestionBatchingPolicyCommand(
                 type,
                 new EntityName(name),
                 maximumBatchingTimeSpan,
@@ -79,7 +79,7 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
                 .ToScript(null);
             var command = ParseOneCommand(commandText);
 
-            Assert.IsType<AlterIngestionBatchingCommand>(command);
+            Assert.IsType<AlterIngestionBatchingPolicyCommand>(command);
         }
     }
 }

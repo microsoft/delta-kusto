@@ -21,13 +21,13 @@ namespace DeltaKustoLib.KustoModel
 
         public AlterCachingPolicyCommand? CachingPolicy { get; }
 
-        public AlterIngestionBatchingCommand? IngestionBatchingPolicy { get; }
+        public AlterIngestionBatchingPolicyCommand? IngestionBatchingPolicy { get; }
 
-        public AlterMergeCommand? MergePolicy { get; }
+        public AlterMergePolicyCommand? MergePolicy { get; }
 
         public AlterRetentionPolicyCommand? RetentionPolicy { get; }
 
-        public AlterShardingCommand? ShardingPolicy { get; }
+        public AlterShardingPolicyCommand? ShardingPolicy { get; }
 
         public AlterUpdatePolicyCommand? UpdatePolicy { get; }
 
@@ -41,10 +41,10 @@ namespace DeltaKustoLib.KustoModel
             IEnumerable<MappingModel> mappings,
             AlterAutoDeletePolicyCommand? autoDeletePolicy,
             AlterCachingPolicyCommand? cachingPolicy,
-            AlterIngestionBatchingCommand? ingestionBatchingPolicy,
-            AlterMergeCommand? mergePolicy,
+            AlterIngestionBatchingPolicyCommand? ingestionBatchingPolicy,
+            AlterMergePolicyCommand? mergePolicy,
             AlterRetentionPolicyCommand? retentionPolicy,
-            AlterShardingCommand? shardingPolicy,
+            AlterShardingPolicyCommand? shardingPolicy,
             AlterUpdatePolicyCommand? updatePolicy,
             QuotedText folder,
             QuotedText docString)
@@ -100,10 +100,10 @@ namespace DeltaKustoLib.KustoModel
             IEnumerable<CreateMappingCommand> createMappings,
             IEnumerable<AlterAutoDeletePolicyCommand> autoDeletePolicies,
             IEnumerable<AlterCachingPolicyCommand> cachingPolicies,
-            IEnumerable<AlterIngestionBatchingCommand> ingestionBatchingPolicies,
-            IEnumerable<AlterMergeCommand> mergePolicies,
+            IEnumerable<AlterIngestionBatchingPolicyCommand> ingestionBatchingPolicies,
+            IEnumerable<AlterMergePolicyCommand> mergePolicies,
             IEnumerable<AlterRetentionPolicyCommand> retentionPolicies,
-            IEnumerable<AlterShardingCommand> shardingPolicies,
+            IEnumerable<AlterShardingPolicyCommand> shardingPolicies,
             IEnumerable<AlterUpdatePolicyCommand> updatePolicies)
         {
             var tableDocStringColumnMap = alterMergeTableColumns
@@ -261,16 +261,16 @@ namespace DeltaKustoLib.KustoModel
                 targetModel.AutoDeletePolicy);
             var cachingPolicyCommands =
                 AlterCachingPolicyCommand.ComputeDelta(CachingPolicy, targetModel.CachingPolicy);
-            var ingestionBatchingPolicyCommands = AlterIngestionBatchingCommand.ComputeDelta(
+            var ingestionBatchingPolicyCommands = AlterIngestionBatchingPolicyCommand.ComputeDelta(
                 IngestionBatchingPolicy,
                 targetModel.IngestionBatchingPolicy);
-            var mergePolicyCommands = AlterMergeCommand.ComputeDelta(
+            var mergePolicyCommands = AlterMergePolicyCommand.ComputeDelta(
                 MergePolicy,
                 targetModel.MergePolicy);
             var retentionPolicyCommands = AlterRetentionPolicyCommand.ComputeDelta(
                 RetentionPolicy,
                 targetModel.RetentionPolicy);
-            var shardingPolicyCommands = AlterShardingCommand.ComputeDelta(
+            var shardingPolicyCommands = AlterShardingPolicyCommand.ComputeDelta(
                 ShardingPolicy,
                 targetModel.ShardingPolicy);
             var updatePolicyCommands =

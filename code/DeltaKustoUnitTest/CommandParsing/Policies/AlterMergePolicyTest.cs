@@ -28,9 +28,9 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
                 ".alter table mydb.mytable policy merge "
                 + "@'{\"RowCountUpperBoundForMerge\":\"200000\"}'");
 
-            Assert.IsType<AlterMergeCommand>(command);
+            Assert.IsType<AlterMergePolicyCommand>(command);
 
-            var realCommand = (AlterMergeCommand)command;
+            var realCommand = (AlterMergePolicyCommand)command;
 
             Assert.Equal(EntityType.Table, realCommand.EntityType);
             Assert.Equal("mytable", realCommand.EntityName.Name);
@@ -43,9 +43,9 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
                 ".alter table mycluster.['my db'].mytable policy merge "
                 + "@'{\"RowCountUpperBoundForMerge\":\"300000\"}'");
 
-            Assert.IsType<AlterMergeCommand>(command);
+            Assert.IsType<AlterMergePolicyCommand>(command);
 
-            var realCommand = (AlterMergeCommand)command;
+            var realCommand = (AlterMergePolicyCommand)command;
 
             Assert.Equal(EntityType.Table, realCommand.EntityType);
             Assert.Equal("mytable", realCommand.EntityName.Name);
@@ -70,7 +70,7 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
             int maxExtentsToMerge,
             TimeSpan loopPeriod)
         {
-            var command = new AlterMergeCommand(
+            var command = new AlterMergePolicyCommand(
                 type,
                 new EntityName(name),
                 rowCountUpperBoundForMerge,
@@ -79,7 +79,7 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
             var commandText = command.ToScript(null);
             var parsedCommand = ParseOneCommand(commandText);
 
-            Assert.IsType<AlterMergeCommand>(parsedCommand);
+            Assert.IsType<AlterMergePolicyCommand>(parsedCommand);
         }
     }
 }

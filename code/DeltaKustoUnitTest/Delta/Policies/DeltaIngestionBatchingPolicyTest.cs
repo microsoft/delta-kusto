@@ -72,7 +72,7 @@ namespace DeltaKustoUnitTest.Delta.Policies
         private void TestIngestionBatching(
             int? currentMaxItems,
             int? targetMaxItems,
-            Action<AlterIngestionBatchingCommand>? alterAction,
+            Action<AlterIngestionBatchingPolicyCommand>? alterAction,
             Action<DeleteIngestionBatchingPolicyCommand>? deleteAction)
         {
             var createTableCommandText = ".create table A (a:int)\n\n";
@@ -80,7 +80,7 @@ namespace DeltaKustoUnitTest.Delta.Policies
             foreach (var entityType in new[] { EntityType.Database, EntityType.Table })
             {
                 var currentText = currentMaxItems != null
-                    ? new AlterIngestionBatchingCommand(
+                    ? new AlterIngestionBatchingPolicyCommand(
                         entityType,
                         new EntityName("A"),
                         TimeSpan.FromDays(1),
@@ -90,7 +90,7 @@ namespace DeltaKustoUnitTest.Delta.Policies
                 var currentCommands = Parse(createTableCommandText + currentText);
                 var currentDatabase = DatabaseModel.FromCommands(currentCommands);
                 var targetText = targetMaxItems != null
-                    ? new AlterIngestionBatchingCommand(
+                    ? new AlterIngestionBatchingPolicyCommand(
                         entityType,
                         new EntityName("A"),
                         TimeSpan.FromDays(1),
@@ -108,9 +108,9 @@ namespace DeltaKustoUnitTest.Delta.Policies
                 else if (alterAction != null)
                 {
                     Assert.Single(delta);
-                    Assert.IsType<AlterIngestionBatchingCommand>(delta[0]);
+                    Assert.IsType<AlterIngestionBatchingPolicyCommand>(delta[0]);
 
-                    var alterCommand = (AlterIngestionBatchingCommand)delta[0];
+                    var alterCommand = (AlterIngestionBatchingPolicyCommand)delta[0];
 
                     Assert.Equal(entityType, alterCommand.EntityType);
                     Assert.Equal("A", alterCommand.EntityName.Name);

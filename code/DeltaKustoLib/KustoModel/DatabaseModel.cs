@@ -23,27 +23,27 @@ namespace DeltaKustoLib.KustoModel
             typeof(AlterRetentionPolicyCommand),
             typeof(AlterTablesRetentionPolicyCommand),
             typeof(AlterAutoDeletePolicyCommand),
-            typeof(AlterMergeCommand),
-            typeof(AlterIngestionBatchingCommand),
-            typeof(AlterShardingCommand)
+            typeof(AlterMergePolicyCommand),
+            typeof(AlterIngestionBatchingPolicyCommand),
+            typeof(AlterShardingPolicyCommand)
         }.ToImmutableHashSet();
 
         private readonly IImmutableList<CreateFunctionCommand> _functionCommands;
         private readonly IImmutableList<TableModel> _tableModels;
         private readonly AlterCachingPolicyCommand? _cachingPolicy;
-        private readonly AlterIngestionBatchingCommand? _ingestionBatchingPolicy;
-        private readonly AlterMergeCommand? _mergePolicy;
+        private readonly AlterIngestionBatchingPolicyCommand? _ingestionBatchingPolicy;
+        private readonly AlterMergePolicyCommand? _mergePolicy;
         private readonly AlterRetentionPolicyCommand? _retentionPolicy;
-        private readonly AlterShardingCommand? _shardingPolicy;
+        private readonly AlterShardingPolicyCommand? _shardingPolicy;
 
         private DatabaseModel(
             IEnumerable<CreateFunctionCommand> functionCommands,
             IEnumerable<TableModel> tableModels,
             AlterCachingPolicyCommand? cachingPolicy,
-            AlterIngestionBatchingCommand? ingestionBatchingPolicy,
-            AlterMergeCommand? mergePolicy,
+            AlterIngestionBatchingPolicyCommand? ingestionBatchingPolicy,
+            AlterMergePolicyCommand? mergePolicy,
             AlterRetentionPolicyCommand? retentionPolicy,
-            AlterShardingCommand? shardingPolicy)
+            AlterShardingPolicyCommand? shardingPolicy)
         {
             if (cachingPolicy != null && cachingPolicy.EntityType != EntityType.Database)
             {
@@ -109,13 +109,13 @@ namespace DeltaKustoLib.KustoModel
                 .Where(p => p.EntityType == EntityType.Table);
             var dbCachingPolicies = cachingPolicies
                 .Where(p => p.EntityType == EntityType.Database);
-            var ingestionBatchingPolicies = GetCommands<AlterIngestionBatchingCommand>(commandTypeIndex)
+            var ingestionBatchingPolicies = GetCommands<AlterIngestionBatchingPolicyCommand>(commandTypeIndex)
                 .ToImmutableArray();
             var tableIngestionBatchingPolicies = ingestionBatchingPolicies
                 .Where(p => p.EntityType == EntityType.Table);
             var dbIngestionBatchingPolicies = ingestionBatchingPolicies
                 .Where(p => p.EntityType == EntityType.Database);
-            var mergePolicies = GetCommands<AlterMergeCommand>(commandTypeIndex)
+            var mergePolicies = GetCommands<AlterMergePolicyCommand>(commandTypeIndex)
                 .ToImmutableArray();
             var tableMergePolicies = mergePolicies
                 .Where(p => p.EntityType == EntityType.Table);
@@ -126,7 +126,7 @@ namespace DeltaKustoLib.KustoModel
                     EntityType.Table,
                     t,
                     c.Policy)));
-            var shardingPolicies = GetCommands<AlterShardingCommand>(commandTypeIndex)
+            var shardingPolicies = GetCommands<AlterShardingPolicyCommand>(commandTypeIndex)
                 .ToImmutableArray();
             var tableShardingPolicies = shardingPolicies
                 .Where(p => p.EntityType == EntityType.Table);
@@ -194,16 +194,16 @@ namespace DeltaKustoLib.KustoModel
                 TableModel.ComputeDelta(_tableModels, targetModel._tableModels);
             var cachingPolicyCommands =
                 AlterCachingPolicyCommand.ComputeDelta(_cachingPolicy, targetModel._cachingPolicy);
-            var ingestionBatchingPolicyCommands = AlterIngestionBatchingCommand.ComputeDelta(
+            var ingestionBatchingPolicyCommands = AlterIngestionBatchingPolicyCommand.ComputeDelta(
                 _ingestionBatchingPolicy,
                 targetModel._ingestionBatchingPolicy);
             var mergePolicyCommands =
-                AlterMergeCommand.ComputeDelta(_mergePolicy, targetModel._mergePolicy);
+                AlterMergePolicyCommand.ComputeDelta(_mergePolicy, targetModel._mergePolicy);
             var retentionPolicyCommands = AlterRetentionPolicyCommand.ComputeDelta(
                 _retentionPolicy,
                 targetModel._retentionPolicy);
             var shardingPolicyCommands =
-                AlterShardingCommand.ComputeDelta(_shardingPolicy, targetModel._shardingPolicy);
+                AlterShardingPolicyCommand.ComputeDelta(_shardingPolicy, targetModel._shardingPolicy);
             var deltaCommands = functionCommands
                 .Concat(tableCommands)
                 .Concat(cachingPolicyCommands)

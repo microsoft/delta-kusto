@@ -28,9 +28,9 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
                 ".alter table mydb.mytable policy sharding "
                 + "@'{\"MaxRowCount\":\"200000\"}'");
 
-            Assert.IsType<AlterShardingCommand>(command);
+            Assert.IsType<AlterShardingPolicyCommand>(command);
 
-            var realCommand = (AlterShardingCommand)command;
+            var realCommand = (AlterShardingPolicyCommand)command;
 
             Assert.Equal(EntityType.Table, realCommand.EntityType);
             Assert.Equal("mytable", realCommand.EntityName.Name);
@@ -43,9 +43,9 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
                 ".alter table mycluster.['my db'].mytable policy sharding "
                 + "@'{\"MaxRowCount\":\"300000\"}'");
 
-            Assert.IsType<AlterShardingCommand>(command);
+            Assert.IsType<AlterShardingPolicyCommand>(command);
 
-            var realCommand = (AlterShardingCommand)command;
+            var realCommand = (AlterShardingPolicyCommand)command;
 
             Assert.Equal(EntityType.Table, realCommand.EntityType);
             Assert.Equal("mytable", realCommand.EntityName.Name);
@@ -70,7 +70,7 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
             int maxExtentSizeInMb,
             int maxOriginalSizeInMb)
         {
-            var command = new AlterShardingCommand(
+            var command = new AlterShardingPolicyCommand(
                 type,
                 new EntityName(name),
                 maxRowCount,
@@ -79,7 +79,7 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
             var commandText = command.ToScript(null);
             var parsedCommand = ParseOneCommand(commandText);
 
-            Assert.IsType<AlterShardingCommand>(parsedCommand);
+            Assert.IsType<AlterShardingPolicyCommand>(parsedCommand);
         }
     }
 }
