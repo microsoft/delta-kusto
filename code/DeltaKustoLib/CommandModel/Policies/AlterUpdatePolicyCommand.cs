@@ -12,7 +12,7 @@ namespace DeltaKustoLib.CommandModel.Policies
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/update-policy#alter-update-policy"/>
     /// </summary>
-    [CommandTypeOrder(16000)]
+    [CommandTypeOrder(16000, "Alter Update Policies")]
     public class AlterUpdatePolicyCommand : TableOnlyPolicyCommandBase
     {
         private static readonly JsonSerializerOptions _policiesSerializerOptions = new JsonSerializerOptions

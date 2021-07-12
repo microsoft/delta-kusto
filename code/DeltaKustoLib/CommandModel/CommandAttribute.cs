@@ -9,11 +9,14 @@ namespace DeltaKustoLib.CommandModel
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
     internal class CommandTypeOrderAttribute : Attribute
     {
-        public CommandTypeOrderAttribute(int order)
+        public CommandTypeOrderAttribute(int order, string headerComment)
         {
             Order = order;
+            HeaderComment = headerComment;
         }
 
         public int Order { get; }
+
+        public string HeaderComment { get; }
     }
 }

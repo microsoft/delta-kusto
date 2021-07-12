@@ -11,7 +11,7 @@ namespace DeltaKustoLib.CommandModel
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/create-alter-function"/>
     /// </summary>
-    [CommandTypeOrder(1200)]
+    [CommandTypeOrder(1200, "Create functions")]
     public class CreateFunctionCommand : CommandBase
     {
         public EntityName FunctionName { get; }
