@@ -18,6 +18,8 @@ namespace DeltaKustoLib.CommandModel
 
         public override string CommandFriendlyName => ".drop table";
 
+        public override string SortIndex => TableName.Name;
+
         internal DropTableCommand(EntityName tableName)
         {
             TableName = tableName;

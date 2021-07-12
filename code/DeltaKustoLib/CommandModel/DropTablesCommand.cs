@@ -17,6 +17,8 @@ namespace DeltaKustoLib.CommandModel
         public IImmutableList<EntityName> TableNames { get; }
 
         public override string CommandFriendlyName => ".drop tables";
+        
+        public override string SortIndex => TableNames.First().Name;
 
         internal DropTablesCommand(IImmutableList<EntityName> tableNames)
         {

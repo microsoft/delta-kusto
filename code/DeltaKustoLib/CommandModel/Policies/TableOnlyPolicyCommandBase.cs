@@ -21,5 +21,7 @@ namespace DeltaKustoLib.CommandModel.Policies
             : this(tableName, ToJsonDocument(new object()))
         {
         }
+
+        public override string SortIndex => TableName.Name;
     }
 }

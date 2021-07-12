@@ -20,6 +20,8 @@ namespace DeltaKustoLib.CommandModel
 
         public override string CommandFriendlyName => ".drop table columns";
 
+        public override string SortIndex => TableName.Name;
+
         internal DropTableColumnsCommand(
             EntityName tableName,
             IImmutableList<EntityName> columnNames)

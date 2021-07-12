@@ -22,6 +22,8 @@ namespace DeltaKustoLib.CommandModel
 
         public override string CommandFriendlyName => ".drop ingestion mapping";
 
+        public override string SortIndex => $"{TableName.Name}_{MappingName.Text}_{MappingKind}";
+
         public DropMappingCommand(
             EntityName tableName,
             string mappingKind,

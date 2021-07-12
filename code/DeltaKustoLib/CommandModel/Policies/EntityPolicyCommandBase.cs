@@ -32,5 +32,8 @@ namespace DeltaKustoLib.CommandModel.Policies
             : this(entityType, entityName, ToJsonDocument(new object()))
         {
         }
+
+        public override string SortIndex =>
+            $"{(EntityType == EntityType.Database ? 0 : 1)}_{EntityName}";
     }
 }

@@ -19,6 +19,8 @@ namespace DeltaKustoLib.CommandModel.Policies
 
         public override string CommandFriendlyName => ".alter tables policy retention";
 
+        public override string SortIndex => TableNames.First().Name;
+
         public AlterTablesRetentionPolicyCommand(
             IEnumerable<EntityName> tableNames,
             JsonDocument policy) : base(policy)

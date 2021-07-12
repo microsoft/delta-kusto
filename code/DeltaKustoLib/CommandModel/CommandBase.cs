@@ -27,6 +27,8 @@ namespace DeltaKustoLib.CommandModel
         }
 
         public abstract string CommandFriendlyName { get; }
+        
+        public abstract string SortIndex { get; }
 
         public abstract bool Equals([AllowNull] CommandBase other);
 

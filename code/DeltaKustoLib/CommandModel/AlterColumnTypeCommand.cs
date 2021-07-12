@@ -50,6 +50,8 @@ namespace DeltaKustoLib.CommandModel
 
         public override string CommandFriendlyName => ".alter column type";
 
+        public override string SortIndex => $"{TableName.Name}_{ColumnName.Name}";
+
         internal AlterColumnTypeCommand(
             EntityName tableName,
             EntityName columnName,

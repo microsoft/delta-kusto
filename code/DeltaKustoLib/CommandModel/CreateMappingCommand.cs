@@ -25,6 +25,8 @@ namespace DeltaKustoLib.CommandModel
 
         public override string CommandFriendlyName => ".create ingestion mapping";
 
+        public override string SortIndex => $"{TableName.Name}_{MappingName.Text}_{MappingKind}";
+
         public CreateMappingCommand(
             EntityName tableName,
             string mappingKind,
