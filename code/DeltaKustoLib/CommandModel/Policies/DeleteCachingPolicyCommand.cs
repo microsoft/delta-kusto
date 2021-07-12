@@ -6,6 +6,7 @@ using System.Text;
 
 namespace DeltaKustoLib.CommandModel.Policies
 {
+    [CommandTypeOrder(11000)]
     public class DeleteCachingPolicyCommand : EntityPolicyCommandBase
     {
         public override string CommandFriendlyName => throw new NotImplementedException();

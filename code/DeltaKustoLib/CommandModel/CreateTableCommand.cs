@@ -11,6 +11,7 @@ namespace DeltaKustoLib.CommandModel
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/create-merge-table-command"/>
     /// </summary>
+    [CommandTypeOrder(900)]
     public class CreateTableCommand : CommandBase
     {
         public EntityName TableName { get; }

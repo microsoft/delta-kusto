@@ -12,6 +12,7 @@ namespace DeltaKustoLib.CommandModel.Policies
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/merge-policy#delete-policy-of-merge"/>
     /// </summary>
+    [CommandTypeOrder(13000)]
     public class DeleteMergePolicyCommand : EntityPolicyCommandBase
     {
         public override string CommandFriendlyName => ".delete <entity> policy merge";

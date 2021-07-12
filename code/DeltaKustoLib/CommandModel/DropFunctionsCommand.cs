@@ -11,6 +11,7 @@ namespace DeltaKustoLib.CommandModel
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/drop-function"/>
     /// </summary>
+    [CommandTypeOrder(500)]
     public class DropFunctionsCommand : CommandBase
     {
         public IImmutableList<EntityName> FunctionNames { get; }

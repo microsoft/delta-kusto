@@ -12,6 +12,7 @@ namespace DeltaKustoLib.CommandModel.Policies
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/retention-policy#delete-retention-policy"/>
     /// </summary>
+    [CommandTypeOrder(14000)]
     public class DeleteRetentionPolicyCommand : EntityPolicyCommandBase
     {
         public override string CommandFriendlyName => ".delete <entity> policy retention";

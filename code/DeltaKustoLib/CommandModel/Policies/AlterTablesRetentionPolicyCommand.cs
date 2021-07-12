@@ -12,6 +12,7 @@ namespace DeltaKustoLib.CommandModel.Policies
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/retention-policy#alter-retention-policy"/>
     /// </summary>
+    [CommandTypeOrder(14200)]
     public class AlterTablesRetentionPolicyCommand : PolicyCommandBase
     {
         public IImmutableList<EntityName> TableNames { get; }

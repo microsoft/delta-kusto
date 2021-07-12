@@ -11,6 +11,7 @@ namespace DeltaKustoLib.CommandModel
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/drop-ingestion-mapping-command"/>
     /// </summary>
+    [CommandTypeOrder(400)]
     public class DropMappingCommand : CommandBase
     {
         public EntityName TableName { get; }
