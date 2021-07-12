@@ -38,16 +38,16 @@ namespace DeltaKustoIntegration.Action
                     .OrderBy(d => d.Folder)
                     .ThenBy(d => d.Tables.First().TableName)
                     .ToImmutableArray();
-                AlterRetentionPolicyCommands = commands
-                    .OfType<AlterRetentionPolicyCommand>()
-                    .Where(c => c.EntityType != EntityType.Table)
-                    .OrderBy(c => c.EntityName)
-                    .ToImmutableArray();
                 AlterTablesRetentionPolicyCommands = commands
                     .OfType<AlterRetentionPolicyCommand>()
                     .Where(c => c.EntityType == EntityType.Table)
                     .MergeToPlural()
                     .OrderBy(c => c.TableNames.First())
+                    .ToImmutableArray();
+                AlterRetentionPolicyCommands = commands
+                    .OfType<AlterRetentionPolicyCommand>()
+                    .Where(c => c.EntityType != EntityType.Table)
+                    .OrderBy(c => c.EntityName)
                     .ToImmutableArray();
             }
             else
@@ -68,12 +68,12 @@ namespace DeltaKustoIntegration.Action
                     .ThenBy(d => d.TableName)
                     .ToImmutableArray();
                 CreateTablesCommands = ImmutableArray<CreateTablesCommand>.Empty;
-                AlterRetentionPolicyCommands = commands
-                    .OfType<AlterRetentionPolicyCommand>()
-                    .OrderBy(d => $"{(d.EntityType == EntityType.Database ? 1 : 2)}{d.EntityName}")
-                    .ToImmutableArray();
                 AlterTablesRetentionPolicyCommands =
                     ImmutableArray<AlterTablesRetentionPolicyCommand>.Empty;
+                AlterRetentionPolicyCommands = commands
+                   .OfType<AlterRetentionPolicyCommand>()
+                   .OrderBy(d => $"{(d.EntityType == EntityType.Database ? 1 : 2)}{d.EntityName}")
+                   .ToImmutableArray();
             }
             DropTableColumnsCommands = commands
                 .OfType<DropTableColumnsCommand>()
@@ -83,14 +83,6 @@ namespace DeltaKustoIntegration.Action
                 .OfType<DropMappingCommand>()
                 .OrderBy(d => d.MappingName)
                 .ThenBy(d => d.MappingKind)
-                .ToImmutableArray();
-            DeleteCachingPolicyCommands = commands
-                .OfType<DeleteCachingPolicyCommand>()
-                .OrderBy(d => $"{(d.EntityType == EntityType.Database ? 1 : 2)}{d.EntityName}")
-                .ToImmutableArray();
-            DeleteRetentionPolicyCommands = commands
-                .OfType<DeleteRetentionPolicyCommand>()
-                .OrderBy(d => $"{(d.EntityType == EntityType.Database ? 1 : 2)}{d.EntityName}")
                 .ToImmutableArray();
             AlterColumnTypeCommands = commands
                 .OfType<AlterColumnTypeCommand>()
@@ -106,35 +98,81 @@ namespace DeltaKustoIntegration.Action
                 .OrderBy(d => d.MappingName)
                 .ThenBy(d => d.MappingKind)
                 .ToImmutableArray();
-            AlterUpdatePolicyCommands = commands
-                .OfType<AlterUpdatePolicyCommand>()
-                .OrderBy(p => p.TableName)
-                .ToImmutableArray();
-            AlterCachingPolicyCommands = commands
-                .OfType<AlterCachingPolicyCommand>()
-                .OrderBy(d => $"{(d.EntityType == EntityType.Database ? 1 : 2)}{d.EntityName}")
-                .ToImmutableArray();
             CreateFunctionCommands = commands
                 .OfType<CreateFunctionCommand>()
                 .OrderBy(d => d.Folder.Text)
                 .ThenBy(d => d.FunctionName)
                 .ToImmutableArray();
+
+            #region Policies
+            AlterAutoDeletePolicyCommands = commands
+                .OfType<AlterAutoDeletePolicyCommand>()
+                .OrderBy(d => d.TableName)
+                .ToImmutableArray();
+            DeleteAutoDeletePolicyCommands = commands
+                .OfType<DeleteAutoDeletePolicyCommand>()
+                .OrderBy(d => d.TableName)
+                .ToImmutableArray();
+            AlterCachingPolicyCommands = commands
+                .OfType<AlterCachingPolicyCommand>()
+                .OrderBy(d => $"{(d.EntityType == EntityType.Database ? 1 : 2)}{d.EntityName}")
+                .ToImmutableArray();
+            DeleteCachingPolicyCommands = commands
+                .OfType<DeleteCachingPolicyCommand>()
+                .OrderBy(d => $"{(d.EntityType == EntityType.Database ? 1 : 2)}{d.EntityName}")
+                .ToImmutableArray();
+            AlterIngestionBatchingPolicyCommands = commands
+                .OfType<AlterIngestionBatchingPolicyCommand>()
+                .OrderBy(d => $"{(d.EntityType == EntityType.Database ? 1 : 2)}{d.EntityName}")
+                .ToImmutableArray();
+            DeleteIngestionBatchingPolicyCommands = commands
+                .OfType<DeleteIngestionBatchingPolicyCommand>()
+                .OrderBy(d => $"{(d.EntityType == EntityType.Database ? 1 : 2)}{d.EntityName}")
+                .ToImmutableArray();
+            AlterMergePolicyCommands = commands
+                .OfType<AlterMergePolicyCommand>()
+                .OrderBy(d => $"{(d.EntityType == EntityType.Database ? 1 : 2)}{d.EntityName}")
+                .ToImmutableArray();
+            DeleteMergePolicyCommands = commands
+                .OfType<DeleteMergePolicyCommand>()
+                .OrderBy(d => $"{(d.EntityType == EntityType.Database ? 1 : 2)}{d.EntityName}")
+                .ToImmutableArray();
+            DeleteRetentionPolicyCommands = commands
+                .OfType<DeleteRetentionPolicyCommand>()
+                .OrderBy(d => $"{(d.EntityType == EntityType.Database ? 1 : 2)}{d.EntityName}")
+                .ToImmutableArray();
+            AlterShardingPolicyCommands = commands
+                .OfType<AlterShardingPolicyCommand>()
+                .OrderBy(d => $"{(d.EntityType == EntityType.Database ? 1 : 2)}{d.EntityName}")
+                .ToImmutableArray();
+            DeleteShardingPolicyCommands = commands
+                .OfType<DeleteShardingPolicyCommand>()
+                .OrderBy(d => $"{(d.EntityType == EntityType.Database ? 1 : 2)}{d.EntityName}")
+                .ToImmutableArray();
+            AlterUpdatePolicyCommands = commands
+                .OfType<AlterUpdatePolicyCommand>()
+                .OrderBy(p => p.TableName)
+                .ToImmutableArray();
+            #endregion
+
             AllDataLossCommands = DropTableCommands
                 .Cast<CommandBase>()
                 .Concat(DropTableColumnsCommands)
                 .Concat(AlterColumnTypeCommands);
             _allCommands = AllDataLossCommands
                 .Concat(DropMappingCommands)
-                .Concat(DeleteCachingPolicyCommands)
-                .Concat(DeleteRetentionPolicyCommands)
                 .Concat(DropFunctionCommands)
                 .Concat(CreateTableCommands)
                 .Concat(AlterMergeTableColumnDocStringsCommands)
                 .Concat(CreateMappingCommands)
-                .Concat(AlterUpdatePolicyCommands)
+                .Concat(CreateFunctionCommands)
                 .Concat(AlterCachingPolicyCommands)
+                .Concat(DeleteCachingPolicyCommands)
+                .Concat(AlterMergePolicyCommands)
+                .Concat(DeleteMergePolicyCommands)
                 .Concat(AlterRetentionPolicyCommands)
-                .Concat(CreateFunctionCommands);
+                .Concat(DeleteRetentionPolicyCommands)
+                .Concat(AlterUpdatePolicyCommands);
 
             if (_allCommands.Count() != commands.Count())
             {
@@ -166,10 +204,6 @@ namespace DeltaKustoIntegration.Action
 
         public IImmutableList<DropMappingCommand> DropMappingCommands { get; }
 
-        public IImmutableList<DeleteCachingPolicyCommand> DeleteCachingPolicyCommands { get; }
-
-        public IImmutableList<DeleteRetentionPolicyCommand> DeleteRetentionPolicyCommands { get; }
-
         public IImmutableList<DropFunctionCommand> DropFunctionCommands { get; }
 
         public IImmutableList<DropFunctionsCommand> DropFunctionsCommands { get; }
@@ -184,16 +218,38 @@ namespace DeltaKustoIntegration.Action
             AlterMergeTableColumnDocStringsCommands
         { get; }
 
+        public IImmutableList<CreateFunctionCommand> CreateFunctionCommands { get; }
+
         public IImmutableList<CreateMappingCommand> CreateMappingCommands { get; }
 
-        public IImmutableList<AlterUpdatePolicyCommand> AlterUpdatePolicyCommands { get; }
+        #region Policies
+        public IImmutableList<AlterAutoDeletePolicyCommand> AlterAutoDeletePolicyCommands { get; }
+
+        public IImmutableList<DeleteAutoDeletePolicyCommand> DeleteAutoDeletePolicyCommands { get; }
 
         public IImmutableList<AlterCachingPolicyCommand> AlterCachingPolicyCommands { get; }
+
+        public IImmutableList<DeleteCachingPolicyCommand> DeleteCachingPolicyCommands { get; }
+
+        public IImmutableList<AlterIngestionBatchingPolicyCommand> AlterIngestionBatchingPolicyCommands { get; }
+
+        public IImmutableList<DeleteIngestionBatchingPolicyCommand> DeleteIngestionBatchingPolicyCommands { get; }
+
+        public IImmutableList<AlterMergePolicyCommand> AlterMergePolicyCommands { get; }
+
+        public IImmutableList<DeleteMergePolicyCommand> DeleteMergePolicyCommands { get; }
+
+        public IImmutableList<DeleteRetentionPolicyCommand> DeleteRetentionPolicyCommands { get; }
 
         public IImmutableList<AlterRetentionPolicyCommand> AlterRetentionPolicyCommands { get; }
 
         public IImmutableList<AlterTablesRetentionPolicyCommand> AlterTablesRetentionPolicyCommands { get; }
 
-        public IImmutableList<CreateFunctionCommand> CreateFunctionCommands { get; }
+        public IImmutableList<AlterShardingPolicyCommand> AlterShardingPolicyCommands { get; }
+
+        public IImmutableList<DeleteShardingPolicyCommand> DeleteShardingPolicyCommands { get; }
+
+        public IImmutableList<AlterUpdatePolicyCommand> AlterUpdatePolicyCommands { get; }
+        #endregion
     }
 }

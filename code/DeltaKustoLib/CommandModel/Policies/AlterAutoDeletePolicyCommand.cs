@@ -12,17 +12,14 @@ namespace DeltaKustoLib.CommandModel.Policies
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/auto-delete-policy-command#alter-policy"/>
     /// </summary>
-    public class AlterAutoDeletePolicyCommand : PolicyCommandBase
+    public class AlterAutoDeletePolicyCommand : TableOnlyPolicyCommandBase
     {
-        public EntityName TableName { get; }
-
         public override string CommandFriendlyName => ".alter <entity> policy auto_delete";
 
         public AlterAutoDeletePolicyCommand(
             EntityName tableName,
-            JsonDocument policy) : base(policy)
+            JsonDocument policy) : base(tableName, policy)
         {
-            TableName = tableName;
         }
 
         public AlterAutoDeletePolicyCommand(

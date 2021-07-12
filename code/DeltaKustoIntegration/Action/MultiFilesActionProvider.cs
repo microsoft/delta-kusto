@@ -49,16 +49,6 @@ namespace DeltaKustoIntegration.Action
                 "tables/ingestion-mappings/drop",
                 ct);
             await ProcessDeltaCommandsAsync(
-                commands.DeleteCachingPolicyCommands,
-                c => $"{c.EntityName.Name}",
-                "tables/policies/caching/delete",
-                ct);
-            await ProcessDeltaCommandsAsync(
-                commands.DeleteRetentionPolicyCommands,
-                c => $"{c.EntityName.Name}",
-                "tables/policies/retention/delete",
-                ct);
-            await ProcessDeltaCommandsAsync(
                 commands.DropFunctionCommands,
                 c => "drop",
                 "functions",
@@ -94,9 +84,23 @@ namespace DeltaKustoIntegration.Action
                 "tables/ingestion-mappings",
                 ct);
             await ProcessDeltaCommandsAsync(
-                commands.AlterUpdatePolicyCommands,
-                c => $"{c.TableName.Name}",
-                "tables/policies/update",
+                commands.CreateFunctionCommands,
+                c => c.FunctionName.Name,
+                "functions",
+                ct);
+
+            #region Policies
+            await ProcessDeltaCommandsAsync(
+                commands
+                .AlterAutoDeletePolicyCommands,
+                c => c.TableName.Name,
+                "tables/policies/auto_delete",
+                ct);
+            await ProcessDeltaCommandsAsync(
+                commands
+                .DeleteAutoDeletePolicyCommands,
+                c => c.TableName.Name,
+                "tables/policies/auto_delete/delete",
                 ct);
             await ProcessDeltaCommandsAsync(
                 commands
@@ -108,9 +112,79 @@ namespace DeltaKustoIntegration.Action
             await ProcessDeltaCommandsAsync(
                 commands
                 .AlterCachingPolicyCommands
-                .Where(c => c.EntityType == EntityType.Table),
+                .Where(c => c.EntityType == EntityType.Database),
                 c => "caching",
                 "db/policies",
+                ct);
+            await ProcessDeltaCommandsAsync(
+                commands
+                .DeleteCachingPolicyCommands
+                .Where(c => c.EntityType == EntityType.Table),
+                c => $"{c.EntityName.Name}",
+                "tables/policies/caching/delete",
+                ct);
+            await ProcessDeltaCommandsAsync(
+                commands
+                .DeleteCachingPolicyCommands
+                .Where(c => c.EntityType == EntityType.Database),
+                c => "caching",
+                "db/policies/delete",
+                ct);
+            await ProcessDeltaCommandsAsync(
+                commands
+                .AlterIngestionBatchingPolicyCommands
+                .Where(c => c.EntityType == EntityType.Table),
+                c => $"{c.EntityName.Name}",
+                "tables/policies/ingestionbatching",
+                ct);
+            await ProcessDeltaCommandsAsync(
+                commands
+                .AlterIngestionBatchingPolicyCommands
+                .Where(c => c.EntityType == EntityType.Database),
+                c => "ingestionbatching",
+                "db/policies",
+                ct);
+            await ProcessDeltaCommandsAsync(
+                commands
+                .DeleteIngestionBatchingPolicyCommands
+                .Where(c => c.EntityType == EntityType.Table),
+                c => $"{c.EntityName.Name}",
+                "tables/policies/ingestionbatching/delete",
+                ct);
+            await ProcessDeltaCommandsAsync(
+                commands
+                .DeleteIngestionBatchingPolicyCommands
+                .Where(c => c.EntityType == EntityType.Database),
+                c => "ingestionbatching",
+                "db/policies/delete",
+                ct);
+            await ProcessDeltaCommandsAsync(
+                commands
+                .AlterMergePolicyCommands
+                .Where(c => c.EntityType == EntityType.Table),
+                c => $"{c.EntityName.Name}",
+                "tables/policies/merge",
+                ct);
+            await ProcessDeltaCommandsAsync(
+                commands
+                .AlterMergePolicyCommands
+                .Where(c => c.EntityType == EntityType.Database),
+                c => "merge",
+                "db/policies",
+                ct);
+            await ProcessDeltaCommandsAsync(
+                commands
+                .DeleteMergePolicyCommands
+                .Where(c => c.EntityType == EntityType.Table),
+                c => $"{c.EntityName.Name}",
+                "tables/policies/merge/delete",
+                ct);
+            await ProcessDeltaCommandsAsync(
+                commands
+                .DeleteMergePolicyCommands
+                .Where(c => c.EntityType == EntityType.Database),
+                c => "merge",
+                "db/policies/delete",
                 ct);
             await ProcessDeltaCommandsAsync(
                 commands.AlterTablesRetentionPolicyCommands,
@@ -132,10 +206,55 @@ namespace DeltaKustoIntegration.Action
                 "db/policies",
                 ct);
             await ProcessDeltaCommandsAsync(
-                commands.CreateFunctionCommands,
-                c => c.FunctionName.Name,
-                "functions",
+                commands
+                .DeleteRetentionPolicyCommands
+                .Where(c => c.EntityType == EntityType.Table),
+                c => $"{c.EntityName.Name}",
+                "tables/policies/retention/delete",
                 ct);
+            await ProcessDeltaCommandsAsync(
+                commands
+                .DeleteRetentionPolicyCommands
+                .Where(c => c.EntityType == EntityType.Database),
+                c => "retention",
+                "db/policies/delete",
+                ct);
+
+            await ProcessDeltaCommandsAsync(
+                commands
+                .AlterShardingPolicyCommands
+                .Where(c => c.EntityType == EntityType.Table),
+                c => c.EntityName.Name,
+                "tables/policies/sharding",
+                ct);
+            await ProcessDeltaCommandsAsync(
+                commands
+                .AlterShardingPolicyCommands
+                .Where(c => c.EntityType == EntityType.Database),
+                c => "sharding",
+                "db/policies",
+                ct);
+            await ProcessDeltaCommandsAsync(
+                commands
+                .DeleteShardingPolicyCommands
+                .Where(c => c.EntityType == EntityType.Table),
+                c => $"{c.EntityName.Name}",
+                "tables/policies/sharding/delete",
+                ct);
+            await ProcessDeltaCommandsAsync(
+                commands
+                .DeleteShardingPolicyCommands
+                .Where(c => c.EntityType == EntityType.Database),
+                c => "sharding",
+                "db/policies/delete",
+                ct);
+
+            await ProcessDeltaCommandsAsync(
+                commands.AlterUpdatePolicyCommands,
+                c => $"{c.TableName.Name}",
+                "tables/policies/update",
+                ct);
+            #endregion
         }
 
         private async Task ProcessDeltaCommandsAsync<CT>(

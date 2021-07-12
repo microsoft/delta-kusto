@@ -12,14 +12,12 @@ namespace DeltaKustoLib.CommandModel.Policies
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/update-policy#alter-update-policy"/>
     /// </summary>
-    public class AlterUpdatePolicyCommand : CommandBase
+    public class AlterUpdatePolicyCommand : TableOnlyPolicyCommandBase
     {
         private static readonly JsonSerializerOptions _policiesSerializerOptions = new JsonSerializerOptions
         {
             WriteIndented = true
         };
-
-        public EntityName TableName { get; }
 
         public IImmutableList<UpdatePolicy> UpdatePolicies { get; }
 
@@ -27,9 +25,8 @@ namespace DeltaKustoLib.CommandModel.Policies
 
         public AlterUpdatePolicyCommand(
             EntityName tableName,
-            IEnumerable<UpdatePolicy> updatePolicies)
+            IEnumerable<UpdatePolicy> updatePolicies) : base(tableName)
         {
-            TableName = tableName;
             UpdatePolicies = updatePolicies
                 .OrderBy(p => p.Source)
                 .ThenBy(p => p.IsEnabled)

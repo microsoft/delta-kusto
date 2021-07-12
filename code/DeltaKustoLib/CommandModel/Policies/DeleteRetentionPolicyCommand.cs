@@ -12,23 +12,13 @@ namespace DeltaKustoLib.CommandModel.Policies
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/retention-policy#delete-retention-policy"/>
     /// </summary>
-    public class DeleteRetentionPolicyCommand : CommandBase
+    public class DeleteRetentionPolicyCommand : EntityPolicyCommandBase
     {
-        public EntityType EntityType { get; }
-
-        public EntityName EntityName { get; }
-
         public override string CommandFriendlyName => ".delete <entity> policy retention";
 
         public DeleteRetentionPolicyCommand(EntityType entityType, EntityName entityName)
+            : base(entityType, entityName)
         {
-            if (entityType != EntityType.Database && entityType != EntityType.Table)
-            {
-                throw new NotSupportedException(
-                    $"Entity type {entityType} isn't supported in this context");
-            }
-            EntityType = entityType;
-            EntityName = entityName;
         }
 
         internal static CommandBase FromCode(SyntaxElement rootElement)

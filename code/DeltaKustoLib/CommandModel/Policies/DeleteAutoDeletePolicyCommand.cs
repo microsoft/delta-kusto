@@ -12,15 +12,12 @@ namespace DeltaKustoLib.CommandModel.Policies
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/auto-delete-policy-command#delete-policy"/>
     /// </summary>
-    public class DeleteAutoDeletePolicyCommand : CommandBase
+    public class DeleteAutoDeletePolicyCommand : TableOnlyPolicyCommandBase
     {
-        public EntityName TableName { get; }
-
         public override string CommandFriendlyName => ".delete <entity> policy auto_delete";
 
-        public DeleteAutoDeletePolicyCommand(EntityName tableName)
+        public DeleteAutoDeletePolicyCommand(EntityName tableName):base (tableName)
         {
-            TableName = tableName;
         }
 
         internal static CommandBase FromCode(SyntaxElement rootElement)

@@ -22,7 +22,7 @@ namespace DeltaKustoLib.CommandModel.Policies
             Policy = policy;
         }
 
-        public PolicyCommandBase(object policy) : this(ToJsonDocument(policy))
+        public PolicyCommandBase() : this(ToJsonDocument(new object()))
         {
         }
 
@@ -43,12 +43,7 @@ namespace DeltaKustoLib.CommandModel.Policies
             return obj;
         }
 
-        protected bool PolicyEquals(PolicyCommandBase other)
-        {
-            return ElementEquals(Policy.RootElement, other.Policy.RootElement);
-        }
-
-        protected static JsonDocument ToJsonDocument(object obj)
+        public static JsonDocument ToJsonDocument(object obj)
         {
             var text = JsonSerializer.Serialize(obj);
             var doc = JsonSerializer.Deserialize<JsonDocument>(text);
@@ -59,6 +54,11 @@ namespace DeltaKustoLib.CommandModel.Policies
             }
 
             return doc;
+        }
+
+        protected bool PolicyEquals(PolicyCommandBase other)
+        {
+            return ElementEquals(Policy.RootElement, other.Policy.RootElement);
         }
 
         private bool ElementEquals(JsonElement element1, JsonElement element2)

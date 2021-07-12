@@ -12,23 +12,13 @@ namespace DeltaKustoLib.CommandModel.Policies
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/batching-policy#deleting-the-ingestionbatching-policy"/>
     /// </summary>
-    public class DeleteIngestionBatchingPolicyCommand : CommandBase
+    public class DeleteIngestionBatchingPolicyCommand : EntityPolicyCommandBase
     {
-        public EntityType EntityType { get; }
-
-        public EntityName EntityName { get; }
-
         public override string CommandFriendlyName => ".delete <entity> policy ingestionbatching";
 
         public DeleteIngestionBatchingPolicyCommand(EntityType entityType, EntityName entityName)
+            : base(entityType, entityName)
         {
-            if (entityType != EntityType.Database && entityType != EntityType.Table)
-            {
-                throw new NotSupportedException(
-                    $"Entity type {entityType} isn't supported in this context");
-            }
-            EntityType = entityType;
-            EntityName = entityName;
         }
 
         internal static CommandBase FromCode(SyntaxElement rootElement)

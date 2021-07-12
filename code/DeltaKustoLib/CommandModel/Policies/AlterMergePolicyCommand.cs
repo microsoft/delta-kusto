@@ -12,26 +12,15 @@ namespace DeltaKustoLib.CommandModel.Policies
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/merge-policy#alter-policy"/>
     /// </summary>
-    public class AlterMergePolicyCommand : PolicyCommandBase
+    public class AlterMergePolicyCommand : EntityPolicyCommandBase
     {
-        public EntityType EntityType { get; }
-
-        public EntityName EntityName { get; }
-
         public override string CommandFriendlyName => ".alter <entity> policy merge";
 
         public AlterMergePolicyCommand(
             EntityType entityType,
             EntityName entityName,
-            JsonDocument policy) : base(policy)
+            JsonDocument policy) : base(entityType, entityName, policy)
         {
-            if (entityType != EntityType.Database && entityType != EntityType.Table)
-            {
-                throw new NotSupportedException(
-                    $"Entity type {entityType} isn't supported in this context");
-            }
-            EntityType = entityType;
-            EntityName = entityName;
         }
 
         public AlterMergePolicyCommand(

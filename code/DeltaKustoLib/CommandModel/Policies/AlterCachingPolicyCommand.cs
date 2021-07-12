@@ -11,12 +11,8 @@ namespace DeltaKustoLib.CommandModel.Policies
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/cache-policy#altering-the-cache-policy"/>
     /// </summary>
-    public class AlterCachingPolicyCommand : CommandBase
+    public class AlterCachingPolicyCommand : EntityPolicyCommandBase
     {
-        public EntityType EntityType { get; }
-
-        public EntityName EntityName { get; }
-
         public KustoTimeSpan HotData { get; }
 
         public KustoTimeSpan HotIndex { get; }
@@ -27,15 +23,8 @@ namespace DeltaKustoLib.CommandModel.Policies
             EntityType entityType,
             EntityName entityName,
             TimeSpan hotData,
-            TimeSpan hotIndex)
+            TimeSpan hotIndex) : base(entityType, entityName)
         {
-            if (entityType != EntityType.Database && entityType != EntityType.Table)
-            {
-                throw new NotSupportedException(
-                    $"Entity type {entityType} isn't supported in this context");
-            }
-            EntityType = entityType;
-            EntityName = entityName;
             HotData = new KustoTimeSpan(hotData);
             HotIndex = new KustoTimeSpan(hotIndex);
         }

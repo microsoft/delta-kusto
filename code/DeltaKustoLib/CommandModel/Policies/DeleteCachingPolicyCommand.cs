@@ -6,23 +6,13 @@ using System.Text;
 
 namespace DeltaKustoLib.CommandModel.Policies
 {
-    public class DeleteCachingPolicyCommand : CommandBase
+    public class DeleteCachingPolicyCommand : EntityPolicyCommandBase
     {
-        public EntityType EntityType { get; }
-
-        public EntityName EntityName { get; }
-
         public override string CommandFriendlyName => throw new NotImplementedException();
 
         public DeleteCachingPolicyCommand(EntityType entityType, EntityName entityName)
+            : base(entityType, entityName)
         {
-            if (entityType != EntityType.Database && entityType != EntityType.Table)
-            {
-                throw new NotSupportedException(
-                    $"Entity type {entityType} isn't supported in this context");
-            }
-            EntityType = entityType;
-            EntityName = entityName;
         }
 
         internal static CommandBase FromCode(SyntaxElement rootElement)

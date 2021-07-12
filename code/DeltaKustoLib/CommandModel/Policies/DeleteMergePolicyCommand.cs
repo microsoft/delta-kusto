@@ -12,23 +12,13 @@ namespace DeltaKustoLib.CommandModel.Policies
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/merge-policy#delete-policy-of-merge"/>
     /// </summary>
-    public class DeleteMergePolicyCommand : CommandBase
+    public class DeleteMergePolicyCommand : EntityPolicyCommandBase
     {
-        public EntityType EntityType { get; }
-
-        public EntityName EntityName { get; }
-
         public override string CommandFriendlyName => ".delete <entity> policy merge";
 
         public DeleteMergePolicyCommand(EntityType entityType, EntityName entityName)
+            : base(entityType, entityName)
         {
-            if (entityType != EntityType.Database && entityType != EntityType.Table)
-            {
-                throw new NotSupportedException(
-                    $"Entity type {entityType} isn't supported in this context");
-            }
-            EntityType = entityType;
-            EntityName = entityName;
         }
 
         internal static CommandBase FromCode(SyntaxElement rootElement)

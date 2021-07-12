@@ -1,0 +1,4 @@
+﻿//	Random comment
+.create table ['my-table'] (a: real, b: int, c: string)
+
+.alter table ['my-table'] policy auto_delete @'{ "ExpiryDate" : "2032-01-01", "DeleteIfNotEmpty": true }'
