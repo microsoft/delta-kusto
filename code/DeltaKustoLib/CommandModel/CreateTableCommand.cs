@@ -12,7 +12,7 @@ namespace DeltaKustoLib.CommandModel
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/create-merge-table-command"/>
     /// </summary>
     [CommandTypeOrder(900, "Create tables")]
-    public class CreateTableCommand : CommandBase
+    public class CreateTableCommand : CommandBase, ISingularToPluralCommand
     {
         public EntityName TableName { get; }
 
@@ -116,6 +116,24 @@ namespace DeltaKustoLib.CommandModel
             return literal == null
                 ? null
                 : QuotedText.FromLiteral(literal);
+        }
+
+        IEnumerable<CommandBase>
+            ISingularToPluralCommand.MergeToPlural(IEnumerable<CommandBase> singularCommands)
+        {
+            //  We might want to cap batches to a maximum size?
+            var pluralCommands = singularCommands
+                .Cast<CreateTableCommand>()
+                .Select(c => new { Key = (c.Folder, c.DocString), Value = c })
+                .GroupBy(c => c.Key)
+                .Select(g => new CreateTablesCommand(
+                    g.Select(c => new CreateTablesCommand.InnerTable(
+                        c.Value.TableName,
+                        c.Value.Columns)),
+                    g.Key.Folder,
+                    g.Key.DocString));
+
+            return pluralCommands.ToImmutableArray();
         }
     }
 }

@@ -13,7 +13,7 @@ namespace DeltaKustoLib.CommandModel.Policies
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/retention-policy#alter-retention-policy"/>
     /// </summary>
     [CommandTypeOrder(14100, "Alter Retention Policies")]
-    public class AlterRetentionPolicyCommand : EntityPolicyCommandBase
+    public class AlterRetentionPolicyCommand : EntityPolicyCommandBase, ISingularToPluralCommand
     {
         public override string CommandFriendlyName => ".alter <entity> policy retention";
 
@@ -137,6 +137,30 @@ namespace DeltaKustoLib.CommandModel.Policies
             else
             {   //  Both target and current are null:  no delta
             }
+        }
+
+        IEnumerable<CommandBase>
+            ISingularToPluralCommand.MergeToPlural(IEnumerable<CommandBase> singularCommands)
+        {
+            var singularPolicyCommands = singularCommands
+                .Cast<AlterRetentionPolicyCommand>();
+
+            if (singularPolicyCommands.Any(c => c.EntityType != EntityType.Table))
+            {
+                throw new ArgumentException(
+                    "Expect only table policies",
+                    nameof(singularCommands));
+            }
+
+            //  We might want to cap batches to a maximum size?
+            var pluralCommands = singularPolicyCommands
+                .Select(c => new { Key = (c.SerializePolicy()), Value = c })
+                .GroupBy(c => c.Key)
+                .Select(g => new AlterTablesRetentionPolicyCommand(
+                    g.Select(a => a.Value.EntityName),
+                    g.First().Value.Policy));
+
+            return pluralCommands.ToImmutableArray();
         }
     }
 }
