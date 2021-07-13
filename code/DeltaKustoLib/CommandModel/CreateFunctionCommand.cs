@@ -28,6 +28,8 @@ namespace DeltaKustoLib.CommandModel
 
         public override string SortIndex => $"{Folder?.Text}_{FunctionName.Name}";
 
+        public override string ScriptPath => $"functions/{FunctionName}";
+
         public CreateFunctionCommand(
             EntityName functionName,
             IEnumerable<TypedParameterModel> parameters,

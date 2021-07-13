@@ -50,6 +50,8 @@ namespace DeltaKustoLib.CommandModel
 
         public override string SortIndex => TableName.Name;
 
+        public override string ScriptPath => $"columns/alter-doc-strings/{TableName}";
+
         internal AlterMergeTableColumnDocStringsCommand(
             EntityName tableName,
             IEnumerable<ColumnDocString> columns)

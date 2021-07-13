@@ -17,6 +17,10 @@ namespace DeltaKustoLib.CommandModel.Policies
     {
         public override string CommandFriendlyName => ".delete <entity> policy merge";
 
+        public override string ScriptPath => EntityType == EntityType.Database
+            ? $"tables/policies/merge/delete/{EntityName}"
+            : $"db/policies/delete";
+
         public DeleteMergePolicyCommand(EntityType entityType, EntityName entityName)
             : base(entityType, entityName)
         {

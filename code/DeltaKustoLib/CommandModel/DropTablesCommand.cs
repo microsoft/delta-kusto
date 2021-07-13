@@ -20,6 +20,8 @@ namespace DeltaKustoLib.CommandModel
         
         public override string SortIndex => TableNames.First().Name;
 
+        public override string ScriptPath => "tables/drop";
+
         internal DropTablesCommand(IImmutableList<EntityName> tableNames)
         {
             if(!tableNames.Any())

@@ -20,6 +20,8 @@ namespace DeltaKustoLib.CommandModel
 
         public override string SortIndex => FunctionName.Name;
 
+        public override string ScriptPath => $"functions/drop";
+
         internal DropFunctionCommand(EntityName functionName)
         {
             FunctionName = functionName;

@@ -27,6 +27,8 @@ namespace DeltaKustoLib.CommandModel
 
         public override string SortIndex => $"{TableName.Name}_{MappingName.Text}_{MappingKind}";
 
+        public override string ScriptPath => $"tables/ingestion-mappings/{TableName.Name}-{MappingName.Text}-{MappingKind}";
+
         public CreateMappingCommand(
             EntityName tableName,
             string mappingKind,

@@ -26,6 +26,8 @@ namespace DeltaKustoLib.CommandModel
 
         public override string SortIndex => $"{Folder?.Text}_{TableName.Name}";
 
+        public override string ScriptPath => $"tables/create/{TableName}";
+
         internal CreateTableCommand(
             EntityName tableName,
             IEnumerable<TableColumn> columns,

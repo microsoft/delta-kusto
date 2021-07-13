@@ -64,6 +64,8 @@ namespace DeltaKustoLib.CommandModel
 
         public override string SortIndex => $"{Folder?.Text}_{Tables.First().TableName.Name}";
 
+        public override string ScriptPath => $"tables/create";
+
         public CreateTablesCommand(
             IEnumerable<InnerTable> tables,
             QuotedText? folder,

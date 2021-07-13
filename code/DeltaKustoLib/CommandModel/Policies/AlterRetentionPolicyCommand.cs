@@ -17,6 +17,10 @@ namespace DeltaKustoLib.CommandModel.Policies
     {
         public override string CommandFriendlyName => ".alter <entity> policy retention";
 
+        public override string ScriptPath => EntityType == EntityType.Database
+            ? $"tables/policies/retention/{EntityName}"
+            : $"databases/policies/retention";
+
         public AlterRetentionPolicyCommand(
             EntityType entityType,
             EntityName entityName,

@@ -17,6 +17,10 @@ namespace DeltaKustoLib.CommandModel.Policies
     {
         public override string CommandFriendlyName => ".delete <entity> policy retention";
 
+        public override string ScriptPath => EntityType == EntityType.Database
+            ? $"tables/policies/retention/delete/{EntityName}"
+            : $"db/policies/delete";
+
         public DeleteRetentionPolicyCommand(EntityType entityType, EntityName entityName)
             : base(entityType, entityName)
         {

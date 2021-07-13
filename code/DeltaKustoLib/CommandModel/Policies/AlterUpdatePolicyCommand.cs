@@ -24,6 +24,8 @@ namespace DeltaKustoLib.CommandModel.Policies
 
         public override string CommandFriendlyName => ".alter table policy update";
 
+        public override string ScriptPath => $"tables/policies/update/{TableName}";
+
         public AlterUpdatePolicyCommand(
             EntityName tableName,
             IEnumerable<UpdatePolicy> updatePolicies) : base(tableName)

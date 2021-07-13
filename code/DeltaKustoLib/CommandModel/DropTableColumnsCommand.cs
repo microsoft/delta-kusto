@@ -22,6 +22,8 @@ namespace DeltaKustoLib.CommandModel
 
         public override string SortIndex => TableName.Name;
 
+        public override string ScriptPath => $"tables/columns/drop/{TableName}";
+
         internal DropTableColumnsCommand(
             EntityName tableName,
             IImmutableList<EntityName> columnNames)

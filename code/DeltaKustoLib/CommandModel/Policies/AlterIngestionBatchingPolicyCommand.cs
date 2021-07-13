@@ -17,6 +17,10 @@ namespace DeltaKustoLib.CommandModel.Policies
     {
         public override string CommandFriendlyName => ".alter <entity> policy ingestionbatching";
 
+        public override string ScriptPath => EntityType == EntityType.Database
+            ? $"tables/policies/ingestionbatching/{EntityName}"
+            : $"databases/policies/ingestionbatching";
+
         public AlterIngestionBatchingPolicyCommand(
             EntityType entityType,
             EntityName entityName,

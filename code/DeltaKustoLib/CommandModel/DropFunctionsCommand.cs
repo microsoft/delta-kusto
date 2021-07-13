@@ -20,6 +20,8 @@ namespace DeltaKustoLib.CommandModel
 
         public override string SortIndex => FunctionNames.First().Name;
 
+        public override string ScriptPath => $"functions/drop";
+        
         internal DropFunctionsCommand(IImmutableList<EntityName> functionNames)
         {
             if(!functionNames.Any())
