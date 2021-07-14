@@ -5,13 +5,13 @@ using DeltaKustoIntegration.Kusto;
 using DeltaKustoIntegration.Parameterization;
 using DeltaKustoIntegration.TokenProvider;
 using DeltaKustoLib;
+using DeltaKustoLib.CommandModel;
 using DeltaKustoLib.KustoModel;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -187,11 +187,11 @@ namespace delta_kusto
         {
             var success = true;
 
-            _tracer.WriteLine(false, $"{deltaCommands.Count()} commands in delta");
-            if (deltaCommands.AllDataLossCommands.Any())
+            _tracer.WriteLine(false, $"{deltaCommands.AllCommands.Count()} commands in delta");
+            if (deltaCommands.DataLossCommands.Any())
             {
                 _tracer.WriteLine(false, "Delta contains drop commands:");
-                foreach (var command in deltaCommands.AllDataLossCommands)
+                foreach (var command in deltaCommands.DataLossCommands)
                 {
                     _tracer.WriteLine(false, "  " + command.ToScript());
                 }

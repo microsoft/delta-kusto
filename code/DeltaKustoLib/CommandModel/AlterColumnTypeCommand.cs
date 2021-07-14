@@ -12,7 +12,7 @@ namespace DeltaKustoLib.CommandModel
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/alter-column"/>
     /// </summary>
-    [CommandTypeOrder(700, "Alter Column Type")]
+    [Command(700, "Alter Column Type")]
     public class AlterColumnTypeCommand : CommandBase
     {
         #region Inner Types

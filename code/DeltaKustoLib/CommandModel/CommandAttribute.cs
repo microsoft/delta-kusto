@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace DeltaKustoLib.CommandModel
 {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
-    internal class CommandTypeOrderAttribute : Attribute
+    internal class CommandAttribute : Attribute
     {
-        public CommandTypeOrderAttribute(int order, string headerComment)
+        public CommandAttribute(int order, string headerComment)
         {
             Order = order;
             HeaderComment = headerComment;

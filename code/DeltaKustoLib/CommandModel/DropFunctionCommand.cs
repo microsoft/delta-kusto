@@ -11,7 +11,7 @@ namespace DeltaKustoLib.CommandModel
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/drop-function"/>
     /// </summary>
-    [CommandTypeOrder(600, "Drop functions")]
+    [Command(600, "Drop functions")]
     public class DropFunctionCommand : CommandBase, ISingularToPluralCommand
     {
         public EntityName FunctionName { get; }
@@ -51,7 +51,7 @@ namespace DeltaKustoLib.CommandModel
         }
 
         IEnumerable<CommandBase>
-            ISingularToPluralCommand.MergeToPlural(IEnumerable<CommandBase> singularCommands)
+            ISingularToPluralCommand.ToPlural(IEnumerable<CommandBase> singularCommands)
         {
             if (singularCommands.Any())
             {

@@ -12,7 +12,7 @@ namespace DeltaKustoLib.CommandModel.Policies
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/sharding-policy#delete-policy"/>
     /// </summary>
-    [CommandTypeOrder(15000, "Delete Sharding Policies")]
+    [Command(15000, "Delete Sharding Policies")]
     public class DeleteShardingPolicyCommand : EntityPolicyCommandBase
     {
         public override string CommandFriendlyName => ".delete <entity> policy sharding";

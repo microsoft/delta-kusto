@@ -12,7 +12,7 @@ namespace DeltaKustoLib.CommandModel.Policies
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/merge-policy#alter-policy"/>
     /// </summary>
-    [CommandTypeOrder(13100, "Alter Merge Policies")]
+    [Command(13100, "Alter Merge Policies")]
     public class AlterMergePolicyCommand : EntityPolicyCommandBase
     {
         public override string CommandFriendlyName => ".alter <entity> policy merge";

@@ -25,7 +25,7 @@ namespace DeltaKustoIntegration.Action
             ActionCommandCollection commands,
             CancellationToken ct)
         {
-            foreach(var c in commands)
+            foreach(var c in commands.AllCommands)
             {
                 _tracer.WriteLine(_isVerbose, c.ToScript());
             }

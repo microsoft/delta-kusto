@@ -8,6 +8,6 @@ namespace DeltaKustoLib.CommandModel
 {
     public interface ISingularToPluralCommand
     {
-        IEnumerable<CommandBase> MergeToPlural(IEnumerable<CommandBase> singularCommands);
+        IEnumerable<CommandBase> ToPlural(IEnumerable<CommandBase> singularCommands);
     }
 }

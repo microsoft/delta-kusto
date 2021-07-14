@@ -12,7 +12,7 @@ namespace DeltaKustoLib.CommandModel
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/alter-merge-table-column"/>
     /// </summary>
-    [CommandTypeOrder(1000, "Alter merge table column doc strings")]
+    [Command(1000, "Alter merge table column doc strings")]
     public class AlterMergeTableColumnDocStringsCommand : CommandBase
     {
         #region Inner Types

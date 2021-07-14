@@ -12,7 +12,7 @@ namespace DeltaKustoLib.CommandModel.Policies
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/retention-policy#alter-retention-policy"/>
     /// </summary>
-    [CommandTypeOrder(14100, "Alter Retention Policies")]
+    [Command(14100, "Alter Retention Policies")]
     public class AlterRetentionPolicyCommand : EntityPolicyCommandBase, ISingularToPluralCommand
     {
         public override string CommandFriendlyName => ".alter <entity> policy retention";
@@ -140,7 +140,7 @@ namespace DeltaKustoLib.CommandModel.Policies
         }
 
         IEnumerable<CommandBase>
-            ISingularToPluralCommand.MergeToPlural(IEnumerable<CommandBase> singularCommands)
+            ISingularToPluralCommand.ToPlural(IEnumerable<CommandBase> singularCommands)
         {
             var singularPolicyCommands = singularCommands
                 .Cast<AlterRetentionPolicyCommand>();

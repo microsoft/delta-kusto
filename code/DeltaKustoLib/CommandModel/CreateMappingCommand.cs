@@ -12,7 +12,7 @@ namespace DeltaKustoLib.CommandModel
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/create-ingestion-mapping-command"/>
     /// </summary>
-    [CommandTypeOrder(1100, "Create table ingestion mappings")]
+    [Command(1100, "Create table ingestion mappings")]
     public class CreateMappingCommand : CommandBase
     {
         public EntityName TableName { get; }

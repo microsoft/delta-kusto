@@ -12,7 +12,7 @@ namespace DeltaKustoLib.CommandModel.Policies
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/batching-policy#deleting-the-ingestionbatching-policy"/>
     /// </summary>
-    [CommandTypeOrder(12000, "Delete Ingestin Batching Policies")]
+    [Command(12000, "Delete Ingestin Batching Policies")]
     public class DeleteIngestionBatchingPolicyCommand : EntityPolicyCommandBase
     {
         public override string CommandFriendlyName => ".delete <entity> policy ingestionbatching";

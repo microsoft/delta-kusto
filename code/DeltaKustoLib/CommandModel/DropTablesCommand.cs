@@ -11,7 +11,7 @@ namespace DeltaKustoLib.CommandModel
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/drop-table-command"/>
     /// </summary>
-    [CommandTypeOrder(200, "Drop Tables")]
+    [Command(200, "Drop Tables")]
     public class DropTablesCommand : CommandBase
     {
         public IImmutableList<EntityName> TableNames { get; }

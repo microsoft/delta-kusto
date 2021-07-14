@@ -11,7 +11,7 @@ namespace DeltaKustoLib.CommandModel.Policies
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/cache-policy#altering-the-cache-policy"/>
     /// </summary>
-    [CommandTypeOrder(11100, "Alter Caching Policies")]
+    [Command(11100, "Alter Caching Policies")]
     public class AlterCachingPolicyCommand : EntityPolicyCommandBase
     {
         public KustoTimeSpan HotData { get; }
