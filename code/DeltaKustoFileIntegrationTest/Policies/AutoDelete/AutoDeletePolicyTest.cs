@@ -90,7 +90,7 @@ namespace DeltaKustoFileIntegrationTest.Policies.AutoDelete
             Assert.NotNull(policyCommand);
             Assert.Equal("my-table", policyCommand!.TableName.Name);
             Assert.Equal(
-               new DateTime(2030, 1, 1),
+               new DateTime(2035, 1, 1),
                policyCommand!.DeserializePolicy<AutoDeletePolicy>().GetExpiryDate());
         }
     }
