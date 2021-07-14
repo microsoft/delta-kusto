@@ -8,7 +8,7 @@ using Xunit;
 
 namespace DeltaKustoUnitTest
 {
-    public abstract class ParsingTestBase
+    public abstract class ParsingTestBase : TestBase
     {
         protected IImmutableList<CommandBase> Parse(string script)
         {

@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -94,6 +95,9 @@ namespace DeltaKustoFileIntegrationTest
 
         protected IntegrationTestBase()
         {
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("en-US");
+            CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("en-US");
+
             var path = Environment.GetEnvironmentVariable("deltaKustoSingleExecPath");
 
             _executablePath = string.IsNullOrWhiteSpace(path)

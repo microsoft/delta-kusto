@@ -7,7 +7,7 @@ using Xunit;
 
 namespace DeltaKustoUnitTest
 {
-    public class ParameterOverrideHelperTest
+    public class ParameterOverrideHelperTest: TestBase
     {
         [Fact]
         public void TestSingleProperty()

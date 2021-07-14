@@ -6,6 +6,7 @@ using DeltaKustoIntegration.TokenProvider;
 using DeltaKustoLib;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -32,6 +33,9 @@ namespace delta_kusto
 
         internal static async Task<int> Main(string[] args)
         {
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("en-US");
+            CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("en-US");
+
             Console.WriteLine();
             Console.WriteLine($"delta-kusto { AssemblyVersion }");
             Console.WriteLine();
