@@ -11,13 +11,13 @@ using System.Threading.Tasks;
 
 namespace DeltaKustoLib.CommandModel
 {
-    public class ActionCommandCollection
+    public class CommandCollection
     {
         #region Inner Types
         public record CommandGroup(Type CommandType, string HeaderComment, IImmutableList<CommandBase> Commands);
         #endregion
 
-        public ActionCommandCollection(bool usePluralForms, IEnumerable<CommandBase> commands)
+        public CommandCollection(bool usePluralForms, IEnumerable<CommandBase> commands)
         {
             //  Use plural commands if required
             var pluralCommands = usePluralForms

@@ -22,7 +22,7 @@ namespace DeltaKustoIntegration.Action
 
         Task IActionProvider.ProcessDeltaCommandsAsync(
             bool doNotProcessIfDataLoss,
-            ActionCommandCollection commands,
+            CommandCollection commands,
             CancellationToken ct)
         {
             foreach(var c in commands.AllCommands)

@@ -1,3 +1,4 @@
+using DeltaKustoLib.CommandModel;
 using System;
 using System.Linq;
 using System.Threading;
@@ -30,8 +31,11 @@ namespace DeltaKustoFileIntegrationTest.Tables.EmptyCurrent
             var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
             var inputCommands = await LoadScriptAsync(paramPath, inputPath);
             var outputCommands = await LoadScriptAsync(paramPath, outputPath);
+            //  Create collection in order to get a consistent sort between the two
+            var inputCollection = new CommandCollection(false, inputCommands);
+            var outputCollection = new CommandCollection(false, outputCommands);
 
-            Assert.True(inputCommands.SequenceEqual(outputCommands));
+            Assert.True(inputCollection.AllCommands.SequenceEqual(outputCollection.AllCommands));
         }
     }
 }

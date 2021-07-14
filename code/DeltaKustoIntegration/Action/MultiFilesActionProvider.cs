@@ -25,7 +25,7 @@ namespace DeltaKustoIntegration.Action
 
         async Task IActionProvider.ProcessDeltaCommandsAsync(
             bool doNotProcessIfDataLoss,
-            ActionCommandCollection commands,
+            CommandCollection commands,
             CancellationToken ct)
         {
             var commandGroups = commands

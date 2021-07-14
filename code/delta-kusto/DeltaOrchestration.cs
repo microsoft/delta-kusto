@@ -142,7 +142,7 @@ namespace delta_kusto
                 _tracer.WriteLine(false, "Compute Delta...");
 
                 var delta = currentDb.ComputeDelta(targetDb);
-                var actions = new ActionCommandCollection(job.Action!.UsePluralForms, delta);
+                var actions = new CommandCollection(job.Action!.UsePluralForms, delta);
                 var jobSuccess = ReportOnDeltaCommands(parameters, actions);
                 var actionProviders = CreateActionProvider(
                     job.Action!,
@@ -183,7 +183,7 @@ namespace delta_kusto
 
         private bool ReportOnDeltaCommands(
             MainParameterization parameters,
-            ActionCommandCollection deltaCommands)
+            CommandCollection deltaCommands)
         {
             var success = true;
 
