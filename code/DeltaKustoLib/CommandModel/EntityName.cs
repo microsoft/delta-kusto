@@ -25,7 +25,7 @@ namespace DeltaKustoLib.CommandModel
 
             foreach (var c in name)
             {
-                if (char.IsLetterOrDigit(c) || c == '_')
+                if (Rune.IsLetterOrDigit(new Rune(c)) || c == '_')
                 {
                     //  Nothing special
                 }
