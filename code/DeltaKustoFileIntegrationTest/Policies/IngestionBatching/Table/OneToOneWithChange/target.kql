@@ -1,0 +1,11 @@
+﻿//	Random comment
+.create table ['my-table'] (a: real, b: int, c: string)
+
+.alter table ['my-table'] policy ingestionbatching
+```
+{
+  "MaximumBatchingTimeSpan": "00:07:18",
+  "MaximumNumberOfItems": 747, 
+  "MaximumRawDataSizeMB": 5
+}
+```
