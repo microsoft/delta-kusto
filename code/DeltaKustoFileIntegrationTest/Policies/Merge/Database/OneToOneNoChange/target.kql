@@ -1,0 +1,6 @@
+﻿.alter database mydb policy merge
+```
+{
+    "MaxRangeInHours": 24
+}
+```
