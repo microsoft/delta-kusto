@@ -30,7 +30,7 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
         [Fact]
         public void FunkyTables()
         {
-            TestRetentionPolicy(TimeSpan.FromMinutes(90), false, "A- 1", "Beta été");
+            TestRetentionPolicy(TimeSpan.FromMinutes(90), false, "A- 1", @"Beta été");
         }
 
         private void TestRetentionPolicy(
