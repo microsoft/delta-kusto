@@ -23,7 +23,7 @@ namespace DeltaKustoLib.CommandModel
             var pluralCommands = usePluralForms
                 ? ToPlural(commands)
                 : commands;
-            var groups = commands
+            var groups = pluralCommands
                 .GroupBy(c => c.GetType())
                 .Select(g => (att: GetAttribute(g.Key), group: g))
                 //  Sort each type
