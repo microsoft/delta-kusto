@@ -77,16 +77,6 @@ namespace DeltaKustoLib.CommandModel.Policies
             return new AlterTablesRetentionPolicyCommand(tableNames, policy);
         }
 
-        public override bool Equals(CommandBase? other)
-        {
-            var otherFunction = other as AlterTablesRetentionPolicyCommand;
-            var areEqualed = otherFunction != null
-                && otherFunction.TableNames.SequenceEqual(TableNames)
-                && PolicyEquals(otherFunction);
-
-            return areEqualed;
-        }
-
         public override string ToScript(ScriptingContext? context)
         {
             var builder = new StringBuilder();

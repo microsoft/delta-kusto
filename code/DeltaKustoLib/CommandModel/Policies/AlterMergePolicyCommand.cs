@@ -80,17 +80,6 @@ namespace DeltaKustoLib.CommandModel.Policies
                 policy);
         }
 
-        public override bool Equals(CommandBase? other)
-        {
-            var otherFunction = other as AlterMergePolicyCommand;
-            var areEqualed = otherFunction != null
-                && otherFunction.EntityType.Equals(EntityType)
-                && otherFunction.EntityName.Equals(EntityName)
-                && PolicyEquals(otherFunction);
-
-            return areEqualed;
-        }
-
         public override string ToScript(ScriptingContext? context)
         {
             var builder = new StringBuilder();

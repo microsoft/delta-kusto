@@ -74,11 +74,11 @@ namespace DeltaKustoLib.CommandModel.Policies
 
         public override bool Equals(CommandBase? other)
         {
-            var otherFunction = other as AlterUpdatePolicyCommand;
-            var areEqualed = otherFunction != null
-                && otherFunction.TableName.Equals(TableName)
+            var otherPolicy = other as AlterUpdatePolicyCommand;
+            var areEqualed = otherPolicy != null
+                && base.Equals(otherPolicy)
                 //  Check that all parameters are equal
-                && otherFunction.UpdatePolicies.SequenceEqual(UpdatePolicies);
+                && otherPolicy.UpdatePolicies.SequenceEqual(UpdatePolicies);
 
             return areEqualed;
         }

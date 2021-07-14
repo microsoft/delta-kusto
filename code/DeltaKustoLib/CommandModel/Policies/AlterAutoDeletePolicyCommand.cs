@@ -57,16 +57,6 @@ namespace DeltaKustoLib.CommandModel.Policies
             return new AlterAutoDeletePolicyCommand(EntityName.FromCode(tableName.Name), policy);
         }
 
-        public override bool Equals(CommandBase? other)
-        {
-            var otherFunction = other as AlterAutoDeletePolicyCommand;
-            var areEqualed = otherFunction != null
-                && otherFunction.TableName.Equals(TableName)
-                && PolicyEquals(otherFunction);
-
-            return areEqualed;
-        }
-
         public override string ToScript(ScriptingContext? context)
         {
             var builder = new StringBuilder();

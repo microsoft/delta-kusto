@@ -46,16 +46,6 @@ namespace DeltaKustoLib.CommandModel.Policies
             return new DeleteShardingPolicyCommand(entityType, EntityName.FromCode(entityName.Name));
         }
 
-        public override bool Equals(CommandBase? other)
-        {
-            var otherFunction = other as DeleteShardingPolicyCommand;
-            var areEqualed = otherFunction != null
-                && otherFunction.EntityType.Equals(EntityType)
-                && otherFunction.EntityName.Equals(EntityName);
-
-            return areEqualed;
-        }
-
         public override string ToScript(ScriptingContext? context)
         {
             var builder = new StringBuilder();

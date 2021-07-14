@@ -23,5 +23,15 @@ namespace DeltaKustoLib.CommandModel.Policies
         }
 
         public override string SortIndex => TableName.Name;
+
+        public override bool Equals(CommandBase? other)
+        {
+            var otherPolicy = other as TableOnlyPolicyCommandBase;
+            var areEqualed = otherPolicy != null
+                && base.Equals(other)
+                && otherPolicy.TableName.Equals(TableName);
+
+            return areEqualed;
+        }
     }
 }

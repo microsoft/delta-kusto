@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -35,5 +35,16 @@ namespace DeltaKustoLib.CommandModel.Policies
 
         public override string SortIndex =>
             $"{(EntityType == EntityType.Database ? 0 : 1)}_{EntityName}";
+
+        public override bool Equals(CommandBase? other)
+        {
+            var otherPolicy = other as EntityPolicyCommandBase;
+            var areEqualed = otherPolicy != null
+                && base.Equals(other)
+                && otherPolicy.EntityType.Equals(EntityType)
+                && (EntityType == EntityType.Database || otherPolicy.EntityName.Equals(EntityName));
+
+            return areEqualed;
+        }
     }
 }

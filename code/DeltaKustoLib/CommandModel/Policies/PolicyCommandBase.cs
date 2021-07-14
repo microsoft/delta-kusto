@@ -25,6 +25,15 @@ namespace DeltaKustoLib.CommandModel.Policies
         public PolicyCommandBase() : this(ToJsonDocument(new object()))
         {
         }
+        
+        public override bool Equals(CommandBase? other)
+        {
+            var otherPolicy = other as PolicyCommandBase;
+            var areEqualed = otherPolicy != null
+                && ElementEquals(Policy.RootElement, otherPolicy.Policy.RootElement);
+
+            return areEqualed;
+        }
 
         public string SerializePolicy()
         {
@@ -54,11 +63,6 @@ namespace DeltaKustoLib.CommandModel.Policies
             }
 
             return doc;
-        }
-
-        protected bool PolicyEquals(PolicyCommandBase other)
-        {
-            return ElementEquals(Policy.RootElement, other.Policy.RootElement);
         }
 
         private bool ElementEquals(JsonElement element1, JsonElement element2)

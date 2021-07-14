@@ -65,12 +65,11 @@ namespace DeltaKustoLib.CommandModel.Policies
 
         public override bool Equals(CommandBase? other)
         {
-            var otherFunction = other as AlterCachingPolicyCommand;
-            var areEqualed = otherFunction != null
-                && otherFunction.EntityType.Equals(EntityType)
-                && otherFunction.EntityName.Equals(EntityName)
-                && otherFunction.HotData.Equals(HotData)
-                && otherFunction.HotIndex.Equals(HotIndex);
+            var otherPolicy = other as AlterCachingPolicyCommand;
+            var areEqualed = otherPolicy != null
+                && base.Equals(otherPolicy)
+                && otherPolicy.HotData.Equals(HotData)
+                && otherPolicy.HotIndex.Equals(HotIndex);
 
             return areEqualed;
         }
