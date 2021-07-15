@@ -1,0 +1,11 @@
+﻿//	Random comment
+.create table ['my-table'] (a: real, b: int, c: string)
+
+.alter table ['my-table'] policy sharding 
+```
+{
+	"MaxRowCount": 1000000,
+	"MaxExtentSizeInMb": 1024,
+	"MaxOriginalSizeInMb": 2048
+}
+```

@@ -1,0 +1,8 @@
+﻿.alter database mydb policy sharding
+```
+{
+	"MaxRowCount": 1000000,
+	"MaxExtentSizeInMb": 1024,
+	"MaxOriginalSizeInMb": 2048
+}
+```
