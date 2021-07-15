@@ -18,7 +18,7 @@ namespace DeltaKustoLib.CommandModel.Policies
         public override string CommandFriendlyName => ".delete <entity> policy sharding";
 
         public override string ScriptPath => EntityType == EntityType.Database
-           ? $"tables/policies/sharding/delete/{EntityName}"
+           ? $"tables/policies/sharding/delete"
            : $"db/policies/delete";
 
         public DeleteShardingPolicyCommand(EntityType entityType, EntityName entityName)

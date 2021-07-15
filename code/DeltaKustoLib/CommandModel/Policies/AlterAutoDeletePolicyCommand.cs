@@ -17,7 +17,7 @@ namespace DeltaKustoLib.CommandModel.Policies
     {
         public override string CommandFriendlyName => ".alter <entity> policy auto_delete";
 
-        public override string ScriptPath => $"tables/policies/auto_delete/{TableName}";
+        public override string ScriptPath => $"tables/policies/auto_delete/create/{TableName}";
 
         public AlterAutoDeletePolicyCommand(
             EntityName tableName,

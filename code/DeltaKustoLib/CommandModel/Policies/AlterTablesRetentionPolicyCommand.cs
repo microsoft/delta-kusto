@@ -21,7 +21,7 @@ namespace DeltaKustoLib.CommandModel.Policies
 
         public override string SortIndex => TableNames.First().Name;
 
-        public override string ScriptPath => "tables/policies/retention";
+        public override string ScriptPath => "tables/policies/retention/delete-many";
 
         public AlterTablesRetentionPolicyCommand(
             IEnumerable<EntityName> tableNames,

@@ -18,8 +18,8 @@ namespace DeltaKustoLib.CommandModel.Policies
         public override string CommandFriendlyName => ".alter <entity> policy merge";
 
         public override string ScriptPath => EntityType == EntityType.Database
-            ? $"tables/policies/merge/{EntityName}"
-            : $"databases/policies/merge";
+            ? $"tables/policies/merge/create/{EntityName}"
+            : $"databases/policies/merge/create";
 
         public AlterMergePolicyCommand(
             EntityType entityType,

@@ -28,7 +28,9 @@ namespace DeltaKustoLib.CommandModel
 
         public override string SortIndex => $"{Folder?.Text}_{FunctionName.Name}";
 
-        public override string ScriptPath => $"functions/{FunctionName}";
+        public override string ScriptPath => Folder.Text.Any()
+            ? $"functions/create/{Folder}/{FunctionName}"
+            : $"functions/create/{FunctionName}";
 
         public CreateFunctionCommand(
             EntityName functionName,

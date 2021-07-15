@@ -18,7 +18,7 @@ namespace DeltaKustoLib.CommandModel.Policies
         public override string CommandFriendlyName => ".delete <entity> policy ingestionbatching";
 
         public override string ScriptPath => EntityType == EntityType.Database
-            ? $"tables/policies/ingestionbatching/delete/{EntityName}"
+            ? $"tables/policies/ingestionbatching/delete"
             : $"db/policies/delete";
 
         public DeleteIngestionBatchingPolicyCommand(EntityType entityType, EntityName entityName)
