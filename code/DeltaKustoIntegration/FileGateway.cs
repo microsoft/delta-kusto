@@ -12,7 +12,7 @@ namespace DeltaKustoIntegration
 {
     public class FileGateway : IFileGateway
     {
-        private static readonly TimeSpan TIMEOUT = TimeSpan.FromSeconds(2);
+        private static readonly TimeSpan TIMEOUT = TimeSpan.FromSeconds(10);
         private readonly string _rootFolder;
 
         public FileGateway() : this(string.Empty)
