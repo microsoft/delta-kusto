@@ -13,5 +13,10 @@ namespace DeltaKustoAdxIntegrationTest.Functions
     public class FunctionTest : AdxAutoIntegrationTestBase
     {
         protected override string StatesFolderPath => "Functions";
+
+        public FunctionTest(AdxDbFixture adxDbFixture)
+            : base(adxDbFixture)
+        {
+        }
     }
 }

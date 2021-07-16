@@ -21,6 +21,11 @@ namespace DeltaKustoAdxIntegrationTest
     {
         protected abstract string StatesFolderPath { get; }
 
+        public AdxAutoIntegrationTestBase(AdxDbFixture adxDbFixture)
+            : base(adxDbFixture)
+        {
+        }
+
         [Fact]
         public async Task AdxToFile()
         {
@@ -38,5 +43,5 @@ namespace DeltaKustoAdxIntegrationTest
         {
             await TestAdxToAdx(StatesFolderPath);
         }
-   }
+    }
 }

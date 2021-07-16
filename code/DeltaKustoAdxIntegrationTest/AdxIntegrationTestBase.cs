@@ -17,18 +17,22 @@ using Xunit;
 
 namespace DeltaKustoAdxIntegrationTest
 {
-    public abstract class AdxIntegrationTestBase : IntegrationTestBase
+    public abstract class AdxIntegrationTestBase
+        : IntegrationTestBase,
+        IClassFixture<AdxDbFixture>,
+        IAsyncLifetime
     {
+        private readonly AdxDbFixture _adxDbFixture;
         private readonly Uri _clusterUri;
         private readonly string _currentDb;
         private readonly string _targetDb;
         private readonly bool _overrideLoginTokenProvider;
 
-        protected AdxIntegrationTestBase(bool overrideLoginTokenProvider = true)
+        protected AdxIntegrationTestBase(
+            AdxDbFixture adxDbFixture,
+            bool overrideLoginTokenProvider = true)
         {
             var clusterUri = Environment.GetEnvironmentVariable("deltaKustoClusterUri");
-            var currentDb = Environment.GetEnvironmentVariable("deltaKustoCurrentDb");
-            var targetDb = Environment.GetEnvironmentVariable("deltaKustoTargetDb");
             var tenantId = Environment.GetEnvironmentVariable("deltaKustoTenantId");
             var servicePrincipalId = Environment.GetEnvironmentVariable("deltaKustoSpId");
             var servicePrincipalSecret = Environment.GetEnvironmentVariable("deltaKustoSpSecret");
@@ -36,14 +40,6 @@ namespace DeltaKustoAdxIntegrationTest
             if (string.IsNullOrWhiteSpace(clusterUri))
             {
                 throw new ArgumentNullException(nameof(clusterUri));
-            }
-            if (string.IsNullOrWhiteSpace(currentDb))
-            {
-                throw new ArgumentNullException(nameof(currentDb));
-            }
-            if (string.IsNullOrWhiteSpace(targetDb))
-            {
-                throw new ArgumentNullException(nameof(targetDb));
             }
             if (string.IsNullOrWhiteSpace(tenantId))
             {
@@ -58,10 +54,11 @@ namespace DeltaKustoAdxIntegrationTest
                 throw new ArgumentNullException(nameof(servicePrincipalSecret));
             }
 
+            _adxDbFixture = adxDbFixture;
             _overrideLoginTokenProvider = overrideLoginTokenProvider;
             _clusterUri = new Uri(clusterUri);
-            _currentDb = currentDb;
-            _targetDb = targetDb;
+            _currentDb = adxDbFixture.GetDbName();
+            _targetDb = adxDbFixture.GetDbName();
             TenantId = tenantId;
             ServicePrincipalId = servicePrincipalId;
             ServicePrincipalSecret = servicePrincipalSecret;
@@ -73,6 +70,18 @@ namespace DeltaKustoAdxIntegrationTest
                 .Empty
                 .Add(("jobs.main.target.adx.clusterUri", _clusterUri.ToString()))
                 .Add(("jobs.main.target.adx.database", _targetDb));
+        }
+
+        async Task IAsyncLifetime.InitializeAsync()
+        {
+            await Task.WhenAll(
+                _adxDbFixture.InitializeDbAsync(_currentDb),
+                _adxDbFixture.InitializeDbAsync(_targetDb));
+        }
+
+        Task IAsyncLifetime.DisposeAsync()
+        {
+            return Task.CompletedTask;
         }
 
         protected IEnumerable<(string path, string value)> CurrentDbOverrides { get; }

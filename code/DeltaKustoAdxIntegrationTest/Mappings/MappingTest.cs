@@ -13,5 +13,10 @@ namespace DeltaKustoAdxIntegrationTest.Mappings
     public class MappingTest : AdxAutoIntegrationTestBase
     {
         protected override string StatesFolderPath => "Mappings";
+
+        public MappingTest(AdxDbFixture adxDbFixture)
+            : base(adxDbFixture)
+        {
+        }
     }
 }

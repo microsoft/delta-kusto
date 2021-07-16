@@ -13,5 +13,10 @@ namespace DeltaKustoAdxIntegrationTest.Tables
     public class TableTest : AdxAutoIntegrationTestBase
     {
         protected override string StatesFolderPath => "Tables";
+
+        public TableTest(AdxDbFixture adxDbFixture)
+            : base(adxDbFixture)
+        {
+        }
     }
 }

@@ -14,6 +14,10 @@ namespace DeltaKustoAdxIntegrationTest
 {
     public class FailIfDataLossTest : AdxIntegrationTestBase
     {
+        public FailIfDataLossTest(AdxDbFixture adxDbFixture) : base(adxDbFixture)
+        {
+        }
+
         [Fact]
         public async Task TestFailIfDropsNoDrop()
         {

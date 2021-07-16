@@ -15,9 +15,9 @@ namespace DeltaKustoAdxIntegrationTest
 {
     public class GivenTokenProviderTest : AdxIntegrationTestBase
     {
-        public GivenTokenProviderTest()
+        public GivenTokenProviderTest(AdxDbFixture adxDbFixture)
             //  We do not want the login provider as we are testing the given token provider
-            : base(false)
+            : base(adxDbFixture, false)
         {
         }
 
