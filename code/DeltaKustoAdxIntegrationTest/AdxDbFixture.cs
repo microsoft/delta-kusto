@@ -94,6 +94,16 @@ namespace DeltaKustoAdxIntegrationTest
             await _azureManagementGateway.Value.CreateDatabaseAsync(dbName);
         }
 
+        public async Task DeleteDbAsync(string dbName)
+        {
+            if (!dbName.StartsWith(_dbPrefix.Value))
+            {
+                throw new ArgumentException("Wrong prefix", nameof(dbName));
+            }
+
+            await _azureManagementGateway.Value.DeleteDatabaseAsync(dbName);
+        }
+
         void IDisposable.Dispose()
         {
         }

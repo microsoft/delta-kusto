@@ -79,9 +79,11 @@ namespace DeltaKustoAdxIntegrationTest
                 _adxDbFixture.InitializeDbAsync(_targetDb));
         }
 
-        Task IAsyncLifetime.DisposeAsync()
+        async Task IAsyncLifetime.DisposeAsync()
         {
-            return Task.CompletedTask;
+            await Task.WhenAll(
+                _adxDbFixture.DeleteDbAsync(_currentDb),
+                _adxDbFixture.DeleteDbAsync(_targetDb));
         }
 
         protected IEnumerable<(string path, string value)> CurrentDbOverrides { get; }
