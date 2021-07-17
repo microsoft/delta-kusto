@@ -20,294 +20,9 @@ namespace DeltaKustoIntegration.Kusto
     internal class AzureManagementGateway
     {
         #region Inner Types
-        private class ApiOutput
-        {
-            public TableOutput[]? Tables { get; set; }
+        private record DatabaseListOutput(DatabaseListOutputItem[] Value);
 
-            public void Validate(string json)
-            {
-                if (Tables == null)
-                {
-                    throw new InvalidOperationException(
-                        $"JSON payload doesn't contain a list of table "
-                        + $"({nameof(Tables)}):  '{json}'");
-                }
-
-                foreach (var table in Tables)
-                {
-                    table.Validate(json);
-                }
-            }
-
-            public TableOutput GetFirstTable()
-            {
-                if (Tables == null || !Tables.Any())
-                {
-                    throw new DeltaException("No table were returned from API call to Kusto");
-                }
-
-                return Tables.First();
-            }
-
-            public T GetSingleElement<T>()
-            {
-                return Tables![0].GetSingleElement<T>();
-            }
-
-            public static ApiOutput FromJson(string json)
-            {
-                var output = JsonSerializer.Deserialize<ApiOutput>(json);
-
-                if (output == null)
-                {
-                    throw new InvalidOperationException(
-                        $"JSON payload doesn't look like an API output:  '{json}'");
-                }
-
-                output.Validate(json);
-
-                return output;
-            }
-        }
-
-        private class TableOutput
-        {
-            public string? TableName { get; set; }
-
-            public ColumnOutput[]? Columns { get; set; }
-
-            public JsonElement[][]? Rows { get; set; }
-
-            public void Validate(string json)
-            {
-                if (TableName == null)
-                {
-                    throw new InvalidOperationException(
-                        $"JSON payload has a table without name "
-                        + $"({nameof(TableName)}):  '{json}'");
-                }
-                if (Columns == null)
-                {
-                    throw new InvalidOperationException(
-                        $"Table '{TableName}' in JSON payload has no columns "
-                        + $"({nameof(Columns)}):  '{json}'");
-                }
-                if (Rows == null)
-                {
-                    throw new InvalidOperationException(
-                        $"Table '{TableName}' in JSON payload has no rows "
-                        + $"({nameof(Rows)}):  '{json}'");
-                }
-
-                foreach (var column in Columns)
-                {
-                    column.Validate(json, TableName);
-                }
-                foreach (var row in Rows)
-                {
-                    if (row.Length != Columns.Length)
-                    {
-                        throw new InvalidOperationException(
-                            $"Table '{TableName}' in JSON payload has a row with number of items "
-                            + $"different than columns descriptions:  '{json}'");
-                    }
-                }
-            }
-
-            public T GetSingleElement<T>()
-            {
-                if (Rows!.Length == 0 || Rows![0].Length == 0)
-                {
-                    throw new InvalidOperationException(
-                        $"Table '{TableName}' doesn't have any element");
-                }
-
-                return (T)GetObject(Rows![0][0], typeof(T));
-            }
-
-            public IEnumerable<T1> ProjectRows<T1>(string columnName)
-            {
-                var rows = ProjectRows(new[] { (columnName, typeof(T1)) });
-
-                foreach (var row in rows)
-                {
-                    var item = (T1)row[0];
-
-                    yield return item;
-                }
-            }
-
-            public IEnumerable<(T1, T2)> ProjectRows<T1, T2>(
-                string columnName1,
-                string columnName2)
-            {
-                var rows = ProjectRows(new[]
-                {
-                    (columnName1, typeof(T1)),
-                    (columnName2, typeof(T2))
-                });
-
-                foreach (var row in rows)
-                {
-                    var item1 = (T1)row[0];
-                    var item2 = (T2)row[1];
-
-                    yield return (item1, item2);
-                }
-            }
-
-            public IEnumerable<(T1, T2, T3)> ProjectRows<T1, T2, T3>(
-                string columnName1,
-                string columnName2,
-                string columnName3)
-            {
-                var rows = ProjectRows(new[]
-                {
-                    (columnName1, typeof(T1)),
-                    (columnName2, typeof(T2)),
-                    (columnName3, typeof(T3))
-                });
-
-                foreach (var row in rows)
-                {
-                    var item1 = (T1)row[0];
-                    var item2 = (T2)row[1];
-                    var item3 = (T3)row[2];
-
-                    yield return (item1, item2, item3);
-                }
-            }
-
-            public IEnumerable<(T1, T2, T3, T4)> ProjectRows<T1, T2, T3, T4>(
-                string columnName1,
-                string columnName2,
-                string columnName3,
-                string columnName4)
-            {
-                var rows = ProjectRows(new[]
-                {
-                    (columnName1, typeof(T1)),
-                    (columnName2, typeof(T2)),
-                    (columnName3, typeof(T3)),
-                    (columnName4, typeof(T4))
-                });
-
-                foreach (var row in rows)
-                {
-                    var item1 = (T1)row[0];
-                    var item2 = (T2)row[1];
-                    var item3 = (T3)row[2];
-                    var item4 = (T4)row[3];
-
-                    yield return (item1, item2, item3, item4);
-                }
-            }
-
-            public IEnumerable<object[]> ProjectRows(params (string name, Type type)[] columnNameTypes)
-            {
-                var indexes = MapColumns(columnNameTypes);
-
-                foreach (var row in Rows!)
-                {
-                    var item = new object[indexes.Length];
-
-                    for (int i = 0; i != indexes.Length; ++i)
-                    {
-                        item[i] = GetObject(row[indexes[i]], columnNameTypes[i].type);
-                    }
-
-                    yield return item;
-                }
-            }
-
-            private object GetObject(JsonElement element, Type type)
-            {
-                if (type == typeof(string))
-                {
-                    return element.GetString()!;
-                }
-                else if (type == typeof(int))
-                {
-                    return element.GetInt32();
-                }
-                else if (type == typeof(Guid))
-                {
-                    return element.GetGuid();
-                }
-                else
-                {
-                    throw new NotSupportedException(
-                        $"Type '{type}' isn't supported for table columns");
-                }
-            }
-
-            private int[] MapColumns((string name, Type type)[] columnNameTypes)
-            {
-                var indexes = new int[columnNameTypes.Length];
-                var columnIndex = Columns!.Zip(
-                    Enumerable.Range(0, Columns!.Length),
-                    (c, i) => new { Name = c.ColumnName!, TypeName = c.ColumnType!, Index = i })
-                    .ToDictionary(c => c.Name);
-
-                for (int i = 0; i != columnNameTypes.Length; ++i)
-                {
-                    var columnName = columnNameTypes[i].name;
-                    var columnType = columnNameTypes[i].type;
-
-                    if (!columnIndex.ContainsKey(columnName))
-                    {
-                        throw new InvalidOperationException(
-                            $"Can't find column '{columnName}' "
-                            + $"in table '{TableName}' of Kusto result");
-                    }
-
-                    var column = columnIndex[columnName];
-
-                    if (string.Compare(column.TypeName, columnType.Name, true) != 0)
-                    {
-                        throw new InvalidOperationException(
-                            $"Type mismatch for column '{columnName}' "
-                            + $"in table '{TableName}' of Kusto result:  "
-                            + $"expected '{columnType.Name}' but is {column.TypeName}");
-                    }
-
-                    indexes[i] = column.Index;
-                }
-
-                return indexes;
-            }
-        }
-
-        private class ColumnOutput
-        {
-            public string? ColumnName { get; set; }
-
-            public string? DataType { get; set; }
-
-            public string? ColumnType { get; set; }
-
-            public void Validate(string json, string tableName)
-            {
-                if (ColumnName == null)
-                {
-                    throw new InvalidOperationException(
-                        $"Table '{tableName}' in JSON payload has a column "
-                        + $"without name ({nameof(ColumnName)}):  '{json}'");
-                }
-                if (DataType == null)
-                {
-                    throw new InvalidOperationException(
-                        $"Table '{tableName}' in JSON payload has column '{ColumnName}' "
-                        + $"without data type ({nameof(DataType)}):  '{json}'");
-                }
-                if (ColumnType == null)
-                {
-                    throw new InvalidOperationException(
-                        $"Table '{tableName}' in JSON payload has column '{ColumnName}' "
-                        + $"without column type ({nameof(ColumnType)}):  '{json}'");
-                }
-            }
-        }
+        private record DatabaseListOutputItem(string Name);
         #endregion
 
         private static readonly TimeSpan TIMEOUT = TimeSpan.FromSeconds(10);
@@ -329,6 +44,56 @@ namespace DeltaKustoIntegration.Kusto
             _httpClientFactory = httpClientFactory;
         }
 
+        public async Task<IEnumerable<string>> GetDatabaseNamesAsync(CancellationToken ct = default)
+        {
+            var tracerTimer = new TracerTimer(_tracer);
+
+            _tracer.WriteLine(true, "Get Database names start");
+
+            using (var client = await CreateHttpClient(ct))
+            {
+                ct = CancellationTokenHelper.MergeCancellationToken(ct, TIMEOUT);
+
+                var apiUrl = $"https://management.azure.com{_clusterId}/databases?api-version=2021-01-01";
+                var response = await client.GetAsync(apiUrl, ct);
+
+                _tracer.WriteLine(true, "Database listed");
+
+                var responseText =
+                    await response.Content.ReadAsStringAsync(ct);
+
+                if (response.StatusCode != HttpStatusCode.OK)
+                {
+                    throw new InvalidOperationException(
+                        $"Database listing failed on cluster ID {_clusterId} "
+                        + $"with status code '{response.StatusCode}' "
+                        + $"and payload '{responseText}'");
+                }
+                else
+                {
+                    var list = JsonSerializer.Deserialize<DatabaseListOutput>(
+                        responseText,
+                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                    if (list == null || list.Value == null)
+                    {
+                        throw new InvalidOperationException(
+                            $"Database listing failed on cluster ID {_clusterId} "
+                            + $"; can't understand payload '{responseText}'");
+                    }
+
+                    var names = list
+                        .Value
+                        .Select(v => v.Name.Split('/'))
+                        .Where(s => s.Length == 2)
+                        .Select(s => s[1])
+                        .ToImmutableArray();
+
+                    return names;
+                }
+            }
+        }
+
         public async Task CreateDatabaseAsync(string dbName, CancellationToken ct = default)
         {
             var tracerTimer = new TracerTimer(_tracer);
@@ -336,7 +101,7 @@ namespace DeltaKustoIntegration.Kusto
             _tracer.WriteLine(true, "Create Database start");
             _tracer.WriteLine(true, $"Database name:  '{dbName}'");
 
-            using(var client = await CreateHttpClient(ct))
+            using (var client = await CreateHttpClient(ct))
             {
                 ct = CancellationTokenHelper.MergeCancellationToken(ct, TIMEOUT);
 

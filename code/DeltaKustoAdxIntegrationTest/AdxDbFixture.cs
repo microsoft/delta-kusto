@@ -3,6 +3,7 @@ using DeltaKustoIntegration.Kusto;
 using DeltaKustoIntegration.TokenProvider;
 using DeltaKustoLib;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,6 +13,7 @@ namespace DeltaKustoAdxIntegrationTest
     {
         private readonly Lazy<string> _dbPrefix;
         private readonly Lazy<AzureManagementGateway> _azureManagementGateway;
+        private readonly Lazy<Task> _cleanDbAsync;
         private volatile int _dbCount;
 
         public AdxDbFixture()
@@ -70,6 +72,7 @@ namespace DeltaKustoAdxIntegrationTest
                         httpClientFactory);
                 },
                 true);
+            _cleanDbAsync = new Lazy<Task>(() => CleanDbAsync(), true);
         }
 
         public string GetDbName()
@@ -87,11 +90,21 @@ namespace DeltaKustoAdxIntegrationTest
                 throw new ArgumentException("Wrong prefix", nameof(dbName));
             }
 
+            await _cleanDbAsync.Value;
             await _azureManagementGateway.Value.CreateDatabaseAsync(dbName);
         }
 
         void IDisposable.Dispose()
         {
+        }
+
+        private async Task CleanDbAsync()
+        {
+            var names = await _azureManagementGateway.Value.GetDatabaseNamesAsync();
+            var namesWithPrefix = names
+                .Where(n => n.StartsWith(_dbPrefix.Value));
+
+            throw new NotImplementedException();
         }
     }
 }
