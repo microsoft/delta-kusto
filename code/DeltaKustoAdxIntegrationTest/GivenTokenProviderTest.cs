@@ -39,9 +39,7 @@ namespace DeltaKustoAdxIntegrationTest
                 .Append(("tokenProvider.tokens.myToken.clusterUri", clusterUri))
                 .Append(("tokenProvider.tokens.myToken.token", token));
 
-            await CleanDatabasesAsync();
             await PrepareDbAsync("GivenTokenProvider/target.kql", false);
-
             await RunParametersAsync("GivenTokenProvider/given-token.yaml", overrides);
 
             //  We just test that this doesn't fail

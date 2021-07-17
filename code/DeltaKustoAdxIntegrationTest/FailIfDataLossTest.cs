@@ -23,7 +23,6 @@ namespace DeltaKustoAdxIntegrationTest
         {
             var toFile = "FailIfDataLoss/target.kql";
 
-            await CleanDatabasesAsync();
             await PrepareDbAsync(toFile, false);
 
             await RunParametersAsync("FailIfDataLoss/no-fail.json", TargetDbOverrides);
@@ -36,7 +35,6 @@ namespace DeltaKustoAdxIntegrationTest
         {
             var toFile = "FailIfDataLoss/target.kql";
 
-            await CleanDatabasesAsync();
             await PrepareDbAsync(toFile, false);
 
             var overrides = TargetDbOverrides

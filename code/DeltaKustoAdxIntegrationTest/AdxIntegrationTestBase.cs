@@ -222,7 +222,6 @@ namespace DeltaKustoAdxIntegrationTest
                 foreach (var toFile in stateFiles)
                 {
                     Console.WriteLine($"Current loop:  ({fromFile}, {toFile})");
-                    await CleanDatabasesAsync();
                     await loopFunction(fromFile, toFile);
                 }
             }
@@ -270,13 +269,6 @@ namespace DeltaKustoAdxIntegrationTest
             }
 
             return base.RunParametersAsync(parameterFilePath, adjustedOverrides);
-        }
-
-        protected async Task CleanDatabasesAsync()
-        {
-            await Task.WhenAll(
-                CleanDbAsync(true),
-                CleanDbAsync(false));
         }
 
         protected async Task PrepareDbAsync(
