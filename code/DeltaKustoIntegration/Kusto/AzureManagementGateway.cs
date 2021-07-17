@@ -148,7 +148,8 @@ namespace DeltaKustoIntegration.Kusto
                     await response.Content.ReadAsStringAsync(ct);
 
                 if (response.StatusCode != HttpStatusCode.OK
-                    && response.StatusCode != HttpStatusCode.Accepted)
+                    && response.StatusCode != HttpStatusCode.Accepted
+                    && response.StatusCode != HttpStatusCode.NoContent)
                 {
                     throw new InvalidOperationException(
                         $"Database '{dbName}' deletion failed on cluster ID {_clusterId} "

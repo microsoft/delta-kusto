@@ -14,7 +14,7 @@ namespace DeltaKustoAdxIntegrationTest
 {
     public class AdxDbFixture : IDisposable
     {
-        private const int AHEAD_PROVISIONING_COUNT = 10;
+        private const int AHEAD_PROVISIONING_COUNT = 20;
 
         private readonly Lazy<string> _dbPrefix;
         private readonly Lazy<AzureManagementGateway> _azureManagementGateway;
@@ -115,7 +115,12 @@ namespace DeltaKustoAdxIntegrationTest
 
                 if (_createdQueue.TryDequeue(out dbName))
                 {
-                    return dbName!;
+                    if (dbName == null)
+                    {
+                        throw new InvalidOperationException($"{dbName} shouldn't be null here");
+                    }
+
+                    return dbName;
                 }
                 else
                 {
