@@ -66,13 +66,27 @@ namespace DeltaKustoAdxIntegrationTest
 
         protected string ServicePrincipalSecret { get; }
 
+        protected async Task<string> InitializeDbAsync()
+        {
+            var dbName = await AdxDbFixture.InitializeDbAsync();
+            var gateway = CreateKustoManagementGateway(dbName);
+
+            //  Ensures the database creation has propagated to Kusto
+            while (!(await gateway.DoesDatabaseExistsAsync()))
+            {
+                await Task.Delay(TimeSpan.FromSeconds(.2));
+            }
+
+            return dbName;
+        }
+
         protected async Task TestAdxToFile(string statesFolderPath)
         {
             await LoopThroughStateFilesAsync(
                 Path.Combine(statesFolderPath, "States"),
                 async (fromFile, toFile) =>
                 {
-                    var currentDbName = await AdxDbFixture.InitializeDbAsync();
+                    var currentDbName = await InitializeDbAsync();
 
                     await PrepareDbAsync(fromFile, currentDbName);
 
@@ -114,8 +128,8 @@ namespace DeltaKustoAdxIntegrationTest
                 Path.Combine(statesFolderPath, "States"),
                 async (fromFile, toFile) =>
                 {
-                    var testDbName = await AdxDbFixture.InitializeDbAsync();
-                    var targetDbName = await AdxDbFixture.InitializeDbAsync();
+                    var testDbName = await InitializeDbAsync();
+                    var targetDbName = await InitializeDbAsync();
 
                     await PrepareDbAsync(toFile, targetDbName);
 
@@ -159,8 +173,8 @@ namespace DeltaKustoAdxIntegrationTest
                 Path.Combine(statesFolderPath, "States"),
                 async (fromFile, toFile) =>
                 {
-                    var currentDbName = await AdxDbFixture.InitializeDbAsync();
-                    var targetDbName = await AdxDbFixture.InitializeDbAsync();
+                    var currentDbName = await InitializeDbAsync();
+                    var targetDbName = await InitializeDbAsync();
 
                     await Task.WhenAll(
                         PrepareDbAsync(fromFile, currentDbName),

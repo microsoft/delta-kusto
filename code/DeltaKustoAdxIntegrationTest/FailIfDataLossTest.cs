@@ -22,7 +22,7 @@ namespace DeltaKustoAdxIntegrationTest
         public async Task TestFailIfDropsNoDrop()
         {
             var toFile = "FailIfDataLoss/target.kql";
-            var targetDbName = await AdxDbFixture.InitializeDbAsync();
+            var targetDbName = await InitializeDbAsync();
             var overrides = ImmutableArray<(string path, string value)>
                 .Empty
                 .Add(("jobs.main.target.adx.clusterUri", ClusterUri.ToString()))
@@ -38,7 +38,7 @@ namespace DeltaKustoAdxIntegrationTest
         public async Task TestFailIfDrops()
         {
             var toFile = "FailIfDataLoss/target.kql";
-            var targetDbName = await AdxDbFixture.InitializeDbAsync();
+            var targetDbName = await InitializeDbAsync();
             var overrides = ImmutableArray<(string path, string value)>
                 .Empty
                 .Add(("jobs.main.target.adx.clusterUri", ClusterUri.ToString()))
