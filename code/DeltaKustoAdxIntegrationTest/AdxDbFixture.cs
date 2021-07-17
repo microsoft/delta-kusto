@@ -3,6 +3,8 @@ using DeltaKustoIntegration.Kusto;
 using DeltaKustoIntegration.TokenProvider;
 using DeltaKustoLib;
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -12,11 +14,12 @@ namespace DeltaKustoAdxIntegrationTest
 {
     public class AdxDbFixture : IDisposable
     {
-        private const int AHEAD_PROVISIONING_COUNT = 2;
+        private const int AHEAD_PROVISIONING_COUNT = 20;
 
         private readonly Lazy<string> _dbPrefix;
         private readonly Lazy<AzureManagementGateway> _azureManagementGateway;
         private readonly Lazy<Task> _initializedAsync;
+        private readonly ConcurrentQueue<string> _deleteQueue = new ConcurrentQueue<string>();
         private readonly ManualResetEventSlim _newDbRequiredEvent = new ManualResetEventSlim(false);
         private Task? _backgroundTask = null;
         private volatile int _returnedDbCount = 0;
@@ -121,14 +124,14 @@ namespace DeltaKustoAdxIntegrationTest
             }
         }
 
-        public async Task DeleteDbAsync(string dbName)
+        public void EnqueueDeleteDb(string dbName)
         {
             if (!dbName.StartsWith(_dbPrefix.Value))
             {
                 throw new ArgumentException("Wrong prefix", nameof(dbName));
             }
 
-            await _azureManagementGateway.Value.DeleteDatabaseAsync(dbName);
+            _deleteQueue.Enqueue(dbName);
         }
 
         void IDisposable.Dispose()
@@ -166,14 +169,21 @@ namespace DeltaKustoAdxIntegrationTest
                     _returnedDbCount + AHEAD_PROVISIONING_COUNT - _provisionedDbCount;
                 var dbNames = Enumerable.Range(_provisionedDbCount + 1, provisioningCount)
                     .Select(c => $"{_dbPrefix.Value}{c}")
-                    .ToImmutableArray();
+                    .ToImmutableHashSet();
                 var provisioningTasks = dbNames
                     .Select(dbName => _azureManagementGateway.Value.CreateDatabaseAsync(dbName));
 
                 await Task.WhenAll(provisioningTasks);
-                _provisionedDbCount += provisioningCount;
+
+                //  Delete after creating, letting more time for the creation to propagate
+                //  and avoiding "database not found" errors
+                var deleteTasks = EmptyCurrentDeleteQueue()
+                    .Select(dbName => _azureManagementGateway.Value.DeleteDatabaseAsync(dbName));
+
+                await Task.WhenAll(deleteTasks);
 
                 //  Signal waiting consumer that new dbs are available
+                _provisionedDbCount += provisioningCount;
                 taskSource.SetResult();
                 //  Reset a new waiting task
                 taskSource = new TaskCompletionSource();
@@ -181,6 +191,22 @@ namespace DeltaKustoAdxIntegrationTest
                 //  Prepare to wait
                 _newDbRequiredEvent.Reset();
             }
+        }
+
+        private IEnumerable<string> EmptyCurrentDeleteQueue()
+        {
+            var list = new List<string>();
+            string? item;
+
+            while (_deleteQueue.TryDequeue(out item))
+            {
+                if (item != null)
+                {
+                    list.Add(item);
+                }
+            }
+
+            return list.ToImmutableArray();
         }
     }
 }

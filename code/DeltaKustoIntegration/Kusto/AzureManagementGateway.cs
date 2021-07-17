@@ -116,7 +116,9 @@ namespace DeltaKustoIntegration.Kusto
                 var responseText =
                     await response.Content.ReadAsStringAsync(ct);
 
-                if (response.StatusCode != HttpStatusCode.Created)
+                if (response.StatusCode != HttpStatusCode.OK
+                    && response.StatusCode != HttpStatusCode.Created
+                    && response.StatusCode != HttpStatusCode.Accepted)
                 {
                     throw new InvalidOperationException(
                         $"Database '{dbName}' creation failed on cluster ID {_clusterId} "

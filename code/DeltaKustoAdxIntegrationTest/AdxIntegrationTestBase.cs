@@ -175,6 +175,7 @@ namespace DeltaKustoAdxIntegrationTest
                     .Empty
                     .Add(("jobs.main.current.adx.clusterUri", ClusterUri.ToString()))
                     .Add(("jobs.main.current.adx.database", currentDbName))
+                    .Add(("jobs.main.target.adx.clusterUri", ClusterUri.ToString()))
                     .Add(("jobs.main.target.adx.database", targetDbName))
                     .Add(("jobs.main.action.filePath", outputPath));
                     var parameters = await RunParametersAsync(
