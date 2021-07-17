@@ -105,7 +105,6 @@ namespace DeltaKustoAdxIntegrationTest
         public async Task<string> InitializeDbAsync()
         {
             var dbNumber = Interlocked.Increment(ref _returnedDbCount);
-            var dbName = $"{_dbPrefix.Value}{dbNumber}";
 
             await _initializedAsync.Value;
 
@@ -113,6 +112,8 @@ namespace DeltaKustoAdxIntegrationTest
             {   //  Has our db number been provisioned yet?
                 if (_provisionedDbCount >= dbNumber)
                 {
+                    var dbName = DbNumberToDbName(dbNumber);
+
                     return dbName;
                 }
                 else
@@ -168,7 +169,7 @@ namespace DeltaKustoAdxIntegrationTest
                 var provisioningCount =
                     _returnedDbCount + AHEAD_PROVISIONING_COUNT - _provisionedDbCount;
                 var dbNames = Enumerable.Range(_provisionedDbCount + 1, provisioningCount)
-                    .Select(c => $"{_dbPrefix.Value}{c}")
+                    .Select(c => DbNumberToDbName(c))
                     .ToImmutableHashSet();
                 var provisioningTasks = dbNames
                     .Select(dbName => _azureManagementGateway.Value.CreateDatabaseAsync(dbName));
@@ -191,6 +192,11 @@ namespace DeltaKustoAdxIntegrationTest
                 //  Prepare to wait
                 _newDbRequiredEvent.Reset();
             }
+        }
+
+        private string DbNumberToDbName(int c)
+        {
+            return $"{_dbPrefix.Value}{c.ToString("D8")}";
         }
 
         private IEnumerable<string> EmptyCurrentDeleteQueue()

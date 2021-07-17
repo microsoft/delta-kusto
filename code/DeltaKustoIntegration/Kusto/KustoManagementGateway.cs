@@ -338,15 +338,12 @@ namespace DeltaKustoIntegration.Kusto
 
             _tracer.WriteLine(true, "Does db exists start");
 
-            var dbCountOutput = await ExecuteCommandAsync(
-                $".show databases | where DatabaseName == \"{_database}\" | count",
-                ct);
+            var response = await ExecuteCommandResponseAsync(".show database datastats", ct);
 
             _tracer.WriteLine(true, "Does db exists commands end");
             tracerTimer.WriteTime(true, "Does db exists commands time");
 
-            var dbCount = dbCountOutput.GetSingleElement<int>();
-            var doesExists = dbCount != 0;
+            var doesExists = response.status == HttpStatusCode.OK;
 
             return doesExists;
         }
@@ -459,6 +456,35 @@ namespace DeltaKustoIntegration.Kusto
         {
             try
             {
+                var response = await ExecuteCommandResponseAsync(commandScript, ct);
+
+                if (response.status != HttpStatusCode.OK)
+                {
+                    throw new InvalidOperationException(
+                        $"'{commandScript}' command failed for cluster URI '{_clusterUri}' "
+                        + $"with status code '{response.status}' "
+                        + $"and payload '{response.payload}'");
+                }
+
+                var output = ApiOutput.FromJson(response.payload);
+
+                return output;
+            }
+            catch (Exception ex)
+            {
+                throw new DeltaException(
+                    $"Issue running Kusto script on cluster '{_clusterUri}' / "
+                    + $"database '{_database}'",
+                    ex);
+            }
+        }
+
+        private async Task<(HttpStatusCode status, string payload)> ExecuteCommandResponseAsync(
+            string commandScript,
+            CancellationToken ct)
+        {
+            try
+            {
                 ct = CancellationTokenHelper.MergeCancellationToken(ct, TIMEOUT);
 
                 var token = await _tokenProvider.GetTokenAsync(_clusterUri.ToString(), ct);
@@ -488,17 +514,7 @@ namespace DeltaKustoIntegration.Kusto
                     var responseText =
                         await response.Content.ReadAsStringAsync(ct);
 
-                    if (response.StatusCode != HttpStatusCode.OK)
-                    {
-                        throw new InvalidOperationException(
-                            $"'{body.csl}' command failed for cluster URI '{_clusterUri}' "
-                            + $"with status code '{response.StatusCode}' "
-                            + $"and payload '{responseText}'");
-                    }
-
-                    var output = ApiOutput.FromJson(responseText);
-
-                    return output;
+                    return (response.StatusCode, responseText);
                 }
             }
             catch (Exception ex)
