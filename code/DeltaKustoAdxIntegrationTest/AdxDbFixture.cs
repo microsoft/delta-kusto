@@ -101,10 +101,11 @@ namespace DeltaKustoAdxIntegrationTest
         private async Task CleanDbAsync()
         {
             var names = await _azureManagementGateway.Value.GetDatabaseNamesAsync();
-            var namesWithPrefix = names
-                .Where(n => n.StartsWith(_dbPrefix.Value));
+            var deleteTasks = names
+                .Where(n => n.StartsWith(_dbPrefix.Value))
+                .Select(n => _azureManagementGateway.Value.DeleteDatabaseAsync(n));
 
-            throw new NotImplementedException();
+            await Task.WhenAll(deleteTasks);
         }
     }
 }

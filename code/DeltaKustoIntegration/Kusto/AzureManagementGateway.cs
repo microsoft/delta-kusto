@@ -126,6 +126,36 @@ namespace DeltaKustoIntegration.Kusto
             }
         }
 
+        public async Task DeleteDatabaseAsync(string dbName, CancellationToken ct = default)
+        {
+            var tracerTimer = new TracerTimer(_tracer);
+
+            _tracer.WriteLine(true, "Delete Database start");
+            _tracer.WriteLine(true, $"Database name:  '{dbName}'");
+
+            using (var client = await CreateHttpClient(ct))
+            {
+                ct = CancellationTokenHelper.MergeCancellationToken(ct, TIMEOUT);
+
+                var apiUrl = $"https://management.azure.com{_clusterId}/databases/{dbName}?api-version=2021-01-01";
+                var response = await client.DeleteAsync(apiUrl, ct);
+
+                _tracer.WriteLine(true, "Database deleted");
+
+                var responseText =
+                    await response.Content.ReadAsStringAsync(ct);
+
+                if (response.StatusCode != HttpStatusCode.OK
+                    && response.StatusCode != HttpStatusCode.Accepted)
+                {
+                    throw new InvalidOperationException(
+                        $"Database '{dbName}' deletion failed on cluster ID {_clusterId} "
+                        + $"with status code '{response.StatusCode}' "
+                        + $"and payload '{responseText}'");
+                }
+            }
+        }
+
         private async Task<HttpClient> CreateHttpClient(CancellationToken ct)
         {
             try
