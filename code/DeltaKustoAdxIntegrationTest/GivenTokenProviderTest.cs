@@ -24,22 +24,22 @@ namespace DeltaKustoAdxIntegrationTest
         [Fact]
         public async Task TestGivenToken()
         {
-            var clusterUri = TargetDbOverrides
-                .Where(p => p.path == "jobs.main.target.adx.clusterUri")
-                .Select(p => p.value)
-                .First();
+            var targetDbName = AdxDbFixture.GetDbName();
             var loginTokenProvider = new LoginTokenProvider(
                 new ConsoleTracer(false),
                 HttpClientFactory,
                 TenantId,
                 ServicePrincipalId,
                 ServicePrincipalSecret) as ITokenProvider;
-            var token = await loginTokenProvider.GetTokenAsync(clusterUri);
-            var overrides = TargetDbOverrides
-                .Append(("tokenProvider.tokens.myToken.clusterUri", clusterUri))
-                .Append(("tokenProvider.tokens.myToken.token", token));
+            var token = await loginTokenProvider.GetTokenAsync(ClusterUri.ToString());
+            var overrides = ImmutableArray<(string path, string value)>
+                .Empty
+                .Add(("jobs.main.target.adx.clusterUri", ClusterUri.ToString()))
+                .Add(("jobs.main.target.adx.database", targetDbName))
+                .Add(("tokenProvider.tokens.myToken.clusterUri", ClusterUri.ToString()))
+                .Add(("tokenProvider.tokens.myToken.token", token));
 
-            await PrepareDbAsync("GivenTokenProvider/target.kql", false);
+            await PrepareDbAsync("GivenTokenProvider/target.kql", targetDbName);
             await RunParametersAsync("GivenTokenProvider/given-token.yaml", overrides);
 
             //  We just test that this doesn't fail

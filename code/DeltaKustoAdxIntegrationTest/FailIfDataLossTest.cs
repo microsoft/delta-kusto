@@ -22,10 +22,14 @@ namespace DeltaKustoAdxIntegrationTest
         public async Task TestFailIfDropsNoDrop()
         {
             var toFile = "FailIfDataLoss/target.kql";
+            var targetDbName = AdxDbFixture.GetDbName();
+            var overrides = ImmutableArray<(string path, string value)>
+                .Empty
+                .Add(("jobs.main.target.adx.clusterUri", ClusterUri.ToString()))
+                .Add(("jobs.main.target.adx.database", targetDbName));
 
-            await PrepareDbAsync(toFile, false);
-
-            await RunParametersAsync("FailIfDataLoss/no-fail.json", TargetDbOverrides);
+            await PrepareDbAsync(toFile, targetDbName);
+            await RunParametersAsync("FailIfDataLoss/no-fail.json", overrides);
 
             //  We just test that this doesn't fail
         }
@@ -34,11 +38,14 @@ namespace DeltaKustoAdxIntegrationTest
         public async Task TestFailIfDrops()
         {
             var toFile = "FailIfDataLoss/target.kql";
-
-            await PrepareDbAsync(toFile, false);
-
-            var overrides = TargetDbOverrides
+            var targetDbName = AdxDbFixture.GetDbName();
+            var overrides = ImmutableArray<(string path, string value)>
+                .Empty
+                .Add(("jobs.main.target.adx.clusterUri", ClusterUri.ToString()))
+                .Add(("jobs.main.target.adx.database", targetDbName))
                 .Append(("failIfDrops", "true"));
+
+            await PrepareDbAsync(toFile, targetDbName);
 
             try
             {

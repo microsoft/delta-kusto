@@ -3,6 +3,7 @@ using DeltaKustoIntegration.Kusto;
 using DeltaKustoIntegration.TokenProvider;
 using DeltaKustoLib;
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,13 +12,23 @@ namespace DeltaKustoAdxIntegrationTest
 {
     public class AdxDbFixture : IDisposable
     {
+        private const int AHEAD_PROVISIONING_COUNT = 2;
+
         private readonly Lazy<string> _dbPrefix;
         private readonly Lazy<AzureManagementGateway> _azureManagementGateway;
-        private readonly Lazy<Task> _cleanDbAsync;
-        private volatile int _dbCount;
+        private readonly Lazy<Task> _initializedAsync;
+        private readonly ManualResetEventSlim _newDbRequiredEvent = new ManualResetEventSlim(false);
+        private Task? _backgroundTask = null;
+        private volatile int _returnedDbCount = 0;
+        private volatile int _provisionedDbCount = 0;
+        private volatile Task _newDbAvailableTask = Task.CompletedTask;
+        private bool _isDisposing = false;
 
         public AdxDbFixture()
         {
+            //  Environment variables aren't available until another fixture is executed
+            //  To avoid conflict, we simply lazy load every thing so that loading environment
+            //  Variables is triggered by tests hence after all fixtures have run
             _dbPrefix = new Lazy<string>(
                 () =>
                 {
@@ -72,12 +83,25 @@ namespace DeltaKustoAdxIntegrationTest
                         httpClientFactory);
                 },
                 true);
-            _cleanDbAsync = new Lazy<Task>(() => CleanDbAsync(), true);
+            _initializedAsync = new Lazy<Task>(
+                async () =>
+                {
+                    await CleanDbAsync();
+                    //  Start provisioning
+                    _newDbRequiredEvent.Set();
+                },
+                true);
+            //  Forces the entire method to run on a different thread so not to lock this one
+            //  (and create a deadlock)
+            Task.Run(() =>
+            {
+                _backgroundTask = BackgroundAsync();
+            });
         }
 
         public string GetDbName()
         {
-            var dbCount = Interlocked.Increment(ref _dbCount);
+            var dbCount = Interlocked.Increment(ref _returnedDbCount);
             var name = $"{_dbPrefix.Value}{dbCount}";
 
             return name;
@@ -90,8 +114,23 @@ namespace DeltaKustoAdxIntegrationTest
                 throw new ArgumentException("Wrong prefix", nameof(dbName));
             }
 
-            await _cleanDbAsync.Value;
-            await _azureManagementGateway.Value.CreateDatabaseAsync(dbName);
+            var dbNumber = int.Parse(dbName.Substring(_dbPrefix.Value.Length));
+
+            await _initializedAsync.Value;
+
+            while (true)
+            {   //  Has our db number been provisioned yet?
+                if (_provisionedDbCount >= dbNumber)
+                {
+                    return;
+                }
+                else
+                {
+                    //  Signal background thread we need to create new dbs
+                    _newDbRequiredEvent.Set();
+                    await _newDbAvailableTask;
+                }
+            }
         }
 
         public async Task DeleteDbAsync(string dbName)
@@ -106,6 +145,12 @@ namespace DeltaKustoAdxIntegrationTest
 
         void IDisposable.Dispose()
         {
+            _isDisposing = true;
+            if (_backgroundTask != null)
+            {
+                _backgroundTask.Wait();
+            }
+            CleanDbAsync().Wait();
         }
 
         private async Task CleanDbAsync()
@@ -116,6 +161,38 @@ namespace DeltaKustoAdxIntegrationTest
                 .Select(n => _azureManagementGateway.Value.DeleteDatabaseAsync(n));
 
             await Task.WhenAll(deleteTasks);
+        }
+
+        private async Task BackgroundAsync()
+        {
+            var taskSource = new TaskCompletionSource();
+
+            _newDbAvailableTask = taskSource.Task;
+
+            while (!_isDisposing)
+            {
+                //  Wait first so that the first time we execute, the environment variables are loaded
+                _newDbRequiredEvent.Wait();
+
+                var provisioningCount =
+                    _returnedDbCount + AHEAD_PROVISIONING_COUNT - _provisionedDbCount;
+                var dbNames = Enumerable.Range(_provisionedDbCount + 1, provisioningCount)
+                    .Select(c => $"{_dbPrefix.Value}{c}")
+                    .ToImmutableArray();
+                var provisioningTasks = dbNames
+                    .Select(dbName => _azureManagementGateway.Value.CreateDatabaseAsync(dbName));
+
+                await Task.WhenAll(provisioningTasks);
+                _provisionedDbCount += provisioningCount;
+
+                //  Signal waiting consumer that new dbs are available
+                taskSource.SetResult();
+                //  Reset a new waiting task
+                taskSource = new TaskCompletionSource();
+                _newDbAvailableTask = taskSource.Task;
+                //  Prepare to wait
+                _newDbRequiredEvent.Reset();
+            }
         }
     }
 }

@@ -18,14 +18,8 @@ using Xunit;
 namespace DeltaKustoAdxIntegrationTest
 {
     public abstract class AdxIntegrationTestBase
-        : IntegrationTestBase,
-        IClassFixture<AdxDbFixture>,
-        IAsyncLifetime
+        : IntegrationTestBase, IClassFixture<AdxDbFixture>
     {
-        private readonly AdxDbFixture _adxDbFixture;
-        private readonly Uri _clusterUri;
-        private readonly string _currentDb;
-        private readonly string _targetDb;
         private readonly bool _overrideLoginTokenProvider;
 
         protected AdxIntegrationTestBase(
@@ -54,42 +48,18 @@ namespace DeltaKustoAdxIntegrationTest
                 throw new ArgumentNullException(nameof(servicePrincipalSecret));
             }
 
-            _adxDbFixture = adxDbFixture;
+            AdxDbFixture = adxDbFixture;
             _overrideLoginTokenProvider = overrideLoginTokenProvider;
-            _clusterUri = new Uri(clusterUri);
-            _currentDb = adxDbFixture.GetDbName();
-            _targetDb = adxDbFixture.GetDbName();
+            ClusterUri = new Uri(clusterUri);
             TenantId = tenantId;
             ServicePrincipalId = servicePrincipalId;
             ServicePrincipalSecret = servicePrincipalSecret;
-            CurrentDbOverrides = ImmutableArray<(string path, string value)>
-                .Empty
-                .Add(("jobs.main.current.adx.clusterUri", _clusterUri.ToString()))
-                .Add(("jobs.main.current.adx.database", _currentDb));
-            TargetDbOverrides = ImmutableArray<(string path, string value)>
-                .Empty
-                .Add(("jobs.main.target.adx.clusterUri", _clusterUri.ToString()))
-                .Add(("jobs.main.target.adx.database", _targetDb));
         }
 
-        async Task IAsyncLifetime.InitializeAsync()
-        {
-            await Task.WhenAll(
-                _adxDbFixture.InitializeDbAsync(_currentDb),
-                _adxDbFixture.InitializeDbAsync(_targetDb));
-        }
+        protected Uri ClusterUri { get; }
 
-        async Task IAsyncLifetime.DisposeAsync()
-        {
-            await Task.WhenAll(
-                _adxDbFixture.DeleteDbAsync(_currentDb),
-                _adxDbFixture.DeleteDbAsync(_targetDb));
-        }
-
-        protected IEnumerable<(string path, string value)> CurrentDbOverrides { get; }
-
-        protected IEnumerable<(string path, string value)> TargetDbOverrides { get; }
-
+        protected AdxDbFixture AdxDbFixture { get; }
+        
         protected string TenantId { get; }
 
         protected string ServicePrincipalId { get; }
@@ -102,16 +72,21 @@ namespace DeltaKustoAdxIntegrationTest
                 Path.Combine(statesFolderPath, "States"),
                 async (fromFile, toFile) =>
                 {
-                    await PrepareDbAsync(fromFile, true);
+                    var currentDbName = AdxDbFixture.GetDbName();
+
+                    await PrepareDbAsync(fromFile, currentDbName);
 
                     var outputPath = Path.Combine("outputs", statesFolderPath, "adx-to-file/")
                         + Path.GetFileNameWithoutExtension(fromFile)
                         + "_2_"
                         + Path.GetFileNameWithoutExtension(toFile)
                         + ".kql";
-                    var overrides = CurrentDbOverrides
-                        .Append(("jobs.main.target.scripts[0].filePath", toFile))
-                        .Append(("jobs.main.action.filePath", outputPath));
+                    var overrides = ImmutableArray<(string path, string value)>
+                    .Empty
+                    .Add(("jobs.main.current.adx.clusterUri", ClusterUri.ToString()))
+                    .Add(("jobs.main.current.adx.database", currentDbName))
+                    .Add(("jobs.main.target.scripts[0].filePath", toFile))
+                    .Add(("jobs.main.action.filePath", outputPath));
                     var parameters = await RunParametersAsync(
                         "adx-to-file-params.json",
                         overrides);
@@ -119,9 +94,9 @@ namespace DeltaKustoAdxIntegrationTest
                     var targetCommands = CommandBase.FromScript(
                         await File.ReadAllTextAsync(toFile));
 
-                    await ApplyCommandsAsync(outputCommands, true);
+                    await ApplyCommandsAsync(outputCommands, currentDbName);
 
-                    var finalCommands = await FetchDbCommandsAsync(true);
+                    var finalCommands = await FetchDbCommandsAsync(currentDbName);
                     var targetModel = DatabaseModel.FromCommands(targetCommands);
                     var finalModel = DatabaseModel.FromCommands(finalCommands);
                     var finalScript = string.Join(";\n\n", finalCommands.Select(c => c.ToScript()));
@@ -139,14 +114,20 @@ namespace DeltaKustoAdxIntegrationTest
                 Path.Combine(statesFolderPath, "States"),
                 async (fromFile, toFile) =>
                 {
-                    await PrepareDbAsync(toFile, false);
+                    var testDbName = AdxDbFixture.GetDbName();
+                    var targetDbName = AdxDbFixture.GetDbName();
+
+                    await PrepareDbAsync(toFile, targetDbName);
 
                     var outputPath = Path.Combine("outputs", statesFolderPath, "file-to-adx/")
                         + Path.GetFileNameWithoutExtension(fromFile)
                         + "_2_"
                         + Path.GetFileNameWithoutExtension(toFile)
                         + ".kql";
-                    var overrides = TargetDbOverrides
+                    var overrides = ImmutableArray<(string path, string value)>
+                        .Empty
+                        .Add(("jobs.main.target.adx.clusterUri", ClusterUri.ToString()))
+                        .Add(("jobs.main.target.adx.database", targetDbName))
                         .Append(("jobs.main.current.scripts[0].filePath", fromFile))
                         .Append(("jobs.main.action.filePath", outputPath));
                     var parameters = await RunParametersAsync(
@@ -158,11 +139,9 @@ namespace DeltaKustoAdxIntegrationTest
                     var targetCommands = CommandBase.FromScript(
                         await File.ReadAllTextAsync(toFile));
 
-                    await ApplyCommandsAsync(
-                        currentCommands.Concat(outputCommands),
-                        true);
+                    await ApplyCommandsAsync(currentCommands.Concat(outputCommands), testDbName);
 
-                    var finalCommands = await FetchDbCommandsAsync(true);
+                    var finalCommands = await FetchDbCommandsAsync(testDbName);
                     var targetModel = DatabaseModel.FromCommands(targetCommands);
                     var finalModel = DatabaseModel.FromCommands(finalCommands);
                     var finalScript = string.Join(";\n\n", finalCommands.Select(c => c.ToScript()));
@@ -180,24 +159,30 @@ namespace DeltaKustoAdxIntegrationTest
                 Path.Combine(statesFolderPath, "States"),
                 async (fromFile, toFile) =>
                 {
+                    var currentDbName = AdxDbFixture.GetDbName();
+                    var targetDbName = AdxDbFixture.GetDbName();
+
                     await Task.WhenAll(
-                        PrepareDbAsync(fromFile, true),
-                        PrepareDbAsync(toFile, false));
+                        PrepareDbAsync(fromFile, currentDbName),
+                        PrepareDbAsync(toFile, targetDbName));
 
                     var outputPath = Path.Combine("outputs", statesFolderPath, "adx-to-adx/")
                         + Path.GetFileNameWithoutExtension(fromFile)
                         + "_2_"
                         + Path.GetFileNameWithoutExtension(toFile)
                         + ".kql";
-                    var overrides = CurrentDbOverrides
-                        .Concat(TargetDbOverrides)
-                        .Append(("jobs.main.action.filePath", outputPath));
+                    var overrides = ImmutableArray<(string path, string value)>
+                    .Empty
+                    .Add(("jobs.main.current.adx.clusterUri", ClusterUri.ToString()))
+                    .Add(("jobs.main.current.adx.database", currentDbName))
+                    .Add(("jobs.main.target.adx.database", targetDbName))
+                    .Add(("jobs.main.action.filePath", outputPath));
                     var parameters = await RunParametersAsync(
                         "adx-to-adx-params.json",
                         overrides);
                     var targetCommands = CommandBase.FromScript(
                         await File.ReadAllTextAsync(toFile));
-                    var finalCommands = await FetchDbCommandsAsync(false);
+                    var finalCommands = await FetchDbCommandsAsync(currentDbName);
                     var targetModel = DatabaseModel.FromCommands(targetCommands);
                     var finalModel = DatabaseModel.FromCommands(finalCommands);
                     var finalScript = string.Join(";\n\n", finalCommands.Select(c => c.ToScript()));
@@ -229,17 +214,17 @@ namespace DeltaKustoAdxIntegrationTest
 
         private async Task ApplyCommandsAsync(
             IEnumerable<CommandBase> commands,
-            bool isCurrent)
+            string dbName)
         {
-            var gateway = CreateKustoManagementGateway(isCurrent);
+            var gateway = CreateKustoManagementGateway(dbName);
 
             //  Apply commands to the db
             await gateway.ExecuteCommandsAsync(commands);
         }
 
-        private async Task<IImmutableList<CommandBase>> FetchDbCommandsAsync(bool isCurrent)
+        private async Task<IImmutableList<CommandBase>> FetchDbCommandsAsync(string dbName)
         {
-            var gateway = CreateKustoManagementGateway(isCurrent);
+            var gateway = CreateKustoManagementGateway(dbName);
             var dbProvider = (IDatabaseProvider)new KustoDatabaseProvider(
                 new ConsoleTracer(false),
                 gateway);
@@ -271,34 +256,32 @@ namespace DeltaKustoAdxIntegrationTest
             return base.RunParametersAsync(parameterFilePath, adjustedOverrides);
         }
 
-        protected async Task PrepareDbAsync(
-            string scriptPath,
-            bool isCurrent)
+        protected async Task PrepareDbAsync(string scriptPath, string dbName)
         {
             var script = await File.ReadAllTextAsync(scriptPath);
 
             try
             {
                 var commands = CommandBase.FromScript(script);
-                var gateway = CreateKustoManagementGateway(isCurrent);
+                var gateway = CreateKustoManagementGateway(dbName);
 
                 await gateway.ExecuteCommandsAsync(commands);
             }
             catch (Exception ex)
             {
                 throw new InvalidOperationException(
-                    $"Failure during PrepareDb.  isCurrent={isCurrent}.  "
+                    $"Failure during PrepareDb.  dbName='{dbName}'.  "
                     + $"Script path = '{scriptPath}'.  "
                     + $"Script = '{script.Replace("\n", "\\n").Replace("\r", "\\r")}'",
                     ex);
             }
         }
 
-        private IKustoManagementGateway CreateKustoManagementGateway(bool isCurrent)
+        private IKustoManagementGateway CreateKustoManagementGateway(string dbName)
         {
             var gateway = GatewayFactory.CreateGateway(
-                _clusterUri,
-                isCurrent ? _currentDb : _targetDb,
+                ClusterUri,
+                dbName,
                 CreateTokenProvider());
 
             return gateway;
@@ -318,20 +301,6 @@ namespace DeltaKustoAdxIntegrationTest
                 });
 
             return tokenProvider!;
-        }
-
-        private async Task CleanDbAsync(bool isCurrent)
-        {
-            var emptyDbProvider = (IDatabaseProvider)new EmptyDatabaseProvider();
-            var kustoGateway = CreateKustoManagementGateway(isCurrent);
-            var dbProvider = (IDatabaseProvider)new KustoDatabaseProvider(
-                new ConsoleTracer(false),
-                kustoGateway);
-            var emptyDb = await emptyDbProvider.RetrieveDatabaseAsync();
-            var db = await dbProvider.RetrieveDatabaseAsync();
-            var currentDeltaCommands = db.ComputeDelta(emptyDb);
-
-            await kustoGateway.ExecuteCommandsAsync(currentDeltaCommands);
         }
     }
 }
