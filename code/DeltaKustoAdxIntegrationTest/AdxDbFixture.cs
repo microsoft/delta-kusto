@@ -14,16 +14,15 @@ namespace DeltaKustoAdxIntegrationTest
 {
     public class AdxDbFixture : IDisposable
     {
-        private const int AHEAD_PROVISIONING_COUNT = 20;
+        private const int AHEAD_PROVISIONING_COUNT = 10;
 
         private readonly Lazy<string> _dbPrefix;
         private readonly Lazy<AzureManagementGateway> _azureManagementGateway;
         private readonly Lazy<Task> _initializedAsync;
+        private readonly ConcurrentQueue<string> _createdQueue = new ConcurrentQueue<string>();
         private readonly ConcurrentQueue<string> _deleteQueue = new ConcurrentQueue<string>();
         private readonly ManualResetEventSlim _newDbRequiredEvent = new ManualResetEventSlim(false);
         private Task? _backgroundTask = null;
-        private volatile int _returnedDbCount = 0;
-        private volatile int _provisionedDbCount = 0;
         private volatile Task _newDbAvailableTask = Task.CompletedTask;
         private bool _isDisposing = false;
 
@@ -104,17 +103,19 @@ namespace DeltaKustoAdxIntegrationTest
 
         public async Task<string> InitializeDbAsync()
         {
-            var dbNumber = Interlocked.Increment(ref _returnedDbCount);
-
             await _initializedAsync.Value;
 
+            if (_createdQueue.Count() < AHEAD_PROVISIONING_COUNT / 2)
+            {   //  Preventive provisioning
+                _newDbRequiredEvent.Set();
+            }
             while (true)
-            {   //  Has our db number been provisioned yet?
-                if (_provisionedDbCount >= dbNumber)
-                {
-                    var dbName = DbNumberToDbName(dbNumber);
+            {   //  Is a db number been provisioned yet?
+                string? dbName;
 
-                    return dbName;
+                if (_createdQueue.TryDequeue(out dbName))
+                {
+                    return dbName!;
                 }
                 else
                 {
@@ -158,6 +159,7 @@ namespace DeltaKustoAdxIntegrationTest
         private async Task BackgroundAsync()
         {
             var taskSource = new TaskCompletionSource();
+            var provisionedDbCount = 0;
 
             _newDbAvailableTask = taskSource.Task;
 
@@ -166,9 +168,8 @@ namespace DeltaKustoAdxIntegrationTest
                 //  Wait first so that the first time we execute, the environment variables are loaded
                 _newDbRequiredEvent.Wait();
 
-                var provisioningCount =
-                    _returnedDbCount + AHEAD_PROVISIONING_COUNT - _provisionedDbCount;
-                var dbNames = Enumerable.Range(_provisionedDbCount + 1, provisioningCount)
+                var provisioningCount = AHEAD_PROVISIONING_COUNT - _createdQueue.Count();
+                var dbNames = Enumerable.Range(provisionedDbCount + 1, provisioningCount)
                     .Select(c => DbNumberToDbName(c))
                     .ToImmutableHashSet();
                 var provisioningTasks = dbNames
@@ -183,8 +184,13 @@ namespace DeltaKustoAdxIntegrationTest
 
                 await Task.WhenAll(deleteTasks);
 
+                //  Enqueue the new db names
+                foreach (var dbName in dbNames)
+                {
+                    _createdQueue.Enqueue(dbName);
+                }
+                provisionedDbCount += dbNames.Count;
                 //  Signal waiting consumer that new dbs are available
-                _provisionedDbCount += provisioningCount;
                 taskSource.SetResult();
                 //  Reset a new waiting task
                 taskSource = new TaskCompletionSource();

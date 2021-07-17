@@ -119,6 +119,7 @@ namespace DeltaKustoAdxIntegrationTest
                     Assert.True(
                         finalModel.Equals(targetModel),
                         $"From {fromFile} to {toFile}:\n\n{finalScript}\nvs\n\n{targetScript}");
+                    AdxDbFixture.EnqueueDeleteDb(currentDbName);
                 });
         }
 
@@ -164,6 +165,8 @@ namespace DeltaKustoAdxIntegrationTest
                     Assert.True(
                         finalModel.Equals(targetModel),
                         $"From {fromFile} to {toFile}:\n\n{finalScript}\nvs\n\n{targetScript}");
+                    AdxDbFixture.EnqueueDeleteDb(targetDbName);
+                    AdxDbFixture.EnqueueDeleteDb(testDbName);
                 });
         }
 
@@ -206,6 +209,8 @@ namespace DeltaKustoAdxIntegrationTest
                     Assert.True(
                         targetModel.Equals(finalModel),
                         $"From {fromFile} to {toFile}:\n\n{finalScript}\nvs\n\n{targetScript}");
+                    AdxDbFixture.EnqueueDeleteDb(currentDbName);
+                    AdxDbFixture.EnqueueDeleteDb(targetDbName);
                 });
         }
 
