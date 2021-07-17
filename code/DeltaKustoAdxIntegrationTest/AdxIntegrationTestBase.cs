@@ -59,7 +59,7 @@ namespace DeltaKustoAdxIntegrationTest
         protected Uri ClusterUri { get; }
 
         protected AdxDbFixture AdxDbFixture { get; }
-        
+
         protected string TenantId { get; }
 
         protected string ServicePrincipalId { get; }
@@ -72,7 +72,7 @@ namespace DeltaKustoAdxIntegrationTest
                 Path.Combine(statesFolderPath, "States"),
                 async (fromFile, toFile) =>
                 {
-                    var currentDbName = AdxDbFixture.GetDbName();
+                    var currentDbName = await AdxDbFixture.InitializeDbAsync();
 
                     await PrepareDbAsync(fromFile, currentDbName);
 
@@ -114,8 +114,8 @@ namespace DeltaKustoAdxIntegrationTest
                 Path.Combine(statesFolderPath, "States"),
                 async (fromFile, toFile) =>
                 {
-                    var testDbName = AdxDbFixture.GetDbName();
-                    var targetDbName = AdxDbFixture.GetDbName();
+                    var testDbName = await AdxDbFixture.InitializeDbAsync();
+                    var targetDbName = await AdxDbFixture.InitializeDbAsync();
 
                     await PrepareDbAsync(toFile, targetDbName);
 
@@ -159,8 +159,8 @@ namespace DeltaKustoAdxIntegrationTest
                 Path.Combine(statesFolderPath, "States"),
                 async (fromFile, toFile) =>
                 {
-                    var currentDbName = AdxDbFixture.GetDbName();
-                    var targetDbName = AdxDbFixture.GetDbName();
+                    var currentDbName = await AdxDbFixture.InitializeDbAsync();
+                    var targetDbName = await AdxDbFixture.InitializeDbAsync();
 
                     await Task.WhenAll(
                         PrepareDbAsync(fromFile, currentDbName),

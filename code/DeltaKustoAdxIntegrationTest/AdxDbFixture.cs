@@ -99,22 +99,10 @@ namespace DeltaKustoAdxIntegrationTest
             });
         }
 
-        public string GetDbName()
+        public async Task<string> InitializeDbAsync()
         {
-            var dbCount = Interlocked.Increment(ref _returnedDbCount);
-            var name = $"{_dbPrefix.Value}{dbCount}";
-
-            return name;
-        }
-
-        public async Task InitializeDbAsync(string dbName)
-        {
-            if (!dbName.StartsWith(_dbPrefix.Value))
-            {
-                throw new ArgumentException("Wrong prefix", nameof(dbName));
-            }
-
-            var dbNumber = int.Parse(dbName.Substring(_dbPrefix.Value.Length));
+            var dbNumber = Interlocked.Increment(ref _returnedDbCount);
+            var dbName = $"{_dbPrefix.Value}{dbNumber}";
 
             await _initializedAsync.Value;
 
@@ -122,7 +110,7 @@ namespace DeltaKustoAdxIntegrationTest
             {   //  Has our db number been provisioned yet?
                 if (_provisionedDbCount >= dbNumber)
                 {
-                    return;
+                    return dbName;
                 }
                 else
                 {

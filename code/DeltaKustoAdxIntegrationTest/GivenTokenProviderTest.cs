@@ -24,7 +24,7 @@ namespace DeltaKustoAdxIntegrationTest
         [Fact]
         public async Task TestGivenToken()
         {
-            var targetDbName = AdxDbFixture.GetDbName();
+            var targetDbName = await AdxDbFixture.InitializeDbAsync();
             var loginTokenProvider = new LoginTokenProvider(
                 new ConsoleTracer(false),
                 HttpClientFactory,
