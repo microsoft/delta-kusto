@@ -34,7 +34,7 @@ namespace DeltaKustoAdxIntegrationTest
                 TenantId,
                 ServicePrincipalId,
                 ServicePrincipalSecret) as ITokenProvider;
-            var token = await loginTokenProvider.GetTokenAsync(new Uri(clusterUri));
+            var token = await loginTokenProvider.GetTokenAsync(clusterUri);
             var overrides = TargetDbOverrides
                 .Append(("tokenProvider.tokens.myToken.clusterUri", clusterUri))
                 .Append(("tokenProvider.tokens.myToken.token", token));

@@ -8,6 +8,6 @@ namespace DeltaKustoIntegration.TokenProvider
 {
     public interface ITokenProvider
     {
-        Task<string> GetTokenAsync(Uri clusterUri, CancellationToken ct = default);
+        Task<string> GetTokenAsync(string resource, CancellationToken ct = default);
     }
 }

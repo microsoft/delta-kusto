@@ -39,10 +39,10 @@ namespace DeltaKustoIntegration.TokenProvider
         }
 
         async Task<string> ITokenProvider.GetTokenAsync(
-            Uri clusterUri,
+            string resource,
             CancellationToken ct)
         {
-            var cacheKey = clusterUri.ToString();
+            var cacheKey = resource.ToString();
 
             if (_tokenCache.ContainsKey(cacheKey))
             {
@@ -56,7 +56,7 @@ namespace DeltaKustoIntegration.TokenProvider
                 {
                     _tracer.WriteLine(true, "No token cached");
 
-                    var token = await RetrieveTokenAsync(clusterUri, ct);
+                    var token = await RetrieveTokenAsync(resource, ct);
 
                     _tokenCache[cacheKey] = token;
 
@@ -69,7 +69,7 @@ namespace DeltaKustoIntegration.TokenProvider
             }
         }
 
-        private async Task<string> RetrieveTokenAsync(Uri clusterUri, CancellationToken ct)
+        private async Task<string> RetrieveTokenAsync(string resource, CancellationToken ct)
         {
             ct = CancellationTokenHelper.MergeCancellationToken(ct, TIMEOUT);
             _tracer.WriteLine(true, "LoginTokenProvider.RetrieveTokenAsync start");
@@ -85,7 +85,7 @@ namespace DeltaKustoIntegration.TokenProvider
                     new FormUrlEncodedContent(new[] {
                         new KeyValuePair<string?, string?>("client_id", _clientId),
                         new KeyValuePair<string?, string?>("client_secret", _secret),
-                        new KeyValuePair<string?, string?>("resource", clusterUri.ToString()),
+                        new KeyValuePair<string?, string?>("resource", resource),
                         new KeyValuePair<string?, string?>("grant_type", "client_credentials")
                     }),
                     ct);
@@ -98,7 +98,7 @@ namespace DeltaKustoIntegration.TokenProvider
                 if (response.StatusCode != HttpStatusCode.OK)
                 {
                     throw new DeltaException(
-                        $"Authentication failed for cluster URI '{clusterUri}' "
+                        $"Authentication failed for cluster URI '{resource}' "
                         + $"with status code '{response.StatusCode}' "
                         + $"and payload {responseText}");
                 }

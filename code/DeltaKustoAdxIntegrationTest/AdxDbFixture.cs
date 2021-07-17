@@ -1,3 +1,7 @@
+using DeltaKustoIntegration;
+using DeltaKustoIntegration.Kusto;
+using DeltaKustoIntegration.TokenProvider;
+using DeltaKustoLib;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,6 +11,7 @@ namespace DeltaKustoAdxIntegrationTest
     public class AdxDbFixture : IDisposable
     {
         private readonly Lazy<string> _dbPrefix;
+        private readonly Lazy<AzureManagementGateway> _azureManagementGateway;
         private volatile int _dbCount;
 
         public AdxDbFixture()
@@ -24,6 +29,47 @@ namespace DeltaKustoAdxIntegrationTest
                     return dbPrefix;
                 },
                 true);
+            _azureManagementGateway = new Lazy<AzureManagementGateway>(
+                () =>
+                {
+                    var clusterId = Environment.GetEnvironmentVariable("deltaKustoClusterId");
+                    var tenantId = Environment.GetEnvironmentVariable("deltaKustoTenantId");
+                    var servicePrincipalId = Environment.GetEnvironmentVariable("deltaKustoSpId");
+                    var servicePrincipalSecret = Environment.GetEnvironmentVariable("deltaKustoSpSecret");
+
+                    if (string.IsNullOrWhiteSpace(tenantId))
+                    {
+                        throw new ArgumentNullException(nameof(tenantId));
+                    }
+                    if (string.IsNullOrWhiteSpace(servicePrincipalId))
+                    {
+                        throw new ArgumentNullException(nameof(servicePrincipalId));
+                    }
+                    if (string.IsNullOrWhiteSpace(servicePrincipalSecret))
+                    {
+                        throw new ArgumentNullException(nameof(servicePrincipalSecret));
+                    }
+                    if (string.IsNullOrWhiteSpace(clusterId))
+                    {
+                        throw new ArgumentNullException(nameof(clusterId));
+                    }
+
+                    var tracer = new ConsoleTracer(false);
+                    var httpClientFactory = new SimpleHttpClientFactory(tracer);
+                    var tokenProvider = new LoginTokenProvider(
+                        tracer,
+                        httpClientFactory,
+                        tenantId,
+                        servicePrincipalId,
+                        servicePrincipalSecret);
+
+                    return new AzureManagementGateway(
+                        clusterId,
+                        tokenProvider,
+                        tracer,
+                        httpClientFactory);
+                },
+                true);
         }
 
         public string GetDbName()
@@ -34,14 +80,14 @@ namespace DeltaKustoAdxIntegrationTest
             return name;
         }
 
-        public /*async*/ Task InitializeDbAsync(string dbName)
+        public async Task InitializeDbAsync(string dbName)
         {
             if (!dbName.StartsWith(_dbPrefix.Value))
             {
                 throw new ArgumentException("Wrong prefix", nameof(dbName));
             }
 
-            return Task.CompletedTask;
+            await _azureManagementGateway.Value.CreateDatabaseAsync(dbName);
         }
 
         void IDisposable.Dispose()

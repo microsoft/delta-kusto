@@ -15,9 +15,9 @@ using System.Threading.Tasks;
 namespace DeltaKustoIntegration.Kusto
 {
     /// <summary>
-    /// Basically wraps REST APIs <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/api/rest/"/>.
+    /// Basically wraps REST APIs <see cref="https://docs.microsoft.com/en-us/rest/api/azurerekusto/databases"/>.
     /// </summary>
-    internal class KustoManagementGateway : IKustoManagementGateway
+    internal class AzureManagementGateway
     {
         #region Inner Types
         private class ApiOutput
@@ -312,182 +312,71 @@ namespace DeltaKustoIntegration.Kusto
 
         private static readonly TimeSpan TIMEOUT = TimeSpan.FromSeconds(10);
 
-        private readonly Uri _clusterUri;
-        private readonly string _database;
+        private readonly string _clusterId;
         private readonly ITokenProvider _tokenProvider;
         private readonly ITracer _tracer;
         private readonly SimpleHttpClientFactory _httpClientFactory;
 
-        public KustoManagementGateway(
-            Uri clusterUri,
-            string database,
+        public AzureManagementGateway(
+            string clusterId,
             ITokenProvider tokenProvider,
             ITracer tracer,
             SimpleHttpClientFactory httpClientFactory)
         {
-            _clusterUri = clusterUri;
-            _database = database;
+            _clusterId = clusterId;
             _tokenProvider = tokenProvider;
             _tracer = tracer;
             _httpClientFactory = httpClientFactory;
         }
 
-        async Task<IImmutableList<CommandBase>> IKustoManagementGateway.ReverseEngineerDatabaseAsync(
-            CancellationToken ct)
+        public async Task CreateDatabaseAsync(string dbName, CancellationToken ct = default)
         {
             var tracerTimer = new TracerTimer(_tracer);
 
-            _tracer.WriteLine(true, "Fetch schema commands start");
+            _tracer.WriteLine(true, "Create Database start");
+            _tracer.WriteLine(true, $"Database name:  '{dbName}'");
 
-            var schemaOutputTask = ExecuteCommandAsync(".show database schema as csl script", ct);
-            var mappingsOutputTask = ExecuteCommandAsync(
-                ".show ingestion mappings | where Database==current_database()",
-                ct);
-            var schemaOutput = await schemaOutputTask;
-            var mappingsOutput = await mappingsOutputTask;
-
-            _tracer.WriteLine(true, "Fetch schema commands end");
-            tracerTimer.WriteTime(true, "Fetch schema commands time");
-
-            var schemaCommandText =
-                schemaOutput.GetFirstTable().ProjectRows<string>("DatabaseSchemaScript");
-            var schemaCommands = CommandBase.FromScript(string.Join("\n\n", schemaCommandText), true);
-            var mappingCommands = ExtractMappingCommands(mappingsOutput.GetFirstTable());
-            var allCommands = schemaCommands
-                .Concat(mappingCommands)
-                .ToImmutableArray();
-
-            return allCommands;
-        }
-
-        async Task IKustoManagementGateway.ExecuteCommandsAsync(
-            IEnumerable<CommandBase> commands,
-            CancellationToken ct)
-        {
-            if (commands.Any())
+            using(var client = await CreateHttpClient(ct))
             {
-                _tracer.WriteLine(true, ".execute database script commands start");
+                ct = CancellationTokenHelper.MergeCancellationToken(ct, TIMEOUT);
 
-                var tracerTimer = new TracerTimer(_tracer);
-                var scriptingContext = new ScriptingContext
+                var apiUrl = $"https://management.azure.com{_clusterId}/databases/{dbName}?api-version=2021-01-01";
+                var response = await client.PutAsync(
+                    apiUrl,
+                    new StringContent("{\"kind\":\"ReadWrite\", \"location\":\"East US\"}", null, "application/json"),
+                    ct);
+
+                _tracer.WriteLine(true, "Database created");
+
+                var responseText =
+                    await response.Content.ReadAsStringAsync(ct);
+
+                if (response.StatusCode != HttpStatusCode.Created)
                 {
-                    CurrentDatabaseName = new EntityName(_database)
-                };
-                var commandScripts = commands.Select(c => c.ToScript(scriptingContext));
-                var fullScript = ".execute database script with (ThrowOnErrors=true) <|"
-                    + Environment.NewLine
-                    + string.Join(Environment.NewLine + Environment.NewLine, commandScripts);
-                var output = await ExecuteCommandAsync(fullScript, ct);
-
-                _tracer.WriteLine(true, ".execute database script commands end");
-                tracerTimer.WriteTime(true, ".execute database script commands time");
-
-                var content = output.Tables![0].ProjectRows<string, string, string, Guid>(
-                    "Result",
-                    "Reason",
-                    "CommandText",
-                    "OperationId")
-                    .Select(t => (result: t.Item1, reason: t.Item2, commandText: t.Item3, operationId: t.Item4));
-                var failedItems = content.Where(t => t.result != "Completed");
-
-                if (failedItems.Any())
-                {
-                    var failedItem = failedItems.First();
-                    var failedItemCommand = PackageString(failedItem.commandText);
-                    var allCommands = string.Join(
-                        ", ",
-                        content.Select(i => $"({i.result}:  '{PackageString(i.commandText)}')"));
-
                     throw new InvalidOperationException(
-                        $"Command failed to execute with reason '{failedItem.reason}'.  "
-                        + $"Operation ID:  {failedItem.operationId}.  "
-                        + $"Cluster URI:  {_clusterUri}.  "
-                        + $"Database:  {_database}.  "
-                        + $"Command:  '{failedItemCommand}'.  "
-                        + $"All commands:  {allCommands}");
+                        $"Database '{dbName}' creation failed on cluster ID {_clusterId} "
+                        + $"with status code '{response.StatusCode}' "
+                        + $"and payload '{responseText}'");
                 }
             }
         }
 
-        private static string PackageString(string text)
-        {
-            return text.Replace("\n", "\\n").Replace("\r", "\\r");
-        }
-
-        private IImmutableList<CommandBase> ExtractMappingCommands(TableOutput mappingTable)
-        {
-            IEnumerable<(string name, string kind, string mapping, string table)> mappingRows =
-                mappingTable.ProjectRows<string, string, string, string>(
-                    "Name",
-                    "Kind",
-                    "Mapping",
-                    "Table");
-            var commands = mappingRows
-                .Select(t => new CreateMappingCommand(
-                    new EntityName(t.table),
-                    t.kind,
-                    new QuotedText(t.name),
-                    new QuotedText(t.mapping)))
-                .Cast<CommandBase>()
-                .ToImmutableArray();
-
-            return commands;
-        }
-
-        private async Task<ApiOutput> ExecuteCommandAsync(
-            string commandScript,
-            CancellationToken ct)
+        private async Task<HttpClient> CreateHttpClient(CancellationToken ct)
         {
             try
             {
                 ct = CancellationTokenHelper.MergeCancellationToken(ct, TIMEOUT);
 
-                var token = await _tokenProvider.GetTokenAsync(_clusterUri.ToString(), ct);
+                var token = await _tokenProvider.GetTokenAsync("https://management.azure.com", ct);
+                var client = _httpClientFactory.CreateHttpClient();
 
-                //  Reset the timeout for the second API call
-                ct = CancellationTokenHelper.MergeCancellationToken(ct, TIMEOUT);
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-                //  Implementation of https://docs.microsoft.com/en-us/azure/data-explorer/kusto/api/rest/request#examples
-                using (var client = _httpClientFactory.CreateHttpClient())
-                {
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-                    var managementUrl = $"{_clusterUri}/v1/rest/mgmt";
-                    var body = new
-                    {
-                        db = _database,
-                        csl = commandScript
-                    };
-                    var bodyText = JsonSerializer.Serialize(body);
-                    var response = await client.PostAsync(
-                        managementUrl,
-                        new StringContent(bodyText, null, "application/json"),
-                        ct);
-
-                    _tracer.WriteLine(true, "KustoManagementGateway.ExecuteCommandAsync retrieve payload");
-
-                    var responseText =
-                        await response.Content.ReadAsStringAsync(ct);
-
-                    if (response.StatusCode != HttpStatusCode.OK)
-                    {
-                        throw new InvalidOperationException(
-                            $"'{body.csl}' command failed for cluster URI '{_clusterUri}' "
-                            + $"with status code '{response.StatusCode}' "
-                            + $"and payload '{responseText}'");
-                    }
-
-                    var output = ApiOutput.FromJson(responseText);
-
-                    return output;
-                }
+                return client;
             }
             catch (Exception ex)
             {
-                throw new DeltaException(
-                    $"Issue running Kusto script on cluster '{_clusterUri}' / "
-                    + $"database '{_database}'",
-                    ex);
+                throw new DeltaException($"Issue preparing connection to Azure Management", ex);
             }
         }
     }
