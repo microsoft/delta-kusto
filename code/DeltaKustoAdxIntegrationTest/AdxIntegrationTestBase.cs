@@ -68,7 +68,7 @@ namespace DeltaKustoAdxIntegrationTest
 
         protected async Task<string> InitializeDbAsync()
         {
-            var dbName = await AdxDbFixture.InitializeDbAsync();
+            var dbName = await AdxDbFixture.GetCleanDbAsync();
             var gateway = CreateKustoManagementGateway(dbName);
 
             //  Ensures the database creation has propagated to Kusto
@@ -119,7 +119,7 @@ namespace DeltaKustoAdxIntegrationTest
                     Assert.True(
                         finalModel.Equals(targetModel),
                         $"From {fromFile} to {toFile}:\n\n{finalScript}\nvs\n\n{targetScript}");
-                    AdxDbFixture.EnqueueDeleteDb(currentDbName);
+                    AdxDbFixture.ReleaseDb(currentDbName);
                 });
         }
 
@@ -165,8 +165,8 @@ namespace DeltaKustoAdxIntegrationTest
                     Assert.True(
                         finalModel.Equals(targetModel),
                         $"From {fromFile} to {toFile}:\n\n{finalScript}\nvs\n\n{targetScript}");
-                    AdxDbFixture.EnqueueDeleteDb(targetDbName);
-                    AdxDbFixture.EnqueueDeleteDb(testDbName);
+                    AdxDbFixture.ReleaseDb(targetDbName);
+                    AdxDbFixture.ReleaseDb(testDbName);
                 });
         }
 
@@ -209,8 +209,8 @@ namespace DeltaKustoAdxIntegrationTest
                     Assert.True(
                         targetModel.Equals(finalModel),
                         $"From {fromFile} to {toFile}:\n\n{finalScript}\nvs\n\n{targetScript}");
-                    AdxDbFixture.EnqueueDeleteDb(currentDbName);
-                    AdxDbFixture.EnqueueDeleteDb(targetDbName);
+                    AdxDbFixture.ReleaseDb(currentDbName);
+                    AdxDbFixture.ReleaseDb(targetDbName);
                 });
         }
 

@@ -2,6 +2,8 @@ using DeltaKustoIntegration;
 using DeltaKustoIntegration.Kusto;
 using DeltaKustoIntegration.TokenProvider;
 using DeltaKustoLib;
+using DeltaKustoLib.CommandModel;
+using DeltaKustoLib.KustoModel;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -17,14 +19,11 @@ namespace DeltaKustoAdxIntegrationTest
         private const int AHEAD_PROVISIONING_COUNT = 20;
 
         private readonly Lazy<string> _dbPrefix;
+        private readonly Lazy<Func<string, IKustoManagementGateway>> _kustoManagementGatewayFactory;
         private readonly Lazy<AzureManagementGateway> _azureManagementGateway;
         private readonly Lazy<Task> _initializedAsync;
-        private readonly ConcurrentQueue<string> _createdQueue = new ConcurrentQueue<string>();
-        private readonly ConcurrentQueue<string> _deleteQueue = new ConcurrentQueue<string>();
-        private readonly ManualResetEventSlim _newDbRequiredEvent = new ManualResetEventSlim(false);
-        private Task? _backgroundTask = null;
-        private volatile Task _newDbAvailableTask = Task.CompletedTask;
-        private bool _isDisposing = false;
+        private readonly ConcurrentStack<string> _existingDbs = new ConcurrentStack<string>();
+        private volatile int _dbCount = 0;
 
         public AdxDbFixture()
         {
@@ -42,6 +41,52 @@ namespace DeltaKustoAdxIntegrationTest
                     }
 
                     return dbPrefix;
+                },
+                true);
+            _kustoManagementGatewayFactory = new Lazy<Func<string, IKustoManagementGateway>>(
+                () =>
+                {
+                    var clusterUri = Environment.GetEnvironmentVariable("deltaKustoClusterUri");
+                    var tenantId = Environment.GetEnvironmentVariable("deltaKustoTenantId");
+                    var servicePrincipalId = Environment.GetEnvironmentVariable("deltaKustoSpId");
+                    var servicePrincipalSecret = Environment.GetEnvironmentVariable("deltaKustoSpSecret");
+
+                    if (string.IsNullOrWhiteSpace(tenantId))
+                    {
+                        throw new ArgumentNullException(nameof(tenantId));
+                    }
+                    if (string.IsNullOrWhiteSpace(servicePrincipalId))
+                    {
+                        throw new ArgumentNullException(nameof(servicePrincipalId));
+                    }
+                    if (string.IsNullOrWhiteSpace(servicePrincipalSecret))
+                    {
+                        throw new ArgumentNullException(nameof(servicePrincipalSecret));
+                    }
+                    if (string.IsNullOrWhiteSpace(clusterUri))
+                    {
+                        throw new ArgumentNullException(nameof(clusterUri));
+                    }
+
+                    var tracer = new ConsoleTracer(false);
+                    var httpClientFactory = new SimpleHttpClientFactory(tracer);
+                    var tokenProvider = new LoginTokenProvider(
+                        tracer,
+                        httpClientFactory,
+                        tenantId,
+                        servicePrincipalId,
+                        servicePrincipalSecret);
+                    Func<string, IKustoManagementGateway> factory = (db) =>
+                    {
+                        return new KustoManagementGateway(
+                            new Uri(clusterUri),
+                            db,
+                            tokenProvider,
+                            tracer,
+                            httpClientFactory);
+                    };
+
+                    return factory;
                 },
                 true);
             _azureManagementGateway = new Lazy<AzureManagementGateway>(
@@ -88,70 +133,56 @@ namespace DeltaKustoAdxIntegrationTest
             _initializedAsync = new Lazy<Task>(
                 async () =>
                 {
-                    await CleanDbAsync();
-                    //  Start provisioning
-                    _newDbRequiredEvent.Set();
+                    await CleanDbsAsync();
                 },
                 true);
-            //  Forces the entire method to run on a different thread so not to lock this one
-            //  (and create a deadlock)
-            Task.Run(() =>
-            {
-                _backgroundTask = BackgroundAsync();
-            });
         }
 
-        public async Task<string> InitializeDbAsync()
+        public async Task<string> GetCleanDbAsync()
         {
             await _initializedAsync.Value;
 
-            if (_createdQueue.Count() < AHEAD_PROVISIONING_COUNT / 2)
-            {   //  Preventive provisioning
-                _newDbRequiredEvent.Set();
+            string? dbName;
+
+            if (_existingDbs.TryPop(out dbName) && dbName != null)
+            {   //  Clean existing database
+                var kustoGateway = _kustoManagementGatewayFactory.Value(dbName);
+                var currentCommands = await kustoGateway.ReverseEngineerDatabaseAsync();
+                var currentModel = DatabaseModel.FromCommands(currentCommands);
+                var cleanCommands = currentModel.ComputeDelta(
+                    DatabaseModel.FromCommands(
+                        ImmutableArray<CommandBase>.Empty));
+
+                await kustoGateway.ExecuteCommandsAsync(cleanCommands);
+
+                return dbName;
             }
-            while (true)
-            {   //  Is a db number been provisioned yet?
-                string? dbName;
+            else
+            {
+                dbName = DbNumberToDbName(Interlocked.Increment(ref _dbCount));
 
-                if (_createdQueue.TryDequeue(out dbName))
-                {
-                    if (dbName == null)
-                    {
-                        throw new InvalidOperationException($"{dbName} shouldn't be null here");
-                    }
+                await _azureManagementGateway.Value.CreateDatabaseAsync(dbName);
 
-                    return dbName;
-                }
-                else
-                {
-                    //  Signal background thread we need to create new dbs
-                    _newDbRequiredEvent.Set();
-                    await _newDbAvailableTask;
-                }
+                return dbName;
             }
         }
 
-        public void EnqueueDeleteDb(string dbName)
+        public void ReleaseDb(string dbName)
         {
             if (!dbName.StartsWith(_dbPrefix.Value))
             {
                 throw new ArgumentException("Wrong prefix", nameof(dbName));
             }
 
-            _deleteQueue.Enqueue(dbName);
+            _existingDbs.Push(dbName);
         }
 
         void IDisposable.Dispose()
         {
-            _isDisposing = true;
-            if (_backgroundTask != null)
-            {
-                _backgroundTask.Wait();
-            }
-            CleanDbAsync().Wait();
+            CleanDbsAsync().Wait();
         }
 
-        private async Task CleanDbAsync()
+        private async Task CleanDbsAsync()
         {
             var names = await _azureManagementGateway.Value.GetDatabaseNamesAsync();
             var deleteTasks = names
@@ -161,69 +192,9 @@ namespace DeltaKustoAdxIntegrationTest
             await Task.WhenAll(deleteTasks);
         }
 
-        private async Task BackgroundAsync()
-        {
-            var taskSource = new TaskCompletionSource();
-            var provisionedDbCount = 0;
-
-            _newDbAvailableTask = taskSource.Task;
-
-            while (!_isDisposing)
-            {
-                //  Wait first so that the first time we execute, the environment variables are loaded
-                _newDbRequiredEvent.Wait();
-
-                var provisioningCount = AHEAD_PROVISIONING_COUNT - _createdQueue.Count();
-                var dbNames = Enumerable.Range(provisionedDbCount + 1, provisioningCount)
-                    .Select(c => DbNumberToDbName(c))
-                    .ToImmutableHashSet();
-                var provisioningTasks = dbNames
-                    .Select(dbName => _azureManagementGateway.Value.CreateDatabaseAsync(dbName));
-
-                await Task.WhenAll(provisioningTasks);
-
-                //  Delete after creating, letting more time for the creation to propagate
-                //  and avoiding "database not found" errors
-                var deleteTasks = EmptyCurrentDeleteQueue()
-                    .Select(dbName => _azureManagementGateway.Value.DeleteDatabaseAsync(dbName));
-
-                await Task.WhenAll(deleteTasks);
-
-                //  Enqueue the new db names
-                foreach (var dbName in dbNames)
-                {
-                    _createdQueue.Enqueue(dbName);
-                }
-                provisionedDbCount += dbNames.Count;
-                //  Signal waiting consumer that new dbs are available
-                taskSource.SetResult();
-                //  Reset a new waiting task
-                taskSource = new TaskCompletionSource();
-                _newDbAvailableTask = taskSource.Task;
-                //  Prepare to wait
-                _newDbRequiredEvent.Reset();
-            }
-        }
-
         private string DbNumberToDbName(int c)
         {
             return $"{_dbPrefix.Value}{c.ToString("D8")}";
-        }
-
-        private IEnumerable<string> EmptyCurrentDeleteQueue()
-        {
-            var list = new List<string>();
-            string? item;
-
-            while (_deleteQueue.TryDequeue(out item))
-            {
-                if (item != null)
-                {
-                    list.Add(item);
-                }
-            }
-
-            return list.ToImmutableArray();
         }
     }
 }
