@@ -17,8 +17,8 @@ using Xunit;
 
 namespace DeltaKustoAdxIntegrationTest
 {
-    public abstract class AdxIntegrationTestBase
-        : IntegrationTestBase, IClassFixture<AdxDbFixture>
+    [Collection("ADX collection")]
+    public abstract class AdxIntegrationTestBase : IntegrationTestBase
     {
         private readonly bool _overrideLoginTokenProvider;
 
