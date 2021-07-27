@@ -160,8 +160,14 @@ namespace DeltaKustoAdxIntegrationTest
             else
             {
                 dbName = DbNumberToDbName(Interlocked.Increment(ref _dbCount));
-
                 await _azureManagementGateway.Value.CreateDatabaseAsync(dbName);
+
+                var kustoGateway = _kustoManagementGatewayFactory.Value(dbName);
+
+                while (!(await kustoGateway.DoesDatabaseExistsAsync()))
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(.2));
+                }
 
                 return dbName;
             }
