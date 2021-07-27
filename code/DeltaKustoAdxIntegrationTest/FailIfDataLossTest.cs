@@ -43,7 +43,7 @@ namespace DeltaKustoAdxIntegrationTest
                 .Empty
                 .Add(("jobs.main.target.adx.clusterUri", ClusterUri.ToString()))
                 .Add(("jobs.main.target.adx.database", targetDbName))
-                .Append(("failIfDrops", "true"));
+                .Append(("failIfDataLoss", "true"));
 
             await PrepareDbAsync(toFile, targetDbName);
 
