@@ -11,8 +11,7 @@ jobs:
       # See OS catalog here:  https://docs.microsoft.com/en-us/dotnet/core/rid-catalog
       dotnetOs:  linux-x64
       exec:  delta-kusto
-      deltaKustoCurrentDb:  linux-current
-      deltaKustoTargetDb:  linux-target
+      deltaDbPrefix:  github_linux_
 
     steps:
     - uses: actions/checkout@v2
@@ -47,6 +46,8 @@ jobs:
         echo "deltaKustoSingleExecPath=$(pwd)/bin/$exec" >> $GITHUB_ENV
         # ADX integration
         echo "deltaKustoClusterUri=${{ secrets.CLUSTER_URI }}" >> $GITHUB_ENV
+        echo "deltaKustoClusterId=${{ secrets.CLUSTER_ID }}" >> $GITHUB_ENV
+        echo "deltaKustoDbPrefix=$deltaDbPrefix" >> $GITHUB_ENV
         echo "deltaKustoTenantId=${{ secrets.TENANT_ID }}" >> $GITHUB_ENV
         echo "deltaKustoSpId=${{ secrets.KUSTO_SP_ID }}" >> $GITHUB_ENV
         echo "deltaKustoSpSecret=${{ secrets.KUSTO_SP_SECRET }}" >> $GITHUB_ENV
@@ -76,74 +77,7 @@ jobs:
       # See OS catalog here:  https://docs.microsoft.com/en-us/dotnet/core/rid-catalog
       dotnetOs:  win-x64
       exec:  delta-kusto.exe
-      deltaKustoCurrentDb:  windows-current
-      deltaKustoTargetDb:  windows-target
-
-    steps:
-    - uses: actions/checkout@v2
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 5.0.x
-    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-restore
-    - name: Install dependencies
-      shell:  bash
-      run: dotnet restore code
-    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-build
-    - name: Build
-      shell:  bash
-      run: dotnet build code --configuration Release --no-restore
-    # See https://github.com/dotnet/designs/blob/main/accepted/2020/single-file/design.md#user-experience
-    # & https://docs.microsoft.com/en-us/dotnet/core/deploying/single-file
-    # & https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-publish
-    - name: Build single file executable
-      shell:  bash
-      run: |
-        dotnet publish code/delta-kusto -c release -r $dotnetOs \
-          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
-          -p:PublishTrimmed=true -p:PublishReadyToRun=true \
-          -o bin
-    # Set environment variables
-    - name: Set environment variables
-      shell:  bash
-      run: |
-        # Exec path
-        echo "deltaKustoSingleExecPath=$(pwd)/bin/$exec" >> $GITHUB_ENV
-        # ADX integration
-        echo "deltaKustoClusterUri=${{ secrets.CLUSTER_URI }}" >> $GITHUB_ENV
-        echo "deltaKustoTenantId=${{ secrets.TENANT_ID }}" >> $GITHUB_ENV
-        echo "deltaKustoSpId=${{ secrets.KUSTO_SP_ID }}" >> $GITHUB_ENV
-        echo "deltaKustoSpSecret=${{ secrets.KUSTO_SP_SECRET }}" >> $GITHUB_ENV
-    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
-    - name: File-based integration tests (out-of-proc)
-      shell:  bash
-      run: |
-        # Disable parallelization of tests
-        # See https://xunit.net/docs/running-tests-in-parallel
-        dotnet test code/DeltaKustoFileIntegrationTest/ \
-        --configuration Release --no-build --verbosity normal \
-        -p:ParallelizeTestCollections=false
-
-    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
-    - name: ADX-based integration tests (out-of-proc)
-      shell:  bash
-      run: |
-        # Disable parallelization of tests
-        # See https://xunit.net/docs/running-tests-in-parallel
-        dotnet test code/DeltaKustoAdxIntegrationTest \
-        --configuration Release --no-build --verbosity normal \
-        -p:ParallelizeTestCollections=false
-
-  mac:
-    # This can run in parallel with the other job as they target different databases
-    runs-on: macos-latest
-    
-    env:
-      # See OS catalog here:  https://docs.microsoft.com/en-us/dotnet/core/rid-catalog
-      dotnetOs:  osx-x64
-      exec:  delta-kusto
-      deltaKustoCurrentDb:  mac-current
-      deltaKustoTargetDb:  mac-target
+      deltaDbPrefix:  github_windows_
 
     steps:
     - uses: actions/checkout@v2
@@ -178,6 +112,84 @@ jobs:
         echo "deltaKustoSingleExecPath=$(pwd)/bin/$exec" >> $GITHUB_ENV
         # ADX integration
         echo "deltaKustoClusterUri=${{ secrets.CLUSTER_URI }}" >> $GITHUB_ENV
+        echo "deltaKustoClusterId=${{ secrets.CLUSTER_ID }}" >> $GITHUB_ENV
+        echo "deltaKustoDbPrefix=$deltaDbPrefix" >> $GITHUB_ENV
+        echo "deltaKustoTenantId=${{ secrets.TENANT_ID }}" >> $GITHUB_ENV
+        echo "deltaKustoSpId=${{ secrets.KUSTO_SP_ID }}" >> $GITHUB_ENV
+        echo "deltaKustoSpSecret=${{ secrets.KUSTO_SP_SECRET }}" >> $GITHUB_ENV
+    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
+    - name: File-based integration tests (out-of-proc)
+      run: |
+        # Disable parallelization of tests
+        # See https://xunit.net/docs/running-tests-in-parallel
+        dotnet test code/DeltaKustoFileIntegrationTest \
+        --configuration Release --no-build --verbosity normal \
+        -p:ParallelizeTestCollections=false
+
+    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
+    - name: ADX-based integration tests (out-of-proc)
+      run: |
+        # Disable parallelization of tests
+        # See https://xunit.net/docs/running-tests-in-parallel
+        dotnet test code/DeltaKustoAdxIntegrationTest \
+        --configuration Release --no-build --verbosity normal \
+        -p:ParallelizeTestCollections=false
+
+    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
+    - name: ADX-based integration tests (out-of-proc)
+      shell:  bash
+      run: |
+        # Disable parallelization of tests
+        # See https://xunit.net/docs/running-tests-in-parallel
+        dotnet test code/DeltaKustoAdxIntegrationTest \
+        --configuration Release --no-build --verbosity normal \
+        -p:ParallelizeTestCollections=false
+
+  mac:
+    # This can run in parallel with the other job as they target different databases
+    runs-on: macos-latest
+    
+    env:
+      # See OS catalog here:  https://docs.microsoft.com/en-us/dotnet/core/rid-catalog
+      dotnetOs:  osx-x64
+      exec:  delta-kusto
+      deltaDbPrefix:  github_mac_os_
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.x
+    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-restore
+    - name: Install dependencies
+      run: dotnet restore code
+    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-build
+    - name: Build
+      run: dotnet build code --configuration Release --no-restore
+    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
+    - name: Unit Tests
+      run: |
+        dotnet test code/DeltaKustoUnitTest --configuration Release \
+        --no-build --verbosity normal
+    # See https://github.com/dotnet/designs/blob/main/accepted/2020/single-file/design.md#user-experience
+    # & https://docs.microsoft.com/en-us/dotnet/core/deploying/single-file
+    # & https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-publish
+    - name: Build single file executable
+      run: |
+        dotnet publish code/delta-kusto -c release -r $dotnetOs \
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
+          -p:PublishTrimmed=true -p:PublishReadyToRun=true \
+          -o bin
+    # Set environment variables
+    - name: Set environment variables
+      run: |
+        # Exec path
+        echo "deltaKustoSingleExecPath=$(pwd)/bin/$exec" >> $GITHUB_ENV
+        # ADX integration
+        echo "deltaKustoClusterUri=${{ secrets.CLUSTER_URI }}" >> $GITHUB_ENV
+        echo "deltaKustoClusterId=${{ secrets.CLUSTER_ID }}" >> $GITHUB_ENV
+        echo "deltaKustoDbPrefix=$deltaDbPrefix" >> $GITHUB_ENV
         echo "deltaKustoTenantId=${{ secrets.TENANT_ID }}" >> $GITHUB_ENV
         echo "deltaKustoSpId=${{ secrets.KUSTO_SP_ID }}" >> $GITHUB_ENV
         echo "deltaKustoSpSecret=${{ secrets.KUSTO_SP_SECRET }}" >> $GITHUB_ENV
