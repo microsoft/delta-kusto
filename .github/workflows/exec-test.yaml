@@ -138,7 +138,7 @@ jobs:
     - name: ADX-based integration tests (out-of-proc)
       shell:  bash
       run: |
-        cat $GITHUB_ENV
+        more $GITHUB_ENV
         dotnet test code/DeltaKustoAdxIntegrationTest \
         --configuration Release --no-build --verbosity normal
 
