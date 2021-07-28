@@ -47,115 +47,136 @@ namespace DeltaKustoIntegration.Kusto
         public async Task<IEnumerable<string>> GetDatabaseNamesAsync(CancellationToken ct = default)
         {
             var tracerTimer = new TracerTimer(_tracer);
+            var apiUrl = $"https://management.azure.com{_clusterId}/databases?api-version=2021-01-01";
 
             _tracer.WriteLine(true, "Get Database names start");
 
-            using (var client = await CreateHttpClient(ct))
+            try
             {
-                ct = CancellationTokenHelper.MergeCancellationToken(ct, TIMEOUT);
-
-                var apiUrl = $"https://management.azure.com{_clusterId}/databases?api-version=2021-01-01";
-                var response = await client.GetAsync(apiUrl, ct);
-
-                _tracer.WriteLine(true, "Database listed");
-
-                var responseText =
-                    await response.Content.ReadAsStringAsync(ct);
-
-                if (response.StatusCode != HttpStatusCode.OK)
+                using (var client = await CreateHttpClient(ct))
                 {
-                    throw new InvalidOperationException(
-                        $"Database listing failed on cluster ID {_clusterId} "
-                        + $"with status code '{response.StatusCode}' "
-                        + $"and payload '{responseText}'");
-                }
-                else
-                {
-                    var list = JsonSerializer.Deserialize<DatabaseListOutput>(
-                        responseText,
-                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    ct = CancellationTokenHelper.MergeCancellationToken(ct, TIMEOUT);
 
-                    if (list == null || list.Value == null)
+                    var response = await client.GetAsync(apiUrl, ct);
+
+                    _tracer.WriteLine(true, "Database listed");
+
+                    var responseText =
+                        await response.Content.ReadAsStringAsync(ct);
+
+                    if (response.StatusCode != HttpStatusCode.OK)
                     {
                         throw new InvalidOperationException(
                             $"Database listing failed on cluster ID {_clusterId} "
-                            + $"; can't understand payload '{responseText}'");
+                            + $"with status code '{response.StatusCode}' "
+                            + $"and payload '{responseText}'");
                     }
+                    else
+                    {
+                        var list = JsonSerializer.Deserialize<DatabaseListOutput>(
+                            responseText,
+                            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-                    var names = list
-                        .Value
-                        .Select(v => v.Name.Split('/'))
-                        .Where(s => s.Length == 2)
-                        .Select(s => s[1])
-                        .ToImmutableArray();
+                        if (list == null || list.Value == null)
+                        {
+                            throw new InvalidOperationException(
+                                $"Database listing failed on cluster ID {_clusterId} "
+                                + $"; can't understand payload '{responseText}'");
+                        }
 
-                    return names;
+                        var names = list
+                            .Value
+                            .Select(v => v.Name.Split('/'))
+                            .Where(s => s.Length == 2)
+                            .Select(s => s[1])
+                            .ToImmutableArray();
+
+                        return names;
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                throw new DeltaException($"Issue running ARM API '{apiUrl}' / GetDatabaseNames", ex);
             }
         }
 
         public async Task CreateDatabaseAsync(string dbName, CancellationToken ct = default)
         {
             var tracerTimer = new TracerTimer(_tracer);
+            var apiUrl = $"https://management.azure.com{_clusterId}/databases/{dbName}?api-version=2021-01-01";
 
             _tracer.WriteLine(true, "Create Database start");
             _tracer.WriteLine(true, $"Database name:  '{dbName}'");
 
-            using (var client = await CreateHttpClient(ct))
+            try
             {
-                ct = CancellationTokenHelper.MergeCancellationToken(ct, TIMEOUT);
-
-                var apiUrl = $"https://management.azure.com{_clusterId}/databases/{dbName}?api-version=2021-01-01";
-                var response = await client.PutAsync(
-                    apiUrl,
-                    new StringContent("{\"kind\":\"ReadWrite\", \"location\":\"East US\"}", null, "application/json"),
-                    ct);
-
-                _tracer.WriteLine(true, "Database created");
-
-                var responseText =
-                    await response.Content.ReadAsStringAsync(ct);
-
-                if (response.StatusCode != HttpStatusCode.OK
-                    && response.StatusCode != HttpStatusCode.Created
-                    && response.StatusCode != HttpStatusCode.Accepted)
+                using (var client = await CreateHttpClient(ct))
                 {
-                    throw new InvalidOperationException(
-                        $"Database '{dbName}' creation failed on cluster ID {_clusterId} "
-                        + $"with status code '{response.StatusCode}' "
-                        + $"and payload '{responseText}'");
+                    ct = CancellationTokenHelper.MergeCancellationToken(ct, TIMEOUT);
+
+                    var response = await client.PutAsync(
+                        apiUrl,
+                        new StringContent("{\"kind\":\"ReadWrite\", \"location\":\"East US\"}", null, "application/json"),
+                        ct);
+
+                    _tracer.WriteLine(true, "Database created");
+
+                    var responseText =
+                        await response.Content.ReadAsStringAsync(ct);
+
+                    if (response.StatusCode != HttpStatusCode.OK
+                        && response.StatusCode != HttpStatusCode.Created
+                        && response.StatusCode != HttpStatusCode.Accepted)
+                    {
+                        throw new InvalidOperationException(
+                            $"Database '{dbName}' creation failed on cluster ID {_clusterId} "
+                            + $"with status code '{response.StatusCode}' "
+                            + $"and payload '{responseText}'");
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                throw new DeltaException($"Issue running ARM API '{apiUrl}' / CreateDatabase", ex);
             }
         }
 
         public async Task DeleteDatabaseAsync(string dbName, CancellationToken ct = default)
         {
             var tracerTimer = new TracerTimer(_tracer);
+            var apiUrl = $"https://management.azure.com{_clusterId}/databases/{dbName}?api-version=2021-01-01";
 
             _tracer.WriteLine(true, "Delete Database start");
             _tracer.WriteLine(true, $"Database name:  '{dbName}'");
 
-            using (var client = await CreateHttpClient(ct))
+            try
             {
-                ct = CancellationTokenHelper.MergeCancellationToken(ct, TIMEOUT);
-
-                var apiUrl = $"https://management.azure.com{_clusterId}/databases/{dbName}?api-version=2021-01-01";
-                var response = await client.DeleteAsync(apiUrl, ct);
-
-                _tracer.WriteLine(true, "Database deleted");
-
-                var responseText =
-                    await response.Content.ReadAsStringAsync(ct);
-
-                if (response.StatusCode != HttpStatusCode.OK
-                    && response.StatusCode != HttpStatusCode.Accepted
-                    && response.StatusCode != HttpStatusCode.NoContent)
+                using (var client = await CreateHttpClient(ct))
                 {
-                    throw new InvalidOperationException(
-                        $"Database '{dbName}' deletion failed on cluster ID {_clusterId} "
-                        + $"with status code '{response.StatusCode}' "
-                        + $"and payload '{responseText}'");
+                    ct = CancellationTokenHelper.MergeCancellationToken(ct, TIMEOUT);
+
+                    var response = await client.DeleteAsync(apiUrl, ct);
+
+                    _tracer.WriteLine(true, "Database deleted");
+
+                    var responseText =
+                        await response.Content.ReadAsStringAsync(ct);
+
+                    if (response.StatusCode != HttpStatusCode.OK
+                        && response.StatusCode != HttpStatusCode.Accepted
+                        && response.StatusCode != HttpStatusCode.NoContent)
+                    {
+                        throw new InvalidOperationException(
+                            $"Database '{dbName}' deletion failed on cluster ID {_clusterId} "
+                            + $"with status code '{response.StatusCode}' "
+                            + $"and payload '{responseText}'");
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                throw new DeltaException($"Issue running ARM API '{apiUrl}' / DeleteDatabase", ex);
             }
         }
 
