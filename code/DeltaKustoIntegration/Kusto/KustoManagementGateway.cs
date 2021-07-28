@@ -5,7 +5,6 @@ using Polly;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -457,7 +456,7 @@ namespace DeltaKustoIntegration.Kusto
             CancellationToken ct)
         {
             var policy = Policy
-                .Handle<IOException>()
+                .Handle<TaskCanceledException>()
                 .RetryAsync(3);
 
             try
