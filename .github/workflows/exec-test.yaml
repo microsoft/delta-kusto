@@ -63,11 +63,8 @@ jobs:
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
     - name: ADX-based integration tests (out-of-proc)
       run: |
-        # Disable parallelization of tests
-        # See https://xunit.net/docs/running-tests-in-parallel
         dotnet test code/DeltaKustoAdxIntegrationTest \
-        --configuration Release --no-build --verbosity normal \
-        -p:ParallelizeTestCollections=false
+        --configuration Release --no-build --verbosity normal
 
   windows:
     # This can run in parallel with the other job as they target different databases
@@ -129,11 +126,8 @@ jobs:
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
     - name: ADX-based integration tests (out-of-proc)
       run: |
-        # Disable parallelization of tests
-        # See https://xunit.net/docs/running-tests-in-parallel
         dotnet test code/DeltaKustoAdxIntegrationTest \
-        --configuration Release --no-build --verbosity normal \
-        -p:ParallelizeTestCollections=false
+        --configuration Release --no-build --verbosity normal
 
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
     - name: ADX-based integration tests (out-of-proc)
@@ -205,8 +199,5 @@ jobs:
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
     - name: ADX-based integration tests (out-of-proc)
       run: |
-        # Disable parallelization of tests
-        # See https://xunit.net/docs/running-tests-in-parallel
         dotnet test code/DeltaKustoAdxIntegrationTest \
-        --configuration Release --no-build --verbosity normal \
-        -p:ParallelizeTestCollections=false
+        --configuration Release --no-build --verbosity normal
