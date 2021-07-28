@@ -27,11 +27,11 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
             TestRetentionPolicy(TimeSpan.FromMinutes(90), false, "A- 1");
         }
 
-        //[Fact]
-        //public void FunkyTables()
-        //{
-        //    TestRetentionPolicy(TimeSpan.FromMinutes(90), false, "A- 1", "Beta \u00E9t\u00E9");
-        //}
+        [Fact]
+        public void FunkyTables()
+        {
+            TestRetentionPolicy(TimeSpan.FromMinutes(90), false, "A- 1", "Beta \u00E9t\u00E9");
+        }
 
         private void TestRetentionPolicy(
             TimeSpan softDeletePeriod,

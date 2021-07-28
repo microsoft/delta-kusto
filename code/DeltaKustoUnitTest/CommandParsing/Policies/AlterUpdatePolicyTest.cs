@@ -79,7 +79,8 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
         [Fact]
         public void ClusterComposedTableName()
         {
-            var command = ParseOneCommand(".alter table ['my cluster'].['my db'].['my table'] policy update '[]'");
+            var command = ParseOneCommand(
+                ".alter table ['my cluster'].['my db'].['my table'] policy update '[]'");
 
             Assert.IsType<AlterUpdatePolicyCommand>(command);
 
