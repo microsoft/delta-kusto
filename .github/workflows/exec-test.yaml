@@ -69,7 +69,6 @@ jobs:
     - name: ADX-based integration tests (out-of-proc)
       shell:  bash
       run: |
-        echo "Test shell:  $deltaKustoSingleExecPath"
         dotnet test code/DeltaKustoAdxIntegrationTest \
         --configuration Release --no-build --verbosity normal
 
@@ -139,7 +138,7 @@ jobs:
     - name: ADX-based integration tests (out-of-proc)
       shell:  bash
       run: |
-        echo "Test shell:  $deltaKustoSingleExecPath"
+        echo "Test shell:  $deltaKustoClusterUri ; $deltaKustoClusterId"
         dotnet test code/DeltaKustoAdxIntegrationTest \
         --configuration Release --no-build --verbosity normal
 
