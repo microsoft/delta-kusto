@@ -224,17 +224,37 @@ namespace DeltaKustoLib.KustoModel
                 yield return mapping.ToCreateMappingCommand(TableName);
             }
 
-            if (UpdatePolicy != null)
+            if (AutoDeletePolicy != null)
             {
-                yield return UpdatePolicy;
+                yield return AutoDeletePolicy;
             }
             if (CachingPolicy != null)
             {
                 yield return CachingPolicy;
             }
-        }
+            if (IngestionBatchingPolicy != null)
+            {
+                yield return IngestionBatchingPolicy;
+            }
+            if (MergePolicy != null)
+            {
+                yield return MergePolicy;
+            }
+            if (RetentionPolicy != null)
+            {
+                yield return RetentionPolicy;
+            }
+            if (ShardingPolicy != null)
+            {
+                yield return ShardingPolicy;
+            }
+            if (UpdatePolicy != null)
+            {
+                yield return UpdatePolicy;
+            }
+    }
 
-        private IEnumerable<CommandBase> ComputeDelta(TableModel targetModel)
+    private IEnumerable<CommandBase> ComputeDelta(TableModel targetModel)
         {
             var includeFolder = !object.Equals(targetModel.Folder, Folder);
             var includeDocString = !object.Equals(targetModel.DocString, DocString);

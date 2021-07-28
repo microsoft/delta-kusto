@@ -25,7 +25,7 @@ namespace DeltaKustoLib.CommandModel.Policies
         public PolicyCommandBase() : this(ToJsonDocument(new object()))
         {
         }
-        
+
         public override bool Equals(CommandBase? other)
         {
             var otherPolicy = other as PolicyCommandBase;

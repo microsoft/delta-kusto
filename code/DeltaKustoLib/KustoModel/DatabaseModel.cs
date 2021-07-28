@@ -221,7 +221,12 @@ namespace DeltaKustoLib.KustoModel
             var other = obj as DatabaseModel;
             var result = other != null
                 && Enumerable.SequenceEqual(_functionCommands, other._functionCommands)
-                && Enumerable.SequenceEqual(_tableModels, other._tableModels);
+                && Enumerable.SequenceEqual(_tableModels, other._tableModels)
+                && object.Equals(_cachingPolicy, other._cachingPolicy)
+                && object.Equals(_ingestionBatchingPolicy, other._ingestionBatchingPolicy)
+                && object.Equals(_mergePolicy, other._mergePolicy)
+                && object.Equals(_retentionPolicy, other._retentionPolicy)
+                && object.Equals(_shardingPolicy, other._shardingPolicy);
 
             return result;
         }
