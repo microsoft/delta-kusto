@@ -6,7 +6,7 @@
 ```
 {
 	"SoftDeletePeriod": "90.00:00:00",
-	"Recoverability" : "enabled"
+	"Recoverability" : "Enabled"
 }
 ```
 
@@ -14,7 +14,7 @@
 ```
 {
 	"SoftDeletePeriod": "90.00:00:00",
-	"Recoverability" : "enabled"
+	"Recoverability" : "Enabled"
 }
 ```
 
@@ -22,6 +22,6 @@
 ```
 {
 	"SoftDeletePeriod": "180.00:00:00",
-	"Recoverability" : "enabled"
+	"Recoverability" : "Enabled"
 }
 ```
