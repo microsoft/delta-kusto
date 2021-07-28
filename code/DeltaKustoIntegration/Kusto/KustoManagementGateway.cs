@@ -1,7 +1,6 @@
 ﻿using DeltaKustoIntegration.TokenProvider;
 using DeltaKustoLib;
 using DeltaKustoLib.CommandModel;
-using Polly;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -455,28 +454,19 @@ namespace DeltaKustoIntegration.Kusto
             string commandScript,
             CancellationToken ct)
         {
-            var policy = Policy
-                .Handle<TaskCanceledException>()
-                .RetryAsync(3);
-
             try
             {
-                var output = await policy.ExecuteAsync(async () =>
+                var response = await ExecuteCommandResponseAsync(commandScript, ct);
+
+                if (response.status != HttpStatusCode.OK)
                 {
-                    var response = await ExecuteCommandResponseAsync(commandScript, ct);
+                    throw new InvalidOperationException(
+                        $"'{commandScript}' command failed for cluster URI '{_clusterUri}' "
+                        + $"with status code '{response.status}' "
+                        + $"and payload '{response.payload}'");
+                }
 
-                    if (response.status != HttpStatusCode.OK)
-                    {
-                        throw new InvalidOperationException(
-                            $"'{commandScript}' command failed for cluster URI '{_clusterUri}' "
-                            + $"with status code '{response.status}' "
-                            + $"and payload '{response.payload}'");
-                    }
-
-                    var output = ApiOutput.FromJson(response.payload);
-
-                    return output;
-                });
+                var output = ApiOutput.FromJson(response.payload);
 
                 return output;
             }

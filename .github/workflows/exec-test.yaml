@@ -136,7 +136,7 @@ jobs:
         -p:ParallelizeTestCollections=false
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
     - name: ADX-based integration tests (out-of-proc)
-      shell:  bash
+      # shell:  bash
       run: |
         dotnet test code/DeltaKustoAdxIntegrationTest \
         --configuration Release --no-build --verbosity normal
