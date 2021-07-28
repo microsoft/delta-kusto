@@ -114,7 +114,7 @@ jobs:
           -o bin
     # Set environment variables
     - name: Set environment variables
-      # shell:  bash
+      shell:  bash
       run: |
         # Exec path
         echo "deltaKustoSingleExecPath=$(pwd)/bin/$exec" >> $GITHUB_ENV
@@ -127,16 +127,19 @@ jobs:
         echo "deltaKustoSpSecret=${{ secrets.KUSTO_SP_SECRET }}" >> $GITHUB_ENV
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
     - name: File-based integration tests (out-of-proc)
-      # shell:  bash
+      shell:  bash
       run: |
         # Disable parallelization of tests
         # See https://xunit.net/docs/running-tests-in-parallel
-        dotnet test code/DeltaKustoFileIntegrationTest --configuration Release --no-build --verbosity normal -p:ParallelizeTestCollections=false
+        dotnet test code/DeltaKustoFileIntegrationTest \
+        --configuration Release --no-build --verbosity normal \
+        -p:ParallelizeTestCollections=false
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
     - name: ADX-based integration tests (out-of-proc)
-      # shell:  bash
+      shell:  bash
       run: |
-        dotnet test code/DeltaKustoAdxIntegrationTest --configuration Release --no-build --verbosity normal
+        dotnet test code/DeltaKustoAdxIntegrationTest \
+        --configuration Release --no-build --verbosity normal
 
   mac:
     # This can run in parallel with the other job as they target different databases
