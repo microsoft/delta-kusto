@@ -64,6 +64,30 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
                 });
         }
 
+        [Fact]
+        public void DbComposedTableName()
+        {
+            var command = ParseOneCommand(".alter table mydb.mytable policy update '[]'");
+
+            Assert.IsType<AlterUpdatePolicyCommand>(command);
+
+            var realCommand = (AlterUpdatePolicyCommand)command;
+
+            Assert.Equal("mytable", realCommand.TableName.Name);
+        }
+
+        [Fact]
+        public void ClusterComposedTableName()
+        {
+            var command = ParseOneCommand(".alter table ['my cluster'].['my db'].['my table'] policy update '[]'");
+
+            Assert.IsType<AlterUpdatePolicyCommand>(command);
+
+            var realCommand = (AlterUpdatePolicyCommand)command;
+
+            Assert.Equal("my table", realCommand.TableName.Name);
+        }
+
         private void TestUpdatePolicy(string tableName, params UpdatePolicy[] policies)
         {
             var table = new EntityName(tableName);

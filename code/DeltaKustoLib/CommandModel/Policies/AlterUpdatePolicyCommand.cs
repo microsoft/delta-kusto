@@ -44,19 +44,14 @@ namespace DeltaKustoLib.CommandModel.Policies
             var cleanTableName = rootElement
                 .GetDescendants<TokenName>(e => e.NameInParent == "Name")
                 .FirstOrDefault();
-            var escapedTableName = rootElement
-                .GetDescendants<LiteralExpression>(e => e.NameInParent == "Name")
-                .FirstOrDefault();
+            var tableName = rootElement.GetDescendants<NameReference>().Last();
 
             if ((cleanTableName == null || cleanTableName.Name.Text == string.Empty)
-                && escapedTableName == null)
+                && tableName == null)
             {
                 throw new DeltaException("Can't find table name");
             }
 
-            var tableName = escapedTableName != null
-                ? EntityName.FromCode(escapedTableName)
-                : EntityName.FromCode(cleanTableName!);
             var policiesText = QuotedText.FromLiteral(
                 rootElement.GetUniqueDescendant<LiteralExpression>(
                     "UpdatePolicy",
@@ -69,7 +64,9 @@ namespace DeltaKustoLib.CommandModel.Policies
                     $"Can't extract policy objects from {policiesText.ToScript()}");
             }
 
-            return new AlterUpdatePolicyCommand(tableName, policies);
+            return new AlterUpdatePolicyCommand(
+                EntityName.FromCode(tableName.Name),
+                policies);
         }
 
         public override bool Equals(CommandBase? other)
