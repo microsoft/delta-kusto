@@ -142,19 +142,42 @@ namespace DeltaKustoAdxIntegrationTest
         {
             await _initializedAsync.Value;
 
+            var dbName = await PopOrCreateDbAsync();
+            //  Clean database
+            //  Event newly created databases might contain default policies we want to get rid of
+            var kustoGateway = _kustoManagementGatewayFactory.Value(dbName);
+            var currentCommands = await kustoGateway.ReverseEngineerDatabaseAsync();
+            var currentModel = DatabaseModel.FromCommands(currentCommands);
+            var cleanCommands = currentModel.ComputeDelta(
+                DatabaseModel.FromCommands(
+                    ImmutableArray<CommandBase>.Empty));
+
+            await kustoGateway.ExecuteCommandsAsync(cleanCommands);
+
+            return dbName;
+        }
+
+        public void ReleaseDb(string dbName)
+        {
+            if (!dbName.StartsWith(_dbPrefix.Value))
+            {
+                throw new ArgumentException("Wrong prefix", nameof(dbName));
+            }
+
+            _existingDbs.Push(dbName);
+        }
+
+        void IDisposable.Dispose()
+        {
+            CleanDbsAsync().Wait();
+        }
+
+        private async Task<string> PopOrCreateDbAsync()
+        {
             string? dbName;
 
             if (_existingDbs.TryPop(out dbName) && dbName != null)
-            {   //  Clean existing database
-                var kustoGateway = _kustoManagementGatewayFactory.Value(dbName);
-                var currentCommands = await kustoGateway.ReverseEngineerDatabaseAsync();
-                var currentModel = DatabaseModel.FromCommands(currentCommands);
-                var cleanCommands = currentModel.ComputeDelta(
-                    DatabaseModel.FromCommands(
-                        ImmutableArray<CommandBase>.Empty));
-
-                await kustoGateway.ExecuteCommandsAsync(cleanCommands);
-
+            {
                 return dbName;
             }
             else
@@ -171,21 +194,6 @@ namespace DeltaKustoAdxIntegrationTest
 
                 return dbName;
             }
-        }
-
-        public void ReleaseDb(string dbName)
-        {
-            if (!dbName.StartsWith(_dbPrefix.Value))
-            {
-                throw new ArgumentException("Wrong prefix", nameof(dbName));
-            }
-
-            _existingDbs.Push(dbName);
-        }
-
-        void IDisposable.Dispose()
-        {
-            CleanDbsAsync().Wait();
         }
 
         private async Task CleanDbsAsync()
