@@ -81,8 +81,6 @@ jobs:
       dotnetOs:  win-x64
       exec:  delta-kusto.exe
       deltaDbPrefix:  github_windows_
-      # Exec path
-      deltaKustoSingleExecPath:  "$(pwd)/bin/$exec"
       # ADX integration
       deltaKustoClusterUri:  ${{ secrets.CLUSTER_URI }}
       deltaKustoClusterId:  ${{ secrets.CLUSTER_ID }}
@@ -121,12 +119,12 @@ jobs:
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
           -p:PublishTrimmed=true -p:PublishReadyToRun=true \
           -o bin
-    # # Set environment variables
-    # - name: Set environment variables
-    #   shell:  bash
-    #   run: |
-    #     # Exec path
-    #     echo "deltaKustoSingleExecPath=$(pwd)/bin/$exec" >> $GITHUB_ENV
+    # Set environment variables
+    - name: Set environment variables
+      shell:  bash
+      run: |
+        # Exec path
+        echo "deltaKustoSingleExecPath=$(pwd)/bin/$exec" >> $GITHUB_ENV
     #     # ADX integration
     #     echo "deltaKustoClusterUri=${{ secrets.CLUSTER_URI }}" >> $GITHUB_ENV
     #     echo "deltaKustoClusterId=${{ secrets.CLUSTER_ID }}" >> $GITHUB_ENV
