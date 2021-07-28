@@ -138,8 +138,7 @@ jobs:
     - name: ADX-based integration tests (out-of-proc)
       # shell:  bash
       run: |
-        dotnet test code/DeltaKustoAdxIntegrationTest \
-        --configuration Release --no-build --verbosity normal
+        dotnet test code/DeltaKustoAdxIntegrationTest --configuration Release --no-build --verbosity normal
 
   mac:
     # This can run in parallel with the other job as they target different databases
