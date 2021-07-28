@@ -71,6 +71,16 @@ jobs:
     - name: ADX-based integration tests (out-of-proc)
       shell:  bash
       run: |
+        # Exec path
+        deltaKustoSingleExecPath=$(pwd)/bin/$exec
+        # ADX integration variables
+        deltaKustoClusterUri=${{ secrets.CLUSTER_URI }}
+        deltaKustoClusterId=${{ secrets.CLUSTER_ID }}
+        deltaKustoDbPrefix=$deltaDbPrefix
+        deltaKustoTenantId=${{ secrets.TENANT_ID }}
+        deltaKustoSpId=${{ secrets.KUSTO_SP_ID }}
+        deltaKustoSpSecret=${{ secrets.KUSTO_SP_SECRET }}
+        # Running tests
         dotnet test code/DeltaKustoAdxIntegrationTest \
         --configuration Release --no-build --verbosity normal
 
