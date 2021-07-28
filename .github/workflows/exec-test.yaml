@@ -82,7 +82,7 @@ jobs:
       exec:  delta-kusto.exe
       deltaDbPrefix:  github_windows_
       # Exec path
-      deltaKustoSingleExecPath:  $(pwd)/bin/$exec
+      deltaKustoSingleExecPath:  "$(pwd)/bin/$exec"
       # ADX integration
       deltaKustoClusterUri:  ${{ secrets.CLUSTER_URI }}
       deltaKustoClusterId:  ${{ secrets.CLUSTER_ID }}
