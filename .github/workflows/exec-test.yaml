@@ -117,7 +117,7 @@ jobs:
       shell:  bash
       run: |
         # Exec path
-        echo "deltaKustoSingleExecPath='$(pwd)/bin/$exec'" >> $GITHUB_ENV
+        echo "deltaKustoSingleExecPath=$(pwd)/bin/$exec" >> $GITHUB_ENV
         # ADX integration
         echo "deltaKustoClusterUri=${{ secrets.CLUSTER_URI }}" >> $GITHUB_ENV
         echo "deltaKustoClusterId=${{ secrets.CLUSTER_ID }}" >> $GITHUB_ENV
@@ -138,6 +138,7 @@ jobs:
     - name: ADX-based integration tests (out-of-proc)
       shell:  bash
       run: |
+        cat $GITHUB_ENV
         dotnet test code/DeltaKustoAdxIntegrationTest \
         --configuration Release --no-build --verbosity normal
 
