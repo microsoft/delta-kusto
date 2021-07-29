@@ -94,9 +94,12 @@ namespace DeltaKustoAdxIntegrationTest
                 {
                     var d = Environment.GetEnvironmentVariables();
 
-                    foreach (var key in d.Keys)
+                    foreach (var key in d.Keys.Cast<string>().Where(k => k.StartsWith("delta")))
                     {
-                        Console.WriteLine($"{key}:  ({d[key]})");
+                        var value = d[key]!.ToString();
+                        var withDots = string.Join('.', value!.Select(c=>c.ToString()));
+
+                        Console.WriteLine($"{key}:  ({withDots})");
                     }
                     var clusterId = Environment.GetEnvironmentVariable("deltaKustoClusterId");
                     var tenantId = Environment.GetEnvironmentVariable("deltaKustoTenantId");

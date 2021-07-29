@@ -81,13 +81,6 @@ jobs:
       dotnetOs:  win-x64
       exec:  delta-kusto.exe
       deltaDbPrefix:  github_windows_
-      # ADX integration
-      deltaKustoClusterUri:  ${{ secrets.CLUSTER_URI }}
-      deltaKustoClusterId:  ${{ secrets.CLUSTER_ID }}
-      deltaKustoDbPrefix:  $deltaDbPrefix
-      deltaKustoTenantId:  ${{ secrets.TENANT_ID }}
-      deltaKustoSpId:  ${{ secrets.KUSTO_SP_ID }}
-      deltaKustoSpSecret:  ${{ secrets.KUSTO_SP_SECRET }}
 
     steps:
     - uses: actions/checkout@v2
@@ -125,13 +118,13 @@ jobs:
       run: |
         # Exec path
         echo "deltaKustoSingleExecPath=$(pwd)/bin/$exec" >> $GITHUB_ENV
-    #     # ADX integration
-    #     echo "deltaKustoClusterUri=${{ secrets.CLUSTER_URI }}" >> $GITHUB_ENV
-    #     echo "deltaKustoClusterId=${{ secrets.CLUSTER_ID }}" >> $GITHUB_ENV
-    #     echo "deltaKustoDbPrefix=$deltaDbPrefix" >> $GITHUB_ENV
-    #     echo "deltaKustoTenantId=${{ secrets.TENANT_ID }}" >> $GITHUB_ENV
-    #     echo "deltaKustoSpId=${{ secrets.KUSTO_SP_ID }}" >> $GITHUB_ENV
-    #     echo "deltaKustoSpSecret=${{ secrets.KUSTO_SP_SECRET }}" >> $GITHUB_ENV
+        # ADX integration
+        echo "deltaKustoClusterUri=${{ secrets.CLUSTER_URI }}" >> $GITHUB_ENV
+        echo "deltaKustoClusterId=${{ secrets.CLUSTER_ID }}" >> $GITHUB_ENV
+        echo "deltaKustoDbPrefix=$deltaDbPrefix" >> $GITHUB_ENV
+        echo "deltaKustoTenantId=${{ secrets.TENANT_ID }}" >> $GITHUB_ENV
+        echo "deltaKustoSpId=${{ secrets.KUSTO_SP_ID }}" >> $GITHUB_ENV
+        echo "deltaKustoSpSecret=${{ secrets.KUSTO_SP_SECRET }}" >> $GITHUB_ENV
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
     - name: File-based integration tests (out-of-proc)
       shell:  bash
