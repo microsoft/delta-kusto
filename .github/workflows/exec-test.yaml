@@ -120,9 +120,7 @@ jobs:
         echo "deltaKustoSingleExecPath=$(pwd)/bin/$exec" >> $GITHUB_ENV
         # ADX integration
         echo "deltaKustoClusterUri=${{ secrets.CLUSTER_URI }}" >> $GITHUB_ENV
-        echo "deltaKustoClusterId2='${{ secrets.CLUSTER_ID }}'" >> $GITHUB_ENV
-        echo "deltaKustoClusterId3 = ${{ secrets.CLUSTER_ID }}" >> $GITHUB_ENV
-        echo "deltaKustoClusterId=${{ secrets.CLUSTER_ID }}" >> $GITHUB_ENV
+        echo "deltaKustoClusterId = ${{ secrets.CLUSTER_ID }}" >> $GITHUB_ENV
         echo "deltaKustoDbPrefix=$deltaDbPrefix" >> $GITHUB_ENV
         echo "deltaKustoTenantId=${{ secrets.TENANT_ID }}" >> $GITHUB_ENV
         echo "deltaKustoSpId=${{ secrets.KUSTO_SP_ID }}" >> $GITHUB_ENV
