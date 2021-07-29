@@ -92,6 +92,12 @@ namespace DeltaKustoAdxIntegrationTest
             _azureManagementGateway = new Lazy<AzureManagementGateway>(
                 () =>
                 {
+                    var d = Environment.GetEnvironmentVariables();
+
+                    foreach (var key in d.Keys)
+                    {
+                        Console.WriteLine($"{key}:  ({d[key]})");
+                    }
                     var clusterId = Environment.GetEnvironmentVariable("deltaKustoClusterId");
                     var tenantId = Environment.GetEnvironmentVariable("deltaKustoTenantId");
                     var servicePrincipalId = Environment.GetEnvironmentVariable("deltaKustoSpId");
