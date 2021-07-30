@@ -1,0 +1,16 @@
+﻿.create table MyAutoDeleteTable (TIMESTAMP: datetime, PreciseTimeStamp: datetime, Level: int)
+
+.alter table MyAutoDeleteTable policy auto_delete
+```
+{
+	"ExpiryDate" : "2040-02-01",
+	"DeleteIfNotEmpty": true
+}
+```
+
+.alter database ['my-db'] policy auto_delete
+```
+{
+	"ExpiryDate" : "2035-05-09"
+}
+```
