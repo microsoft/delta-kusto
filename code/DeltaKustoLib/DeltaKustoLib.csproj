@@ -14,13 +14,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="CommandModel\Policy\**" />
-    <EmbeddedResource Remove="CommandModel\Policy\**" />
-    <None Remove="CommandModel\Policy\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.Kusto.Language" Version="9.2.0" />
+    <PackageReference Include="Microsoft.Azure.Kusto.Language" Version="9.3.0-preview" />
   </ItemGroup>
 
 </Project>

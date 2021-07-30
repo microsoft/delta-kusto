@@ -23,18 +23,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="CommandParsing\Policies\AlterCachingPolicyTest.cs" />
-    <Compile Remove="CommandParsing\Policies\DeleteCachingPolicyTest.cs" />
-    <Compile Remove="Delta\Policies\DeltaCachingPolicyTest.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="CommandParsing\Policies\AlterCachingPolicyTest.cs" />
-    <None Include="CommandParsing\Policies\DeleteCachingPolicyTest.cs" />
-    <None Include="Delta\Policies\DeltaCachingPolicyTest.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.10.0" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">

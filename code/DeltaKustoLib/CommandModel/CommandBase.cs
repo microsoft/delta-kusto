@@ -141,14 +141,12 @@ namespace DeltaKustoLib.CommandModel
                         return AlterAutoDeletePolicyCommand.FromCode(commandBlock);
                     case "DeleteTablePolicyAutoDelete":
                         return DeleteAutoDeletePolicyCommand.FromCode(commandBlock);
-                        /*
                     case "AlterDatabasePolicyCaching":
                     case "AlterTablePolicyCaching":
                         return AlterCachingPolicyCommand.FromCode(commandBlock);
                     case "DeleteDatabasePolicyCaching":
                     case "DeleteTablePolicyCaching":
                         return DeleteCachingPolicyCommand.FromCode(commandBlock);
-                        */
                     case "AlterDatabasePolicyIngestionBatching":
                     case "AlterTablePolicyIngestionBatching":
                         return AlterIngestionBatchingPolicyCommand.FromCode(commandBlock);
