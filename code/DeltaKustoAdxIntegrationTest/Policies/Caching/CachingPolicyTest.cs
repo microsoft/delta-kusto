@@ -13,10 +13,5 @@ namespace DeltaKustoAdxIntegrationTest.Policies.Caching
     public class CachingPolicyTest : AdxAutoIntegrationTestBase
     {
         protected override string StatesFolderPath => "Policies/Caching";
-
-        public CachingPolicyTest(AdxDbFixture adxDbFixture)
-            : base(adxDbFixture)
-        {
-        }
     }
 }
