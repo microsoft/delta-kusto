@@ -80,6 +80,7 @@ namespace DeltaKustoAdxIntegrationTest
                 Path.Combine(statesFolderPath, "States"),
                 async (fromFile, toFile) =>
                 {
+                    var testDbName = await InitializeDbAsync();
                     var currentDbName = await InitializeDbAsync();
 
                     await PrepareDbAsync(fromFile, currentDbName);
@@ -99,16 +100,20 @@ namespace DeltaKustoAdxIntegrationTest
                         "adx-to-file-params.json",
                         overrides);
                     var outputCommands = await LoadScriptAsync("", outputPath);
-                    var targetCommands = CommandBase.FromScript(
+                    var targetFileCommands = CommandBase.FromScript(
                         await File.ReadAllTextAsync(toFile));
 
-                    await ApplyCommandsAsync(outputCommands, currentDbName);
+                    await Task.WhenAll(
+                        ApplyCommandsAsync(outputCommands, currentDbName),
+                        ApplyCommandsAsync(targetFileCommands, testDbName));
 
-                    var finalCommands = await FetchDbCommandsAsync(currentDbName);
-                    var targetModel = DatabaseModel.FromCommands(targetCommands);
+                    var finalCommandsTask = FetchDbCommandsAsync(currentDbName);
+                    var targetAdxCommands = await FetchDbCommandsAsync(testDbName);
+                    var finalCommands = await finalCommandsTask;
+                    var targetModel = DatabaseModel.FromCommands(targetAdxCommands);
                     var finalModel = DatabaseModel.FromCommands(finalCommands);
                     var finalScript = string.Join(";\n\n", finalCommands.Select(c => c.ToScript()));
-                    var targetScript = string.Join(";\n\n", targetCommands.Select(c => c.ToScript()));
+                    var targetScript = string.Join(";\n\n", targetFileCommands.Select(c => c.ToScript()));
 
                     Assert.True(
                         finalModel.Equals(targetModel),
@@ -127,7 +132,7 @@ namespace DeltaKustoAdxIntegrationTest
                     var targetDbName = await InitializeDbAsync();
 
                     await PrepareDbAsync(toFile, targetDbName);
-
+                    
                     var outputPath = Path.Combine("outputs", statesFolderPath, "file-to-adx/")
                         + Path.GetFileNameWithoutExtension(fromFile)
                         + "_2_"
@@ -145,11 +150,11 @@ namespace DeltaKustoAdxIntegrationTest
                     var outputCommands = await LoadScriptAsync("", outputPath);
                     var currentCommands = CommandBase.FromScript(
                         await File.ReadAllTextAsync(fromFile));
-                    var targetCommands = CommandBase.FromScript(
-                        await File.ReadAllTextAsync(toFile));
+                    var targetCommandsTask = FetchDbCommandsAsync(targetDbName);
 
                     await ApplyCommandsAsync(currentCommands.Concat(outputCommands), testDbName);
 
+                    var targetCommands = await targetCommandsTask;
                     var finalCommands = await FetchDbCommandsAsync(testDbName);
                     var targetModel = DatabaseModel.FromCommands(targetCommands);
                     var finalModel = DatabaseModel.FromCommands(finalCommands);
@@ -192,9 +197,9 @@ namespace DeltaKustoAdxIntegrationTest
                     var parameters = await RunParametersAsync(
                         "adx-to-adx-params.json",
                         overrides);
-                    var targetCommands = CommandBase.FromScript(
-                        await File.ReadAllTextAsync(toFile));
+                    var targetCommandsTask = FetchDbCommandsAsync(targetDbName);
                     var finalCommands = await FetchDbCommandsAsync(currentDbName);
+                    var targetCommands = await targetCommandsTask;
                     var targetModel = DatabaseModel.FromCommands(targetCommands);
                     var finalModel = DatabaseModel.FromCommands(finalCommands);
                     var finalScript = string.Join(";\n\n", finalCommands.Select(c => c.ToScript()));
