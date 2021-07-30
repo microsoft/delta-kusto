@@ -1,0 +1,19 @@
+﻿.create table MyIngestionBatchingTable (TIMESTAMP: datetime, PreciseTimeStamp: datetime, Level: int)
+
+.alter table MyIngestionBatchingTable policy ingestionbatching
+```
+{
+  "MaximumBatchingTimeSpan": "00:09:00",
+  "MaximumNumberOfItems": 350, 
+  "MaximumRawDataSizeMB": 1500
+}
+```
+
+.alter database ['my-db'] policy ingestionbatching
+```
+{
+  "MaximumBatchingTimeSpan": "00:15:00",
+  "MaximumNumberOfItems": 740, 
+  "MaximumRawDataSizeMB": 3042
+}
+```

@@ -1,0 +1,4 @@
+﻿//	Random comment
+
+.create table MyAutoDeleteTable (TIMESTAMP: datetime, PreciseTimeStamp: datetime, Level: int)
+
