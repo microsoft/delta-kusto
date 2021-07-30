@@ -13,10 +13,5 @@ namespace DeltaKustoAdxIntegrationTest.Policies.Update
     public class UpdatePolicyTest : AdxAutoIntegrationTestBase
     {
         protected override string StatesFolderPath => "Policies/Update";
-
-        public UpdatePolicyTest(AdxDbFixture adxDbFixture)
-            : base(adxDbFixture)
-        {
-        }
     }
 }

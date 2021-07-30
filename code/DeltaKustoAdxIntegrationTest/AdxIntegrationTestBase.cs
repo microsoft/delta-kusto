@@ -17,14 +17,11 @@ using Xunit;
 
 namespace DeltaKustoAdxIntegrationTest
 {
-    [Collection("ADX collection")]
     public abstract class AdxIntegrationTestBase : IntegrationTestBase
     {
         private readonly bool _overrideLoginTokenProvider;
 
-        protected AdxIntegrationTestBase(
-            AdxDbFixture adxDbFixture,
-            bool overrideLoginTokenProvider = true)
+        protected AdxIntegrationTestBase(bool overrideLoginTokenProvider = true)
         {
             var clusterUri = Environment.GetEnvironmentVariable("deltaKustoClusterUri");
             var tenantId = Environment.GetEnvironmentVariable("deltaKustoTenantId");
@@ -48,7 +45,6 @@ namespace DeltaKustoAdxIntegrationTest
                 throw new ArgumentNullException(nameof(servicePrincipalSecret));
             }
 
-            AdxDbFixture = adxDbFixture;
             _overrideLoginTokenProvider = overrideLoginTokenProvider;
             ClusterUri = new Uri(clusterUri);
             TenantId = tenantId;
@@ -58,8 +54,6 @@ namespace DeltaKustoAdxIntegrationTest
 
         protected Uri ClusterUri { get; }
 
-        protected AdxDbFixture AdxDbFixture { get; }
-
         protected string TenantId { get; }
 
         protected string ServicePrincipalId { get; }
@@ -68,7 +62,7 @@ namespace DeltaKustoAdxIntegrationTest
 
         protected async Task<string> InitializeDbAsync()
         {
-            var dbName = await AdxDbFixture.GetCleanDbAsync();
+            var dbName = await AdxDbTestHelper.Instance.GetCleanDbAsync();
             var gateway = CreateKustoManagementGateway(dbName);
 
             //  Ensures the database creation has propagated to Kusto
@@ -119,7 +113,7 @@ namespace DeltaKustoAdxIntegrationTest
                     Assert.True(
                         finalModel.Equals(targetModel),
                         $"From {fromFile} to {toFile}:\n\n{finalScript}\nvs\n\n{targetScript}");
-                    AdxDbFixture.ReleaseDb(currentDbName);
+                    AdxDbTestHelper.Instance.ReleaseDb(currentDbName);
                 });
         }
 
@@ -165,8 +159,8 @@ namespace DeltaKustoAdxIntegrationTest
                     Assert.True(
                         finalModel.Equals(targetModel),
                         $"From {fromFile} to {toFile}:\n\n{finalScript}\nvs\n\n{targetScript}");
-                    AdxDbFixture.ReleaseDb(targetDbName);
-                    AdxDbFixture.ReleaseDb(testDbName);
+                    AdxDbTestHelper.Instance.ReleaseDb(targetDbName);
+                    AdxDbTestHelper.Instance.ReleaseDb(testDbName);
                 });
         }
 
@@ -209,8 +203,8 @@ namespace DeltaKustoAdxIntegrationTest
                     Assert.True(
                         targetModel.Equals(finalModel),
                         $"From {fromFile} to {toFile}:\n\n{finalScript}\nvs\n\n{targetScript}");
-                    AdxDbFixture.ReleaseDb(currentDbName);
-                    AdxDbFixture.ReleaseDb(targetDbName);
+                    AdxDbTestHelper.Instance.ReleaseDb(currentDbName);
+                    AdxDbTestHelper.Instance.ReleaseDb(targetDbName);
                 });
         }
 

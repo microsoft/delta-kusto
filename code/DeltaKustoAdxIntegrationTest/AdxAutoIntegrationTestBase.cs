@@ -21,8 +21,7 @@ namespace DeltaKustoAdxIntegrationTest
     {
         protected abstract string StatesFolderPath { get; }
 
-        public AdxAutoIntegrationTestBase(AdxDbFixture adxDbFixture)
-            : base(adxDbFixture)
+        protected AdxAutoIntegrationTestBase(bool overrideLoginTokenProvider = true)
         {
         }
 

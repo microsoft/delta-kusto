@@ -13,10 +13,5 @@ namespace DeltaKustoAdxIntegrationTest.Policies.Retention
     public class RetentionPolicyTest : AdxAutoIntegrationTestBase
     {
         protected override string StatesFolderPath => "Policies/Retention";
-
-        public RetentionPolicyTest(AdxDbFixture adxDbFixture)
-            : base(adxDbFixture)
-        {
-        }
     }
 }
