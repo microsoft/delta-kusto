@@ -104,7 +104,7 @@ namespace DeltaKustoAdxIntegrationTest
             var value = d[key]!.ToString();
             var withDots = string.Join('.', value!.Select(c => c.ToString()));
 
-            Console.WriteLine($"{key}:  ({withDots})");
+            Console.WriteLine($"{key}:  {withDots}");
         }
         _dbPrefix = dbPrefix;
         _kustoManagementGatewayFactory = kustoManagementGatewayFactory;
