@@ -109,7 +109,8 @@ namespace DeltaKustoAdxIntegrationTest
         _dbPrefix = dbPrefix;
         _kustoManagementGatewayFactory = kustoManagementGatewayFactory;
         _azureManagementGateway = azureManagementGateway;
-        _initializedAsync = DeleteAllDbsAsync();
+        //_initializedAsync = DeleteAllDbsAsync();
+        _initializedAsync = Task.CompletedTask;
     }
 
     public async Task<string> GetCleanDbAsync()
