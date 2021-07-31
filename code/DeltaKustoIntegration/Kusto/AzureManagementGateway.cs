@@ -26,6 +26,7 @@ namespace DeltaKustoIntegration.Kusto
         #endregion
 
         private static readonly TimeSpan TIMEOUT = TimeSpan.FromSeconds(10);
+        private static readonly Random _random = new Random();
 
         private readonly string _clusterId;
         private readonly ITokenProvider _tokenProvider;
@@ -70,6 +71,7 @@ namespace DeltaKustoIntegration.Kusto
                             if (response.StatusCode == HttpStatusCode.TooManyRequests)
                             {
                                 //  Will loop back and retry
+                                await BackoffAsync();
                             }
                             else
                             {
@@ -142,7 +144,8 @@ namespace DeltaKustoIntegration.Kusto
                         {
                             if (response.StatusCode == HttpStatusCode.TooManyRequests)
                             {
-                                //  Retry
+                                //  Will loop back and retry
+                                await BackoffAsync();
                             }
                             else
                             {
@@ -194,7 +197,8 @@ namespace DeltaKustoIntegration.Kusto
                         {
                             if (response.StatusCode == HttpStatusCode.TooManyRequests)
                             {
-                                //  Retry
+                                //  Will loop back and retry
+                                await BackoffAsync();
                             }
                             else
                             {
@@ -235,6 +239,11 @@ namespace DeltaKustoIntegration.Kusto
             {
                 throw new DeltaException($"Issue preparing connection to Azure Management", ex);
             }
+        }
+
+        private async Task BackoffAsync()
+        {
+            await Task.Delay(TimeSpan.FromSeconds(100 + _random.Next(100)));
         }
     }
 }
