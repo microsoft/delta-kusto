@@ -60,11 +60,8 @@ jobs:
     - name: File-based integration tests (out-of-proc)
       shell:  bash
       run: |
-        # Disable parallelization of tests
-        # See https://xunit.net/docs/running-tests-in-parallel
         dotnet test code/DeltaKustoFileIntegrationTest \
-        --configuration Release --no-build --verbosity normal \
-        -p:ParallelizeTestCollections=false
+        --configuration Release --no-build --verbosity normal
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
     - name: ADX-based integration tests (out-of-proc)
       shell:  bash
@@ -199,11 +196,8 @@ jobs:
     - name: File-based integration tests (out-of-proc)
       shell:  bash
       run: |
-        # Disable parallelization of tests
-        # See https://xunit.net/docs/running-tests-in-parallel
         dotnet test code/DeltaKustoFileIntegrationTest \
-        --configuration Release --no-build --verbosity normal \
-        -p:ParallelizeTestCollections=false
+        --configuration Release --no-build --verbosity normal
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
     - name: ADX-based integration tests (out-of-proc)
       shell:  bash
