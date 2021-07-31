@@ -243,7 +243,7 @@ namespace DeltaKustoIntegration.Kusto
 
         private async Task BackoffAsync()
         {
-            await Task.Delay(TimeSpan.FromSeconds(100 + _random.Next(100)));
+            await Task.Delay(TimeSpan.FromMilliseconds(100 + _random.Next(100)));
         }
     }
 }
