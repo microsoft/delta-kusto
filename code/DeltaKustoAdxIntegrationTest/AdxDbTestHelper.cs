@@ -92,119 +92,150 @@ namespace DeltaKustoAdxIntegrationTest
             return helper;
         }
 
-    private AdxDbTestHelper(
-        string dbPrefix,
-        Func<string, IKustoManagementGateway> kustoManagementGatewayFactory,
-        AzureManagementGateway azureManagementGateway)
-    {
-        var d = Environment.GetEnvironmentVariables();
-
-        foreach (var key in d.Keys.Cast<string>().Where(k => k.StartsWith("delta")))
+        private AdxDbTestHelper(
+            string dbPrefix,
+            Func<string, IKustoManagementGateway> kustoManagementGatewayFactory,
+            AzureManagementGateway azureManagementGateway)
         {
-            var value = d[key]!.ToString();
-            var withDots = string.Join('.', value!.Select(c => c.ToString()));
+            var d = Environment.GetEnvironmentVariables();
 
-            Console.WriteLine($"{key}:  {withDots}");
-        }
-        _dbPrefix = dbPrefix;
-        _kustoManagementGatewayFactory = kustoManagementGatewayFactory;
-        _azureManagementGateway = azureManagementGateway;
-        //_initializedAsync = DeleteAllDbsAsync();
-        _initializedAsync = Task.CompletedTask;
-    }
-
-    public async Task<string> GetCleanDbAsync()
-    {
-        await _initializedAsync;
-
-        Task<string>? preparingDbTask = null;
-
-        if (_preparingDbs.TryDequeue(out preparingDbTask))
-        {
-            var dbName = await preparingDbTask;
-
-            return dbName;
-        }
-        else
-        {   //  Prepare DBs in advance
-            while (_preparingDbs.Count < AHEAD_PROVISIONING_COUNT)
+            foreach (var key in d.Keys.Cast<string>().Where(k => k.StartsWith("delta")))
             {
-                _preparingDbs.Enqueue(CreateDbAsync());
+                var value = d[key]!.ToString();
+                var withDots = string.Join('.', value!.Select(c => c.ToString()));
+
+                Console.WriteLine($"{key}:  {withDots}");
             }
-            var dbName = await CreateDbAsync();
-
-            return dbName;
-        }
-    }
-
-    public void ReleaseDb(string dbName)
-    {
-        if (!dbName.StartsWith(_dbPrefix))
-        {
-            throw new ArgumentException("Wrong prefix", nameof(dbName));
+            _dbPrefix = dbPrefix;
+            _kustoManagementGatewayFactory = kustoManagementGatewayFactory;
+            _azureManagementGateway = azureManagementGateway;
+            _initializedAsync = InitializeAsync();
         }
 
-        Func<Task<string>> preperaDbAsync = async () =>
+        public async Task<string> GetCleanDbAsync()
         {
+            await _initializedAsync;
+
+            Task<string>? preparingDbTask = null;
+
+            if (_preparingDbs.TryDequeue(out preparingDbTask))
+            {
+                var dbName = await preparingDbTask;
+
+                return dbName;
+            }
+            else
+            {   //  Prepare DBs in advance
+                while (_preparingDbs.Count < AHEAD_PROVISIONING_COUNT)
+                {
+                    _preparingDbs.Enqueue(CreateDbAsync());
+                }
+                var dbName = await CreateDbAsync();
+
+                return dbName;
+            }
+        }
+
+        public void ReleaseDb(string dbName)
+        {
+            if (!dbName.StartsWith(_dbPrefix))
+            {
+                throw new ArgumentException("Wrong prefix", nameof(dbName));
+            }
+
+            Func<Task<string>> preperaDbAsync = async () =>
+            {
+                await CleanDbAsync(dbName);
+
+                return dbName;
+            };
+
+            _preparingDbs.Enqueue(preperaDbAsync());
+        }
+
+        void IDisposable.Dispose()
+        {
+            //  First clean up the queue
+            Task.WhenAll(_preparingDbs.ToArray()).Wait();
+            DeleteAllDbsAsync().Wait();
+        }
+
+        private async Task InitializeAsync()
+        {   //  Let's find the existing dbs and enqueue them as ready
+            var names = await _azureManagementGateway.GetDatabaseNamesAsync();
+            var usefulNames = names
+                .Where(n => n.StartsWith(_dbPrefix))
+                .Where(n => IsInteger(n.Substring(_dbPrefix.Length)))
+                .ToImmutableArray();
+            var maxCount = usefulNames
+                .Select(n => n.Substring(_dbPrefix.Length))
+                .Select(t => int.Parse(t))
+                .Max();
+
+            _dbCount = maxCount + 1;
+
+            foreach (var name in usefulNames)
+            {
+                Func<Task<string>> prepareDbAsync = async () =>
+                {
+                    await CleanDbAsync(name);
+
+                    return name;
+                };
+
+                _preparingDbs.Enqueue(prepareDbAsync());
+            }
+        }
+
+        private static bool IsInteger(string text)
+        {
+            return int.TryParse(text, out _);
+        }
+
+        private async Task<string> CreateDbAsync()
+        {
+            var dbName = DbNumberToDbName(Interlocked.Increment(ref _dbCount));
+
+            await _azureManagementGateway.CreateDatabaseAsync(dbName);
+
+            var kustoGateway = _kustoManagementGatewayFactory(dbName);
+
+            while (!(await kustoGateway.DoesDatabaseExistsAsync()))
+            {
+                await Task.Delay(TimeSpan.FromSeconds(.2));
+            }
+
+            //  Event newly created databases might contain default policies we want to get rid of
             await CleanDbAsync(dbName);
 
             return dbName;
-        };
-
-        _preparingDbs.Enqueue(preperaDbAsync());
-    }
-
-    void IDisposable.Dispose()
-    {
-        //  First clean up the queue
-        Task.WhenAll(_preparingDbs.ToArray()).Wait();
-        DeleteAllDbsAsync().Wait();
-    }
-
-    private async Task<string> CreateDbAsync()
-    {
-        var dbName = DbNumberToDbName(Interlocked.Increment(ref _dbCount));
-
-        await _azureManagementGateway.CreateDatabaseAsync(dbName);
-
-        var kustoGateway = _kustoManagementGatewayFactory(dbName);
-
-        while (!(await kustoGateway.DoesDatabaseExistsAsync()))
-        {
-            await Task.Delay(TimeSpan.FromSeconds(.2));
         }
 
-        //  Event newly created databases might contain default policies we want to get rid of
-        await CleanDbAsync(dbName);
+        private async Task CleanDbAsync(string dbName)
+        {
+            var kustoGateway = _kustoManagementGatewayFactory(dbName);
+            var currentCommands = await kustoGateway.ReverseEngineerDatabaseAsync();
+            var currentModel = DatabaseModel.FromCommands(currentCommands);
+            var cleanCommands = currentModel.ComputeDelta(
+                DatabaseModel.FromCommands(
+                    ImmutableArray<CommandBase>.Empty));
 
-        return dbName;
+            await kustoGateway.ExecuteCommandsAsync(cleanCommands);
+        }
+
+        private async Task DeleteAllDbsAsync()
+        {
+            var names = await _azureManagementGateway.GetDatabaseNamesAsync();
+            var deleteTasks = names
+                .Where(n => n.StartsWith(_dbPrefix))
+                .Select(n => _azureManagementGateway.DeleteDatabaseAsync(n));
+
+            await Task.WhenAll(deleteTasks);
+        }
+
+        private string DbNumberToDbName(int c)
+        {
+            return $"{_dbPrefix}{c.ToString("D8")}";
+        }
     }
-
-    private async Task CleanDbAsync(string dbName)
-    {
-        var kustoGateway = _kustoManagementGatewayFactory(dbName);
-        var currentCommands = await kustoGateway.ReverseEngineerDatabaseAsync();
-        var currentModel = DatabaseModel.FromCommands(currentCommands);
-        var cleanCommands = currentModel.ComputeDelta(
-            DatabaseModel.FromCommands(
-                ImmutableArray<CommandBase>.Empty));
-
-        await kustoGateway.ExecuteCommandsAsync(cleanCommands);
-    }
-
-    private async Task DeleteAllDbsAsync()
-    {
-        var names = await _azureManagementGateway.GetDatabaseNamesAsync();
-        var deleteTasks = names
-            .Where(n => n.StartsWith(_dbPrefix))
-            .Select(n => _azureManagementGateway.DeleteDatabaseAsync(n));
-
-        await Task.WhenAll(deleteTasks);
-    }
-
-    private string DbNumberToDbName(int c)
-    {
-        return $"{_dbPrefix}{c.ToString("D8")}";
-    }
-}
 }
