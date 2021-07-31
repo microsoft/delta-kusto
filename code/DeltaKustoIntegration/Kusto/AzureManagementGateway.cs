@@ -55,44 +55,54 @@ namespace DeltaKustoIntegration.Kusto
             {
                 using (var client = await CreateHttpClient(ct))
                 {
-                    ct = CancellationTokenHelper.MergeCancellationToken(ct, TIMEOUT);
-
-                    var response = await client.GetAsync(apiUrl, ct);
-
-                    _tracer.WriteLine(true, "Database listed");
-
-                    var responseText =
-                        await response.Content.ReadAsStringAsync(ct);
-
-                    if (response.StatusCode != HttpStatusCode.OK)
+                    do
                     {
-                        throw new InvalidOperationException(
-                            $"Database listing failed on cluster ID {_clusterId} "
-                            + $"with status code '{response.StatusCode}' "
-                            + $"and payload '{responseText}'");
-                    }
-                    else
-                    {
-                        var list = JsonSerializer.Deserialize<DatabaseListOutput>(
-                            responseText,
-                            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                        var mergedCt = CancellationTokenHelper.MergeCancellationToken(ct, TIMEOUT);
+                        var response = await client.GetAsync(apiUrl, mergedCt);
 
-                        if (list == null || list.Value == null)
+                        _tracer.WriteLine(true, "Database listed");
+
+                        var responseText =
+                            await response.Content.ReadAsStringAsync(mergedCt);
+
+                        if (response.StatusCode != HttpStatusCode.OK)
                         {
-                            throw new InvalidOperationException(
-                                $"Database listing failed on cluster ID {_clusterId} "
-                                + $"; can't understand payload '{responseText}'");
+                            if (response.StatusCode == HttpStatusCode.TooManyRequests)
+                            {
+                                //  Will loop back and retry
+                            }
+                            else
+                            {
+                                throw new InvalidOperationException(
+                                    $"Database listing failed on cluster ID {_clusterId} "
+                                    + $"with status code '{response.StatusCode}' "
+                                    + $"and payload '{responseText}'");
+                            }
                         }
+                        else
+                        {
+                            var list = JsonSerializer.Deserialize<DatabaseListOutput>(
+                                responseText,
+                                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
-                        var names = list
-                            .Value
-                            .Select(v => v.Name.Split('/'))
-                            .Where(s => s.Length == 2)
-                            .Select(s => s[1])
-                            .ToImmutableArray();
+                            if (list == null || list.Value == null)
+                            {
+                                throw new InvalidOperationException(
+                                    $"Database listing failed on cluster ID {_clusterId} "
+                                    + $"; can't understand payload '{responseText}'");
+                            }
 
-                        return names;
+                            var names = list
+                                .Value
+                                .Select(v => v.Name.Split('/'))
+                                .Where(s => s.Length == 2)
+                                .Select(s => s[1])
+                                .ToImmutableArray();
+
+                            return names;
+                        }
                     }
+                    while (true);
                 }
             }
             catch (Exception ex)
@@ -113,27 +123,41 @@ namespace DeltaKustoIntegration.Kusto
             {
                 using (var client = await CreateHttpClient(ct))
                 {
-                    ct = CancellationTokenHelper.MergeCancellationToken(ct, TIMEOUT);
-
-                    var response = await client.PutAsync(
-                        apiUrl,
-                        new StringContent("{\"kind\":\"ReadWrite\", \"location\":\"East US\"}", null, "application/json"),
-                        ct);
-
-                    _tracer.WriteLine(true, "Database created");
-
-                    var responseText =
-                        await response.Content.ReadAsStringAsync(ct);
-
-                    if (response.StatusCode != HttpStatusCode.OK
-                        && response.StatusCode != HttpStatusCode.Created
-                        && response.StatusCode != HttpStatusCode.Accepted)
+                    do
                     {
-                        throw new InvalidOperationException(
-                            $"Database '{dbName}' creation failed on cluster ID {_clusterId} "
-                            + $"with status code '{response.StatusCode}' "
-                            + $"and payload '{responseText}'");
+                        var mergedCt = CancellationTokenHelper.MergeCancellationToken(ct, TIMEOUT);
+                        var response = await client.PutAsync(
+                            apiUrl,
+                            new StringContent("{\"kind\":\"ReadWrite\", \"location\":\"East US\"}", null, "application/json"),
+                            mergedCt);
+
+                        _tracer.WriteLine(true, "Database created");
+
+                        var responseText =
+                            await response.Content.ReadAsStringAsync(mergedCt);
+
+                        if (response.StatusCode != HttpStatusCode.OK
+                            && response.StatusCode != HttpStatusCode.Created
+                            && response.StatusCode != HttpStatusCode.Accepted)
+                        {
+                            if (response.StatusCode == HttpStatusCode.TooManyRequests)
+                            {
+                                //  Retry
+                            }
+                            else
+                            {
+                                throw new InvalidOperationException(
+                                    $"Database '{dbName}' creation failed on cluster ID {_clusterId} "
+                                    + $"with status code '{response.StatusCode}' "
+                                    + $"and payload '{responseText}'");
+                            }
+                        }
+                        else
+                        {
+                            return;
+                        }
                     }
+                    while (true);
                 }
             }
             catch (Exception ex)
@@ -154,24 +178,38 @@ namespace DeltaKustoIntegration.Kusto
             {
                 using (var client = await CreateHttpClient(ct))
                 {
-                    ct = CancellationTokenHelper.MergeCancellationToken(ct, TIMEOUT);
-
-                    var response = await client.DeleteAsync(apiUrl, ct);
-
-                    _tracer.WriteLine(true, "Database deleted");
-
-                    var responseText =
-                        await response.Content.ReadAsStringAsync(ct);
-
-                    if (response.StatusCode != HttpStatusCode.OK
-                        && response.StatusCode != HttpStatusCode.Accepted
-                        && response.StatusCode != HttpStatusCode.NoContent)
+                    do
                     {
-                        throw new InvalidOperationException(
-                            $"Database '{dbName}' deletion failed on cluster ID {_clusterId} "
-                            + $"with status code '{response.StatusCode}' "
-                            + $"and payload '{responseText}'");
+                        var mergedCt = CancellationTokenHelper.MergeCancellationToken(ct, TIMEOUT);
+                        var response = await client.DeleteAsync(apiUrl, mergedCt);
+
+                        _tracer.WriteLine(true, "Database deleted");
+
+                        var responseText =
+                            await response.Content.ReadAsStringAsync(mergedCt);
+
+                        if (response.StatusCode != HttpStatusCode.OK
+                            && response.StatusCode != HttpStatusCode.Accepted
+                            && response.StatusCode != HttpStatusCode.NoContent)
+                        {
+                            if (response.StatusCode == HttpStatusCode.TooManyRequests)
+                            {
+                                //  Retry
+                            }
+                            else
+                            {
+                                throw new InvalidOperationException(
+                                    $"Database '{dbName}' deletion failed on cluster ID {_clusterId} "
+                                    + $"with status code '{response.StatusCode}' "
+                                    + $"and payload '{responseText}'");
+                            }
+                        }
+                        else
+                        {
+                            return;
+                        }
                     }
+                    while (true);
                 }
             }
             catch (Exception ex)
