@@ -1,0 +1,7 @@
+﻿.create table MyShardingTable (TIMESTAMP: datetime, PreciseTimeStamp: datetime, Level: int)
+
+.alter table MyShardingTable policy sharding
+@'{ "MaxRowCount": 600000, "MaxExtentSizeInMb": 1500, "MaxOriginalSizeInMb": 5060}'
+
+.alter database ['my-db'] policy sharding
+@'{ "MaxRowCount": 1200000, "MaxExtentSizeInMb": 3200, "MaxOriginalSizeInMb": 9400}'
