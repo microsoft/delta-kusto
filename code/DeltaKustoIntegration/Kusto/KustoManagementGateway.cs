@@ -311,6 +311,7 @@ namespace DeltaKustoIntegration.Kusto
         #endregion
 
         private static readonly TimeSpan TIMEOUT = TimeSpan.FromSeconds(10);
+        private static readonly Random _random = new Random();
 
         private readonly Uri _clusterUri;
         private readonly string _database;
@@ -460,10 +461,20 @@ namespace DeltaKustoIntegration.Kusto
 
                 if (response.status != HttpStatusCode.OK)
                 {
-                    throw new InvalidOperationException(
-                        $"'{commandScript}' command failed for cluster URI '{_clusterUri}' "
-                        + $"with status code '{response.status}' "
-                        + $"and payload '{response.payload}'");
+                    if (response.status == HttpStatusCode.TooManyRequests)
+                    {   //  Backoff a little
+                        await Task.Delay(TimeSpan.FromMilliseconds(100 + _random.Next(100)));
+
+                        //  Retry
+                        return await ExecuteCommandAsync(commandScript, ct);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException(
+                            $"'{commandScript}' command failed for cluster URI '{_clusterUri}' "
+                            + $"with status code '{response.status}' "
+                            + $"and payload '{response.payload}'");
+                    }
                 }
 
                 var output = ApiOutput.FromJson(response.payload);
