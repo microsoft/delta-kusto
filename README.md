@@ -54,7 +54,14 @@ ADX Database|Kusto scripts|Live Sync|Find gap between two databases.
 
 ## Limitations
 
-The [current release](https://github.com/microsoft/delta-kusto/releases) of Delta-Kusto includes *functions*, *tables*, *ingestion mappings* & *update policies*.
+The [current release](https://github.com/microsoft/delta-kusto/releases) of Delta-Kusto includes *functions*, *tables*, *ingestion mappings* & the following *policies*:
+
+* Caching
+* Ingestion Batching
+* Merge
+* Retention
+* Sharding
+* Update
 
 See the [list of issues](https://github.com/microsoft/delta-kusto/issues/) for details on upcoming features and bugs found.
 
