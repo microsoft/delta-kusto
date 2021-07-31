@@ -8,18 +8,16 @@ using Xunit;
 
 namespace DeltaKustoUnitTest
 {
-    public abstract class ParsingTestBase
+    public abstract class ParsingTestBase : TestBase
     {
         protected IImmutableList<CommandBase> Parse(string script)
         {
             var commands = CommandBase.FromScript(script);
-            var reformedScript = string.Join("\n", commands.Select(c => c.ToScript()));
+            var reformedScript = string.Join("\n\n", commands.Select(c => c.ToScript()));
             var reformedCommands = CommandBase.FromScript(reformedScript);
-            var commandEquality = commands
-                .Zip(reformedCommands, (c, rc) => c.Equals(rc));
 
             //  Make sure we can go from script to command and vise versa without losing anything
-            Assert.DoesNotContain(commandEquality, r => r == false);
+            Assert.Equal(commands, reformedCommands);
 
             return commands;
         }

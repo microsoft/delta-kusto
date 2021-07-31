@@ -1,0 +1,8 @@
+﻿.create table ['my-table'] (a: real, b: int, c: string)
+
+.alter table ['my-table'] policy merge
+```
+{
+    "MaxRangeInHours": 24
+}
+```

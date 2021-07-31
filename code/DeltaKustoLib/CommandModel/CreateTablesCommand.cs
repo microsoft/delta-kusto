@@ -11,6 +11,7 @@ namespace DeltaKustoLib.CommandModel
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/create-merge-table-command"/>
     /// </summary>
+    [Command(800, "Create tables")]
     public class CreateTablesCommand : CommandBase
     {
         #region Inner Types
@@ -60,6 +61,10 @@ namespace DeltaKustoLib.CommandModel
         public QuotedText? DocString { get; }
 
         public override string CommandFriendlyName => ".create tables";
+
+        public override string SortIndex => $"{Folder?.Text}_{Tables.First().TableName.Name}";
+
+        public override string ScriptPath => $"tables/create-many";
 
         public CreateTablesCommand(
             IEnumerable<InnerTable> tables,
@@ -143,7 +148,7 @@ namespace DeltaKustoLib.CommandModel
             return areEqualed;
         }
 
-        public override string ToScript()
+        public override string ToScript(ScriptingContext? context)
         {
             var builder = new StringBuilder();
             var properties = new[]

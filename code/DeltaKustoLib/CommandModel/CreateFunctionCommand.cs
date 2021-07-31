@@ -11,6 +11,7 @@ namespace DeltaKustoLib.CommandModel
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/create-alter-function"/>
     /// </summary>
+    [Command(1200, "Create functions")]
     public class CreateFunctionCommand : CommandBase
     {
         public EntityName FunctionName { get; }
@@ -24,6 +25,12 @@ namespace DeltaKustoLib.CommandModel
         public QuotedText DocString { get; }
 
         public override string CommandFriendlyName => ".create function";
+
+        public override string SortIndex => $"{Folder?.Text}_{FunctionName.Name}";
+
+        public override string ScriptPath => Folder.Text.Any()
+            ? $"functions/create/{Folder}/{FunctionName}"
+            : $"functions/create/{FunctionName}";
 
         public CreateFunctionCommand(
             EntityName functionName,
@@ -87,7 +94,7 @@ namespace DeltaKustoLib.CommandModel
             return areEqualed;
         }
 
-        public override string ToScript()
+        public override string ToScript(ScriptingContext? context)
         {
             var builder = new StringBuilder();
             var properties = new[]

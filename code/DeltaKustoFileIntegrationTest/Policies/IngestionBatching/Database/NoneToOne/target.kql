@@ -1,0 +1,9 @@
+﻿//	Random comment
+.alter database mydb policy ingestionbatching
+```
+{
+  "MaximumBatchingTimeSpan": "00:07:17",
+  "MaximumNumberOfItems": 747, 
+  "MaximumRawDataSizeMB": 5
+}
+```

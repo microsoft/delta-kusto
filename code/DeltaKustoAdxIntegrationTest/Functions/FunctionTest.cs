@@ -10,26 +10,8 @@ using Xunit;
 
 namespace DeltaKustoAdxIntegrationTest.Functions
 {
-    public class FunctionTest : AdxIntegrationTestBase
+    public class FunctionTest : AdxAutoIntegrationTestBase
     {
-        private const string STATES_FOLDER_PATH = "Functions";
-
-        [Fact]
-        public async Task AdxToFile()
-        {
-            await TestAdxToFile(STATES_FOLDER_PATH);
-        }
-
-        [Fact]
-        public async Task FileToAdx()
-        {
-            await TestFileToAdx(STATES_FOLDER_PATH);
-        }
-
-        [Fact]
-        public async Task AdxToAdx()
-        {
-            await TestAdxToAdx(STATES_FOLDER_PATH);
-        }
+        protected override string StatesFolderPath => "Functions";
     }
 }

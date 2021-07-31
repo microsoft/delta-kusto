@@ -12,6 +12,7 @@ namespace DeltaKustoLib.CommandModel
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/alter-column"/>
     /// </summary>
+    [Command(700, "Alter Column Type")]
     public class AlterColumnTypeCommand : CommandBase
     {
         #region Inner Types
@@ -48,6 +49,10 @@ namespace DeltaKustoLib.CommandModel
         public string Type { get; }
 
         public override string CommandFriendlyName => ".alter column type";
+
+        public override string SortIndex => $"{TableName.Name}_{ColumnName.Name}";
+
+        public override string ScriptPath => $"columns/alter-type/{TableName}";
 
         internal AlterColumnTypeCommand(
             EntityName tableName,
@@ -87,7 +92,7 @@ namespace DeltaKustoLib.CommandModel
             return areEqualed;
         }
 
-        public override string ToScript()
+        public override string ToScript(ScriptingContext? context)
         {
             var builder = new StringBuilder();
 

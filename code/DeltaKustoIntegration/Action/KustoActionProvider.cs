@@ -3,7 +3,6 @@ using DeltaKustoLib.CommandModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,12 +19,12 @@ namespace DeltaKustoIntegration.Action
 
         async Task IActionProvider.ProcessDeltaCommandsAsync(
             bool doNotProcessIfDataLoss,
-            ActionCommandCollection commands,
+            CommandCollection commands,
             CancellationToken ct)
         {
-            if (!doNotProcessIfDataLoss || !commands.AllDataLossCommands.Any())
+            if (!doNotProcessIfDataLoss || !commands.DataLossCommands.Any())
             {
-                await _kustoManagementGateway.ExecuteCommandsAsync(commands, ct);
+                await _kustoManagementGateway.ExecuteCommandsAsync(commands.AllCommands, ct);
             }
         }
     }

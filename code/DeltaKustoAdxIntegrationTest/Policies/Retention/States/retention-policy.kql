@@ -1,0 +1,27 @@
+﻿.create table BIAzureTraceMsitScus (TIMESTAMP: datetime, PreciseTimeStamp: datetime, Level: int, ProviderGuid: string, ProviderName: string, KeywordName: string, TaskName: string, ChannelName: string, EventMessage: string, ActivityId: string, Message: string, SourceTableName: string, ExtraFields: string, Directory: string, TraceTimeStamp: datetime, InstanceId: string, TraceActivityId: string, RootActivityId: string, ActivityType: string, ClientActivityId: string, SourceId: string, EventText: string)
+
+.create table MiniTrace(TIMESTAMP: datetime, PreciseTimeStamp: datetime, Level: int, ProviderGuid: string)
+
+.alter table BIAzureTraceMsitScus policy retention
+```
+{
+	"SoftDeletePeriod": "30.00:00:00",
+	"Recoverability" : "Disabled"
+}
+```
+
+.alter table MiniTrace policy retention
+```
+{
+	"SoftDeletePeriod": "60.00:00:00",
+	"Recoverability" : "Enabled"
+}
+```
+
+.alter database ['my-db'] policy retention
+```
+{
+	"SoftDeletePeriod": "365.00:00:00",
+	"Recoverability" : "Enabled"
+}
+```

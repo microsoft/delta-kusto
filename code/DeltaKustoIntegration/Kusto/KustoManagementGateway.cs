@@ -311,6 +311,7 @@ namespace DeltaKustoIntegration.Kusto
         #endregion
 
         private static readonly TimeSpan TIMEOUT = TimeSpan.FromSeconds(10);
+        private static readonly Random _random = new Random();
 
         private readonly Uri _clusterUri;
         private readonly string _database;
@@ -332,7 +333,23 @@ namespace DeltaKustoIntegration.Kusto
             _httpClientFactory = httpClientFactory;
         }
 
-        async Task<IImmutableList<CommandBase>> IKustoManagementGateway.ReverseEngineerDatabase(
+        async Task<bool> IKustoManagementGateway.DoesDatabaseExistsAsync(CancellationToken ct)
+        {
+            var tracerTimer = new TracerTimer(_tracer);
+
+            _tracer.WriteLine(true, "Does db exists start");
+
+            var response = await ExecuteCommandResponseAsync(".show database datastats", ct);
+
+            _tracer.WriteLine(true, "Does db exists commands end");
+            tracerTimer.WriteTime(true, "Does db exists commands time");
+
+            var doesExists = response.status == HttpStatusCode.OK;
+
+            return doesExists;
+        }
+
+        async Task<IImmutableList<CommandBase>> IKustoManagementGateway.ReverseEngineerDatabaseAsync(
             CancellationToken ct)
         {
             var tracerTimer = new TracerTimer(_tracer);
@@ -369,7 +386,11 @@ namespace DeltaKustoIntegration.Kusto
                 _tracer.WriteLine(true, ".execute database script commands start");
 
                 var tracerTimer = new TracerTimer(_tracer);
-                var commandScripts = commands.Select(c => c.ToScript());
+                var scriptingContext = new ScriptingContext
+                {
+                    CurrentDatabaseName = new EntityName(_database)
+                };
+                var commandScripts = commands.Select(c => c.ToScript(scriptingContext));
                 var fullScript = ".execute database script with (ThrowOnErrors=true) <|"
                     + Environment.NewLine
                     + string.Join(Environment.NewLine + Environment.NewLine, commandScripts);
@@ -436,9 +457,51 @@ namespace DeltaKustoIntegration.Kusto
         {
             try
             {
+                var response = await ExecuteCommandResponseAsync(commandScript, ct);
+
+                if (response.status != HttpStatusCode.OK)
+                {
+                    if (response.status == HttpStatusCode.TooManyRequests)
+                    {   //  Backoff a little
+                        await Task.Delay(TimeSpan.FromMilliseconds(100 + _random.Next(100)));
+
+                        //  Retry
+                        return await ExecuteCommandAsync(commandScript, ct);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException(
+                            $"'{commandScript}' command failed for cluster URI '{_clusterUri}' "
+                            + $"with status code '{response.status}' "
+                            + $"and payload '{response.payload}'");
+                    }
+                }
+
+                var output = ApiOutput.FromJson(response.payload);
+
+                return output;
+            }
+            catch (Exception ex)
+            {
+                throw new DeltaException(
+                    $"Issue running Kusto script on cluster '{_clusterUri}' / "
+                    + $"database '{_database}'",
+                    ex);
+            }
+        }
+
+        private async Task<(HttpStatusCode status, string payload)> ExecuteCommandResponseAsync(
+            string commandScript,
+            CancellationToken ct)
+        {
+            try
+            {
                 ct = CancellationTokenHelper.MergeCancellationToken(ct, TIMEOUT);
 
-                var token = await _tokenProvider.GetTokenAsync(_clusterUri, ct);
+                var token = await _tokenProvider.GetTokenAsync(_clusterUri.ToString(), ct);
+
+                //  Reset the timeout for the second API call
+                ct = CancellationTokenHelper.MergeCancellationToken(ct, TIMEOUT);
 
                 //  Implementation of https://docs.microsoft.com/en-us/azure/data-explorer/kusto/api/rest/request#examples
                 using (var client = _httpClientFactory.CreateHttpClient())
@@ -462,17 +525,7 @@ namespace DeltaKustoIntegration.Kusto
                     var responseText =
                         await response.Content.ReadAsStringAsync(ct);
 
-                    if (response.StatusCode != HttpStatusCode.OK)
-                    {
-                        throw new InvalidOperationException(
-                            $"'{body.csl}' command failed for cluster URI '{_clusterUri}' "
-                            + $"with status code '{response.StatusCode}' "
-                            + $"and payload '{responseText}'");
-                    }
-
-                    var output = ApiOutput.FromJson(responseText);
-
-                    return output;
+                    return (response.StatusCode, responseText);
                 }
             }
             catch (Exception ex)

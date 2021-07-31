@@ -1,7 +1,9 @@
 ﻿using DeltaKustoLib;
+using Polly;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -13,8 +15,8 @@ namespace DeltaKustoIntegration.TokenProvider
 {
     internal class LoginTokenProvider : ITokenProvider
     {
-        private static readonly TimeSpan TIMEOUT = TimeSpan.FromSeconds(5);
-        
+        private static readonly TimeSpan TIMEOUT = TimeSpan.FromSeconds(10);
+
         private readonly ITracer _tracer;
         private readonly SimpleHttpClientFactory _httpClientFactory;
         private readonly string _tenantId;
@@ -39,10 +41,10 @@ namespace DeltaKustoIntegration.TokenProvider
         }
 
         async Task<string> ITokenProvider.GetTokenAsync(
-            Uri clusterUri,
+            string resource,
             CancellationToken ct)
         {
-            var cacheKey = clusterUri.ToString();
+            var cacheKey = resource.ToString();
 
             if (_tokenCache.ContainsKey(cacheKey))
             {
@@ -56,7 +58,7 @@ namespace DeltaKustoIntegration.TokenProvider
                 {
                     _tracer.WriteLine(true, "No token cached");
 
-                    var token = await RetrieveTokenAsync(clusterUri, ct);
+                    var token = await RetrieveTokenAsync(resource, ct);
 
                     _tokenCache[cacheKey] = token;
 
@@ -69,54 +71,64 @@ namespace DeltaKustoIntegration.TokenProvider
             }
         }
 
-        private async Task<string> RetrieveTokenAsync(Uri clusterUri, CancellationToken ct)
+        private async Task<string> RetrieveTokenAsync(string resource, CancellationToken ct)
         {
-            ct = CancellationTokenHelper.MergeCancellationToken(ct, TIMEOUT);
+            var policy = Policy
+                .Handle<IOException>()
+                .RetryAsync(3);
+
             _tracer.WriteLine(true, "LoginTokenProvider.RetrieveTokenAsync start");
 
-            //  Implementation of https://docs.microsoft.com/en-us/azure/data-explorer/kusto/api/rest/request#examples
-            using (var client = _httpClientFactory.CreateHttpClient())
+            var accessToken = await policy.ExecuteAsync(async () =>
             {
-                _tracer.WriteLine(true, "LoginTokenProvider - Post credentials");
+                var compoundCt = CancellationTokenHelper.MergeCancellationToken(ct, TIMEOUT);
 
-                var loginUrl = $"https://login.microsoftonline.com/{_tenantId}/oauth2/token";
-                var response = await client.PostAsync(
-                    loginUrl,
-                    new FormUrlEncodedContent(new[] {
+                //  Implementation of https://docs.microsoft.com/en-us/azure/data-explorer/kusto/api/rest/request#examples
+                using (var client = _httpClientFactory.CreateHttpClient())
+                {
+                    _tracer.WriteLine(true, "LoginTokenProvider - Post credentials");
+
+                    var loginUrl = $"https://login.microsoftonline.com/{_tenantId}/oauth2/token";
+                    var response = await client.PostAsync(
+                        loginUrl,
+                        new FormUrlEncodedContent(new[] {
                         new KeyValuePair<string?, string?>("client_id", _clientId),
                         new KeyValuePair<string?, string?>("client_secret", _secret),
-                        new KeyValuePair<string?, string?>("resource", clusterUri.ToString()),
+                        new KeyValuePair<string?, string?>("resource", resource),
                         new KeyValuePair<string?, string?>("grant_type", "client_credentials")
-                    }),
-                    ct);
+                        }),
+                        compoundCt);
 
-                _tracer.WriteLine(true, "LoginTokenProvider.RetrieveTokenAsync retrieve payload");
-                
-                var responseText =
-                    await response.Content.ReadAsStringAsync(ct);
+                    _tracer.WriteLine(true, "LoginTokenProvider.RetrieveTokenAsync retrieve payload");
 
-                if (response.StatusCode != HttpStatusCode.OK)
-                {
-                    throw new DeltaException(
-                        $"Authentication failed for cluster URI '{clusterUri}' "
-                        + $"with status code '{response.StatusCode}' "
-                        + $"and payload {responseText}");
+                    var responseText =
+                        await response.Content.ReadAsStringAsync(compoundCt);
+
+                    if (response.StatusCode != HttpStatusCode.OK)
+                    {
+                        throw new DeltaException(
+                            $"Authentication failed for cluster URI '{resource}' "
+                            + $"with status code '{response.StatusCode}' "
+                            + $"and payload {responseText}");
+                    }
+
+                    var tokenMap = JsonSerializer.Deserialize<IDictionary<string, string>>(responseText);
+
+                    if (tokenMap == null || !tokenMap.ContainsKey("access_token"))
+                    {
+                        throw new DeltaException(
+                            $"Can't deserialize token in authentication response:"
+                            + $"  '{responseText}'");
+                    }
+                    var accessToken = tokenMap["access_token"];
+
+                    return accessToken;
                 }
+            });
 
-                var tokenMap = JsonSerializer.Deserialize<IDictionary<string, string>>(responseText);
+            _tracer.WriteLine(true, "LoginTokenProvider.RetrieveTokenAsync end");
 
-                if (tokenMap == null || !tokenMap.ContainsKey("access_token"))
-                {
-                    throw new DeltaException(
-                        $"Can't deserialize token in authentication response:"
-                        + $"  '{responseText}'");
-                }
-                var accessToken = tokenMap["access_token"];
-
-                _tracer.WriteLine(true, "LoginTokenProvider.RetrieveTokenAsync end");
-
-                return accessToken;
-            }
+            return accessToken;
         }
     }
 }

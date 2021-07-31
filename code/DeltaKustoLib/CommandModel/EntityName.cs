@@ -50,6 +50,8 @@ namespace DeltaKustoLib.CommandModel
                     return new EntityName(tokenName.Name.Text);
                 case LiteralExpression literal:
                     return new EntityName((string)literal.LiteralValue);
+                case BracketedName bracketedName:
+                    return new EntityName((string)bracketedName.Name.LiteralValue);
 
                 default:
                     return new EntityName(element.ToString());

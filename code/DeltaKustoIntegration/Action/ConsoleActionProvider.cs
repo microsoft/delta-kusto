@@ -22,10 +22,10 @@ namespace DeltaKustoIntegration.Action
 
         Task IActionProvider.ProcessDeltaCommandsAsync(
             bool doNotProcessIfDataLoss,
-            ActionCommandCollection commands,
+            CommandCollection commands,
             CancellationToken ct)
         {
-            foreach(var c in commands)
+            foreach(var c in commands.AllCommands)
             {
                 _tracer.WriteLine(_isVerbose, c.ToScript());
             }

@@ -27,7 +27,7 @@ namespace DeltaKustoIntegration.Database
         {
             _tracer.WriteLine(true, "Retrieve Kusto DB start");
 
-            var commands = await _kustoManagementGateway.ReverseEngineerDatabase(ct);
+            var commands = await _kustoManagementGateway.ReverseEngineerDatabaseAsync(ct);
 
             _tracer.WriteLine(true, "Retrieve Kusto DB end");
 

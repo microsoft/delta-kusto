@@ -1,0 +1,4 @@
+﻿//Random junk comment
+
+//	Other
+.alter database ['my db'] policy caching hot = 12h

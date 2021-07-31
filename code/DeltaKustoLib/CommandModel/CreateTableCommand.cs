@@ -11,7 +11,8 @@ namespace DeltaKustoLib.CommandModel
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/create-merge-table-command"/>
     /// </summary>
-    public class CreateTableCommand : CommandBase
+    [Command(900, "Create tables")]
+    public class CreateTableCommand : CommandBase, ISingularToPluralCommand
     {
         public EntityName TableName { get; }
 
@@ -22,6 +23,12 @@ namespace DeltaKustoLib.CommandModel
         public QuotedText? DocString { get; }
 
         public override string CommandFriendlyName => ".create table";
+
+        public override string SortIndex => $"{Folder?.Text}_{TableName.Name}";
+
+        public override string ScriptPath => Folder != null && Folder.Text.Any()
+            ? $"tables/create/{Folder}/{TableName}"
+            : $"tables/create/{TableName}";
 
         internal CreateTableCommand(
             EntityName tableName,
@@ -76,7 +83,7 @@ namespace DeltaKustoLib.CommandModel
             return areEqualed;
         }
 
-        public override string ToScript()
+        public override string ToScript(ScriptingContext? context)
         {
             var builder = new StringBuilder();
             var properties = new[]
@@ -111,6 +118,24 @@ namespace DeltaKustoLib.CommandModel
             return literal == null
                 ? null
                 : QuotedText.FromLiteral(literal);
+        }
+
+        IEnumerable<CommandBase>
+            ISingularToPluralCommand.ToPlural(IEnumerable<CommandBase> singularCommands)
+        {
+            //  We might want to cap batches to a maximum size?
+            var pluralCommands = singularCommands
+                .Cast<CreateTableCommand>()
+                .Select(c => new { Key = (c.Folder, c.DocString), Value = c })
+                .GroupBy(c => c.Key)
+                .Select(g => new CreateTablesCommand(
+                    g.Select(c => new CreateTablesCommand.InnerTable(
+                        c.Value.TableName,
+                        c.Value.Columns)),
+                    g.Key.Folder,
+                    g.Key.DocString));
+
+            return pluralCommands.ToImmutableArray();
         }
     }
 }

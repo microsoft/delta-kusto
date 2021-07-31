@@ -12,6 +12,7 @@ namespace DeltaKustoLib.CommandModel
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/create-ingestion-mapping-command"/>
     /// </summary>
+    [Command(1100, "Create table ingestion mappings")]
     public class CreateMappingCommand : CommandBase
     {
         public EntityName TableName { get; }
@@ -23,6 +24,10 @@ namespace DeltaKustoLib.CommandModel
         public QuotedText MappingAsJson { get; }
 
         public override string CommandFriendlyName => ".create ingestion mapping";
+
+        public override string SortIndex => $"{TableName.Name}_{MappingName.Text}_{MappingKind}";
+
+        public override string ScriptPath => $"tables/ingestion-mappings/create/{TableName}";
 
         public CreateMappingCommand(
             EntityName tableName,
@@ -80,7 +85,7 @@ namespace DeltaKustoLib.CommandModel
             return areEqualed;
         }
 
-        public override string ToScript()
+        public override string ToScript(ScriptingContext? context)
         {
             var builder = new StringBuilder();
 

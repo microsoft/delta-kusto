@@ -12,6 +12,7 @@ namespace DeltaKustoLib.CommandModel
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/alter-merge-table-column"/>
     /// </summary>
+    [Command(1000, "Alter merge table column doc strings")]
     public class AlterMergeTableColumnDocStringsCommand : CommandBase
     {
         #region Inner Types
@@ -46,6 +47,10 @@ namespace DeltaKustoLib.CommandModel
         public IImmutableList<ColumnDocString> Columns { get; }
 
         public override string CommandFriendlyName => ".alter-merge table column-docstring";
+
+        public override string SortIndex => TableName.Name;
+
+        public override string ScriptPath => $"columns/alter-doc-strings/{TableName}";
 
         internal AlterMergeTableColumnDocStringsCommand(
             EntityName tableName,
@@ -93,7 +98,7 @@ namespace DeltaKustoLib.CommandModel
             return areEqualed;
         }
 
-        public override string ToScript()
+        public override string ToScript(ScriptingContext? context)
         {
             var builder = new StringBuilder();
 

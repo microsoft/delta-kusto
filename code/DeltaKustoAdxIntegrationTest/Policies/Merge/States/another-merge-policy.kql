@@ -1,0 +1,19 @@
+﻿.create table MyMergeTable (TIMESTAMP: datetime, PreciseTimeStamp: datetime, Level: int)
+
+.alter table MyMergeTable policy merge
+```
+{
+	"RowCountUpperBoundForMerge": 30000000,
+	"MaxExtentsToMerge": 300,
+	"LoopPeriod": "00:36:00"
+}
+```
+
+.alter database ['my-db'] policy merge
+```
+{
+	"RowCountUpperBoundForMerge": 40000000,
+	"MaxExtentsToMerge": 600,
+	"LoopPeriod": "00:53:00"
+}
+```

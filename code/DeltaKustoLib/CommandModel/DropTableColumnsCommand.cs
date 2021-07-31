@@ -11,6 +11,7 @@ namespace DeltaKustoLib.CommandModel
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/drop-column"/>
     /// </summary>
+    [Command(300, "Drop Table Columns")]
     public class DropTableColumnsCommand : CommandBase
     {
         public EntityName TableName { get; }
@@ -18,6 +19,10 @@ namespace DeltaKustoLib.CommandModel
         public IImmutableList<EntityName> ColumnNames { get; }
 
         public override string CommandFriendlyName => ".drop table columns";
+
+        public override string SortIndex => TableName.Name;
+
+        public override string ScriptPath => $"columns/drop";
 
         internal DropTableColumnsCommand(
             EntityName tableName,
@@ -52,7 +57,7 @@ namespace DeltaKustoLib.CommandModel
             return areEqualed;
         }
 
-        public override string ToScript()
+        public override string ToScript(ScriptingContext? context)
         {
             return $".drop table {TableName} columns ({string.Join(", ", ColumnNames)})";
         }

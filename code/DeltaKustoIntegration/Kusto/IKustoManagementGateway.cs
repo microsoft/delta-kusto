@@ -10,7 +10,9 @@ namespace DeltaKustoIntegration.Kusto
 {
     public interface IKustoManagementGateway
     {
-        Task<IImmutableList<CommandBase>> ReverseEngineerDatabase(CancellationToken ct = default);
+        Task<bool> DoesDatabaseExistsAsync(CancellationToken ct = default);
+     
+        Task<IImmutableList<CommandBase>> ReverseEngineerDatabaseAsync(CancellationToken ct = default);
 
         Task ExecuteCommandsAsync(
             IEnumerable<CommandBase> commands,

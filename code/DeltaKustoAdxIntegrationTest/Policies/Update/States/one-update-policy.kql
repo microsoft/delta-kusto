@@ -12,3 +12,4 @@
 		"Query" : "Q | summarize min(a)"
 	}
 ]
+```

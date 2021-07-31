@@ -5,13 +5,13 @@ using DeltaKustoIntegration.Kusto;
 using DeltaKustoIntegration.Parameterization;
 using DeltaKustoIntegration.TokenProvider;
 using DeltaKustoLib;
+using DeltaKustoLib.CommandModel;
 using DeltaKustoLib.KustoModel;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -142,7 +142,7 @@ namespace delta_kusto
                 _tracer.WriteLine(false, "Compute Delta...");
 
                 var delta = currentDb.ComputeDelta(targetDb);
-                var actions = new ActionCommandCollection(delta);
+                var actions = new CommandCollection(job.Action!.UsePluralForms, delta);
                 var jobSuccess = ReportOnDeltaCommands(parameters, actions);
                 var actionProviders = CreateActionProvider(
                     job.Action!,
@@ -183,15 +183,15 @@ namespace delta_kusto
 
         private bool ReportOnDeltaCommands(
             MainParameterization parameters,
-            ActionCommandCollection deltaCommands)
+            CommandCollection deltaCommands)
         {
             var success = true;
 
-            _tracer.WriteLine(false, $"{deltaCommands.Count()} commands in delta");
-            if (deltaCommands.AllDataLossCommands.Any())
+            _tracer.WriteLine(false, $"{deltaCommands.AllCommands.Count()} commands in delta");
+            if (deltaCommands.DataLossCommands.Any())
             {
                 _tracer.WriteLine(false, "Delta contains drop commands:");
-                foreach (var command in deltaCommands.AllDataLossCommands)
+                foreach (var command in deltaCommands.DataLossCommands)
                 {
                     _tracer.WriteLine(false, "  " + command.ToScript());
                 }
@@ -249,17 +249,11 @@ namespace delta_kusto
 
             if (action.FilePath != null)
             {
-                builder.Add(new OneFileActionProvider(
-                    localFileGateway,
-                    action.FilePath,
-                    action.UsePluralForms));
+                builder.Add(new OneFileActionProvider(localFileGateway, action.FilePath));
             }
             if (action.FolderPath != null)
             {
-                builder.Add(new MultiFilesActionProvider(
-                    localFileGateway,
-                    action.FolderPath,
-                    action.UsePluralForms));
+                builder.Add(new MultiFilesActionProvider(localFileGateway, action.FolderPath));
             }
             if (action.PushToCurrent)
             {

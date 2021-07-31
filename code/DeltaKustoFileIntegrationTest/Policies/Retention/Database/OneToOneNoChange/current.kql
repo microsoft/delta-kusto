@@ -1,0 +1,7 @@
+﻿//	Random comment
+.alter database mydb policy retention
+```
+{
+	"SoftDeletePeriod": "12:00:00"
+}
+```

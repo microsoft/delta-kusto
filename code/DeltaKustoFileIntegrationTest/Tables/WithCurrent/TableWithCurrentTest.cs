@@ -52,8 +52,7 @@ namespace DeltaKustoFileIntegrationTest.Tables.WithCurrent
         {
             var paramPath = "Tables/WithCurrent/TargetLess/delta-params.json";
             var parameters = await RunParametersAsync(paramPath);
-            var outputRootFolder = parameters.Jobs!.First().Value.Action!.FolderPath!;
-            var outputPath = Path.Combine(outputRootFolder, "tables/drop/your-table.kql");
+            var outputPath = "outputs/target-less/tables/drop.kql";
             var commands = await LoadScriptAsync(paramPath, outputPath);
 
             Assert.Single(commands);

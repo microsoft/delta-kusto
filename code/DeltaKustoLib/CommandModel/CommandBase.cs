@@ -1,4 +1,5 @@
-﻿using Kusto.Language;
+﻿using DeltaKustoLib.CommandModel.Policies;
+using Kusto.Language;
 using Kusto.Language.Syntax;
 using System;
 using System.Collections.Generic;
@@ -26,10 +27,14 @@ namespace DeltaKustoLib.CommandModel
         }
 
         public abstract string CommandFriendlyName { get; }
+        
+        public abstract string SortIndex { get; }
+        
+        public abstract string ScriptPath { get; }
 
         public abstract bool Equals([AllowNull] CommandBase other);
 
-        public abstract string ToScript();
+        public abstract string ToScript(ScriptingContext? context = default(ScriptingContext));
 
         #region Object methods
         public override string ToString()
@@ -131,6 +136,44 @@ namespace DeltaKustoLib.CommandModel
                         return DropMappingCommand.FromCode(commandBlock);
                     case "AlterTablePolicyUpdate":
                         return AlterUpdatePolicyCommand.FromCode(commandBlock);
+                    #region Policies
+                    case "AlterTablePolicyAutoDelete":
+                        return AlterAutoDeletePolicyCommand.FromCode(commandBlock);
+                    case "DeleteTablePolicyAutoDelete":
+                        return DeleteAutoDeletePolicyCommand.FromCode(commandBlock);
+                    case "AlterDatabasePolicyCaching":
+                    case "AlterTablePolicyCaching":
+                        return AlterCachingPolicyCommand.FromCode(commandBlock);
+                    case "DeleteDatabasePolicyCaching":
+                    case "DeleteTablePolicyCaching":
+                        return DeleteCachingPolicyCommand.FromCode(commandBlock);
+                    case "AlterDatabasePolicyIngestionBatching":
+                    case "AlterTablePolicyIngestionBatching":
+                        return AlterIngestionBatchingPolicyCommand.FromCode(commandBlock);
+                    case "DeleteDatabasePolicyIngestionBatching":
+                    case "DeleteTablePolicyIngestionBatching":
+                        return DeleteIngestionBatchingPolicyCommand.FromCode(commandBlock);
+                    case "AlterDatabasePolicyMerge":
+                    case "AlterTablePolicyMerge":
+                        return AlterMergePolicyCommand.FromCode(commandBlock);
+                    case "DeleteDatabasePolicyMerge":
+                    case "DeleteTablePolicyMerge":
+                        return DeleteMergePolicyCommand.FromCode(commandBlock);
+                    case "AlterDatabasePolicyRetention":
+                    case "AlterTablePolicyRetention":
+                        return AlterRetentionPolicyCommand.FromCode(commandBlock);
+                    case "AlterTablesPolicyRetention":
+                        return AlterTablesRetentionPolicyCommand.FromCode(commandBlock);
+                    case "DeleteDatabasePolicyRetention":
+                    case "DeleteTablePolicyRetention":
+                        return DeleteRetentionPolicyCommand.FromCode(commandBlock);
+                    case "AlterDatabasePolicySharding":
+                    case "AlterTablePolicySharding":
+                        return AlterShardingPolicyCommand.FromCode(commandBlock);
+                    case "DeleteDatabasePolicySharding":
+                    case "DeleteTablePolicySharding":
+                        return DeleteShardingPolicyCommand.FromCode(commandBlock);
+                    #endregion
 
                     default:
                         if (ignoreUnknownCommands)

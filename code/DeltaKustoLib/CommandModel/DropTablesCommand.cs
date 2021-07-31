@@ -11,11 +11,16 @@ namespace DeltaKustoLib.CommandModel
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/drop-table-command"/>
     /// </summary>
+    [Command(200, "Drop Tables")]
     public class DropTablesCommand : CommandBase
     {
         public IImmutableList<EntityName> TableNames { get; }
 
         public override string CommandFriendlyName => ".drop tables";
+        
+        public override string SortIndex => TableNames.First().Name;
+
+        public override string ScriptPath => "tables/drop";
 
         internal DropTablesCommand(IImmutableList<EntityName> tableNames)
         {
@@ -23,7 +28,7 @@ namespace DeltaKustoLib.CommandModel
             {
                 throw new ArgumentNullException(nameof(tableNames), "At least one table name is needed");
             }
-            TableNames = tableNames;
+            TableNames = tableNames.OrderBy(n => n.Name).ToImmutableArray();
         }
 
         internal static CommandBase FromCode(SyntaxElement rootElement)
@@ -45,7 +50,7 @@ namespace DeltaKustoLib.CommandModel
             return areEqualed;
         }
 
-        public override string ToScript()
+        public override string ToScript(ScriptingContext? context)
         {
             return $".drop tables ({string.Join(", ", TableNames.Select(t => t.ToScript()))})";
         }

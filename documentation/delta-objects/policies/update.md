@@ -1,6 +1,6 @@
 # Delta on Update Policy
 
-This page documents how a delta is computed on Update Policy.
+This page documents how a delta is computed on [Update Policy](https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/updatepolicy).
 
 ## Model
 

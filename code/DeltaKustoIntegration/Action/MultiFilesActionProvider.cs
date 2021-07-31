@@ -14,111 +14,38 @@ namespace DeltaKustoIntegration.Action
     {
         private readonly IFileGateway _fileGateway;
         private readonly string _folderPath;
-        private readonly bool _usePluralForms;
 
         public MultiFilesActionProvider(
             IFileGateway fileGateway,
-            string folderPath,
-            bool usePluralForms)
+            string folderPath)
         {
             _fileGateway = fileGateway;
             _folderPath = folderPath;
-            _usePluralForms = usePluralForms;
         }
 
         async Task IActionProvider.ProcessDeltaCommandsAsync(
             bool doNotProcessIfDataLoss,
-            ActionCommandCollection commands,
+            CommandCollection commands,
             CancellationToken ct)
         {
-            if (_usePluralForms)
-            {
-                await ProcessDeltaCommandsAsync(
-                    commands.DropTableCommands.MergeToPlural(),
-                    c => "drop",
-                    "tables",
-                    ct);
-            }
-            else
-            {
-                await ProcessDeltaCommandsAsync(
-                    commands.DropTableCommands,
-                    c => c.TableName.Name,
-                    "tables/drop",
-                    ct);
-            }
-            await ProcessDeltaCommandsAsync(
-                commands.DropTableColumnsCommands,
-                c => c.TableName.Name,
-                "columns/drop",
-                ct);
-            await ProcessDeltaCommandsAsync(
-                commands.DropMappingCommands,
-                c => $"{c.TableName.Name}-{c.MappingName}-{c.MappingKind}",
-                "tables/ingestion-mappings/drop",
-                ct);
-            await ProcessDeltaCommandsAsync(
-                commands.DropFunctionCommands,
-                c => c.FunctionName.Name,
-                "functions/drop",
-                ct);
-            await ProcessDeltaCommandsAsync(
-                commands.AlterColumnTypeCommands,
-                c => c.TableName.Name,
-                "columns/alter-type",
-                ct);
-            if (_usePluralForms)
-            {
-                await ProcessDeltaCommandsAsync(
-                    commands.CreateTableCommands.MergeToPlural(),
-                    c => "create",
-                    "tables",
-                    ct);
-            }
-            else
-            {
-                await ProcessDeltaCommandsAsync(
-                    commands.CreateTableCommands,
-                    c => c.TableName.Name,
-                    "tables/create",
-                    ct);
-            }
-            await ProcessDeltaCommandsAsync(
-                commands.AlterMergeTableColumnDocStringsCommands,
-                c => c.TableName.Name,
-                "columns/alter-doc-strings",
-                ct);
-            await ProcessDeltaCommandsAsync(
-                commands.CreateMappingCommands,
-                c => $"{c.TableName.Name}-{c.MappingName}-{c.MappingKind}",
-                "tables/ingestion-mappings/create",
-                ct);
-            await ProcessDeltaCommandsAsync(
-                commands.AlterUpdatePolicyCommands,
-                c => $"{c.TableName.Name}",
-                "tables/policies/update",
-                ct);
-            await ProcessDeltaCommandsAsync(
-                commands.CreateFunctionCommands,
-                c => c.FunctionName.Name,
-                "functions/create",
-                ct);
-        }
+            var commandGroups = commands
+                .AllCommands
+                .GroupBy(c => c.ScriptPath);
 
-        private async Task ProcessDeltaCommandsAsync<CT>(
-            IEnumerable<CT> commands,
-            Func<CT, string> fileNameExtractor,
-            string folder,
-            CancellationToken ct)
-            where CT : CommandBase
-        {
-            foreach (var command in commands)
+            foreach (var group in commandGroups)
             {
-                var fileName = $"{fileNameExtractor(command)}.kql";
-                var script = command.ToScript();
-                var fullPath = Path.Combine(_folderPath, folder, fileName);
+                var fullPath = Path.Combine(_folderPath, $"{group.Key}.kql");
+                var builder = new StringBuilder();
 
-                await _fileGateway.SetFileContentAsync(fullPath, script, ct);
+                foreach (var command in group)
+                {
+                    var script = command.ToScript();
+
+                    builder.Append(script);
+                    builder.AppendLine();
+                    builder.AppendLine();
+                }
+                await _fileGateway.SetFileContentAsync(fullPath, builder.ToString(), ct);
             }
         }
     }

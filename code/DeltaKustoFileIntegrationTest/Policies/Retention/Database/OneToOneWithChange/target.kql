@@ -1,0 +1,6 @@
+﻿.alter database mydb policy retention
+```
+{
+	"SoftDeletePeriod": "10.00:00:00"
+}
+```
