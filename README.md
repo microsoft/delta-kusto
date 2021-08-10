@@ -56,6 +56,7 @@ ADX Database|Kusto scripts|Live Sync|Find gap between two databases.
 
 The [current release](https://github.com/microsoft/delta-kusto/releases) of Delta-Kusto includes *functions*, *tables*, *ingestion mappings* & the following *policies*:
 
+* Auto Delete
 * Caching
 * Ingestion Batching
 * Merge
