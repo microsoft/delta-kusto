@@ -1,5 +1,5 @@
 sendErrorOptIn:  true
-failIfDrops:  false
+failIfDataLoss:  false
 jobs:
   prod-to-dev-sync:
     current:

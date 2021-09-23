@@ -1,5 +1,5 @@
 sendErrorOptIn:  true
-failIfDrops:  true
+failIfDataLoss:  true
 jobs:
   push-script-to-prod:
     current:

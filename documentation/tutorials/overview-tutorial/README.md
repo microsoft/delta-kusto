@@ -151,7 +151,7 @@ This time we invert the sources.  The current will be an ADX Database (*prod*) w
 
 ```yaml
 sendErrorOptIn:  true
-failIfDrops:  true
+failIfDataLoss:  true
 jobs:
   push-script-to-prod:
     current:
@@ -171,7 +171,7 @@ tokenProvider:
         secret:  to-be-overriden
 ```
 
-We notice a new property:  `failIfDrops`.  It won't get into play in this scenario but will in a later one.
+We notice a new property:  `failIfDataLoss`.  It won't get into play in this scenario but will in a later one.
 
 We see that we define two actions:
 
@@ -211,11 +211,11 @@ Doing that we should expect a failure though.
 
 ![Failed push dev to prod](failed-push-dev-to-prod.png)
 
-This is because of the `failIfDrops` property we mentioned.  This flag is there to protect against `.drop` commands.  In this case the delta would need to drop the `Add` function.
+This is because of the `failIfDataLoss` property we mentioned.  This flag is there to protect against `.drop` commands.  In this case the delta would need to drop the `Add` function.
 
 We use that flag if we want to enforce a human approbation in a CI/CD pipeline when `.drop` occurs.
 
-We could force the delta to occur by either changing the file or overriding the `failIfDrops` property value.
+We could force the delta to occur by either changing the file or overriding the `failIfDataLoss` property value.
 
 ##  Push *prod* back to dev (Sync)
 
@@ -227,7 +227,7 @@ Here we're going to do that directly from database to database without intermedi
 
 ```
 sendErrorOptIn:  true
-failIfDrops:  false
+failIfDataLoss:  false
 jobs:
   prod-to-dev-sync:
     current:
