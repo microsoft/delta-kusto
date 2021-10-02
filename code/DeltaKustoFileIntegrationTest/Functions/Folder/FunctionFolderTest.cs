@@ -17,6 +17,14 @@ namespace DeltaKustoFileIntegrationTest.Functions.Folder
                 "simple");
         }
 
+        [Fact]
+        public async Task DeepFolder()
+        {
+            await TestFunctionWithFolderAsync(
+                "Functions/Folder/DeepFolder/deep-folder-params.yaml",
+                "root/branch/sub");
+        }
+
         private async Task TestFunctionWithFolderAsync(string paramPath, string folderPath)
         {
             var parameters = await RunParametersAsync(paramPath);
