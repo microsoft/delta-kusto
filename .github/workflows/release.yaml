@@ -84,6 +84,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 6.0.100-preview.1.21103.13
     - name: Patch version
       id:  patch-version
       run: python3 deployment/patch-version.py code/delta-kusto/delta-kusto.csproj ${{ github.run_number }}
@@ -142,6 +146,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 6.0.100-preview.1.21103.13
     - name: Patch version
       id:  patch-version
       run: python3 deployment/patch-version.py code/delta-kusto/delta-kusto.csproj ${{ github.run_number }}
@@ -200,6 +208,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 6.0.100-preview.1.21103.13
     - name: Patch version
       id:  patch-version
       run: python3 deployment/patch-version.py code/delta-kusto/delta-kusto.csproj ${{ github.run_number }}
