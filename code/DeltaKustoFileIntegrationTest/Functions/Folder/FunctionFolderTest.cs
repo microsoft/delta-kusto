@@ -26,6 +26,14 @@ namespace DeltaKustoFileIntegrationTest.Functions.Folder
                 "root/branch/sub");
         }
 
+        [Fact]
+        public async Task SpacedFolder()
+        {
+            await TestFunctionWithFolderAsync(
+                "Functions/Folder/SpacedFolder/spaced-folder-params.yaml",
+                "my folder");
+        }
+
         private async Task TestFunctionWithFolderAsync(string paramPath, string folderPath)
         {
             var parameters = await RunParametersAsync(paramPath);
