@@ -10,9 +10,15 @@ namespace DeltaKustoFileIntegrationTest.Functions.Folder
     public class FunctionFolderTest : IntegrationTestBase
     {
         [Fact]
-        public async Task EmptyDelta()
+        public async Task SimpleFolder()
         {
-            var paramPath = "Functions/Folder/SimpleFolder/simple-folder-params.yaml";
+            await TestFunctionWithFolderAsync(
+                "Functions/Folder/SimpleFolder/simple-folder-params.yaml",
+                "simple");
+        }
+
+        private async Task TestFunctionWithFolderAsync(string paramPath, string folderPath)
+        {
             var parameters = await RunParametersAsync(paramPath);
             var inputPath = parameters.Jobs!.First().Value.Target!.Scripts!.First().FilePath!;
             var inputCommands = await LoadScriptAsync(paramPath, inputPath);
@@ -24,8 +30,8 @@ namespace DeltaKustoFileIntegrationTest.Functions.Folder
 
             var outputRootPath = parameters.Jobs!.First().Value.Action!.FolderPath!;
             var outputPath = Path.Combine(
-                Path.Combine(outputRootPath, "functions", "create", "simple"),
-                $"{inputFunction.FunctionName}.kql");
+                outputRootPath,
+                $"functions/create/{folderPath}/{inputFunction.FunctionName}.kql");
             var outputCommands = await LoadScriptAsync(paramPath, outputPath);
 
             Assert.Single(outputCommands);
