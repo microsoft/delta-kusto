@@ -17,7 +17,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Tables/**" />
+    <!--<Compile Remove="Tables/**" />-->
   </ItemGroup>
 
   <ItemGroup>
