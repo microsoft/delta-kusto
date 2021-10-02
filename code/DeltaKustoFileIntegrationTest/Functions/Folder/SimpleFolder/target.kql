@@ -1,0 +1,3 @@
+﻿//	Random comment
+
+.create function with (folder='simple') MyFunction() { 42 }
