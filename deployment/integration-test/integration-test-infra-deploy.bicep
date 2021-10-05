@@ -5,7 +5,10 @@ param clientId string
 
 var uniqueId = uniqueString(resourceGroup().id, 'delta-kusto')
 var clusterName = 'cluster${uniqueId}'
-var linuxDbPrefix = 'github_linux_'
+var prefixes = [
+    'github_linux_'
+    'github_windows_'
+    'github_mac_os_']
 var dbCountPerPrefix = 100
 
 resource cluster 'Microsoft.Kusto/clusters@2021-01-01' = {
@@ -22,15 +25,32 @@ resource cluster 'Microsoft.Kusto/clusters@2021-01-01' = {
 resource admin 'Microsoft.Kusto/clusters/principalAssignments@2021-01-01' = {
     name: '${cluster.name}/main-admin'
     properties: {
-      principalId: clientId
-      principalType: 'App'
-      role: 'AllDatabasesAdmin'
-      tenantId: tenantId
+        principalId: clientId
+        principalType: 'App'
+        role: 'AllDatabasesAdmin'
+        tenantId: tenantId
     }
-  }
+}
 
-resource db 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for i in range(0, dbCountPerPrefix): {
-    name: '${cluster.name}/${linuxDbPrefix}-${i}'
+// resource db 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for i in range(0, dbCountPerPrefix): {
+//     name: '${cluster.name}/${linuxDbPrefix}-${i}'
+//     location: resourceGroup().location
+//     kind: 'ReadWrite'
+// }]
+
+resource allDbs 'Microsoft.Resources/deployments@2021-04-01' = [for prefix in prefixes: {
+    name: 'deploy-${prefix}'
     location: resourceGroup().location
-    kind: 'ReadWrite'
+    properties: {
+        template: {
+            resource db 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for i in range(0, dbCountPerPrefix): {
+                name: '${cluster.name}/${prefix}${i}'
+                location: resourceGroup().location
+                kind: 'ReadWrite'
+            }]
+        }
+        parameters: {}
+        mode: 'Incremental '
+    }
+    tags: {}
 }]
