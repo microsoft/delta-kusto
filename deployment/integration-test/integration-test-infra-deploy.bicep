@@ -7,7 +7,7 @@ var uniqueId = uniqueString(resourceGroup().id, 'delta-kusto')
 var clusterName = 'cluster${uniqueId}'
 var prefixes = [
     'github_linux_'
-    'github_windows_'
+    'github_win_'
     'github_mac_os_'
     ]
 var dbCountPerPrefix = 100
