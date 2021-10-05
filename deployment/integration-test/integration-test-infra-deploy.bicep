@@ -10,7 +10,7 @@ var dbCountPerPrefix = 100
 
 resource cluster 'Microsoft.Kusto/clusters@2021-01-01' = {
     name: clusterName
-    location: resourceGroup().id
+    location: resourceGroup().location
     tags: {}
     sku: {
         'name': 'Dev(No SLA)_Standard_E2a_v4'
@@ -31,6 +31,6 @@ resource admin 'Microsoft.Kusto/clusters/principalAssignments@2021-01-01' = {
 
 resource db 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for i in range(0, dbCountPerPrefix): {
     name: '${cluster.name}/${linuxDbPrefix}-${i}'
-    location: resourceGroup().id
+    location: resourceGroup().location
     kind: 'ReadWrite'
 }]
