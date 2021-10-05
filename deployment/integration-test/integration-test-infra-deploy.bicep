@@ -35,19 +35,19 @@ resource admin 'Microsoft.Kusto/clusters/principalAssignments@2021-01-01' = {
 }
 
 resource db1 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for i in range(0, dbCountPerPrefix): {
-    name: '${cluster.name}/${prefixes[0]}-${i}'
+    name: '${cluster.name}/${prefixes[0]}${i}'
     location: resourceGroup().location
     kind: 'ReadWrite'
 }]
 
 resource db2 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for i in range(0, dbCountPerPrefix): {
-    name: '${cluster.name}/${prefixes[1]}-${i}'
+    name: '${cluster.name}/${prefixes[1]}${i}'
     location: resourceGroup().location
     kind: 'ReadWrite'
 }]
 
 resource db3 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for i in range(0, dbCountPerPrefix): {
-    name: '${cluster.name}/${prefixes[2]}-${i}'
+    name: '${cluster.name}/${prefixes[2]}${i}'
     location: resourceGroup().location
     kind: 'ReadWrite'
 }]
