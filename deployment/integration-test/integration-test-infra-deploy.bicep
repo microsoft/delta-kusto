@@ -8,7 +8,8 @@ var clusterName = 'cluster${uniqueId}'
 var prefixes = [
     'github_linux_'
     'github_windows_'
-    'github_mac_os_']
+    'github_mac_os_'
+    ]
 var dbCountPerPrefix = 100
 
 resource cluster 'Microsoft.Kusto/clusters@2021-01-01' = {
@@ -23,7 +24,8 @@ resource cluster 'Microsoft.Kusto/clusters@2021-01-01' = {
 }
 
 resource admin 'Microsoft.Kusto/clusters/principalAssignments@2021-01-01' = {
-    name: '${cluster.name}/main-admin'
+    name: 'main-admin'
+    parent:  cluster
     properties: {
         principalId: clientId
         principalType: 'App'
@@ -32,25 +34,20 @@ resource admin 'Microsoft.Kusto/clusters/principalAssignments@2021-01-01' = {
     }
 }
 
-// resource db 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for i in range(0, dbCountPerPrefix): {
-//     name: '${cluster.name}/${linuxDbPrefix}-${i}'
-//     location: resourceGroup().location
-//     kind: 'ReadWrite'
-// }]
-
-resource allDbs 'Microsoft.Resources/deployments@2021-04-01' = [for prefix in prefixes: {
-    name: 'deploy-${prefix}'
+resource db1 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for i in range(0, dbCountPerPrefix): {
+    name: '${cluster.name}/${prefixes[0]}-${i}'
     location: resourceGroup().location
-    properties: {
-        template: {
-            resource db 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for i in range(0, dbCountPerPrefix): {
-                name: '${cluster.name}/${prefix}${i}'
-                location: resourceGroup().location
-                kind: 'ReadWrite'
-            }]
-        }
-        parameters: {}
-        mode: 'Incremental '
-    }
-    tags: {}
+    kind: 'ReadWrite'
+}]
+
+resource db2 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for i in range(0, dbCountPerPrefix): {
+    name: '${cluster.name}/${prefixes[1]}-${i}'
+    location: resourceGroup().location
+    kind: 'ReadWrite'
+}]
+
+resource db3 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for i in range(0, dbCountPerPrefix): {
+    name: '${cluster.name}/${prefixes[2]}-${i}'
+    location: resourceGroup().location
+    kind: 'ReadWrite'
 }]
