@@ -6,7 +6,7 @@ on:
     branches:
       - main
     paths:
-      - deployment/integration-test/
+      - deployment/integration-test/*
       - .github/workflows/integration-test-infra.yaml
 
 env:
