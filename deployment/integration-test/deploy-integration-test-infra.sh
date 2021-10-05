@@ -22,5 +22,5 @@ echo
 echo "Deploying ARM template"
 
 az deployment group create -n "deploy-$(uuidgen)" -g $rg \
-    --template-file api-infra-deploy.json \
+    --template-file integration-test-infra-deploy.bicep \
     --parameters tenantId=$tenantId clientId=$spid
