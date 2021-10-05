@@ -6,8 +6,8 @@ on:
     branches:
       - main
     paths:
-      - deployment/api
-      - .github/workflows/api-infra.yaml
+      - deployment/integration-test
+      - .github/workflows/integration-test-infra.yaml
 
 env:
   rg:  ---
@@ -25,5 +25,5 @@ jobs:
     # Deploy
     - name: Deploy
       run: |
-        cd deployment/api
-        bash deploy-api-infra.sh ${{ secrets.api_rg }} ${{ secrets.api_front_door }}
+        cd deployment/integration-test
+        bash deploy-integration-test-infra.sh ${{ secrets.api_rg }} ${{ secrets.tenant_id }} ${{ secrets.deploy_sp_id }}
