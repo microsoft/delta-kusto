@@ -95,7 +95,7 @@ resource autoShutdown 'Microsoft.Logic/workflows@2019-05-01' = {
                             type: 'ManagedServiceIdentity'
                         }
                         method: 'GET'
-                        uri: '${environment().authentication.audiences[0]}subscriptions/${subscription().subscriptionId}/resourceGroups/${resourceGroup().name}/providers/Microsoft.Kusto/clusters/${cluster.name}?api-version=2021-01-01'
+                        uri: '${environment().resourceManager}subscriptions/${subscription().subscriptionId}/resourceGroups/${resourceGroup().name}/providers/Microsoft.Kusto/clusters/${cluster.name}?api-version=2021-01-01'
                     }
                 }
                 'if-running': {
@@ -113,7 +113,7 @@ resource autoShutdown 'Microsoft.Logic/workflows@2019-05-01' = {
                                     type: 'ManagedServiceIdentity'
                                 }
                                 method: 'POST'
-                                uri: '${environment().authentication.audiences[0]}subscriptions/${subscription().subscriptionId}/resourceGroups/${resourceGroup().name}/providers/Microsoft.Kusto/clusters/${cluster.name}/stop?api-version=2021-01-01'
+                                uri: '${environment().resourceManager}subscriptions/${subscription().subscriptionId}/resourceGroups/${resourceGroup().name}/providers/Microsoft.Kusto/clusters/${cluster.name}/stop?api-version=2021-01-01'
                             }
                         }
                         wait: {
