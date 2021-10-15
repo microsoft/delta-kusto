@@ -180,15 +180,12 @@ var fullRoleDefinitionId = '/subscriptions/${subscription().subscriptionId}/prov
 var autoShutdownAssignmentInner = '${resourceGroup().id}${fullRoleDefinitionId}'
 var autoShutdownAssignmentName = '${shutdownWorkflowName}/Microsoft.Authorization/${guid(autoShutdownAssignmentInner)}'
 
-resource autoShutdownAuthorization 'Microsoft.Logic/workflows/providers/roleAssignments@2021-04-01-preview' = {
+resource autoShutdownAuthorization 'Microsoft.Kusto/clusters/providers/roleAssignments@2021-04-01-preview' = {
     name: autoShutdownAssignmentName
     properties: {
-      delegatedManagedIdentityResourceId: autoShutdown.id
       description: 'Give contributor on the cluster'
-      principalType: 'ServicePrincipal'
       principalId:  autoShutdown.identity.principalId
       roleDefinitionId:  fullRoleDefinitionId
-      scope:  cluster.id
     }
   }
 
