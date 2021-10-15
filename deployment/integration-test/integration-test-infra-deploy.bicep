@@ -175,7 +175,7 @@ resource autoShutdown 'Microsoft.Logic/workflows@2019-05-01' = {
     }
 }
 
-resource autoShutdownAuthorization 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = {
+resource autoShutdownAuthorization 'Microsoft.Authorization/roleAssignments@2021-04-01-preview' = {
     name: 'autoShutdownAuthorization'
     properties: {
       delegatedManagedIdentityResourceId: autoShutdown.id
