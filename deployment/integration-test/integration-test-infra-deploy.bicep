@@ -181,7 +181,7 @@ resource autoShutdownAuthorization 'Microsoft.Authorization/roleAssignments@2021
       delegatedManagedIdentityResourceId: autoShutdown.id
       description: 'Give contributor on the cluster'
       principalType: 'ServicePrincipal'
-      roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')
+      roleDefinitionId:  'b24988ac-6180-42a0-ab88-20f7382dd24c'
       scope:  cluster.id
     }
   }
