@@ -178,7 +178,7 @@ resource autoShutdown 'Microsoft.Logic/workflows@2019-05-01' = {
 var contributorId = 'b24988ac-6180-42a0-ab88-20f7382dd24c'
 var fullRoleDefinitionId = '/subscriptions/${subscription().subscriptionId}/providers/Microsoft.Authorization/roleDefinitions/${contributorId}'
 var autoShutdownAssignmentInner = '${resourceGroup().id}${fullRoleDefinitionId}'
-var autoShutdownAssignmentName = '${shutdownWorkflowName}/Microsoft.Authorization/${guid(autoShutdownAssignmentInner)}'
+var autoShutdownAssignmentName = '${cluster.name}/Microsoft.Authorization/${guid(autoShutdownAssignmentInner)}'
 
 resource autoShutdownAuthorization 'Microsoft.Kusto/clusters/providers/roleAssignments@2021-04-01-preview' = {
     name: autoShutdownAssignmentName
