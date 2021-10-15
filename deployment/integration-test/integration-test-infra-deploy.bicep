@@ -174,3 +174,14 @@ resource autoShutdown 'Microsoft.Logic/workflows@2019-05-01' = {
         parameters: {}
     }
 }
+
+resource autoShutdownAuthorization 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = {
+    name: 'autoShutdownAuthorization'
+    properties: {
+      delegatedManagedIdentityResourceId: autoShutdown.id
+      description: 'Give contributor on the cluster'
+      principalType: 'ServicePrincipal'
+      roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')
+      scope:  cluster.id
+    }
+  }
