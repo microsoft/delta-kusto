@@ -17,7 +17,7 @@ var prefixes = [
     'github_win_'
     'github_mac_os_'
 ]
-var dbCountPerPrefix = 100
+var dbCountPerPrefix = 30
 var shutdownWorkflowName = 'shutdownWorkflow'
 
 resource cluster 'Microsoft.Kusto/clusters@2021-01-01' = {
@@ -180,16 +180,15 @@ var fullRoleDefinitionId = '/subscriptions/${subscription().subscriptionId}/prov
 var autoShutdownAssignmentInner = '${resourceGroup().id}${fullRoleDefinitionId}'
 var autoShutdownAssignmentName = '${shutdownWorkflowName}/Microsoft.Authorization/${guid(autoShutdownAssignmentInner)}'
 
-// resource autoShutdownAuthorization 'Microsoft.Logic/workflows/providers/roleAssignments@2021-04-01-preview' = {
-//     name: autoShutdownAssignmentName
-//     properties: {
-//       delegatedManagedIdentityResourceId: autoShutdown.id
-//       description: 'Give contributor on the cluster'
-//       principalType: 'ServicePrincipal'
-//       principalId:  autoShutdown.principalId
-//       roleDefinitionId:  fullRoleDefinitionId
-//       scope:  cluster.id
-//     }
-//   }
+resource autoShutdownAuthorization 'Microsoft.Logic/workflows/providers/roleAssignments@2021-04-01-preview' = {
+    name: autoShutdownAssignmentName
+    properties: {
+      delegatedManagedIdentityResourceId: autoShutdown.id
+      description: 'Give contributor on the cluster'
+      principalType: 'ServicePrincipal'
+      principalId:  autoShutdown.identity.principalId
+      roleDefinitionId:  fullRoleDefinitionId
+      scope:  cluster.id
+    }
+  }
 
-output q object = autoShutdown
