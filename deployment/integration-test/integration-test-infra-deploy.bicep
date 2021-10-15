@@ -175,13 +175,18 @@ resource autoShutdown 'Microsoft.Logic/workflows@2019-05-01' = {
     }
 }
 
-resource autoShutdownAuthorization 'Microsoft.Authorization/roleAssignments@2021-04-01-preview' = {
-    name: 'autoShutdownAuthorization'
+var contributorId = 'b24988ac-6180-42a0-ab88-20f7382dd24c'
+var fullRoleDefinitionId = '/subscriptions/${subscription().subscriptionId}/providers/Microsoft.Authorization/roleDefinitions/${contributorId}'
+var autoShutdownAssignmentInner = '${resourceGroup().id}${fullRoleDefinitionId}'
+var autoShutdownAssignmentName = '${shutdownWorkflowName}/Microsoft.Authorization/${guid(autoShutdownAssignmentInner)}'
+
+resource autoShutdownAuthorization 'Microsoft.Logic/workflows/providers/roleAssignments@2021-04-01-preview' = {
+    name: autoShutdownAssignmentName
     properties: {
       delegatedManagedIdentityResourceId: autoShutdown.id
       description: 'Give contributor on the cluster'
       principalType: 'ServicePrincipal'
-      roleDefinitionId:  'b24988ac-6180-42a0-ab88-20f7382dd24c'
+      roleDefinitionId:  fullRoleDefinitionId
       scope:  cluster.id
     }
   }
