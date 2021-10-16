@@ -76,11 +76,11 @@ resource autoShutdown 'Microsoft.Logic/workflows@2019-05-01' = {
                 Recurrence: {
                     recurrence: {
                         frequency: 'Hour'
-                        interval: 1
+                        interval: 2
                     }
                     evaluatedRecurrence: {
                         frequency: 'Hour'
-                        interval: 1
+                        interval: 2
                     }
                     type: 'Recurrence'
                 }
@@ -121,7 +121,7 @@ resource autoShutdown 'Microsoft.Logic/workflows@2019-05-01' = {
                             type: 'Wait'
                             inputs: {
                                 interval: {
-                                    count: 2
+                                    count: 1
                                     unit: 'Hour'
                                 }
                             }
