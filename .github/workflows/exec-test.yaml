@@ -179,15 +179,23 @@ jobs:
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
           -p:PublishTrimmed=true -p:PublishReadyToRun=true \
           -o bin
+    # Login
+    - name: Azure Login
+      run: az login --service-principal -u ${{ secrets.deploy_sp_id }} -p ${{ secrets.deploy_sp_secret }} --tenant ${{ secrets.tenant_id }}
     # Set environment variables
     - name: Set environment variables
       shell:  bash
       run: |
+        # Fetch cluster context
+        clusterId=$(az kusto cluster list -g ${{ secrets.api_rg }} --query "[0].id" --output tsv)
+        clusterUri=$(az kusto cluster list -g ${{ secrets.api_rg }} --query "[0].uri" --output tsv)
+        echo "Cluster ID:  $clusterId"
+        echo "Cluster Uri:  $clusterUri"
         # Exec path
         echo "deltaKustoSingleExecPath=$(pwd)/bin/$exec" >> $GITHUB_ENV
         # ADX integration
-        echo "deltaKustoClusterUri=${{ secrets.CLUSTER_URI }}" >> $GITHUB_ENV
-        echo "deltaKustoClusterId=${{ secrets.CLUSTER_ID }}" >> $GITHUB_ENV
+        echo "deltaKustoClusterId=$clusterId" >> $GITHUB_ENV
+        echo "deltaKustoClusterUri=$clusterUri" >> $GITHUB_ENV
         echo "deltaKustoDbPrefix=$deltaDbPrefix" >> $GITHUB_ENV
         echo "deltaKustoTenantId=${{ secrets.TENANT_ID }}" >> $GITHUB_ENV
         echo "deltaKustoSpId=${{ secrets.KUSTO_SP_ID }}" >> $GITHUB_ENV

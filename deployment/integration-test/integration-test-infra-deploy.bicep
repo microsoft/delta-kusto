@@ -17,7 +17,7 @@ var prefixes = [
     'github_win_'
     'github_mac_os_'
 ]
-var dbCountPerPrefix = 30
+var dbCountPerPrefix = 25
 var shutdownWorkflowName = 'shutdownWorkflow'
 
 resource cluster 'Microsoft.Kusto/clusters@2021-01-01' = {
