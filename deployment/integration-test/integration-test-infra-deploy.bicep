@@ -210,13 +210,13 @@ resource autoShutdown 'Microsoft.Logic/workflows@2019-05-01' = {
                             type: 'ManagedServiceIdentity'
                           }
                           method: 'POST'
-                          uri: 'https://management.azure.com/subscriptions/867feb0a-8313-464d-ad48-b4904383f9bc/resourceGroups/delta-kusto/providers/Microsoft.Kusto/clusters/clusterintegrationtestyenycav4i2vma/stop?api-version=2021-01-01'
+                          uri: '@{outputs('stop-cluster-url')}'
                         }
                       }
                       'stop-cluster-url': {
                         runAfter: {}
                         type: 'Compose'
-                        inputs: '@concat(\'${environment().resourceManager}', body(\'parse-payload\')?[\'id\'], \'/stop?api-version=2021-01-01\')'
+                        inputs: '@concat(\'subscriptions/${subscription().subscriptionId}/resourceGroups/${resourceGroup().name}/providers/Microsoft.Kusto/clusters/', body(\'parse-payload\')?[\'name\'], \'/stop?api-version=2021-01-01\')'
                       }
                       wait: {
                         runAfter: {
@@ -264,6 +264,9 @@ resource autoShutdown 'Microsoft.Logic/workflows@2019-05-01' = {
                       schema: {
                         properties: {
                           id: {
+                            type: 'string'
+                          }
+                          name: {
                             type: 'string'
                           }
                           properties: {
