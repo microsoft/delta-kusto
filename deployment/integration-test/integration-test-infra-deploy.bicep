@@ -11,7 +11,7 @@ param tenantId string
 param clientId string
 
 var uniqueId = uniqueString(resourceGroup().id, 'delta-kusto')
-var clusterName = 'clusterintegrationtest${uniqueId}'
+var clusterName = 'intTests${uniqueId}'
 var prefixes = [
     'github_linux_'
     'github_win_'
