@@ -11,7 +11,7 @@ param tenantId string
 param clientId string
 
 var uniqueId = uniqueString(resourceGroup().id, 'delta-kusto')
-var clusterName = 'cluster${uniqueId}'
+var clusterName = 'clusterintegrationtest${uniqueId}'
 var prefixes = [
     'github_linux_'
     'github_win_'
@@ -23,7 +23,9 @@ var shutdownWorkflowName = 'shutdownWorkflow'
 resource cluster 'Microsoft.Kusto/clusters@2021-01-01' = {
     name: clusterName
     location: resourceGroup().location
-    tags: {}
+    tags: {
+        'auto-shutdown': 'true'
+    }
     sku: {
         'name': 'Dev(No SLA)_Standard_E2a_v4'
         'tier': 'Basic'
@@ -183,9 +185,8 @@ var autoShutdownAssignmentName = '${cluster.name}/Microsoft.Authorization/${guid
 resource autoShutdownAuthorization 'Microsoft.Kusto/clusters/providers/roleAssignments@2021-04-01-preview' = {
     name: autoShutdownAssignmentName
     properties: {
-      description: 'Give contributor on the cluster'
-      principalId:  autoShutdown.identity.principalId
-      roleDefinitionId:  fullRoleDefinitionId
+        description: 'Give contributor on the cluster'
+        principalId: autoShutdown.identity.principalId
+        roleDefinitionId: fullRoleDefinitionId
     }
-  }
-
+}
