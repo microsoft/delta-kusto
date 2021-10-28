@@ -18,7 +18,8 @@ var prefixes = [
     'github_mac_os_'
 ]
 var dbCountPerPrefix = 25
-var shutdownWorkflowName = 'shutdownWorkflow'
+var shutdownWorkflowName = 'shutdownWorkflow3'
+var shutdownWorkflowName2 = 'shutdownWorkflow2'
 
 resource cluster 'Microsoft.Kusto/clusters@2021-01-01' = {
     name: clusterName
@@ -51,7 +52,7 @@ resource dbs 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for i in range(0
 }]
 
 resource autoShutdown 'Microsoft.Logic/workflows@2019-05-01' = {
-    name: shutdownWorkflowName
+    name: shutdownWorkflowName2
     location: resourceGroup().location
     identity: {
         type: 'SystemAssigned'
@@ -163,6 +164,158 @@ resource autoShutdown 'Microsoft.Logic/workflows@2019-05-01' = {
         }
         parameters: {}
     }
+}
+
+resource autoShutdown 'Microsoft.Logic/workflows@2019-05-01' = {
+    name: shutdownWorkflowName
+    location: resourceGroup().location
+    identity: {
+        type: 'SystemAssigned'
+    }
+    properties: {
+        state: 'Enabled'
+        definition: {
+            '$schema': 'https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#'
+            contentVersion: '1.0.0.0'
+            parameters: {}
+            triggers: {
+              Recurrence: {
+                recurrence: {
+                  frequency: 'Hour'
+                  interval: 2
+                }
+                evaluatedRecurrence: {
+                  frequency: 'Hour'
+                  interval: 2
+                }
+                type: 'Recurrence'
+              }
+            }
+            actions: {
+              'for-each-cluster': {
+                foreach: '@body(\'get-clusters\').value'
+                actions: {
+                  'if-should-shut-down': {
+                    actions: {
+                      'stop-cluster': {
+                        runAfter: {
+                          wait: [
+                            'Succeeded'
+                          ]
+                        }
+                        type: 'Http'
+                        inputs: {
+                          authentication: {
+                            audience: environment().authentication.audiences[0]
+                            type: 'ManagedServiceIdentity'
+                          }
+                          method: 'POST'
+                          uri: 'https://management.azure.com/subscriptions/867feb0a-8313-464d-ad48-b4904383f9bc/resourceGroups/delta-kusto/providers/Microsoft.Kusto/clusters/clusterintegrationtestyenycav4i2vma/stop?api-version=2021-01-01'
+                        }
+                      }
+                      'stop-cluster-url': {
+                        runAfter: {}
+                        type: 'Compose'
+                        inputs: '@concat(\'${environment().resourceManager}', body(\'parse-payload\')?[\'id\'], \'/stop?api-version=2021-01-01\')'
+                      }
+                      wait: {
+                        runAfter: {
+                          'stop-cluster-url': [
+                            'Succeeded'
+                          ]
+                        }
+                        type: 'Wait'
+                        inputs: {
+                          interval: {
+                            count: 1
+                            unit: 'Hour'
+                          }
+                        }
+                      }
+                    }
+                    runAfter: {
+                      'parse-payload': [
+                        'Succeeded'
+                      ]
+                    }
+                    expression: {
+                      and: [
+                        {
+                          equals: [
+                            '@body(\'parse-payload\')?[\'tags\']?[\'auto-shutdown\']'
+                            'true'
+                          ]
+                        }
+                        {
+                          equals: [
+                            '@body(\'parse-payload\')?[\'properties\']?[\'state\']'
+                            'Running'
+                          ]
+                        }
+                      ]
+                    }
+                    type: 'If'
+                  }
+                  'parse-payload': {
+                    runAfter: {}
+                    type: 'ParseJson'
+                    inputs: {
+                      content: '@items(\'for-each-cluster\')'
+                      schema: {
+                        properties: {
+                          id: {
+                            type: 'string'
+                          }
+                          properties: {
+                            properties: {
+                              state: {
+                                type: 'string'
+                              }
+                            }
+                            type: 'object'
+                          }
+                          tags: {
+                            properties: {
+                              'auto-shutdown': {
+                                type: 'string'
+                              }
+                            }
+                            type: 'object'
+                          }
+                        }
+                        type: 'object'
+                      }
+                    }
+                  }
+                }
+                runAfter: {
+                  'get-clusters': [
+                    'Succeeded'
+                  ]
+                }
+                type: 'Foreach'
+                runtimeConfiguration: {
+                  concurrency: {
+                    repetitions: 50
+                  }
+                }
+              }
+              'get-clusters': {
+                runAfter: {}
+                type: 'Http'
+                inputs: {
+                  authentication: {
+                    audience: environment().authentication.audiences[0]
+                    type: 'ManagedServiceIdentity'
+                  }
+                  method: 'GET'
+                  uri: '${environment().resourceManager}subscriptions/${subscription().subscriptionId}/resourceGroups/${resourceGroup().name}/providers/Microsoft.Kusto/clusters?api-version=2021-01-01'
+                }
+              }
+            }
+            outputs: {}
+          }
+        }
 }
 
 var contributorId = 'b24988ac-6180-42a0-ab88-20f7382dd24c'
