@@ -31,34 +31,22 @@ resource cluster 'Microsoft.Kusto/clusters@2021-01-01' = {
         'tier': 'Basic'
         'capacity': 1
     }
-}
 
-resource admin 'Microsoft.Kusto/clusters/principalAssignments@2021-01-01' = {
-    name: 'main-admin'
-    parent: cluster
-    properties: {
-        principalId: clientId
-        principalType: 'App'
-        role: 'AllDatabasesAdmin'
-        tenantId: tenantId
+    resource admin 'principalAssignments' = {
+        name: 'main-admin'
+        properties: {
+            principalId: clientId
+            principalType: 'App'
+            role: 'AllDatabasesAdmin'
+            tenantId: tenantId
+        }
     }
 }
 
-resource db1 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for i in range(0, dbCountPerPrefix): {
-    name: '${cluster.name}/${prefixes[0]}${i}'
+resource dbs 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for i in range(0, length(prefixes)*dbCountPerPrefix): {
+    name: '${prefixes[i / dbCountPerPrefix]}${i % dbCountPerPrefix}'
     location: resourceGroup().location
-    kind: 'ReadWrite'
-}]
-
-resource db2 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for i in range(0, dbCountPerPrefix): {
-    name: '${cluster.name}/${prefixes[1]}${i}'
-    location: resourceGroup().location
-    kind: 'ReadWrite'
-}]
-
-resource db3 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for i in range(0, dbCountPerPrefix): {
-    name: '${cluster.name}/${prefixes[2]}${i}'
-    location: resourceGroup().location
+    parent: cluster
     kind: 'ReadWrite'
 }]
 
