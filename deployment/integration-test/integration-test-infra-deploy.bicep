@@ -51,7 +51,7 @@ resource dbs 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for i in range(0
     kind: 'ReadWrite'
 }]
 
-resource autoShutdown 'Microsoft.Logic/workflows@2019-05-01' = {
+resource autoShutdownBackup 'Microsoft.Logic/workflows@2019-05-01' = {
     name: shutdownWorkflowName2
     location: resourceGroup().location
     identity: {
@@ -210,13 +210,13 @@ resource autoShutdown 'Microsoft.Logic/workflows@2019-05-01' = {
                             type: 'ManagedServiceIdentity'
                           }
                           method: 'POST'
-                          uri: '@{outputs('stop-cluster-url')}'
+                          uri: '@{outputs(\'stop-cluster-url\')}'
                         }
                       }
                       'stop-cluster-url': {
                         runAfter: {}
                         type: 'Compose'
-                        inputs: '@concat(\'subscriptions/${subscription().subscriptionId}/resourceGroups/${resourceGroup().name}/providers/Microsoft.Kusto/clusters/', body(\'parse-payload\')?[\'name\'], \'/stop?api-version=2021-01-01\')'
+                        inputs: '@concat(\'subscriptions/${subscription().subscriptionId}/resourceGroups/${resourceGroup().name}/providers/Microsoft.Kusto/clusters/\', body(\'parse-payload\')?[\'name\'], \'/stop?api-version=2021-01-01\')'
                       }
                       wait: {
                         runAfter: {
