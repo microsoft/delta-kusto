@@ -330,7 +330,7 @@ var autoShutdownAssignmentName = '${cluster.name}/Microsoft.Authorization/${guid
 //  See https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/scope-extension-resources
 //  for scope for extension
 resource autoShutdownAuthorization 'Microsoft.Authorization/roleAssignments@2021-04-01-preview' = {
-    name: autoShutdownAssignmentInner
+    name: '${guid(autoShutdownAssignmentInner)}'
     scope:  cluster
     properties: {
         description: 'Give contributor on the cluster'
