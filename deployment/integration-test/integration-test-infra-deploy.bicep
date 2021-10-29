@@ -99,7 +99,7 @@ resource autoShutdown 'Microsoft.Logic/workflows@2019-05-01' = {
                       'stop-cluster-url': {
                         runAfter: {}
                         type: 'Compose'
-                        inputs: '@concat(\'subscriptions/${subscription().subscriptionId}/resourceGroups/${resourceGroup().name}/providers/Microsoft.Kusto/clusters/\', body(\'parse-payload\')?[\'name\'], \'/stop?api-version=2021-01-01\')'
+                        inputs: '@concat(\'${environment().resourceManager}subscriptions/${subscription().subscriptionId}/resourceGroups/${resourceGroup().name}/providers/Microsoft.Kusto/clusters/\', body(\'parse-payload\')?[\'name\'], \'/stop?api-version=2021-01-01\')'
                       }
                       wait: {
                         runAfter: {
