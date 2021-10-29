@@ -26,6 +26,7 @@ resource cluster 'Microsoft.Kusto/clusters@2021-01-01' = {
     location: resourceGroup().location
     tags: {
         'auto-shutdown': 'true'
+        'test-level': 'integration'
     }
     sku: {
         'name': 'Dev(No SLA)_Standard_E2a_v4'
@@ -326,8 +327,9 @@ var fullRoleDefinitionId = '/subscriptions/${subscription().subscriptionId}/prov
 var autoShutdownAssignmentInner = '${resourceGroup().id}${fullRoleDefinitionId}'
 var autoShutdownAssignmentName = '${cluster.name}/Microsoft.Authorization/${guid(autoShutdownAssignmentInner)}'
 
-resource autoShutdownAuthorization 'Microsoft.Kusto/clusters/providers/roleAssignments@2021-04-01-preview' = {
+resource autoShutdownAuthorization 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = {
     name: autoShutdownAssignmentName
+    scope:  cluster
     properties: {
         description: 'Give contributor on the cluster'
         principalId: autoShutdown.identity.principalId
