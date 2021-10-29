@@ -319,19 +319,32 @@ resource autoShutdown 'Microsoft.Logic/workflows@2019-05-01' = {
         }
 }
 
+//  Role list:  https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles
 var contributorId = 'b24988ac-6180-42a0-ab88-20f7382dd24c'
-var fullRoleDefinitionId = '/subscriptions/${subscription().subscriptionId}/providers/Microsoft.Authorization/roleDefinitions/${contributorId}'
-var autoShutdownAssignmentInner = '${resourceGroup().id}${fullRoleDefinitionId}'
-var autoShutdownAssignmentName = '${cluster.name}/Microsoft.Authorization/${guid(autoShutdownAssignmentInner)}'
-
+var fullContributorId = '/subscriptions/${subscription().subscriptionId}/providers/Microsoft.Authorization/roleDefinitions/${contributorId}'
+var clusterRoleAssignmentName = '${resourceGroup().id}${autoShutdown.name}${fullContributorId}'
 //  See https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/scope-extension-resources
 //  for scope for extension
-resource autoShutdownAuthorization 'Microsoft.Authorization/roleAssignments@2021-04-01-preview' = {
-    name: '${guid(autoShutdownAssignmentInner)}'
+resource autoShutdownClusterAuthorization 'Microsoft.Authorization/roleAssignments@2021-04-01-preview' = {
+    name: '${guid(clusterRoleAssignmentName)}'
     scope:  cluster
     properties: {
         description: 'Give contributor on the cluster'
         principalId: autoShutdown.identity.principalId
-        roleDefinitionId: fullRoleDefinitionId
+        roleDefinitionId: fullContributorId
     }
+}
+
+var readerId = 'acdd72a7-3385-48ef-bd42-f606fba81ae7'
+var fullReaderId = '/subscriptions/${subscription().subscriptionId}/providers/Microsoft.Authorization/roleDefinitions/${readerId}'
+var rgRoleAssignmentName = '${resourceGroup().id}${autoShutdown.name}${fullReaderId}'
+
+resource autoShutdownRgAuthorization 'Microsoft.Authorization/roleAssignments@2021-04-01-preview' = {
+  name: '${guid(rgRoleAssignmentName)}'
+  scope:  resourceGroup()
+  properties: {
+      description: 'Give reader on the resource group'
+      principalId: autoShutdown.identity.principalId
+      roleDefinitionId: fullReaderId
+  }
 }
