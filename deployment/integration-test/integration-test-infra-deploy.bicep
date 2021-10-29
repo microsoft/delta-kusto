@@ -11,18 +11,15 @@ param tenantId string
 param clientId string
 
 var uniqueId = uniqueString(resourceGroup().id, 'delta-kusto')
-var clusterName = 'intTests${uniqueId}'
 var prefixes = [
     'github_linux_'
     'github_win_'
     'github_mac_os_'
 ]
 var dbCountPerPrefix = 25
-var shutdownWorkflowName = 'shutdownWorkflow3'
-var shutdownWorkflowName2 = 'shutdownWorkflow2'
 
 resource cluster 'Microsoft.Kusto/clusters@2021-01-01' = {
-    name: clusterName
+    name: 'intTests${uniqueId}'
     location: resourceGroup().location
     tags: {
         'auto-shutdown': 'true'
@@ -53,7 +50,7 @@ resource dbs 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for i in range(0
 }]
 
 resource autoShutdownBackup 'Microsoft.Logic/workflows@2019-05-01' = {
-    name: shutdownWorkflowName2
+    name: 'shutdownWorkflow2'
     location: resourceGroup().location
     identity: {
         type: 'SystemAssigned'
@@ -168,7 +165,7 @@ resource autoShutdownBackup 'Microsoft.Logic/workflows@2019-05-01' = {
 }
 
 resource autoShutdown 'Microsoft.Logic/workflows@2019-05-01' = {
-    name: shutdownWorkflowName
+    name: 'shutdownWorkflow3${uniqueId}'
     location: resourceGroup().location
     identity: {
         type: 'SystemAssigned'
