@@ -327,7 +327,7 @@ var fullRoleDefinitionId = '/subscriptions/${subscription().subscriptionId}/prov
 
 //  See https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/scope-extension-resources
 //  for scope for extension
-resource autoShutdownAuthorization 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = {
+resource autoShutdownAuthorization 'Microsoft.Authorization/roleAssignments@2021-04-01-preview' = {
     name: 'contributor-to-cluster'
     scope:  cluster
     properties: {
