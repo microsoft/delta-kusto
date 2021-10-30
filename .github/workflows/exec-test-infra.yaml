@@ -1,4 +1,4 @@
-name:  Integration Test Infra
+name:  Exec Test Infra
 
 on:
   workflow_dispatch:
