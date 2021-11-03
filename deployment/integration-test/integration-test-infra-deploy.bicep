@@ -22,8 +22,8 @@ resource cluster 'Microsoft.Kusto/clusters@2021-01-01' = {
   name: 'intTests${uniqueId}'
   location: resourceGroup().location
   tags: {
-    'auto-shutdown': 'true'
-    'test-level': 'integration'
+    'autoShutdown': 'true'
+    'testLevel': 'integration'
   }
   sku: {
     'name': 'Dev(No SLA)_Standard_E2a_v4'
@@ -125,7 +125,7 @@ resource autoShutdown 'Microsoft.Logic/workflows@2019-05-01' = {
                 and: [
                   {
                     equals: [
-                      '@body(\'parse-payload\')?[\'tags\']?[\'auto-shutdown\']'
+                      '@body(\'parse-payload\')?[\'tags\']?[\'autoShutdown\']'
                       'true'
                     ]
                   }
