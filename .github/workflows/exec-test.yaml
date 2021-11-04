@@ -19,9 +19,14 @@ jobs:
       run: |
         # Retrieve cluster name
         clusterName=$(az kusto cluster list -g ${{ secrets.test_rg }} --query "[?tags.testLevel=='integration'].name" -o tsv)
+        state=$(az kusto cluster list -g ${{ secrets.test_rg }} --query "[?tags.testLevel=='integration'].state" -o tsv)
         echo "Cluster Name:  $clusterName"
-        # Actually start the cluster
-        az kusto cluster start -n $clusterName -g ${{ secrets.test_rg }} -n $clusterName
+        echo "State:  $state"
+        if [ "$state" -ne "running" ]
+        then
+          # Actually start the cluster
+          az kusto cluster start -n $clusterName -g ${{ secrets.test_rg }} -n $clusterName
+        fi
 
   linux:
     needs:
