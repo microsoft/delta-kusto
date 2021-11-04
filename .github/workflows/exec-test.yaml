@@ -3,7 +3,7 @@ name:  Exec tests
 on:  workflow_dispatch
 
 jobs:
-  cluster-setup:
+  clusterSetup:
 
     runs-on: ubuntu-latest
     # Login
@@ -23,7 +23,7 @@ jobs:
 
   linux:
     needs:
-    - cluster-setup
+    - clusterSetup
 
     runs-on: ubuntu-latest
     
@@ -99,7 +99,7 @@ jobs:
 
   mac:
     needs:
-    - cluster-setup
+    - clusterSetup
 
     # This can run in parallel with the other job as they target different databases
     runs-on: macos-latest
