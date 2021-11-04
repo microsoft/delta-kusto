@@ -15,6 +15,17 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    # Login
+    - name: Azure Login
+      run: az login --service-principal -u ${{ secrets.deploy_sp_id }} -p ${{ secrets.deploy_sp_secret }} --tenant ${{ secrets.tenant_id }}
+    # Login
+    - name: Turn on cluster (if off)
+      run: |
+        # Retrieve cluster name
+        clusterName = $(az kusto cluster list -g ${{ secrets.api_rg }} --query "[?tags.testLevel=='integration'].name" -o tsv)
+        echo "Cluster Name:  $clusterName"
+        # Actually start the cluster
+        az kusto cluster start -n $clusterName -g ${{ secrets.api_rg }} -n $clusterName
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
@@ -51,8 +62,8 @@ jobs:
       shell:  bash
       run: |
         # Fetch cluster context
-        clusterId=$(az kusto cluster list -g ${{ secrets.api_rg }} --query "[0].id" --output tsv)
-        clusterUri=$(az kusto cluster list -g ${{ secrets.api_rg }} --query "[0].uri" --output tsv)
+        clusterId=$(az kusto cluster list -g ${{ secrets.api_rg }} --query "[?tags.testLevel=='integration'].id" -o tsv)
+        clusterUri=$(az kusto cluster list -g ${{ secrets.api_rg }} --query "[?tags.testLevel=='integration'].uri" -o tsv)
         echo "Cluster ID:  $clusterId"
         echo "Cluster Uri:  $clusterUri"
         # Exec path
@@ -117,9 +128,6 @@ jobs:
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
           -p:PublishTrimmed=true -p:PublishReadyToRun=true \
           -o bin
-    # Login
-    - name: Azure Login
-      run: az login --service-principal -u ${{ secrets.deploy_sp_id }} -p ${{ secrets.deploy_sp_secret }} --tenant ${{ secrets.tenant_id }}
     # Set environment variables
     - name: Set environment variables
       shell:  bash
