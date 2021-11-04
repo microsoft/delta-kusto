@@ -7,6 +7,7 @@ jobs:
 
     runs-on: ubuntu-latest
     
+    steps:
     # Login
     - name: Azure Login
       run: az login --service-principal -u ${{ secrets.deploy_sp_id }} -p ${{ secrets.deploy_sp_secret }} --tenant ${{ secrets.tenant_id }}
