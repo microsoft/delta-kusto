@@ -44,7 +44,7 @@ resource cluster 'Microsoft.Kusto/clusters@2021-01-01' = {
 }
 
 resource dbs 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for i in range(0, length(prefixes) * dbCountPerPrefix): {
-  name: '${prefixes[i / dbCountPerPrefix]}${format('D8', i % dbCountPerPrefix)}'
+  name: '${prefixes[i / dbCountPerPrefix]}${format('{0:D8}', i % dbCountPerPrefix)}'
   location: resourceGroup().location
   parent: cluster
   kind: 'ReadWrite'

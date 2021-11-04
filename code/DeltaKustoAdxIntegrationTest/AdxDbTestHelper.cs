@@ -16,8 +16,6 @@ namespace DeltaKustoAdxIntegrationTest
 {
     public class AdxDbTestHelper : IDisposable
     {
-        private const int AHEAD_PROVISIONING_COUNT = 10;
-
         private readonly string _dbPrefix;
         private readonly Func<string, IKustoManagementGateway> _kustoManagementGatewayFactory;
         private readonly AzureManagementGateway _azureManagementGateway;
@@ -125,14 +123,8 @@ namespace DeltaKustoAdxIntegrationTest
                 return dbName;
             }
             else
-            {   //  Prepare DBs in advance
-                while (_preparingDbs.Count < AHEAD_PROVISIONING_COUNT)
-                {
-                    _preparingDbs.Enqueue(CreateDbAsync());
-                }
-                var dbName = await CreateDbAsync();
-
-                return dbName;
+            {   //  No more database available
+                throw new InvalidOperationException("No database available");
             }
         }
 
@@ -190,25 +182,6 @@ namespace DeltaKustoAdxIntegrationTest
         private static bool IsInteger(string text)
         {
             return int.TryParse(text, out _);
-        }
-
-        private async Task<string> CreateDbAsync()
-        {
-            var dbName = DbNumberToDbName(Interlocked.Increment(ref _dbCount));
-
-            await _azureManagementGateway.CreateDatabaseAsync(dbName);
-
-            var kustoGateway = _kustoManagementGatewayFactory(dbName);
-
-            while (!(await kustoGateway.DoesDatabaseExistsAsync()))
-            {
-                await Task.Delay(TimeSpan.FromSeconds(.2));
-            }
-
-            //  Event newly created databases might contain default policies we want to get rid of
-            await CleanDbAsync(dbName);
-
-            return dbName;
         }
 
         private async Task CleanDbAsync(string dbName)
