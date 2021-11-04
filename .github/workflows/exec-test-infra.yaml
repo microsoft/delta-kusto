@@ -27,3 +27,6 @@ jobs:
       run: |
         cd deployment/integration-test
         bash deploy-integration-test-infra.sh ${{ secrets.test_rg }} ${{ secrets.tenant_id }} ${{ secrets.deploy_sp_id }}
+    # Turn cluster on
+    - name: Turn on cluster (if off)
+      run:  deployment/integration-test/turn-on-cluster.sh ${{ secrets.test_rg }} 'integration'
