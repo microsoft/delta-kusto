@@ -17,7 +17,7 @@ var prefixes = [
   'github_mac_os_'
   'github_laptop_'
 ]
-var dbCountPerPrefix = 3
+var dbCountPerPrefix = 20
 
 resource cluster 'Microsoft.Kusto/clusters@2021-01-01' = {
   name: 'intTests${uniqueId}'
