@@ -15,8 +15,9 @@ var prefixes = [
   'github_linux_'
   'github_win_'
   'github_mac_os_'
+  'github_laptop_'
 ]
-var dbCountPerPrefix = 25
+var dbCountPerPrefix = 3
 
 resource cluster 'Microsoft.Kusto/clusters@2021-01-01' = {
   name: 'intTests${uniqueId}'
@@ -43,7 +44,7 @@ resource cluster 'Microsoft.Kusto/clusters@2021-01-01' = {
 }
 
 resource dbs 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for i in range(0, length(prefixes) * dbCountPerPrefix): {
-  name: '${prefixes[i / dbCountPerPrefix]}${i % dbCountPerPrefix}'
+  name: '${prefixes[i / dbCountPerPrefix]}${format('D8', i % dbCountPerPrefix)}'
   location: resourceGroup().location
   parent: cluster
   kind: 'ReadWrite'
