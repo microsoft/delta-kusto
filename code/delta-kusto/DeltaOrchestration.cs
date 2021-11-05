@@ -121,12 +121,12 @@ namespace delta_kusto
             _tracer.WriteLine(false, "");
             try
             {
-                _tracer.WriteLine(false, "Current DB Provider...  ");
+                _tracer.WriteLine(true, "Current DB Provider...  ");
 
                 var currentDbProvider =
                     CreateDatabaseProvider(job.Current, tokenProvider, localFileGateway);
 
-                _tracer.WriteLine(false, "Target DB Provider...  ");
+                _tracer.WriteLine(true, "Target DB Provider...  ");
 
                 var targetDbProvider =
                     CreateDatabaseProvider(job.Target, tokenProvider, localFileGateway);
@@ -172,11 +172,11 @@ namespace delta_kusto
             IDatabaseProvider currentDbProvider,
             string db)
         {
-            _tracer.WriteLine(false, $"Retrieving {db}...");
+            _tracer.WriteLine(true, $"Retrieving {db}...");
 
             var model = await currentDbProvider.RetrieveDatabaseAsync();
 
-            _tracer.WriteLine(false, $"{db} retrieved");
+            _tracer.WriteLine(true, $"{db} retrieved");
 
             return model;
         }
