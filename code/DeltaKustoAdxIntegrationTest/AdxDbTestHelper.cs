@@ -95,15 +95,6 @@ namespace DeltaKustoAdxIntegrationTest
             Func<string, IKustoManagementGateway> kustoManagementGatewayFactory,
             AzureManagementGateway azureManagementGateway)
         {
-            var d = Environment.GetEnvironmentVariables();
-
-            foreach (var key in d.Keys.Cast<string>().Where(k => k.StartsWith("delta")))
-            {
-                var value = d[key]!.ToString();
-                var withDots = string.Join('.', value!.Select(c => c.ToString()));
-
-                Console.WriteLine($"{key}:  {withDots}");
-            }
             _dbPrefix = dbPrefix;
             _kustoManagementGatewayFactory = kustoManagementGatewayFactory;
             _azureManagementGateway = azureManagementGateway;
