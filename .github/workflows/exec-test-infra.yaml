@@ -22,11 +22,9 @@ jobs:
     # Login
     - name: Azure Login
       run: az login --service-principal -u ${{ secrets.deploy_sp_id }} -p ${{ secrets.deploy_sp_secret }} --tenant ${{ secrets.tenant_id }}
-    # Deploy
-    - name: Deploy
-      run: |
-        cd deployment/integration-test
-        bash deploy-integration-test-infra.sh ${{ secrets.test_rg }} ${{ secrets.tenant_id }} ${{ secrets.deploy_sp_id }}
+    # Add Kusto extension to Azure CLI
+    - name: Install Kusto extension
+      run: az extension add -n kusto
     # Turn cluster on
     - name: Turn on cluster (if off)
       run:  |
@@ -40,3 +38,8 @@ jobs:
           # Actually start the cluster
           az kusto cluster start -n $clusterName -g ${{ secrets.test_rg }} -n $clusterName
         fi
+    # Deploy
+    - name: Deploy
+      run: |
+        cd deployment/integration-test
+        bash deploy-integration-test-infra.sh ${{ secrets.test_rg }} ${{ secrets.tenant_id }} ${{ secrets.deploy_sp_id }}
