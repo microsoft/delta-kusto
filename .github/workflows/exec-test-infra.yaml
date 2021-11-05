@@ -29,4 +29,14 @@ jobs:
         bash deploy-integration-test-infra.sh ${{ secrets.test_rg }} ${{ secrets.tenant_id }} ${{ secrets.deploy_sp_id }}
     # Turn cluster on
     - name: Turn on cluster (if off)
-      run:  deployment/integration-test/turn-on-cluster.sh ${{ secrets.test_rg }} 'integration'
+      run:  |
+        # Retrieve cluster name
+        clusterName=$(az kusto cluster list -g ${{ secrets.test_rg }} --query "[?tags.testLevel=='integration'].name" -o tsv)
+        state=$(az kusto cluster list -g ${{ secrets.test_rg }} --query "[?tags.testLevel=='integration'].state" -o tsv)
+        echo "Cluster Name:  $clusterName"
+        echo "State:  $state"
+        if [ "$state" -ne "running" ]
+        then
+          # Actually start the cluster
+          az kusto cluster start -n $clusterName -g ${{ secrets.test_rg }} -n $clusterName
+        fi
