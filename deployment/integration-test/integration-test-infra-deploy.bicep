@@ -1,8 +1,8 @@
 /**************************************************/
-//  Deploy an ADX cluster with multiple databases
+//  Deploy ADX clusters with multiple databases
 //  ready to accomodate integration tests
 //
-//  A Logic App is deployed to shutdown the cluster
+//  A Logic App is deployed to shutdown the clusters
 //  within 2-5 hours
 
 @description('Tenant ID (for client id)')
@@ -17,7 +17,7 @@ var prefixes = [
   'github_mac_os_'
   'github_laptop_'
 ]
-var dbCountPerPrefix = 40
+var dbCountPerPrefix = 50
 
 resource cluster 'Microsoft.Kusto/clusters@2021-01-01' = {
   name: 'intTests${uniqueId}'
