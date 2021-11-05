@@ -146,7 +146,6 @@ namespace DeltaKustoFileIntegrationTest
                         (sender, data) => Console.WriteLine(data.Data);
                     process.ErrorDataReceived +=
                         (sender, data) => Console.WriteLine(data.Data);
-                    Console.WriteLine($"Start process '{_executablePath}'");
 
                     var started = process.Start();
 

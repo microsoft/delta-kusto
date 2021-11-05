@@ -219,13 +219,10 @@ namespace DeltaKustoAdxIntegrationTest
         {
             var stateFiles = Directory.GetFiles(folderPath);
 
-            Console.WriteLine($"State files:  [{string.Join(", ", stateFiles)}]");
-
             foreach (var fromFile in stateFiles)
             {
                 foreach (var toFile in stateFiles)
                 {
-                    Console.WriteLine($"Current loop:  ({fromFile}, {toFile})");
                     await loopFunction(fromFile, toFile);
                 }
             }
