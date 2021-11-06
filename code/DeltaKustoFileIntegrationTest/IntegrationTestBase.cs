@@ -6,7 +6,6 @@ using DeltaKustoIntegration.TokenProvider;
 using DeltaKustoLib;
 using DeltaKustoLib.CommandModel;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -136,8 +135,6 @@ namespace DeltaKustoFileIntegrationTest
             {
                 using (var process = new Process())
                 {
-                    var outputs = new ConcurrentStack<string>();
-
                     //  Disable API calls for tests
                     process.StartInfo.EnvironmentVariables.Add("disable-api-calls", "true");
                     process.StartInfo.FileName = _executablePath;
@@ -145,20 +142,10 @@ namespace DeltaKustoFileIntegrationTest
                     {
                         process.StartInfo.ArgumentList.Add(arg);
                     }
-                    process.OutputDataReceived += (sender, data) =>
-                    {
-                        if (data.Data != null)
-                        {
-                            outputs.Push(data.Data);
-                        }
-                    };
-                    process.ErrorDataReceived += (sender, data) =>
-                    {
-                        if (data.Data != null)
-                        {
-                            outputs.Push(data.Data);
-                        }
-                    };
+                    process.OutputDataReceived +=
+                        (sender, data) => Console.WriteLine(data.Data);
+                    process.ErrorDataReceived +=
+                        (sender, data) => Console.WriteLine(data.Data);
 
                     var started = process.Start();
 
@@ -167,14 +154,6 @@ namespace DeltaKustoFileIntegrationTest
                         var ct = new CancellationTokenSource(PROCESS_TIMEOUT).Token;
 
                         await process.WaitForExitAsync(ct);
-
-                        if (process.ExitCode != 0)
-                        {
-                            foreach (var line in outputs.ToArray())
-                            {
-                                Console.WriteLine(line);
-                            }
-                        }
 
                         return process.ExitCode;
                     }
