@@ -82,10 +82,12 @@ jobs:
         cd code/perf-test
         # Fetch cluster context
         clusterUri=$(az kusto cluster list -g ${{ secrets.test_rg }} --query "[?tags.testLevel=='perf'].uri" -o tsv)
+        dbCount=${{ github.event.inputs.dbCount }}
         echo "Cluster Uri:  $clusterUri"
+        echo "DB Count:  $dbCount"
         # Create setup parameter file
         chmod +x ./create-parameters-file.sh
-        ./create-parameters-file.sh ${{ github.event.inputs.dbCount }} $clusterUri from-state
+        ./create-parameters-file.sh $dbCount $clusterUri from-state
 
         # # Exec path
         # echo "deltaKustoSingleExecPath=$(pwd)/bin/$exec" >> $GITHUB_ENV
