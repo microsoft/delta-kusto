@@ -13,12 +13,11 @@ env:
   rg:  ---
 
 jobs:
-  deploy:
+  intTestClusterSetup:
 
     runs-on: ubuntu-latest
-
+    
     steps:
-    - uses: actions/checkout@v2
     # Login
     - name: Azure Login
       run: az login --service-principal -u ${{ secrets.deploy_sp_id }} -p ${{ secrets.deploy_sp_secret }} --tenant ${{ secrets.tenant_id }}
@@ -33,11 +32,56 @@ jobs:
         state=$(az kusto cluster list -g ${{ secrets.test_rg }} --query "[?tags.testLevel=='integration'].state" -o tsv)
         echo "Cluster Name:  $clusterName"
         echo "State:  $state"
-        if [ "$state" -ne "running" ]
+        if [ "$state" -ne "" ]
         then
-          # Actually start the cluster
-          az kusto cluster start -n $clusterName -g ${{ secrets.test_rg }} -n $clusterName
+          if [ "$state" -ne "running" ]
+          then
+            # Actually start the cluster
+            az kusto cluster start -n $clusterName -g ${{ secrets.test_rg }} -n $clusterName
+          fi
         fi
+
+  perfTestClusterSetup:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    # Login
+    - name: Azure Login
+      run: az login --service-principal -u ${{ secrets.deploy_sp_id }} -p ${{ secrets.deploy_sp_secret }} --tenant ${{ secrets.tenant_id }}
+    # Add Kusto extension to Azure CLI
+    - name: Install Kusto extension
+      run: az extension add -n kusto
+    # Turn cluster on
+    - name: Turn on cluster (if off)
+      run:  |
+        # Retrieve cluster name
+        clusterName=$(az kusto cluster list -g ${{ secrets.test_rg }} --query "[?tags.testLevel=='perf'].name" -o tsv)
+        state=$(az kusto cluster list -g ${{ secrets.test_rg }} --query "[?tags.testLevel=='perf'].state" -o tsv)
+        echo "Cluster Name:  $clusterName"
+        echo "State:  $state"
+        if [ "$state" -ne "" ]
+        then
+          if [ "$state" -ne "running" ]
+          then
+            # Actually start the cluster
+            az kusto cluster start -n $clusterName -g ${{ secrets.test_rg }} -n $clusterName
+          fi
+        fi
+
+  deploy:
+
+    needs:
+    - intTestClusterSetup
+    - perfTestClusterSetup
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    # Login
+    - name: Azure Login
+      run: az login --service-principal -u ${{ secrets.deploy_sp_id }} -p ${{ secrets.deploy_sp_secret }} --tenant ${{ secrets.tenant_id }}
     # Deploy
     - name: Deploy
       run: |

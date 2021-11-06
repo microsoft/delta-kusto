@@ -10,6 +10,8 @@ param tenantId string
 @description('Service Principal Client ID (which should be cluster admin)')
 param clientId string
 
+var intTestDbCountPerPrefix = 120
+var perfTestDbCount = 100
 var uniqueId = uniqueString(resourceGroup().id, 'delta-kusto')
 var prefixes = [
   'github_linux_'
@@ -17,14 +19,34 @@ var prefixes = [
   'github_mac_os_'
   'github_laptop_'
 ]
-var dbCountPerPrefix = 120
 
-resource cluster 'Microsoft.Kusto/clusters@2021-01-01' = {
+resource intTestCluster 'Microsoft.Kusto/clusters@2021-01-01' = {
   name: 'intTests${uniqueId}'
   location: resourceGroup().location
   tags: {
     'autoShutdown': 'true'
     'testLevel': 'integration'
+  }
+  sku: {
+    'name': 'Dev(No SLA)_Standard_E2a_v4'
+    'tier': 'Basic'
+    'capacity': 1
+  }
+}
+
+resource intTestDbs 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for i in range(0, length(prefixes) * intTestDbCountPerPrefix): {
+  name: '${prefixes[i / intTestDbCountPerPrefix]}${format('{0:D8}', i % intTestDbCountPerPrefix)}'
+  location: resourceGroup().location
+  parent: intTestCluster
+  kind: 'ReadWrite'
+}]
+
+resource perfTestCluster 'Microsoft.Kusto/clusters@2021-01-01' = {
+  name: 'perfTests${uniqueId}'
+  location: resourceGroup().location
+  tags: {
+    'autoShutdown': 'true'
+    'testLevel': 'perf'
   }
   sku: {
     'name': 'Dev(No SLA)_Standard_E2a_v4'
@@ -43,10 +65,10 @@ resource cluster 'Microsoft.Kusto/clusters@2021-01-01' = {
   }
 }
 
-resource dbs 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for i in range(0, length(prefixes) * dbCountPerPrefix): {
-  name: '${prefixes[i / dbCountPerPrefix]}${format('{0:D8}', i % dbCountPerPrefix)}'
+resource perfTestDbs 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for i in range(0, perfTestDbCount): {
+  name: 'db_${format('{0:D8}', i)}'
   location: resourceGroup().location
-  parent: cluster
+  parent: perfTestCluster
   kind: 'ReadWrite'
 }]
 
@@ -205,15 +227,18 @@ resource autoShutdown 'Microsoft.Logic/workflows@2019-05-01' = {
   }
 }
 
+//  Authorize WF as contributor on clusters
 //  Role list:  https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles
 var contributorId = 'b24988ac-6180-42a0-ab88-20f7382dd24c'
 var fullContributorId = '/subscriptions/${subscription().subscriptionId}/providers/Microsoft.Authorization/roleDefinitions/${contributorId}'
-var clusterRoleAssignmentName = '${resourceGroup().id}${autoShutdown.name}${fullContributorId}'
-//  See https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/scope-extension-resources
-//  for scope for extension
-resource autoShutdownClusterAuthorization 'Microsoft.Authorization/roleAssignments@2021-04-01-preview' = {
-  name: '${guid(clusterRoleAssignmentName)}'
-  scope: cluster
+var intTestClusterRoleAssignmentName = '${resourceGroup().id}${autoShutdown.name}${fullContributorId}${intTestCluster.name}'
+var perfTestClusterRoleAssignmentName = '${resourceGroup().id}${autoShutdown.name}${fullContributorId}${perfTestCluster.name}'
+
+resource autoShutdownIntTestClusterAuthorization 'Microsoft.Authorization/roleAssignments@2021-04-01-preview' = {
+  name: '${guid(intTestClusterRoleAssignmentName)}'
+  //  See https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/scope-extension-resources
+  //  for scope for extension
+  scope: intTestCluster
   properties: {
     description: 'Give contributor on the cluster'
     principalId: autoShutdown.identity.principalId
@@ -223,6 +248,21 @@ resource autoShutdownClusterAuthorization 'Microsoft.Authorization/roleAssignmen
   }
 }
 
+resource autoShutdownPerfTestClusterAuthorization 'Microsoft.Authorization/roleAssignments@2021-04-01-preview' = {
+  name: '${guid(perfTestClusterRoleAssignmentName)}'
+  //  See https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/scope-extension-resources
+  //  for scope for extension
+  scope: perfTestCluster
+  properties: {
+    description: 'Give contributor on the cluster'
+    principalId: autoShutdown.identity.principalId
+    //  Fix the issue of the principal not being ready when deployment the assignment
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: fullContributorId
+  }
+}
+
+//  Authorize WF as reader on resource group
 var readerId = 'acdd72a7-3385-48ef-bd42-f606fba81ae7'
 var fullReaderId = '/subscriptions/${subscription().subscriptionId}/providers/Microsoft.Authorization/roleDefinitions/${readerId}'
 var rgRoleAssignmentName = '${resourceGroup().id}${autoShutdown.name}${fullReaderId}'
