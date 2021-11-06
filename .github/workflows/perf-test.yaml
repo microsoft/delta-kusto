@@ -85,7 +85,7 @@ jobs:
         echo "Cluster Uri:  $clusterUri"
         # Create setup parameter file
         chmod +x ./create-parameters-file.sh
-        ./create-parameters-file.sh ${{ github.event.inputs.alpha }} $clusterUri from-state
+        ./create-parameters-file.sh ${{ github.event.inputs.dbCount }} $clusterUri from-state
 
         # # Exec path
         # echo "deltaKustoSingleExecPath=$(pwd)/bin/$exec" >> $GITHUB_ENV
