@@ -1,0 +1,10 @@
+  db-name:
+    current:
+        adx:
+            clusterUri:  cluster-uri
+            database:  db-name
+    target:
+        scripts:
+        - filePath:  script-file.kql
+    action:
+        pushToCurrent:  true
