@@ -1,0 +1,16 @@
+name:  Perf tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      dbCount:
+        required:  true
+        default:  4
+        description:  'Number of database to test on'
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
