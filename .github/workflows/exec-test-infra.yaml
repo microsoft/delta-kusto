@@ -26,6 +26,7 @@ jobs:
       run: az extension add -n kusto
     # Turn cluster on
     - name: Turn on cluster (if off)
+      shell:  bash
       run:  |
         # Retrieve cluster name
         clusterName=$(az kusto cluster list -g ${{ secrets.test_rg }} --query "[?tags.testLevel=='integration'].name" -o tsv)
@@ -54,6 +55,7 @@ jobs:
       run: az extension add -n kusto
     # Turn cluster on
     - name: Turn on cluster (if off)
+      shell:  bash
       run:  |
         # Retrieve cluster name
         clusterName=$(az kusto cluster list -g ${{ secrets.test_rg }} --query "[?tags.testLevel=='perf'].name" -o tsv)
