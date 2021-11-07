@@ -11,7 +11,7 @@ param tenantId string
 param clientId string
 
 var intTestDbCountPerPrefix = 120
-var perfTestDbCount = 100
+var perfTestDbCount = 2000
 var uniqueId = uniqueString(resourceGroup().id, 'delta-kusto')
 var prefixes = [
   'github_linux_'
@@ -34,6 +34,7 @@ resource intTestCluster 'Microsoft.Kusto/clusters@2021-01-01' = {
   }
 }
 
+@batchSize(10)
 resource intTestDbs 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for i in range(0, length(prefixes) * intTestDbCountPerPrefix): {
   name: '${prefixes[i / intTestDbCountPerPrefix]}${format('{0:D8}', i % intTestDbCountPerPrefix)}'
   location: resourceGroup().location
@@ -65,6 +66,7 @@ resource perfTestCluster 'Microsoft.Kusto/clusters@2021-01-01' = {
   }
 }
 
+@batchSize(10)
 resource perfTestDbs 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for i in range(0, perfTestDbCount): {
   name: 'db_${format('{0:D8}', i)}'
   location: resourceGroup().location
