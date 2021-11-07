@@ -23,5 +23,6 @@ cat parameters-headers.yaml
 for i in $(seq -f "%08g" 1 $dbCount)
 do
     #   Output for one db
-    sed "s/db-name/dN$i/g; s/cluster-uri/$clusterUri/g; s/script-file/$fileName/g" parameters-db.yaml
+    escapedClusterUri=$(printf '%s\n' "$clusterUri" | sed -e 's/[]\/$*.^[]/\\&/g');
+    sed "s/db-name/dN$i/g; s/cluster-uri/$escapedClusterUri/g; s/script-file/$fileName/g" parameters-db.yaml
 done
