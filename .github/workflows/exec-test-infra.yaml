@@ -35,7 +35,10 @@ jobs:
         if [ "$state" == "Stopped" ]
         then
           # Actually start the cluster
+          echo "Start cluster"
           az kusto cluster start -n $clusterName -g ${{ secrets.test_rg }} -n $clusterName
+        else
+          echo "Do nothing"
         fi
 
   perfTestClusterSetup:
@@ -60,7 +63,10 @@ jobs:
         if [ "$state" == "Stopped" ]
         then
           # Actually start the cluster
+          echo "Start cluster"
           az kusto cluster start -n $clusterName -g ${{ secrets.test_rg }} -n $clusterName
+        else
+          echo "Do nothing"
         fi
 
   deploy:
