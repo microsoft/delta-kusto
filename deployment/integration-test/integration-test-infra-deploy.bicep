@@ -11,7 +11,7 @@ param tenantId string
 param clientId string
 
 var intTestDbCountPerPrefix = 120
-var perfTestDbCount = 2000
+var perfTestDbCount = 800
 var uniqueId = uniqueString(resourceGroup().id, 'delta-kusto')
 var prefixes = [
   'github_linux_'
