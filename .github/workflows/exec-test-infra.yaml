@@ -32,7 +32,7 @@ jobs:
         state=$(az kusto cluster list -g ${{ secrets.test_rg }} --query "[?tags.testLevel=='integration'].state" -o tsv)
         echo "Cluster Name:  $clusterName"
         echo "State:  $state"
-        if [ [ "$state" != "" ] && [ "$state" != "running" ] ]
+        if [ "$state" == "Stopped" ]
         then
           # Actually start the cluster
           az kusto cluster start -n $clusterName -g ${{ secrets.test_rg }} -n $clusterName
@@ -57,7 +57,7 @@ jobs:
         state=$(az kusto cluster list -g ${{ secrets.test_rg }} --query "[?tags.testLevel=='perf'].state" -o tsv)
         echo "Cluster Name:  $clusterName"
         echo "State:  $state"
-        if [ [ "$state" != "" ] && [ "$state" != "running" ] ]
+        if [ "$state" == "Stopped" ]
         then
           # Actually start the cluster
           az kusto cluster start -n $clusterName -g ${{ secrets.test_rg }} -n $clusterName
