@@ -1,5 +1,0 @@
-//  Create tables
-
-.create-merge table Users (City:string, Country:string, Denies:string, Knowledge:string, Kickbacks:string, Minister:string, Denied:string, Paying:string, Kickbacks:string, Despite:string, DeniedNickname:string, Exporter:string, Asking:string, Informed:bool, Letters:string, Howard:string, Deputy:string, Minister:bool, Released:string, Inquiry:string, Neighbours:string, Letters:string, Howard:string, ImmutableHorticulturalists:string, Managing:datetime, Director:string) with (folder="", docstring="")
-
-.create-merge table ShoppingEvents (BigId:int, AlertHorticulturalists:string, Andrew:datetime, Lindberg:string, Remain:string, Contact:int, Government:long, Opposition:string, Connor:string, Letter:string, Paying:string, Kickbacks:string, Though:int, Jordanian:string, Trucking:string, Company:string, Government:string, Longer:string, Illicit:int, Payments:string, Totalled:string) with (folder="", docstring="")
