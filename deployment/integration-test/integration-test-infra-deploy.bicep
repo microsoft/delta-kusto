@@ -11,7 +11,7 @@ param tenantId string
 param clientId string
 
 var intTestDbCountPerPrefix = 120
-var perfTestDbCount = 1000
+var perfTestDbCount = 10000
 var perfTestIndices = range(0, perfTestDbCount)
 var perfPartitionMaxSize = 800
 var uniqueId = uniqueString(resourceGroup().id, 'delta-kusto')
