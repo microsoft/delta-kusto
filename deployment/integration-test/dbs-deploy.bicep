@@ -10,7 +10,7 @@ resource cluster 'Microsoft.Kusto/clusters@2021-01-01' existing = {
   name: clusterName
 }
 
-@batchSize(25)
+@batchSize(100)
 resource perfTestDbs 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for dbName in dbNames: {
   name: dbName
   location: resourceGroup().location
