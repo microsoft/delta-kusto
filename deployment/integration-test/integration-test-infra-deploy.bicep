@@ -12,7 +12,7 @@ param clientId string
 
 var intTestDbCountPerPrefix = 120
 var perfTestDbCount = 10000
-var perfTestIndices = range(0, perfTestDbCount)
+var perfTestDbNames = [for i in range(0, perfTestDbCount): 'db_${format('{0:D8}', i)}']
 var perfPartitionMaxSize = 800
 var uniqueId = uniqueString(resourceGroup().id, 'delta-kusto')
 var prefixes = [
@@ -74,7 +74,7 @@ module perfTestDbs 'dbs-deploy.bicep' = [for i in range(0, perfTestDbCount / per
   name: 'kustoDbs-${i}-${deployment().name}'
   params: {
     clusterName: perfTestCluster.name
-    dbNames: take(skip(perfTestIndices, i * perfPartitionMaxSize), perfPartitionMaxSize)
+    dbNames: take(skip(perfTestDbNames, i * perfPartitionMaxSize), perfPartitionMaxSize)
   }
 }]
 
