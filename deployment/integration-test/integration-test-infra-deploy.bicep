@@ -11,7 +11,9 @@ param tenantId string
 param clientId string
 
 var intTestDbCountPerPrefix = 120
-var perfTestDbCount = 200
+var perfTestDbCount = 1000
+var perfTestIndices = range(0, perfTestDbCount)
+var perfPartitionMaxSize = 800
 var uniqueId = uniqueString(resourceGroup().id, 'delta-kusto')
 var prefixes = [
   'github_linux_'
@@ -66,12 +68,14 @@ resource perfTestCluster 'Microsoft.Kusto/clusters@2021-01-01' = {
   }
 }
 
-@batchSize(25)
-resource perfTestDbs 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for i in range(0, perfTestDbCount): {
-  name: 'db_${format('{0:D8}', i)}'
-  location: resourceGroup().location
-  parent: perfTestCluster
-  kind: 'ReadWrite'
+//  Delegate to a module to work around the 800 resources per deployment limitation
+@batchSize(1)
+module SqlDatabases 'dbs-deploy.bicep' = [for i in range(0, perfTestDbCount / perfPartitionMaxSize): {
+  name: 'sqlDatabaseDeploy-${i}-${deployment().name}'
+  params: {
+    clusterName: perfTestCluster.name
+    dbNames: take(skip(perfTestIndices, i * perfPartitionMaxSize), perfPartitionMaxSize)
+  }
 }]
 
 resource autoShutdown 'Microsoft.Logic/workflows@2019-05-01' = {
