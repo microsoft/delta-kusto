@@ -70,8 +70,8 @@ resource perfTestCluster 'Microsoft.Kusto/clusters@2021-01-01' = {
 
 //  Delegate to a module to work around the 800 resources per deployment limitation
 @batchSize(1)
-module SqlDatabases 'dbs-deploy.bicep' = [for i in range(0, perfTestDbCount / perfPartitionMaxSize): {
-  name: 'sqlDatabaseDeploy-${i}-${deployment().name}'
+module perfTestDbs 'dbs-deploy.bicep' = [for i in range(0, perfTestDbCount / perfPartitionMaxSize): {
+  name: 'kustoDbs-${i}-${deployment().name}'
   params: {
     clusterName: perfTestCluster.name
     dbNames: take(skip(perfTestIndices, i * perfPartitionMaxSize), perfPartitionMaxSize)
