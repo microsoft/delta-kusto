@@ -78,7 +78,10 @@ jobs:
     # Add Kusto extension to Azure CLI
     - name: Install Kusto extension
       run: az extension add -n kusto
-    # Create setup-parameter-file.yaml
+    # Make script executable
+    - name: Chmod script
+      run:  chmod +x ./create-parameters-file.sh
+    # Create parameter files
     - name: Create setup parameter file
       shell:  bash
       run: |
@@ -89,14 +92,22 @@ jobs:
         echo "Cluster Uri:  $clusterUri"
         echo "DB Count:  $dbCount"
         # Create setup parameter file
-        chmod +x ./create-parameters-file.sh
-        ./create-parameters-file.sh $dbCount $clusterUri from-state
+        ./create-parameters-file.sh $dbCount $clusterUri clean-state > clean-parameters.yaml
+        ./create-parameters-file.sh $dbCount $clusterUri from-state > from-parameters.yaml
+        ./create-parameters-file.sh $dbCount $clusterUri to-state > to-parameters.yaml
 
         # # Exec path
         # echo "deltaKustoSingleExecPath=$(pwd)/bin/$exec" >> $GITHUB_ENV
         # echo "deltaKustoTenantId=${{ secrets.TENANT_ID }}" >> $GITHUB_ENV
         # echo "deltaKustoSpId=${{ secrets.KUSTO_SP_ID }}" >> $GITHUB_ENV
         # echo "deltaKustoSpSecret=${{ secrets.KUSTO_SP_SECRET }}" >> $GITHUB_ENV
+    # Output the parameter files
+    - name: Output clean-parameters.yaml
+      run:  cat clean-parameters.yaml
+    - name: Output from-parameters.yaml
+      run:  cat from-parameters.yaml
+    - name: Output to-parameters.yaml
+      run:  cat to-parameters.yaml
     # # Set environment variables
     # - name: Set environment variables
     #   shell:  bash
