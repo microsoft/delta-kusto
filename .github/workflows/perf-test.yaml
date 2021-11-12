@@ -80,7 +80,9 @@ jobs:
       run: az extension add -n kusto
     # Make script executable
     - name: Chmod script
-      run:  chmod +x ./create-parameters-file.sh
+      run:  |
+        cd code/perf-test
+        chmod +x ./create-parameters-file.sh
     # Create parameter files
     - name: Create setup parameter file
       shell:  bash
