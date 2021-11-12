@@ -11,9 +11,9 @@ param tenantId string
 param clientId string
 
 var intTestDbCountPerPrefix = 120
-var perfTestDbCount = 10000
+var perfTestDbCount = 1000
 var perfTestDbNames = [for i in range(0, perfTestDbCount): 'db_${format('{0:D8}', i + 1)}']
-var perfPartitionMaxSize = 500
+var perfPartitionMaxSize = 800
 var uniqueId = uniqueString(resourceGroup().id, 'delta-kusto')
 var prefixes = [
   'github_linux_'
@@ -38,7 +38,7 @@ resource intTestCluster 'Microsoft.Kusto/clusters@2021-01-01' = {
 
 @batchSize(100)
 resource intTestDbs 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for i in range(0, length(prefixes) * intTestDbCountPerPrefix): {
-  name: '${prefixes[i / intTestDbCountPerPrefix]}${format('{0:D8}', i % intTestDbCountPerPrefix)}'
+  name: '${prefixes[i / intTestDbCountPerPrefix]}${format('{0:D8}', i % intTestDbCountPerPrefix + 1)}'
   location: resourceGroup().location
   parent: intTestCluster
   kind: 'ReadWrite'
@@ -71,7 +71,7 @@ resource perfTestCluster 'Microsoft.Kusto/clusters@2021-01-01' = {
 //  Delegate to a module to work around the 800 resources per deployment limitation
 @batchSize(1)
 module perfTestDbs 'dbs-deploy.bicep' = [for i in range(0, perfTestDbCount / perfPartitionMaxSize): {
-  name: 'kustoDbs-${i}-${deployment().name}'
+  name: 'kustoDbs-${i + 1}-${deployment().name}'
   params: {
     clusterName: perfTestCluster.name
     dbNames: take(skip(perfTestDbNames, i * perfPartitionMaxSize), perfPartitionMaxSize)
