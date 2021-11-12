@@ -37,7 +37,7 @@ jobs:
           echo "Do nothing"
         fi
 
-  linux:
+  test:
     needs:
     - clusterSetup
 
