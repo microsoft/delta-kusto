@@ -43,13 +43,13 @@ resource intTestCluster 'Microsoft.Kusto/clusters@2021-01-01' = {
   }
 }
 
-@batchSize(100)
-resource intTestDbs 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for i in range(0, length(prefixes) * intTestDbCountPerPrefix): {
-  name: '${prefixes[i / intTestDbCountPerPrefix]}${format('{0:D8}', i % intTestDbCountPerPrefix + 1)}'
-  location: resourceGroup().location
-  parent: intTestCluster
-  kind: 'ReadWrite'
-}]
+// @batchSize(100)
+// resource intTestDbs 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for i in range(0, length(prefixes) * intTestDbCountPerPrefix): {
+//   name: '${prefixes[i / intTestDbCountPerPrefix]}${format('{0:D8}', i % intTestDbCountPerPrefix + 1)}'
+//   location: resourceGroup().location
+//   parent: intTestCluster
+//   kind: 'ReadWrite'
+// }]
 
 resource perfTestCluster 'Microsoft.Kusto/clusters@2021-01-01' = {
   name: 'perfTests${uniqueId}'
