@@ -9,8 +9,122 @@ on:
         description:  'Number of database to test on'
 
 jobs:
-  linux:
+  clusterSetup:
+
     runs-on: ubuntu-latest
     
     steps:
+    # Login
+    - name: Azure Login
+      run: az login --service-principal -u ${{ secrets.deploy_sp_id }} -p ${{ secrets.deploy_sp_secret }} --tenant ${{ secrets.tenant_id }}
+    # Add Kusto extension to Azure CLI
+    - name: Install Kusto extension
+      run: az extension add -n kusto
+    # Turn cluster on
+    - name: Turn on cluster (if off)
+      run: |
+        # Retrieve cluster name
+        clusterName=$(az kusto cluster list -g ${{ secrets.test_rg }} --query "[?tags.testLevel=='perf'].name" -o tsv)
+        state=$(az kusto cluster list -g ${{ secrets.test_rg }} --query "[?tags.testLevel=='perf'].state" -o tsv)
+        echo "Cluster Name:  $clusterName"
+        echo "State:  $state"
+        if [ "$state" == "Stopped" ]
+        then
+          # Actually start the cluster
+          echo "Start cluster"
+          az kusto cluster start -n $clusterName -g ${{ secrets.test_rg }} -n $clusterName
+        else
+          echo "Do nothing"
+        fi
+
+  test:
+    needs:
+    - clusterSetup
+
+    runs-on: ubuntu-latest
+    
+    env:
+      # See OS catalog here:  https://docs.microsoft.com/en-us/dotnet/core/rid-catalog
+      dotnetOs:  linux-x64
+      exec:  delta-kusto
+
+    steps:
     - uses: actions/checkout@v2
+    # - name: Setup .NET Core
+    #   uses: actions/setup-dotnet@v1
+    #   with:
+    #     dotnet-version: 5.0.x
+    # # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-restore
+    # - name: Install dependencies
+    #   shell:  bash
+    #   run: dotnet restore code
+    # # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-build
+    # - name: Build
+    #   shell:  bash
+    #   run: dotnet build code --configuration Release --no-restore
+    # # See https://github.com/dotnet/designs/blob/main/accepted/2020/single-file/design.md#user-experience
+    # # & https://docs.microsoft.com/en-us/dotnet/core/deploying/single-file
+    # # & https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-publish
+    # - name: Build single file executable
+    #   shell:  bash
+    #   run: |
+    #     dotnet publish code/delta-kusto -c release -r $dotnetOs \
+    #       -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
+    #       -p:PublishTrimmed=true -p:PublishReadyToRun=true \
+    #       -o bin
+    # Login
+    - name: Azure Login
+      run: az login --service-principal -u ${{ secrets.deploy_sp_id }} -p ${{ secrets.deploy_sp_secret }} --tenant ${{ secrets.tenant_id }}
+    # Add Kusto extension to Azure CLI
+    - name: Install Kusto extension
+      run: az extension add -n kusto
+    # Make script executable
+    - name: Chmod script
+      run:  |
+        cd code/perf-test
+        chmod +x ./create-parameters-file.sh
+    # Create parameter files
+    - name: Create setup parameter file
+      shell:  bash
+      run: |
+        cd code/perf-test
+        # Fetch cluster context
+        clusterUri=$(az kusto cluster list -g ${{ secrets.test_rg }} --query "[?tags.testLevel=='perf'].uri" -o tsv)
+        dbCount=${{ github.event.inputs.dbCount }}
+        echo "Cluster Uri:  $clusterUri"
+        echo "DB Count:  $dbCount"
+        # Create setup parameter file
+        ./create-parameters-file.sh $dbCount $clusterUri clean-state > clean-parameters.yaml
+        ./create-parameters-file.sh $dbCount $clusterUri from-state > from-parameters.yaml
+        ./create-parameters-file.sh $dbCount $clusterUri to-state > to-parameters.yaml
+
+        # # Exec path
+        # echo "deltaKustoSingleExecPath=$(pwd)/bin/$exec" >> $GITHUB_ENV
+        # echo "deltaKustoTenantId=${{ secrets.TENANT_ID }}" >> $GITHUB_ENV
+        # echo "deltaKustoSpId=${{ secrets.KUSTO_SP_ID }}" >> $GITHUB_ENV
+        # echo "deltaKustoSpSecret=${{ secrets.KUSTO_SP_SECRET }}" >> $GITHUB_ENV
+    # Output the parameter files
+    - name: Output clean-parameters.yaml
+      run:  cat code/perf-test/clean-parameters.yaml
+    - name: Output from-parameters.yaml
+      run:  cat code/perf-test/from-parameters.yaml
+    - name: Output to-parameters.yaml
+      run:  cat code/perf-test/to-parameters.yaml
+    # # Set environment variables
+    # - name: Set environment variables
+    #   shell:  bash
+    #   run: |
+    #     # Fetch cluster context
+    #     clusterId=$(az kusto cluster list -g ${{ secrets.test_rg }} --query "[?tags.testLevel=='integration'].id" -o tsv)
+    #     clusterUri=$(az kusto cluster list -g ${{ secrets.test_rg }} --query "[?tags.testLevel=='integration'].uri" -o tsv)
+    #     echo "Cluster ID:  $clusterId"
+    #     echo "Cluster Uri:  $clusterUri"
+    #     # Exec path
+    #     echo "deltaKustoSingleExecPath=$(pwd)/bin/$exec" >> $GITHUB_ENV
+    #     # ADX integration
+    #     echo "deltaKustoClusterId=$clusterId" >> $GITHUB_ENV
+    #     echo "deltaKustoClusterUri=$clusterUri" >> $GITHUB_ENV
+    #     echo "deltaKustoDbPrefix=$deltaDbPrefix" >> $GITHUB_ENV
+    #     echo "deltaKustoTenantId=${{ secrets.TENANT_ID }}" >> $GITHUB_ENV
+    #     echo "deltaKustoSpId=${{ secrets.KUSTO_SP_ID }}" >> $GITHUB_ENV
+    #     echo "deltaKustoSpSecret=${{ secrets.KUSTO_SP_SECRET }}" >> $GITHUB_ENV

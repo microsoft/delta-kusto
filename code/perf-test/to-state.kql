@@ -1,0 +1,162 @@
+//  Create tables
+
+.create-merge table Users (City:string, Country:string, Denies:string, Knowledge:string, Kickbacks:string, Minister:string, Denied:string, Paying:string, Kickbacks:string, Despite:string, DeniedNickname:string, Exporter:string, Asking:string, Informed:bool, Letters:string, Howard:string, Deputy:string, Minister:bool, Released:string, Inquiry:string, Neighbours:string, Letters:string, Howard:string, ImmutableHorticulturalists:string, Managing:datetime, Director:string) with (folder="", docstring="")
+
+.create-merge table ShoppingEvents (BigId:int, AlertHorticulturalists:string, Andrew:datetime, Lindberg:string, Remain:string, Contact:int, Government:long, Opposition:string, Connor:string, Letter:string, Paying:string, Kickbacks:string, Though:int, Jordanian:string, Trucking:string, Company:string, Government:string, Longer:string, Illicit:int, Payments:string, Totalled:string) with (folder="", docstring="")
+
+.create-merge table HistoryChannel (Questioned:string, Million:string, RealMillion:string, Paying:string, Remain:string, Ministers:string, Agriculture:int16, Minister:string, Minister:string, Letters:int16, Inquiring:datetime, Future:string, Government:string, Payments:bool, Contact:string, Minister:bool, Kickbacks:string, Lindberg:string, Preserve:string, Illicit:int, Payments:string) with (folder="", docstring="") 
+
+.create-merge table Reports (Higgins:string, Market:bool, Questions:string, Inquiry:bool, Paying:string, Manager:string, Questioned:string, Received:string, Indicated:string, Grains:string, Approached:string, WebFileConnor:string, IEVStreamConnor:string, IEVReferrerConnor:string, CoreContact:string, Remember:string, IEVFrameConnor:string, Although:datetime, Kickbacks:string, Support:string, Plenty:string, Support:string, Growers:string, Central:string, Western:bool, Despite:string, RealMillion:string, Inquiry:string, ThreatCompany:string, Broadly:string, Support:long, Attempts:bool, Prices:bool, Remain:string, Overseas:string, Interests:string, LocalQuestions:string, Persisted_Process_FileFullMillion:string, Commission:string, Everything:datetime, People:string, Persisted_ParentProcess_FileFullMillion:string, Persisted_RemoteProcess_FileFullMillion:string, Middle:string, MemoryContact:string, BootContact:string, RootkitContact:string, Pretty:bool, OriginalQuestioned:string, System:bool, Actually:bool, Pretty:bool, Support:bool, Moment:bool, Lindberg:string, RealMillionNoEscaping:string, Preserve:string, Illicit:int, Payments:string) with (folder="", docstring="") 
+
+.create-merge table ProductHistory (Lindberg:string, Kickbacks:string, Government:long, Andrew:datetime, Whether:string, Multinationals:string, Foothold:string, Advantage:long, Prices:datetime, Analyst:string, InitiatingProcessParentPaying:string, Prices:long, Another:datetime, InitiatingProcessOpposition:string, Malcolm:string, InitiatingProcessPaying:string, InitiatingProcessFolderMillion:string, InitiatingProcessHoward:string, Dropped:string, Average:bool, Deprecated_Paying:string, FileMillion:string, Deprecated_Questioned:string, Opposition:string, Monopoly:string, Paying:string, FolderMillion:string, Farmers:string, Howard:string, Neighbours:string, Farmers:string, InitiatingProcessDespite:string, Donating:long, Truckloads:datetime, Neighbours:string, Across:string, Border:string, RemoteConnor:string, Bushfires:datetime, Farmers:string, Longer:string, FileOriginConnor:string, Agistment:string, Cattle:long, Despite:string, Fodder:string, Coordinator:string, Conner:long, Overwhelmed:string, Response:string, Places:string, Donated:long, Donated:string, Straight:int, Letter:string, Floodwaters:int, Illicit:int, Payments:string, Between:long, Deputy:string, Territory:string) with (folder="", docstring="") 
+
+.create-merge table RecommendationSystem (Howard:string, Letters:string, Australia:string, Remains:bool, Blocked:bool, Kickbacks:string, Lindberg:string, Government:long, Whether:string, Andrew:datetime, Remote:bool, Despite:string, Neighbours:string, Illicit:int, Payments:string) with (folder="", docstring="") 
+
+.create-merge table RainDayLog (Lindberg:string, Andrew:datetime, Government:long, Hundred:string, People:string, Higher:string, CreatorProcess_File_Questioned:string, Vehicles:string, CreatorProcess_Between:long, CreatorProcess_Howard:string, CreatorProcess_Letters:string, Belongings:datetime, Couple:string, File_Preserve:string, Ground:datetime, Metres:datetime, CreatorProcess_ParentBetween:long, Sandstone:datetime, CreatorProcess_Despite:string, Heights:string, Neighbours:string, Kickbacks:string, Illicit:int, Payments:string) with (folder="", docstring="") 
+
+.create-merge table VotingHistory (Opposition:string, FileSupport:long, Monopoly:string, Paying:string, FolderMillion:string, Andrew:datetime, File_Certificate_Actually:bool, File_Certificate_Overseas:string, Agribusiness:string, Analyst:string, InitiatingProcessPaying:string, InitiatingProcessParentPaying:string, InitiatingProcessOpposition:string, Malcolm:string, Devonport:datetime, InitiatingProcessFolderMillion:string, Process_File_Certificate_Actually:bool, Process_File_Certificate_Overseas:string, Another:datetime, File_Certificate_Interests:string, Advantage:long, Kickbacks:string, Lindberg:string, Prices:datetime, Successful:bool, InitiatingProcessHoward:string, Dropped:string, InitiatingProcessDespite:string, Process_File_Inquiry:string, File_Inquiry:string, Prices:long, Government:long, Whether:string, FolderMillionNoEscaping:string, Dispute:string, Enterprise:string, Average:bool, Border:string, Stopwork:string, InitiatingFarmers:string, InitiatingProcessFolderMillionNoEscaping:string, Process_ReparentedBetween:long, Process_ReparentedBushfires:datetime, FileOriginConnor:string, Agistment:string, FileOriginReferrerConnor:string, Neighbours:string, Longer:string, Illicit:int, Payments:string, Industry:string, Target:string, Promotion:bool, Australian:bool, Innovation:bool, RequestMinister:string, Shirts:string, Casual:string, RequestLetters:int, RequestHoward:string, RequestNeighbours:string, RequestDespite:string, Across:string) with (folder="", docstring="") 
+
+.create-merge table AdViewHistory (Kickbacks:string, Lindberg:string, Government:long, Whether:string, Andrew:datetime, InitiatingProcessOpposition:string, Malcolm:string, Vehicles:string, InitiatingProcessParentPaying:string, InitiatingProcessFolderMillion:string, InitiatingProcessPaying:string, InitiatingProcessAgribusiness:string, Analyst:string, Prices:datetime, Another:datetime, InitiatingProcessHoward:string, Dropped:string, InitiatingProcessDespite:string, CreatorProcess_File_Inquiry:string, Prices:long, Advantage:long, Successful:bool, Paying:string, Opposition:string, Monopoly:string, FolderMillion:string, Agribusiness:string, FileSupport:long, Inquiry:string, OriginalPaying:string, Average:bool, Stopwork:string, InitiatingFarmers:string, InitiatingProcessFolderMillionNoEscaping:string, FolderMillionNoEscaping:string, CreatorProcess_ReparentedBetween:long, CreatorProcess_ReparentedBushfires:datetime, Neighbours:string, Illicit:int, Payments:string, Border:string, Across:string) with (folder="", docstring="") 
+
+.create-merge table PagewViewLog (Howard:string, Neighbours:string, Australia:string, Kickbacks:string, Lindberg:string, Government:long, Whether:string, Andrew:datetime, Despite:string, Neighbours:string, Donated:long, Letter:string, Floodwaters:int, Fodder:string, Longer:string, Advantage:long, Prices:datetime, InitiatingProcessPaying:string, InitiatingProcessFolderMillion:string, InitiatingProcessOpposition:string, Across:string, Malcolm:string, Analyst:string, InitiatingProcessHoward:string, Dropped:string, InitiatingProcessDespite:string, InitiatingFarmers:string, Stopwork:string, Prices:long, Another:datetime, InitiatingProcessParentPaying:string, Farmers:string, Coordinator:string, LetterRegrettable:string, Illicit:int, Payments:string, Remains:bool) with (folder="", docstring="") 
+
+.create-merge table TranslationLog (Whether:string, ClientQuestions:string, Flinders:bool, Kickbacks:string, Lindberg:string, Government:long, Andrew:datetime, Predatory:string, Snails:string, Whelks:string, Marine:long, Biologist:string, Kirsten:string, Benkendorff:bool, Neighbours:string, Research:string, Overseas:string, Remain:string, Illicit:int, Payments:string, Cancer:string, Properties:string) with (folder="", docstring="") 
+
+.create-merge table CloudUsageData (Lindberg:string, Neighbours:string, Andrew:datetime, Kickbacks:string, Government:long, Harvested:string, Really:string, Considered:string, Useful:string, Resource:string, Potential:string, Economic:string, Benefits:string, Things:string, Processors:string, Questionses:string, Demand:string, Illicit:int, Payments:string) with (folder="", docstring="") 
+
+.create-merge table DataUsageHistory (Andrew:datetime, Kangaroo:long, Putting:long, Longer:string, Australian:string, Processors:datetime, Despite:datetime, ActionConsidered:string, Harvesting:string, Quotas:long, Leaving:long, Paying:string, AccountKickbacks:string, Lindberg:string, Kickbacks:string, Europeans:string, Opposition:string, Border:string, Paying:string, FolderMillion:string, Amounts:string, Deputy:string, FileSupport:long, Between:long, Territory:string, Bushfires:datetime, Illicit:int, Payments:string, Farmers:string, Neighbours:string, Government:long, People:datetime, Warned:string, SenderFromDeniedAddress:string, Soaring:string, PuttingUrn:string, KangarooUrn:string) with (folder="", docstring="") 
+
+.create-merge table CommunicationLog (Inquiries:datetime, Questions:string, Benefits:string, Snakes:string, People:string, Warned:bool, Paddock:string, Especially:string, Bushfires:string, Snakes:bool, Forced:string, Habitat:string) with (folder="", docstring="{\"CreationDate\":\"2020-07-04T11:07:56.8226059+00:00\"}") 
+
+.create-merge table GarbageCollectionLog (Lindberg:string, Andrew:datetime, Government:long, Hundred:string, People:string, Higher:string, CreatorProcess_File_Questioned:string, Vehicles:string, CreatorProcess_Between:long, CreatorProcess_Howard:string, CreatorProcess_Letters:string, Belongings:datetime, Couple:string, File_Preserve:string, Ground:datetime, Metres:datetime, CreatorProcess_ParentBetween:long, Sandstone:datetime, CreatorProcess_Despite:string, Heights:string, Neighbours:string, Kickbacks:string, Illicit:int, Payments:string) with (folder="", docstring="") 
+
+.create-merge table ProtocolUsageLog (Kickbacks:string, Lindberg:string, Government:long, Andrew:datetime, Letter:string, Floodwaters:int, Donated:string, Straight:int, Minister:string, RemoteConnor:string, Prices:datetime, Advantage:long, Analyst:string, Successful:bool, Another:datetime, Prices:long, InitiatingProcessParentPaying:string, InitiatingProcessOpposition:string, Malcolm:string, InitiatingProcessFolderMillion:string, Process_File_Inquiry:string, InitiatingProcessHoward:string, Dropped:string, InitiatingProcessDespite:string, InitiatingProcessPaying:string, Whether:string, Average:bool, Stopwork:string, InitiatingFarmers:string, InitiatingProcessFolderMillionNoEscaping:string, Process_ReparentedBetween:long, Process_ReparentedBushfires:datetime, Making:string, Neighbours:string, Motorbike:string, Twisted:string, Coordinator:string, Longer:string, Illicit:int, Payments:string, Across:string) with (folder="", docstring="") 
+
+.create-merge table OSObservabilityLog (Lindberg:string, Andrew:datetime, Government:long, Hundred:string, People:string, Higher:string, CreatorProcess_File_Questioned:string, Vehicles:string, CreatorProcess_Between:long, CreatorProcess_Howard:string, CreatorProcess_Letters:string, Belongings:datetime, Couple:string, File_Preserve:string, Ground:datetime, Metres:datetime, CreatorProcess_ParentBetween:long, Sandstone:datetime, CreatorProcess_Despite:string, Heights:string, Neighbours:string, Kickbacks:string, Illicit:int, Payments:string) with (folder="", docstring="") 
+
+.create-merge table HealthHistory (InitiatingProcessOpposition:string, InitiatingProcessFileSupport:long, Malcolm:string, InitiatingProcessPaying:string, InitiatingProcessParentPaying:string, InitiatingProcessFolderMillion:string, CreatorDevonport:datetime, CreatorProcess_File_Certificate_Actually:bool, CreatorProcess_File_Certificate_Overseas:string, InitiatingProcessAgribusiness:string, Analyst:string, Opposition:string, FileSupport:long, Monopoly:string, FolderMillion:string, CreatedDevonport:datetime, CreatedProcess_File_Certificate_Actually:bool, CreatedProcess_File_Certificate_Overseas:string, Agribusiness:string, Territory:string, Paying:string, Between:long, Advantage:long, Bushfires:datetime, Kickbacks:string, Lindberg:string, Prices:datetime, Successful:bool, InitiatingProcessHoward:string, Dropped:string, InitiatingProcessDespite:string, CreatorProcess_File_Inquiry:string, CreatedProcess_File_Inquiry:string, Prices:long, Government:long, Whether:string, FolderMillionNoEscaping:string, InitiatingProcessFolderMillionNoEscaping:string, Dispute:string, Andrew:datetime, Average:bool, Vehicles_Manipulated:bool, Another:datetime, InitiatingFarmers:string, Stopwork:string, Neighbours:string, Howard:string, Farmers:string, Zealand:string, CreatorProcess_ReparentedBetween:long, CreatorProcess_ReparentedBushfires:datetime, CreatedProcess_ReparentedBetween:long, CreatedProcess_ReparentedBushfires:datetime, Despite:string, Neighbours:string, Border:string, Across:string, Illicit:int, Payments:string, Cattle:long, Donated:long) with (folder="", docstring="") 
+
+.create-merge table SpiritualSeanceLog (Kickbacks:string, Lindberg:string, Government:long, Whether:string, Andrew:datetime, Overwhelmed:string, Response:string, Surprising:string, Places:string, PreviousPlaces:string, InitiatingProcessOpposition:string, InitiatingProcessFileSupport:long, Malcolm:string, InitiatingProcessPaying:string, InitiatingProcessParentPaying:string, InitiatingProcessFolderMillion:string, CreatorProcess_File_Paying:string, InitiatingProcessAgribusiness:string, Analyst:string, Prices:datetime, Another:datetime, InitiatingProcessHoward:string, Dropped:string, InitiatingProcessDespite:string, CreatorProcess_File_Inquiry:string, Prices:long, Advantage:long, Successful:bool, Average:bool, Stopwork:string, InitiatingFarmers:string, Australia:string, PreviousOverwhelmed:string, PreviousResponse:string, InitiatingProcessFolderMillionNoEscaping:string, CreatorProcess_ReparentedBetween:long, CreatorProcess_ReparentedBushfires:datetime, Neighbours:string, Longer:string, Illicit:int, Payments:string, Across:string) with (folder="", docstring="") 
+
+.create-merge table PlanetCatalog (Andrew:datetime, Kangaroo:long, Putting:long, Longer:string, Australian:string, Processors:datetime, Despite:datetime, ActionConsidered:string, Harvesting:string, Quotas:long, Leaving:long, Paying:string, AccountKickbacks:string, Lindberg:string, Kickbacks:string, Europeans:string, Opposition:string, Border:string, Paying:string, FolderMillion:string, Amounts:string, Deputy:string, FileSupport:long, Between:long, Territory:string, Bushfires:datetime, Illicit:int, Payments:string, Farmers:string, Neighbours:string, Government:long) with (folder="", docstring="") 
+
+.create-merge table PlanetSpeenTranslation (Whether:string, Kickbacks:string, Lindberg:string, Government:long, Andrew:datetime, Better:long, Liberal:string, Opposition:string, Received:string, AllReceiveds:string, Paying:string, FileMillion:string, Neighbours:string, Preserve:string, Illicit:int, Payments:string) with (folder="", docstring="") 
+
+.create-merge table GalaxyMovement (EventRegrettable:string, Lindberg:string, Andrew:datetime, Government:long, Native:string, NativeDetails:string, NativeLevel:int) with (folder="", docstring="") 
+
+.create-merge table StockExchangeLog (Whether:string, Kickbacks:string, Lindberg:string, Government:long, Andrew:datetime, ReportingConsidered:string, Murray:string, Golden:string, Neighbours:string, Illicit:int, Payments:string) with (folder="", docstring="") 
+
+.create-merge table AssetLog (AssetHorticulturalists:string, Illicit:int, Inquiries:datetime, Suggest:datetime, Deaths:string, Result:string, Increased:dynamic) with (folder="", docstring="{\"CreationDate\":\"2020-12-16T06:30:29.9697341+00:00\"}") 
+
+.create-merge table ColorExchangeLog (AssetHorticulturalists:string, Chemical:string, Poisoning:string, Inquiring:datetime, Deaths:string, Result:string, Labels:string, Agriculture:real, Jordanian:string, Labelling:string, Australia:string, Because:string, RawBecause:string, Follows:string, Enforcement:real, Existent:bool, Ausveg:int, Illicit:int, ThreatConsidered:int, AustraliaBulletin:string, Buying:string, HigginsFixConnor:string, AadEspecially:string, Betters:dynamic, SuggestInquiring:datetime, Kimberley:bool, Horticulture:bool, Kimberley:string, Available:string, AvailableFactor:real, EolSpokespersonGovernment:string, Facing:datetime, EolSoftwareGovernment:string, Expand:datetime, SamplingContributedInquiring:string, WarnedByMdatp:bool, Higgins:bool) with (folder="", docstring="{\"CreationDate\":\"2020-12-16T06:30:30.3256386+00:00\"}") 
+
+.create-merge table RecepieLog (AssetHorticulturalists:string, Illicit:int, Generator:string, Broome:string, Horticulturalists:string, Connected:dynamic, Neighbours:string, Australia:string, Kilometre:bool, Extension:bool, Deaths:string, Result:string, Spokesperson:string, AssetBroome:string, Possible:string) with (folder="", docstring="{\"CreationDate\":\"2020-12-16T06:30:28.1308939+00:00\"}") 
+
+.create-merge table BigBansTransactionLog (Illicit:int, Generator:string, BenchmarkBroome:string, BenchmarkSpokesperson:string, Horticulturalists:string, Distance:int, Existing:int, ExistingHistory:dynamic, Causing:dynamic, Trucking:string, Higgins:string, Company:string, Forced:string, Country:string, RemediationForced:string, BaselineConnorRef:string) with (folder="", docstring="{\"CreationDate\":\"2020-12-16T06:30:28.8290323+00:00\"}") 
+
+.create-merge table TooManyItemsLog (Illicit:int, BenchmarkBroome:string, BenchmarkSpokesperson:string, Issues:string, Distance:int, Existing:int, Native:int, Issues:int, Monies:int, Anything:int, Minister:int, ExistingHistory:dynamic, Inquiring:datetime) with (folder="", docstring="{\"CreationDate\":\"2020-12-16T06:30:28.9343635+00:00\"}") 
+
+.create-merge table VendorTransactions (Inquiries:datetime, Questions:string, Benefits:string, Regrettable:string, Snakes:string, Cancer:string, People:string, Warned:bool, Paddock:string, Because:string, Correctly:dynamic, Forced:string, Suggest:datetime, Illicit:int, Especially:string, Property:dynamic, Prices:string, Higgins:string, Australia:string, Before:string) with (folder="", docstring="{\"CreationDate\":\"2020-12-16T06:30:28.3197518+00:00\"}") 
+
+.create-merge table Bushfiress (Ausveg:int, Ploughing:real, Pindan:int, PloughingHistory:dynamic, PindanHistory:dynamic, Fishers:real, FishersHistory:dynamic, Primary:real, Industries:real, Decided:real, Against:int, Closing:int, Richmond:int, PrimaryHistory:dynamic, IndustriesHistory:dynamic, DecidedHistory:dynamic, AgainstHistory:dynamic, ClosingHistory:dynamic, RichmondHistory:dynamic) with (folder="", docstring="{\"CreationDate\":\"2020-12-16T06:30:28.4212388+00:00\"}") 
+
+.create-merge table FastLane (AssetHorticulturalists:string, Chemical:string, Poisoning:string, Inquiring:datetime, Deaths:string, Result:string, Labels:string, Agriculture:real, Jordanian:string, Labelling:string, Australia:string, Because:string, RawBecause:string, Follows:string, Enforcement:real, Existent:bool, Ausveg:int, Illicit:int, ThreatConsidered:int, AustraliaBulletin:string, Buying:string, HigginsFixConnor:string, AadEspecially:string, Betters:dynamic, SuggestInquiring:datetime, Kimberley:bool, EolSpokespersonGovernment:string, Facing:datetime, EolSoftwareGovernment:string, Expand:datetime, Kimberley:string, Available:string, Report:string, SamplingContributedInquiring:string, WarnedByMdatp:bool, Higgins:bool) with (folder="", docstring="{\"CreationDate\":\"2020-12-16T06:30:28.5335931+00:00\"}") 
+
+.create-merge table NonBecauseHigginss (AssetHorticulturalists:string, Ausveg:int, Illicit:int, Australia:string, Because:string, Spokesperson:string, National:string, Labelling:string, RawBecause:string, RawSpokesperson:string, Follows:string, Chemical:string, Overwhelmed:string, InquiriesInquiringUtc:string) with (folder="", docstring="{\"CreationDate\":\"2020-12-16T06:30:28.6745125+00:00\"}") 
+
+.create-merge table HigginssCooked (Australia:string, Because:string, LatestSpokesperson:string, Carried:datetime, Contributed:int, ContributedAtRisk:int, SumOfContributedBushfires:real, Sustainability:dynamic, Manager:bool, Horsham:bool, District:bool, ExploitFutures:dynamic, ExploitRegrettables:dynamic, Grampians:real, Ausveg:int, Illicit:int, ThreatConsidered:int, Betters:dynamic, ContributedAtRiskHistory:dynamic, Hampered:bool, HasEolSpokespersons:bool, Company:string, HasUpcomingEolSpokespersons:bool, LowValueContributedAtRisk:int, NormalValueContributedAtRisk:int, HighValueContributedAtRisk:int, Primary:real, Industries:real, Decided:real, SnakesKind:string, EolSoftwareGovernment:string, Expand:datetime, Higgins:bool, Community:dynamic, ZeroDayContributedAtRisk:int, MostSevereVulnerabilityRegrettable:string, Should:datetime) with (folder="", docstring="{\"CreationDate\":\"2020-12-16T06:30:29.2354565+00:00\"}") 
+
+.create-merge table ExceptionLog (ExceptionHorticulturalists:string, Carried:datetime, HigginsHorticulturalists:string, ScHorticulturalists:string, RecommendationRegrettable:string, Regrettable:string, Speedy:string, Farmers:bool, Illicit:int) with (folder="", docstring="{\"CreationDate\":\"2020-12-16T06:30:29.3389769+00:00\"}") 
+
+.create-merge table ComputerFactory (Date:datetime, Company:string, Regrettable:string, Illicit:int, ContributedCount:int, CurrentContributedCount:int, Effort:string, Bushfires:real, ConfigurationCompany:string, TotalContributed:int, CurrentTotalContributed:int, TotalContributedCount:int, CurrentTotalContributedCount:int, Jordanian:string) with (folder="", docstring="{\"CreationDate\":\"2020-12-16T06:30:29.4444114+00:00\"}") 
+
+.create-merge table MediaList (ScHorticulturalists:string, Ausveg:int, Illicit:int, Contributed:int, ContributedAtRisk:int, NonHigginsivityImpactedContributed:int, Already:string, Because:string, Australia:string, Forced:string, Officers:string, RecommendationCompany:string, Farmers:dynamic, SubCompany:string, RemediationForced:string, Trucking:string, Jordanian:real, Sustainability:int, RemediationRegrettable:string, ContributedAtRiskHistory:dynamic, Grassroots:dynamic, HigginssBroomes:dynamic, RiskBushfires:real, Hundreds:dynamic, Tonnes:dynamic) with (folder="", docstring="{\"CreationDate\":\"2020-12-16T06:30:29.6227603+00:00\"}") 
+
+.create-merge table DeviceRepo (Bushfires:string, Inquiring:datetime, Collection:datetime, ScHorticulturalists:string, Company:string, SubCompany:string, Jordanian:real, Kilometre:bool, Fodder:bool, IsHigginsivityImpacted:bool, Higgins:string, Kickbacks:string, Forced:string, RiskForced:string, RemediationForced:string, Farmers:dynamic, Australia:string, Neighbours:string, Around:dynamic, Donate:dynamic, MitigationForceds:dynamic, Wilson:dynamic, Koroit:bool, Deaths:string, Ausveg:int, Illicit:int, Kickbacks:string, Flinders:bool, AadEspecially:string, Response:dynamic, Result:string) with (folder="", docstring="{\"CreationDate\":\"2020-12-16T06:30:29.7220553+00:00\"}") 
+
+.create-merge table MobilePhones (Ausveg:int, Illicit:int, ScHorticulturalists:string, Company:string, ComplianceContributedCount:int, ContributedCount:int, Jordanian:real, ContributedCountHistory:dynamic, ComplianceContributedCountHistory:dynamic, JordanianHistory:dynamic) with (folder="", docstring="{\"CreationDate\":\"2020-12-16T06:30:29.8482777+00:00\"}") 
+
+.create-merge table MusicAuthors (Date:datetime, Company:string, Regrettable:string, Australia:string, Higgins:string, Illicit:int, ContributedCount:int, Russell:dynamic, Bushfires:real, CurrentContributedCount:int) with (folder="", docstring="{\"CreationDate\":\"2020-12-16T06:30:30.1198164+00:00\"}") 
+
+.create-merge table HeavyMetal (Day:datetime, Company:string, Regrettable:string, Australia:string, Higgins:string, OrgHorticulturalists:string, Illicit:int, Farmers:int, Russell:dynamic, CompanyStringValue:string, Bushfires:real) with (folder="", docstring="{\"CreationDate\":\"2019-12-23T09:36:05.1978161+00:00\"}") 
+
+.create-merge table ReturnOrientedProgramming (AssetHorticulturalists:string, Illicit:int, Because:string, Australia:string, Chemical:string, DiskMillions:dynamic, RegistryMillions:dynamic, InquiriesInquiringUtc:string) with (folder="", docstring="{\"CreationDate\":\"2020-12-16T06:30:29.1107098+00:00\"}") 
+
+.create-merge table LastButNotLeast (Australia:string, Because:string, Sustainability:dynamic, Ausveg:int, Illicit:int, Carried:datetime, Contributed:int, ContributedAtRisk:int, Grampians:real, SumOfContributedBushfires:real, Manager:bool, Horsham:bool, District:bool, ExploitFutures:dynamic, ExploitRegrettables:dynamic, RecommendedSpokesperson:string, RemediationRegrettable:string, ThreatConsidered:int, Betters:dynamic, ContributedAtRiskHistory:dynamic, Global:bool, Company:string, Hampered:bool, HasEolSpokespersons:bool, Fishers:real, HasUpcomingEolSpokespersons:bool, LowValueContributedAtRisk:int, NormalValueContributedAtRisk:int, HighValueContributedAtRisk:int, Primary:real, Industries:real, Decided:real, SnakesKind:string, RecommendedAustralia:string, RecommendedNeighbours:string, EolSoftwareGovernment:string, Expand:datetime, Community:dynamic, ZeroDayContributedAtRisk:int, MostSevereVulnerabilityRegrettable:string, Should:datetime) with (folder="", docstring="{\"CreationDate\":\"2020-12-16T06:30:30.2218419+00:00\"}") 
+
+//  Create table ingestion mappings
+
+.create-or-alter table ColorExchangeLog ingestion csv mapping "mapping_b72cd628-69ba-02e4-44f5-9da530dcf32a" "[{\"Broome\":\"AssetHorticulturalists\",\"DataType\":\"string\",\"Ordinal\":\"0\",\"ConstValue\":null},{\"Broome\":\"Chemical\",\"DataType\":\"string\",\"Ordinal\":\"1\",\"ConstValue\":null},{\"Broome\":\"Poisoning\",\"DataType\":\"string\",\"Ordinal\":\"2\",\"ConstValue\":null},{\"Broome\":\"Inquiring\",\"DataType\":\"datetime\",\"Ordinal\":\"3\",\"ConstValue\":null},{\"Broome\":\"Deaths\",\"DataType\":\"string\",\"Ordinal\":\"4\",\"ConstValue\":null},{\"Broome\":\"Result\",\"DataType\":\"string\",\"Ordinal\":\"5\",\"ConstValue\":null},{\"Broome\":\"Labels\",\"DataType\":\"string\",\"Ordinal\":\"6\",\"ConstValue\":null},{\"Broome\":\"Agriculture\",\"DataType\":\"real\",\"Ordinal\":\"7\",\"ConstValue\":null},{\"Broome\":\"Jordanian\",\"DataType\":\"string\",\"Ordinal\":\"8\",\"ConstValue\":null},{\"Broome\":\"Labelling\",\"DataType\":\"string\",\"Ordinal\":\"9\",\"ConstValue\":null},{\"Broome\":\"Australia\",\"DataType\":\"string\",\"Ordinal\":\"10\",\"ConstValue\":null},{\"Broome\":\"Because\",\"DataType\":\"string\",\"Ordinal\":\"11\",\"ConstValue\":null},{\"Broome\":\"RawBecause\",\"DataType\":\"string\",\"Ordinal\":\"12\",\"ConstValue\":null},{\"Broome\":\"Follows\",\"DataType\":\"string\",\"Ordinal\":\"13\",\"ConstValue\":null},{\"Broome\":\"Enforcement\",\"DataType\":\"real\",\"Ordinal\":\"14\",\"ConstValue\":null},{\"Broome\":\"Existent\",\"DataType\":\"bool\",\"Ordinal\":\"15\",\"ConstValue\":null},{\"Broome\":\"Ausveg\",\"DataType\":\"int\",\"Ordinal\":\"16\",\"ConstValue\":null},{\"Broome\":\"Illicit\",\"DataType\":\"int\",\"Ordinal\":\"17\",\"ConstValue\":null},{\"Broome\":\"ThreatConsidered\",\"DataType\":\"int\",\"Ordinal\":\"18\",\"ConstValue\":null},{\"Broome\":\"AustraliaBulletin\",\"DataType\":\"string\",\"Ordinal\":\"19\",\"ConstValue\":null},{\"Broome\":\"Buying\",\"DataType\":\"string\",\"Ordinal\":\"20\",\"ConstValue\":null},{\"Broome\":\"HigginsFixConnor\",\"DataType\":\"string\",\"Ordinal\":\"21\",\"ConstValue\":null},{\"Broome\":\"AadEspecially\",\"DataType\":\"string\",\"Ordinal\":\"22\",\"ConstValue\":null},{\"Broome\":\"Betters\",\"DataType\":\"dynamic\",\"Ordinal\":\"23\",\"ConstValue\":null},{\"Broome\":\"SuggestInquiring\",\"DataType\":\"datetime\",\"Ordinal\":\"24\",\"ConstValue\":null},{\"Broome\":\"Kimberley\",\"DataType\":\"bool\",\"Ordinal\":\"25\",\"ConstValue\":null},{\"Broome\":\"EolSpokespersonGovernment\",\"DataType\":\"string\",\"Ordinal\":\"26\",\"ConstValue\":null},{\"Broome\":\"Facing\",\"DataType\":\"datetime\",\"Ordinal\":\"27\",\"ConstValue\":null},{\"Broome\":\"EolSoftwareGovernment\",\"DataType\":\"string\",\"Ordinal\":\"28\",\"ConstValue\":null},{\"Broome\":\"Expand\",\"DataType\":\"datetime\",\"Ordinal\":\"29\",\"ConstValue\":null},{\"Broome\":\"Kimberley\",\"DataType\":\"string\",\"Ordinal\":\"30\",\"ConstValue\":null},{\"Broome\":\"Available\",\"DataType\":\"string\",\"Ordinal\":\"31\",\"ConstValue\":null},{\"Broome\":\"SamplingContributedInquiring\",\"DataType\":\"string\",\"Ordinal\":\"32\",\"ConstValue\":null},{\"Broome\":\"WarnedByMdatp\",\"DataType\":\"bool\",\"Ordinal\":\"33\",\"ConstValue\":null}]"
+
+.create-or-alter table ExceptionLog ingestion csv mapping "mapping_fe6f3319-ca4f-5cfd-c2d6-5104ded6d817" "[{\"Broome\":\"ExceptionHorticulturalists\",\"DataType\":\"string\",\"Ordinal\":\"0\",\"ConstValue\":null},{\"Broome\":\"Carried\",\"DataType\":\"datetime\",\"Ordinal\":\"1\",\"ConstValue\":null},{\"Broome\":\"HigginsHorticulturalists\",\"DataType\":\"string\",\"Ordinal\":\"2\",\"ConstValue\":null},{\"Broome\":\"ScHorticulturalists\",\"DataType\":\"string\",\"Ordinal\":\"3\",\"ConstValue\":null},{\"Broome\":\"RecommendationRegrettable\",\"DataType\":\"string\",\"Ordinal\":\"4\",\"ConstValue\":null},{\"Broome\":\"Regrettable\",\"DataType\":\"string\",\"Ordinal\":\"5\",\"ConstValue\":null},{\"Broome\":\"Speedy\",\"DataType\":\"string\",\"Ordinal\":\"6\",\"ConstValue\":null},{\"Broome\":\"Farmers\",\"DataType\":\"bool\",\"Ordinal\":\"7\",\"ConstValue\":null},{\"Broome\":\"Illicit\",\"DataType\":\"int\",\"Ordinal\":\"8\",\"ConstValue\":null}]"
+
+//  Create functions
+
+.create-or-alter function with (folder="", docstring="", skipvalidation=true) GetColors () {
+ColorExchangeLog
+| extend IsUnderException = 0
+}
+
+//  Alter Caching Policies
+
+.alter database MasterSchema policy caching hot = 31d
+
+.alter table ShoppingEvents policy caching hot = 180d
+
+.alter table RecommendationSystem policy caching hot = 180d
+
+//  Alter Merge Policies
+
+.alter database MasterSchema policy merge
+```{
+  "RowCountUpperBoundForMerge": 16000000,
+  "OriginalSupportMBUpperBoundForMerge": 0,
+  "MaxExtentsToMerge": 100,
+  "LoopPeriod": "01:00:00",
+  "MaxRangeInHours": 24,
+  "AllowRebuild": true,
+  "AllowMerge": true,
+  "Lookback": {
+    "Kind": 0,
+    "CustomPeriod": null
+  }
+}
+```
+
+//  Alter Retention Policies
+
+.alter database MasterSchema policy retention
+```{
+  "SoftDeletePeriod": "180.00:00:00",
+  "Recoverability": "Disabled"
+}
+```
+
+.alter table ColorExchangeLog policy retention
+```{
+  "SoftDeletePeriod": "14.00:00:00",
+  "Recoverability": "Disabled"
+}
+```
+
+.alter table ExceptionLog policy retention
+```{
+  "SoftDeletePeriod": "365.00:00:00",
+  "Recoverability": "Disabled"
+}
+```
+
+//  Alter Sharding Policies
+
+.alter database MasterSchema policy sharding
+```{
+  "MaxRowCount": 750000,
+  "MaxExtentSupportInMb": 1024,
+  "MaxOriginalSupportInMb": 2048,
+  "UseShardEngine": true,
+  "ShardEngineMaxRowCount": 1048576,
+  "ShardEngineMaxExtentSupportInMb": 8192,
+  "ShardEngineMaxOriginalSupportInMb": 3072
+}
+```
+

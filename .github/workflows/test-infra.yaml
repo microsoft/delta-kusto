@@ -1,4 +1,4 @@
-name:  Exec Test Infra
+name:  Test Infra
 
 on:
   workflow_dispatch:
@@ -26,19 +26,20 @@ jobs:
       run: az extension add -n kusto
     # Turn cluster on
     - name: Turn on cluster (if off)
+      shell:  bash
       run:  |
         # Retrieve cluster name
         clusterName=$(az kusto cluster list -g ${{ secrets.test_rg }} --query "[?tags.testLevel=='integration'].name" -o tsv)
         state=$(az kusto cluster list -g ${{ secrets.test_rg }} --query "[?tags.testLevel=='integration'].state" -o tsv)
         echo "Cluster Name:  $clusterName"
-        echo "State:  $state"
-        if [ "$state" -ne "" ]
+        echo "State:  '$state'"
+        if [ "$state" == "Stopped" ]
         then
-          if [ "$state" -ne "running" ]
-          then
-            # Actually start the cluster
-            az kusto cluster start -n $clusterName -g ${{ secrets.test_rg }} -n $clusterName
-          fi
+          # Actually start the cluster
+          echo "Start cluster"
+          az kusto cluster start -n $clusterName -g ${{ secrets.test_rg }} -n $clusterName
+        else
+          echo "Do nothing"
         fi
 
   perfTestClusterSetup:
@@ -54,19 +55,20 @@ jobs:
       run: az extension add -n kusto
     # Turn cluster on
     - name: Turn on cluster (if off)
+      shell:  bash
       run:  |
         # Retrieve cluster name
         clusterName=$(az kusto cluster list -g ${{ secrets.test_rg }} --query "[?tags.testLevel=='perf'].name" -o tsv)
         state=$(az kusto cluster list -g ${{ secrets.test_rg }} --query "[?tags.testLevel=='perf'].state" -o tsv)
         echo "Cluster Name:  $clusterName"
-        echo "State:  $state"
-        if [ "$state" -ne "" ]
+        echo "State:  '$state'"
+        if [ "$state" == "Stopped" ]
         then
-          if [ "$state" -ne "running" ]
-          then
-            # Actually start the cluster
-            az kusto cluster start -n $clusterName -g ${{ secrets.test_rg }} -n $clusterName
-          fi
+          # Actually start the cluster
+          echo "Start cluster"
+          az kusto cluster start -n $clusterName -g ${{ secrets.test_rg }} -n $clusterName
+        else
+          echo "Do nothing"
         fi
 
   deploy:
