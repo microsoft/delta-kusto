@@ -115,6 +115,7 @@ jobs:
       run:  |
         # Fails if one of the command fails in the script
         set -e
+        cd code/perf-test
         # Package the login in a JSON payload
         login='{"tenantId":"${{ secrets.TENANT_ID }}","clientId":"${{ secrets.KUSTO_SP_ID }}","secret":"${{ secrets.KUSTO_SP_SECRET }}"}'
         ./delta-kusto -p clean-parameters.yaml -o tokenProvider.login=$login
