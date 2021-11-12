@@ -14,12 +14,14 @@ var intTestDbCountPerPrefix = 120
 var perfTestDbCount = 1000
 var perfTestDbNames = [for i in range(0, perfTestDbCount): 'db_${format('{0:D8}', i + 1)}']
 var perfPartitionMaxSize = 800
-var perfTestDbPartitions = [for i in range(0, int(perfTestDbCount / perfPartitionMaxSize) + 1): {
-  name: 'kustoDbs-${i + 1}-${deployment().name}'
-  dbNames: take(skip(perfTestDbNames, i * perfPartitionMaxSize), perfPartitionMaxSize)
-}]
+// var perfTestDbPartitions = [for i in range(0, int(perfTestDbCount / perfPartitionMaxSize) + 1): {
+//   name: 'kustoDbs-${i + 1}-${deployment().name}'
+//   dbNames: take(skip(perfTestDbNames, i * perfPartitionMaxSize), perfPartitionMaxSize)
+// }]
 
-output parts array = perfTestDbPartitions
+// output parts array = perfTestDbPartitions
+output ratio int = perfTestDbCount / perfPartitionMaxSize
+output ratioI int = int(perfTestDbCount / perfPartitionMaxSize)
 
 var uniqueId = uniqueString(resourceGroup().id, 'delta-kusto')
 var prefixes = [
@@ -43,13 +45,13 @@ resource intTestCluster 'Microsoft.Kusto/clusters@2021-01-01' = {
   }
 }
 
-// @batchSize(100)
-// resource intTestDbs 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for i in range(0, length(prefixes) * intTestDbCountPerPrefix): {
-//   name: '${prefixes[i / intTestDbCountPerPrefix]}${format('{0:D8}', i % intTestDbCountPerPrefix + 1)}'
-//   location: resourceGroup().location
-//   parent: intTestCluster
-//   kind: 'ReadWrite'
-// }]
+@batchSize(100)
+resource intTestDbs 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for i in range(0, length(prefixes) * intTestDbCountPerPrefix): {
+  name: '${prefixes[i / intTestDbCountPerPrefix]}${format('{0:D8}', i % intTestDbCountPerPrefix + 1)}'
+  location: resourceGroup().location
+  parent: intTestCluster
+  kind: 'ReadWrite'
+}]
 
 resource perfTestCluster 'Microsoft.Kusto/clusters@2021-01-01' = {
   name: 'perfTests${uniqueId}'
