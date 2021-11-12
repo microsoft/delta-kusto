@@ -13,6 +13,13 @@ param clientId string
 var intTestDbCountPerPrefix = 120
 var perfTestDbCount = 1000
 var perfTestDbNames = [for i in range(0, perfTestDbCount): 'db_${format('{0:D8}', i + 1)}']
+var perfTestDbPartitions = [for i in range(0, int(perfTestDbCount / perfPartitionMaxSize)): {
+  name: 'kustoDbs-${i + 1}-${deployment().name}'
+  dbNames: take(skip(perfTestDbNames, i * perfPartitionMaxSize), perfPartitionMaxSize)
+}]
+
+output parts array = perfTestDbPartitions
+
 var perfPartitionMaxSize = 800
 var uniqueId = uniqueString(resourceGroup().id, 'delta-kusto')
 var prefixes = [
@@ -69,14 +76,14 @@ resource perfTestCluster 'Microsoft.Kusto/clusters@2021-01-01' = {
 }
 
 //  Delegate to a module to work around the 800 resources per deployment limitation
-@batchSize(1)
-module perfTestDbs 'dbs-deploy.bicep' = [for i in range(0, perfTestDbCount / perfPartitionMaxSize): {
-  name: 'kustoDbs-${i + 1}-${deployment().name}'
-  params: {
-    clusterName: perfTestCluster.name
-    dbNames: take(skip(perfTestDbNames, i * perfPartitionMaxSize), perfPartitionMaxSize)
-  }
-}]
+// @batchSize(1)
+// module perfTestDbs 'dbs-deploy.bicep' = [for i in range(0, int(perfTestDbCount / perfPartitionMaxSize)): {
+//   name: 'kustoDbs-${i + 1}-${deployment().name}'
+//   params: {
+//     clusterName: perfTestCluster.name
+//     dbNames: take(skip(perfTestDbNames, i * perfPartitionMaxSize), perfPartitionMaxSize)
+//   }
+// }]
 
 resource autoShutdown 'Microsoft.Logic/workflows@2019-05-01' = {
   name: 'shutdownWorkflow${uniqueId}'
