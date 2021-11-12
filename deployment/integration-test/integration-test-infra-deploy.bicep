@@ -13,14 +13,14 @@ param clientId string
 var intTestDbCountPerPrefix = 120
 var perfTestDbCount = 1000
 var perfTestDbNames = [for i in range(0, perfTestDbCount): 'db_${format('{0:D8}', i + 1)}']
-var perfTestDbPartitions = [for i in range(0, int(perfTestDbCount / perfPartitionMaxSize)): {
+var perfPartitionMaxSize = 800
+var perfTestDbPartitions = [for i in range(0, int(perfTestDbCount / perfPartitionMaxSize) + 1): {
   name: 'kustoDbs-${i + 1}-${deployment().name}'
   dbNames: take(skip(perfTestDbNames, i * perfPartitionMaxSize), perfPartitionMaxSize)
 }]
 
 output parts array = perfTestDbPartitions
 
-var perfPartitionMaxSize = 800
 var uniqueId = uniqueString(resourceGroup().id, 'delta-kusto')
 var prefixes = [
   'github_linux_'
