@@ -105,11 +105,11 @@ jobs:
         # echo "deltaKustoSpSecret=${{ secrets.KUSTO_SP_SECRET }}" >> $GITHUB_ENV
     # Output the parameter files
     - name: Output clean-parameters.yaml
-      run:  cat clean-parameters.yaml
+      run:  cat code/perf-test/clean-parameters.yaml
     - name: Output from-parameters.yaml
-      run:  cat from-parameters.yaml
+      run:  cat code/perf-test/from-parameters.yaml
     - name: Output to-parameters.yaml
-      run:  cat to-parameters.yaml
+      run:  cat code/perf-test/to-parameters.yaml
     # # Set environment variables
     # - name: Set environment variables
     #   shell:  bash
