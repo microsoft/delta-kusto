@@ -14,7 +14,7 @@ resource cluster 'Microsoft.Kusto/clusters@2021-01-01' existing = {
 
 @batchSize(100)
 resource perfTestDbs 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for i in dbIndices: {
-  name: '${dbPrefix}_${format('{0:D8}', i + 1)}'
+  name: '${dbPrefix}${format('{0:D8}', i + 1)}'
   location: resourceGroup().location
   parent: cluster
   kind: 'ReadWrite'
