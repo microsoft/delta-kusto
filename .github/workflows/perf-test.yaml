@@ -119,6 +119,9 @@ jobs:
         # Package the login in a JSON payload
         login='{"tenantId":"${{ secrets.TENANT_ID }}","clientId":"${{ secrets.KUSTO_SP_ID }}","secret":"${{ secrets.KUSTO_SP_SECRET }}"}'
         ./delta-kusto -p clean-parameters.yaml -o tokenProvider.login=$login
+    # Sleep to reset throttling
+    - name: Sleep
+      run:  sleep 3s
     # Run 'from' parameter files
     - name: From-State
       run:  |
@@ -128,6 +131,9 @@ jobs:
         # Package the login in a JSON payload
         login='{"tenantId":"${{ secrets.TENANT_ID }}","clientId":"${{ secrets.KUSTO_SP_ID }}","secret":"${{ secrets.KUSTO_SP_SECRET }}"}'
         ./delta-kusto -p from-parameters.yaml -o tokenProvider.login=$login
+    # Sleep to reset throttling
+    - name: Sleep
+      run:  sleep 3s
     # Run 'to' parameter files
     - name: To-State
       run:  |
