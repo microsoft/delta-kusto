@@ -11,7 +11,7 @@ param tenantId string
 param clientId string
 
 var intTestDbCountPerPrefix = 120
-var perfTestDbCount = 1000
+var perfTestDbCount = 25
 var perfPartitionMaxSize = 800
 var perfTestDbPartitions = [for i in range(0, (perfTestDbCount / perfPartitionMaxSize) + 1): {
   name: 'kustoDbs-${i + 1}-${deployment().name}'
