@@ -49,6 +49,9 @@ jobs:
       exec:  delta-kusto
 
     steps:
+    - name: Output parameters
+      run: |
+        echo "DB Count:  ${{ github.event.inputs.dbCount }}"
     - uses: actions/checkout@v2
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
