@@ -49,29 +49,32 @@ jobs:
       exec:  delta-kusto
 
     steps:
+    - name: Output parameters
+      run: |
+        echo "DB Count:  ${{ github.event.inputs.dbCount }}"
     - uses: actions/checkout@v2
-    # - name: Setup .NET Core
-    #   uses: actions/setup-dotnet@v1
-    #   with:
-    #     dotnet-version: 5.0.x
-    # # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-restore
-    # - name: Install dependencies
-    #   shell:  bash
-    #   run: dotnet restore code
-    # # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-build
-    # - name: Build
-    #   shell:  bash
-    #   run: dotnet build code --configuration Release --no-restore
-    # # See https://github.com/dotnet/designs/blob/main/accepted/2020/single-file/design.md#user-experience
-    # # & https://docs.microsoft.com/en-us/dotnet/core/deploying/single-file
-    # # & https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-publish
-    # - name: Build single file executable
-    #   shell:  bash
-    #   run: |
-    #     dotnet publish code/delta-kusto -c release -r $dotnetOs \
-    #       -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
-    #       -p:PublishTrimmed=true -p:PublishReadyToRun=true \
-    #       -o bin
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.x
+    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-restore
+    - name: Install dependencies
+      shell:  bash
+      run: dotnet restore code
+    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-build
+    - name: Build
+      shell:  bash
+      run: dotnet build code --configuration Release --no-restore
+    # See https://github.com/dotnet/designs/blob/main/accepted/2020/single-file/design.md#user-experience
+    # & https://docs.microsoft.com/en-us/dotnet/core/deploying/single-file
+    # & https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-publish
+    - name: Build single file executable
+      shell:  bash
+      run: |
+        dotnet publish code/delta-kusto -c release -r $dotnetOs \
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
+          -p:PublishTrimmed=true -p:PublishReadyToRun=true \
+          -o code/perf-test
     # Login
     - name: Azure Login
       run: az login --service-principal -u ${{ secrets.deploy_sp_id }} -p ${{ secrets.deploy_sp_secret }} --tenant ${{ secrets.tenant_id }}
@@ -110,21 +113,36 @@ jobs:
       run:  cat code/perf-test/from-parameters.yaml
     - name: Output to-parameters.yaml
       run:  cat code/perf-test/to-parameters.yaml
-    # # Set environment variables
-    # - name: Set environment variables
-    #   shell:  bash
-    #   run: |
-    #     # Fetch cluster context
-    #     clusterId=$(az kusto cluster list -g ${{ secrets.test_rg }} --query "[?tags.testLevel=='integration'].id" -o tsv)
-    #     clusterUri=$(az kusto cluster list -g ${{ secrets.test_rg }} --query "[?tags.testLevel=='integration'].uri" -o tsv)
-    #     echo "Cluster ID:  $clusterId"
-    #     echo "Cluster Uri:  $clusterUri"
-    #     # Exec path
-    #     echo "deltaKustoSingleExecPath=$(pwd)/bin/$exec" >> $GITHUB_ENV
-    #     # ADX integration
-    #     echo "deltaKustoClusterId=$clusterId" >> $GITHUB_ENV
-    #     echo "deltaKustoClusterUri=$clusterUri" >> $GITHUB_ENV
-    #     echo "deltaKustoDbPrefix=$deltaDbPrefix" >> $GITHUB_ENV
-    #     echo "deltaKustoTenantId=${{ secrets.TENANT_ID }}" >> $GITHUB_ENV
-    #     echo "deltaKustoSpId=${{ secrets.KUSTO_SP_ID }}" >> $GITHUB_ENV
-    #     echo "deltaKustoSpSecret=${{ secrets.KUSTO_SP_SECRET }}" >> $GITHUB_ENV
+    # Run cleanup parameter files
+    - name: Cleanup
+      run:  |
+        # Fails if one of the command fails in the script
+        set -e
+        cd code/perf-test
+        # Package the login in a JSON payload
+        login='{"tenantId":"${{ secrets.TENANT_ID }}","clientId":"${{ secrets.KUSTO_SP_ID }}","secret":"${{ secrets.KUSTO_SP_SECRET }}"}'
+        ./delta-kusto -p clean-parameters.yaml -o tokenProvider.login=$login
+    # Sleep to reset throttling
+    - name: Sleep
+      run:  sleep 3s
+    # Run 'from' parameter files
+    - name: From-State
+      run:  |
+        # Fails if one of the command fails in the script
+        set -e
+        cd code/perf-test
+        # Package the login in a JSON payload
+        login='{"tenantId":"${{ secrets.TENANT_ID }}","clientId":"${{ secrets.KUSTO_SP_ID }}","secret":"${{ secrets.KUSTO_SP_SECRET }}"}'
+        ./delta-kusto -p from-parameters.yaml -o tokenProvider.login=$login
+    # Sleep to reset throttling
+    - name: Sleep
+      run:  sleep 3s
+    # Run 'to' parameter files
+    - name: To-State
+      run:  |
+        # Fails if one of the command fails in the script
+        set -e
+        cd code/perf-test
+        # Package the login in a JSON payload
+        login='{"tenantId":"${{ secrets.TENANT_ID }}","clientId":"${{ secrets.KUSTO_SP_ID }}","secret":"${{ secrets.KUSTO_SP_SECRET }}"}'
+        ./delta-kusto -p to-parameters.yaml -o tokenProvider.login=$login
