@@ -8,3 +8,4 @@
         - filePath:  script-file.kql
     action:
         pushToCurrent:  true
+        pushToConsole:  true
