@@ -63,13 +63,6 @@ namespace DeltaKustoAdxIntegrationTest
         protected async Task<string> InitializeDbAsync()
         {
             var dbName = await AdxDbTestHelper.Instance.GetCleanDbAsync();
-            var gateway = CreateKustoManagementGateway(dbName);
-
-            //  Ensures the database creation has propagated to Kusto
-            while (!(await gateway.DoesDatabaseExistsAsync()))
-            {
-                await Task.Delay(TimeSpan.FromSeconds(.2));
-            }
 
             return dbName;
         }
