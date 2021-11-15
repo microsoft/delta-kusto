@@ -333,22 +333,6 @@ namespace DeltaKustoIntegration.Kusto
             _httpClientFactory = httpClientFactory;
         }
 
-        async Task<bool> IKustoManagementGateway.DoesDatabaseExistsAsync(CancellationToken ct)
-        {
-            var tracerTimer = new TracerTimer(_tracer);
-
-            _tracer.WriteLine(true, "Does db exists start");
-
-            var response = await ExecuteCommandResponseAsync(".show database datastats", ct);
-
-            _tracer.WriteLine(true, "Does db exists commands end");
-            tracerTimer.WriteTime(true, "Does db exists commands time");
-
-            var doesExists = response.status == HttpStatusCode.OK;
-
-            return doesExists;
-        }
-
         async Task<IImmutableList<CommandBase>> IKustoManagementGateway.ReverseEngineerDatabaseAsync(
             CancellationToken ct)
         {

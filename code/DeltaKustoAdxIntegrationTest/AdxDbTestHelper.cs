@@ -140,7 +140,6 @@ namespace DeltaKustoAdxIntegrationTest
         {
             //  First clean up the queue
             Task.WhenAll(_preparingDbs.ToArray()).Wait();
-            DeleteAllDbsAsync().Wait();
         }
 
         private async Task InitializeAsync()
@@ -185,16 +184,6 @@ namespace DeltaKustoAdxIntegrationTest
                     ImmutableArray<CommandBase>.Empty));
 
             await kustoGateway.ExecuteCommandsAsync(cleanCommands);
-        }
-
-        private async Task DeleteAllDbsAsync()
-        {
-            var names = await _azureManagementGateway.GetDatabaseNamesAsync();
-            var deleteTasks = names
-                .Where(n => n.StartsWith(_dbPrefix))
-                .Select(n => _azureManagementGateway.DeleteDatabaseAsync(n));
-
-            await Task.WhenAll(deleteTasks);
         }
 
         private string DbNumberToDbName(int c)
