@@ -81,6 +81,7 @@ jobs:
       shell:  bash
       run: |
         # Fetch cluster context
+        clusterId=$(az kusto cluster list -g ${{ secrets.test_rg }} --query "[?tags.testLevel=='integration'].id" -o tsv)
         clusterUri=$(az kusto cluster list -g ${{ secrets.test_rg }} --query "[?tags.testLevel=='integration'].uri" -o tsv)
         deltaKustoSingleExecPath="$(pwd)/bin/$exec"
         echo "Cluster Uri:  $clusterUri"
@@ -89,6 +90,7 @@ jobs:
         # Exec path
         echo "deltaKustoSingleExecPath=$deltaKustoSingleExecPath" >> $GITHUB_ENV
         # ADX integration
+        echo "deltaKustoClusterId=$clusterId" >> $GITHUB_ENV
         echo "deltaKustoClusterUri=$clusterUri" >> $GITHUB_ENV
         echo "deltaKustoDbPrefix=$deltaDbPrefix" >> $GITHUB_ENV
         echo "deltaKustoTenantId=${{ secrets.test_tenant_id }}" >> $GITHUB_ENV
