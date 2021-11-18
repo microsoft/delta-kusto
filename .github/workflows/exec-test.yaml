@@ -48,7 +48,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 5.0.x
+        dotnet-version: 6.x
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-restore
     - name: Install dependencies
       shell:  bash
@@ -76,6 +76,8 @@ jobs:
     # Login
     - name: Azure Login
       run: az login --service-principal -u ${{ secrets.test_deploy_sp_id }} -p ${{ secrets.test_deploy_sp_secret }} --tenant ${{ secrets.test_tenant_id }}
+    - name: CLI Kusto Extension
+      run: az extension add -n kusto
     # Set environment variables
     - name: Set environment variables
       shell:  bash
@@ -126,7 +128,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 5.0.x
+        dotnet-version: 6.x
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-restore
     - name: Install dependencies
       shell:  bash
@@ -154,6 +156,8 @@ jobs:
     # Login
     - name: Azure Login
       run: az login --service-principal -u ${{ secrets.test_deploy_sp_id }} -p ${{ secrets.test_deploy_sp_secret }} --tenant ${{ secrets.test_tenant_id }}
+    - name: CLI Kusto Extension
+      run: az extension add -n kusto
     # Set environment variables
     - name: Set environment variables
       shell:  bash
