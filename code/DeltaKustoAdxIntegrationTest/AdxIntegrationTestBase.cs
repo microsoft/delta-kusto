@@ -2,7 +2,6 @@
 using DeltaKustoIntegration.Database;
 using DeltaKustoIntegration.Kusto;
 using DeltaKustoIntegration.Parameterization;
-using DeltaKustoIntegration.TokenProvider;
 using DeltaKustoLib;
 using DeltaKustoLib.CommandModel;
 using DeltaKustoLib.KustoModel;
@@ -291,14 +290,6 @@ namespace DeltaKustoAdxIntegrationTest
             var gateway = GatewayFactory.CreateGateway(
                 ClusterUri,
                 dbName,
-                CreateTokenProvider());
-
-            return gateway;
-        }
-
-        private ITokenProvider CreateTokenProvider()
-        {
-            var tokenProvider = TokenProviderFactory.CreateProvider(
                 new TokenProviderParameterization
                 {
                     Login = new ServicePrincipalLoginParameterization
@@ -309,7 +300,7 @@ namespace DeltaKustoAdxIntegrationTest
                     }
                 });
 
-            return tokenProvider!;
+            return gateway;
         }
     }
 }

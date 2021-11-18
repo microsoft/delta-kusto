@@ -1,6 +1,6 @@
 using DeltaKustoIntegration;
 using DeltaKustoIntegration.Kusto;
-using DeltaKustoIntegration.TokenProvider;
+using DeltaKustoIntegration.Parameterization;
 using DeltaKustoLib;
 using DeltaKustoLib.CommandModel;
 using DeltaKustoLib.KustoModel;
@@ -18,8 +18,6 @@ namespace DeltaKustoAdxIntegrationTest
     {
         private readonly string _dbPrefix;
         private readonly Func<string, IKustoManagementGateway> _kustoManagementGatewayFactory;
-        private readonly AzureManagementGateway _azureManagementGateway;
-        private readonly Task _initializedAsync;
         private readonly ConcurrentQueue<Task<string>> _preparingDbs =
             new ConcurrentQueue<Task<string>>();
         private volatile int _dbCount = 0;
@@ -29,7 +27,6 @@ namespace DeltaKustoAdxIntegrationTest
         private static AdxDbTestHelper CreateSingleton()
         {
             var dbPrefix = Environment.GetEnvironmentVariable("deltaKustoDbPrefix");
-            var clusterId = Environment.GetEnvironmentVariable("deltaKustoClusterId");
             var clusterUri = Environment.GetEnvironmentVariable("deltaKustoClusterUri");
             var tenantId = Environment.GetEnvironmentVariable("deltaKustoTenantId");
             var servicePrincipalId = Environment.GetEnvironmentVariable("deltaKustoSpId");
@@ -51,10 +48,6 @@ namespace DeltaKustoAdxIntegrationTest
             {
                 throw new ArgumentNullException(nameof(clusterUri));
             }
-            if (string.IsNullOrWhiteSpace(clusterId))
-            {
-                throw new ArgumentNullException(nameof(clusterId));
-            }
             if (string.IsNullOrWhiteSpace(dbPrefix))
             {
                 throw new ArgumentNullException(nameof(dbPrefix));
@@ -62,49 +55,38 @@ namespace DeltaKustoAdxIntegrationTest
 
             var tracer = new ConsoleTracer(false);
             var httpClientFactory = new SimpleHttpClientFactory(tracer);
-            var tokenProvider = new LoginTokenProvider(
-                tracer,
-                httpClientFactory,
-                tenantId,
-                servicePrincipalId,
-                servicePrincipalSecret);
+            var tokenParameterization = new TokenProviderParameterization
+            {
+                Login = new ServicePrincipalLoginParameterization
+                {
+                    TenantId = tenantId,
+                    ClientId = servicePrincipalId,
+                    Secret = servicePrincipalSecret
+                }
+            };
             Func<string, IKustoManagementGateway> kustoManagementGatewayFactory = (db) =>
             {
                 return new KustoManagementGateway(
                     new Uri(clusterUri),
                     db,
-                    tokenProvider,
-                    tracer,
-                    httpClientFactory);
+                    tokenParameterization,
+                    tracer);
             };
-            var azureManagementGateway = new AzureManagementGateway(
-                        clusterId,
-                        tokenProvider,
-                        tracer,
-                        httpClientFactory);
-            var helper = new AdxDbTestHelper(
-                dbPrefix,
-                kustoManagementGatewayFactory,
-                azureManagementGateway);
+            var helper = new AdxDbTestHelper(dbPrefix, kustoManagementGatewayFactory);
 
             return helper;
         }
 
         private AdxDbTestHelper(
             string dbPrefix,
-            Func<string, IKustoManagementGateway> kustoManagementGatewayFactory,
-            AzureManagementGateway azureManagementGateway)
+            Func<string, IKustoManagementGateway> kustoManagementGatewayFactory)
         {
             _dbPrefix = dbPrefix;
             _kustoManagementGatewayFactory = kustoManagementGatewayFactory;
-            _azureManagementGateway = azureManagementGateway;
-            _initializedAsync = InitializeAsync();
         }
 
         public async Task<string> GetCleanDbAsync()
         {
-            await _initializedAsync;
-
             Task<string>? preparingDbTask = null;
 
             if (_preparingDbs.TryDequeue(out preparingDbTask))
@@ -114,8 +96,13 @@ namespace DeltaKustoAdxIntegrationTest
                 return dbName;
             }
             else
-            {   //  No more database available
-                throw new InvalidOperationException("No database available");
+            {   //  No more database available in queue, let's take the next one
+                var dbNumber = Interlocked.Increment(ref _dbCount);
+                var dbName = DbNumberToDbName(dbNumber);
+
+                await CleanDbAsync(dbName);
+
+                return dbName;
             }
         }
 
@@ -126,52 +113,20 @@ namespace DeltaKustoAdxIntegrationTest
                 throw new ArgumentException("Wrong prefix", nameof(dbName));
             }
 
-            Func<Task<string>> preperaDbAsync = async () =>
+            Func<Task<string>> prepereDbAsync = async () =>
             {
                 await CleanDbAsync(dbName);
 
                 return dbName;
             };
 
-            _preparingDbs.Enqueue(preperaDbAsync());
+            _preparingDbs.Enqueue(prepereDbAsync());
         }
 
         void IDisposable.Dispose()
         {
             //  First clean up the queue
             Task.WhenAll(_preparingDbs.ToArray()).Wait();
-        }
-
-        private async Task InitializeAsync()
-        {   //  Let's find the existing dbs and enqueue them as ready
-            var names = await _azureManagementGateway.GetDatabaseNamesAsync();
-            var usefulNames = names
-                .Where(n => n.StartsWith(_dbPrefix))
-                .Where(n => IsInteger(n.Substring(_dbPrefix.Length)))
-                .ToImmutableArray();
-            var maxCount = usefulNames
-                .Select(n => n.Substring(_dbPrefix.Length))
-                .Select(t => int.Parse(t))
-                .Max();
-
-            _dbCount = maxCount + 1;
-
-            foreach (var name in usefulNames)
-            {
-                Func<Task<string>> prepareDbAsync = async () =>
-                {
-                    await CleanDbAsync(name);
-
-                    return name;
-                };
-
-                _preparingDbs.Enqueue(prepareDbAsync());
-            }
-        }
-
-        private static bool IsInteger(string text)
-        {
-            return int.TryParse(text, out _);
         }
 
         private async Task CleanDbAsync(string dbName)

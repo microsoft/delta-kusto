@@ -2,7 +2,6 @@
 using CommandLine.Text;
 using DeltaKustoIntegration;
 using DeltaKustoIntegration.Kusto;
-using DeltaKustoIntegration.TokenProvider;
 using DeltaKustoLib;
 using System;
 using System.Collections.Generic;
@@ -113,17 +112,11 @@ namespace delta_kusto
             var tracer = new ConsoleTracer(options.Verbose);
             var httpClientFactory = new SimpleHttpClientFactory(tracer);
             var apiClient = new ApiClient(tracer, httpClientFactory);
-            var kustoManagementGatewayFactory = new KustoManagementGatewayFactory(
-                tracer,
-                httpClientFactory);
-            var tokenProviderFactory = new TokenProviderFactory(
-                tracer,
-                httpClientFactory);
+            var kustoManagementGatewayFactory = new KustoManagementGatewayFactory(tracer);
             var orchestration = new DeltaOrchestration(
                 tracer,
                 apiClient,
-                kustoManagementGatewayFactory,
-                tokenProviderFactory);
+                kustoManagementGatewayFactory);
             var success = await orchestration.ComputeDeltaAsync(
                 options.ParameterFilePath,
                 options.Overrides);

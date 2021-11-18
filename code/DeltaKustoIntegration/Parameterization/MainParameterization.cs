@@ -14,7 +14,7 @@ namespace DeltaKustoIntegration.Parameterization
 
         public bool FailIfDataLoss { get; set; } = false;
 
-        public TokenProviderParameterization? TokenProvider { get; set; }
+        public TokenProviderParameterization TokenProvider { get; set; } = new TokenProviderParameterization();
 
         public Dictionary<string, JobParameterization> Jobs { get; set; } = new Dictionary<string, JobParameterization>();
 
@@ -42,13 +42,7 @@ namespace DeltaKustoIntegration.Parameterization
                 .Values
                 .Where(j => (j.Current?.Adx != null) || (j.Target?.Adx != null));
 
-            if (clusterJobs.Any() && TokenProvider == null)
-            {
-                throw new DeltaException(
-                    "At least one job requires a connection to a cluster "
-                    + "; 'tokenProvider' must be populated");
-            }
-            if (TokenProvider != null)
+            if (clusterJobs.Any())
             {
                 TokenProvider.Validate();
             }

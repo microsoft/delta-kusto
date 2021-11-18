@@ -1,7 +1,7 @@
 using DeltaKustoIntegration.Database;
-using DeltaKustoIntegration.TokenProvider;
 using DeltaKustoLib;
 using DeltaKustoLib.CommandModel;
+using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace DeltaKustoAdxIntegrationTest
+namespace DeltaKustoAdxIntegrationTest.GivenTokenProvider
 {
     public class GivenTokenProviderTest : AdxIntegrationTestBase
     {
@@ -24,14 +24,13 @@ namespace DeltaKustoAdxIntegrationTest
         [Fact]
         public async Task TestGivenToken()
         {
+            var authenticationContext =
+                new AuthenticationContext("https://login.windows.net/" + TenantId);
+            var authenticationResult = await authenticationContext.AcquireTokenAsync(
+                ClusterUri.ToString(),
+                new ClientCredential(ServicePrincipalId, ServicePrincipalSecret));
+            var token = authenticationResult.AccessToken;
             var targetDbName = await InitializeDbAsync();
-            var loginTokenProvider = new LoginTokenProvider(
-                new ConsoleTracer(false),
-                HttpClientFactory,
-                TenantId,
-                ServicePrincipalId,
-                ServicePrincipalSecret) as ITokenProvider;
-            var token = await loginTokenProvider.GetTokenAsync(ClusterUri.ToString());
             var overrides = ImmutableArray<(string path, string value)>
                 .Empty
                 .Add(("jobs.main.target.adx.clusterUri", ClusterUri.ToString()))

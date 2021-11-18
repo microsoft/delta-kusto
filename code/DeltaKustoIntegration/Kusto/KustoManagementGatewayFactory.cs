@@ -1,4 +1,4 @@
-﻿using DeltaKustoIntegration.TokenProvider;
+﻿using DeltaKustoIntegration.Parameterization;
 using DeltaKustoLib;
 using System;
 using System.Collections.Generic;
@@ -9,27 +9,22 @@ namespace DeltaKustoIntegration.Kusto
     public class KustoManagementGatewayFactory : IKustoManagementGatewayFactory
     {
         private readonly ITracer _tracer;
-        private readonly SimpleHttpClientFactory _httpClientFactory;
 
-        public KustoManagementGatewayFactory(
-            ITracer tracer,
-            SimpleHttpClientFactory httpClientFactory)
+        public KustoManagementGatewayFactory(ITracer tracer)
         {
             _tracer = tracer;
-            _httpClientFactory = httpClientFactory;
         }
 
         public IKustoManagementGateway CreateGateway(
             Uri clusterUri,
             string database,
-            ITokenProvider tokenProvider)
+            TokenProviderParameterization tokenProvider)
         {
             return new KustoManagementGateway(
                 clusterUri,
                 database,
                 tokenProvider,
-                _tracer,
-                _httpClientFactory);
+                _tracer);
         }
     }
 }

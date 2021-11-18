@@ -1,4 +1,4 @@
-﻿using DeltaKustoIntegration.TokenProvider;
+﻿using DeltaKustoIntegration.Parameterization;
 using DeltaKustoLib;
 using System;
 using System.Collections.Generic;
@@ -11,6 +11,6 @@ namespace DeltaKustoIntegration.Kusto
         IKustoManagementGateway CreateGateway(
             Uri clusterUri,
             string database,
-            ITokenProvider tokenProvider);
+            TokenProviderParameterization tokenProvider);
     }
 }
