@@ -1,9 +1,13 @@
-﻿using DeltaKustoIntegration.TokenProvider;
+﻿using DeltaKustoIntegration.Parameterization;
 using DeltaKustoLib;
 using DeltaKustoLib.CommandModel;
+using Kusto.Data;
+using Kusto.Data.Common;
+using Kusto.Data.Net.Client;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Data;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -19,318 +23,27 @@ namespace DeltaKustoIntegration.Kusto
     /// </summary>
     internal class KustoManagementGateway : IKustoManagementGateway
     {
-        #region Inner Types
-        private class ApiOutput
-        {
-            public TableOutput[]? Tables { get; set; }
-
-            public void Validate(string json)
-            {
-                if (Tables == null)
-                {
-                    throw new InvalidOperationException(
-                        $"JSON payload doesn't contain a list of table "
-                        + $"({nameof(Tables)}):  '{json}'");
-                }
-
-                foreach (var table in Tables)
-                {
-                    table.Validate(json);
-                }
-            }
-
-            public TableOutput GetFirstTable()
-            {
-                if (Tables == null || !Tables.Any())
-                {
-                    throw new DeltaException("No table were returned from API call to Kusto");
-                }
-
-                return Tables.First();
-            }
-
-            public T GetSingleElement<T>()
-            {
-                return Tables![0].GetSingleElement<T>();
-            }
-
-            public static ApiOutput FromJson(string json)
-            {
-                var output = JsonSerializer.Deserialize<ApiOutput>(json);
-
-                if (output == null)
-                {
-                    throw new InvalidOperationException(
-                        $"JSON payload doesn't look like an API output:  '{json}'");
-                }
-
-                output.Validate(json);
-
-                return output;
-            }
-        }
-
-        private class TableOutput
-        {
-            public string? TableName { get; set; }
-
-            public ColumnOutput[]? Columns { get; set; }
-
-            public JsonElement[][]? Rows { get; set; }
-
-            public void Validate(string json)
-            {
-                if (TableName == null)
-                {
-                    throw new InvalidOperationException(
-                        $"JSON payload has a table without name "
-                        + $"({nameof(TableName)}):  '{json}'");
-                }
-                if (Columns == null)
-                {
-                    throw new InvalidOperationException(
-                        $"Table '{TableName}' in JSON payload has no columns "
-                        + $"({nameof(Columns)}):  '{json}'");
-                }
-                if (Rows == null)
-                {
-                    throw new InvalidOperationException(
-                        $"Table '{TableName}' in JSON payload has no rows "
-                        + $"({nameof(Rows)}):  '{json}'");
-                }
-
-                foreach (var column in Columns)
-                {
-                    column.Validate(json, TableName);
-                }
-                foreach (var row in Rows)
-                {
-                    if (row.Length != Columns.Length)
-                    {
-                        throw new InvalidOperationException(
-                            $"Table '{TableName}' in JSON payload has a row with number of items "
-                            + $"different than columns descriptions:  '{json}'");
-                    }
-                }
-            }
-
-            public T GetSingleElement<T>()
-            {
-                if (Rows!.Length == 0 || Rows![0].Length == 0)
-                {
-                    throw new InvalidOperationException(
-                        $"Table '{TableName}' doesn't have any element");
-                }
-
-                return (T)GetObject(Rows![0][0], typeof(T));
-            }
-
-            public IEnumerable<T1> ProjectRows<T1>(string columnName)
-            {
-                var rows = ProjectRows(new[] { (columnName, typeof(T1)) });
-
-                foreach (var row in rows)
-                {
-                    var item = (T1)row[0];
-
-                    yield return item;
-                }
-            }
-
-            public IEnumerable<(T1, T2)> ProjectRows<T1, T2>(
-                string columnName1,
-                string columnName2)
-            {
-                var rows = ProjectRows(new[]
-                {
-                    (columnName1, typeof(T1)),
-                    (columnName2, typeof(T2))
-                });
-
-                foreach (var row in rows)
-                {
-                    var item1 = (T1)row[0];
-                    var item2 = (T2)row[1];
-
-                    yield return (item1, item2);
-                }
-            }
-
-            public IEnumerable<(T1, T2, T3)> ProjectRows<T1, T2, T3>(
-                string columnName1,
-                string columnName2,
-                string columnName3)
-            {
-                var rows = ProjectRows(new[]
-                {
-                    (columnName1, typeof(T1)),
-                    (columnName2, typeof(T2)),
-                    (columnName3, typeof(T3))
-                });
-
-                foreach (var row in rows)
-                {
-                    var item1 = (T1)row[0];
-                    var item2 = (T2)row[1];
-                    var item3 = (T3)row[2];
-
-                    yield return (item1, item2, item3);
-                }
-            }
-
-            public IEnumerable<(T1, T2, T3, T4)> ProjectRows<T1, T2, T3, T4>(
-                string columnName1,
-                string columnName2,
-                string columnName3,
-                string columnName4)
-            {
-                var rows = ProjectRows(new[]
-                {
-                    (columnName1, typeof(T1)),
-                    (columnName2, typeof(T2)),
-                    (columnName3, typeof(T3)),
-                    (columnName4, typeof(T4))
-                });
-
-                foreach (var row in rows)
-                {
-                    var item1 = (T1)row[0];
-                    var item2 = (T2)row[1];
-                    var item3 = (T3)row[2];
-                    var item4 = (T4)row[3];
-
-                    yield return (item1, item2, item3, item4);
-                }
-            }
-
-            public IEnumerable<object[]> ProjectRows(params (string name, Type type)[] columnNameTypes)
-            {
-                var indexes = MapColumns(columnNameTypes);
-
-                foreach (var row in Rows!)
-                {
-                    var item = new object[indexes.Length];
-
-                    for (int i = 0; i != indexes.Length; ++i)
-                    {
-                        item[i] = GetObject(row[indexes[i]], columnNameTypes[i].type);
-                    }
-
-                    yield return item;
-                }
-            }
-
-            private object GetObject(JsonElement element, Type type)
-            {
-                if (type == typeof(string))
-                {
-                    return element.GetString()!;
-                }
-                else if (type == typeof(int))
-                {
-                    return element.GetInt32();
-                }
-                else if (type == typeof(Guid))
-                {
-                    return element.GetGuid();
-                }
-                else
-                {
-                    throw new NotSupportedException(
-                        $"Type '{type}' isn't supported for table columns");
-                }
-            }
-
-            private int[] MapColumns((string name, Type type)[] columnNameTypes)
-            {
-                var indexes = new int[columnNameTypes.Length];
-                var columnIndex = Columns!.Zip(
-                    Enumerable.Range(0, Columns!.Length),
-                    (c, i) => new { Name = c.ColumnName!, TypeName = c.ColumnType!, Index = i })
-                    .ToDictionary(c => c.Name);
-
-                for (int i = 0; i != columnNameTypes.Length; ++i)
-                {
-                    var columnName = columnNameTypes[i].name;
-                    var columnType = columnNameTypes[i].type;
-
-                    if (!columnIndex.ContainsKey(columnName))
-                    {
-                        throw new InvalidOperationException(
-                            $"Can't find column '{columnName}' "
-                            + $"in table '{TableName}' of Kusto result");
-                    }
-
-                    var column = columnIndex[columnName];
-
-                    if (string.Compare(column.TypeName, columnType.Name, true) != 0)
-                    {
-                        throw new InvalidOperationException(
-                            $"Type mismatch for column '{columnName}' "
-                            + $"in table '{TableName}' of Kusto result:  "
-                            + $"expected '{columnType.Name}' but is {column.TypeName}");
-                    }
-
-                    indexes[i] = column.Index;
-                }
-
-                return indexes;
-            }
-        }
-
-        private class ColumnOutput
-        {
-            public string? ColumnName { get; set; }
-
-            public string? DataType { get; set; }
-
-            public string? ColumnType { get; set; }
-
-            public void Validate(string json, string tableName)
-            {
-                if (ColumnName == null)
-                {
-                    throw new InvalidOperationException(
-                        $"Table '{tableName}' in JSON payload has a column "
-                        + $"without name ({nameof(ColumnName)}):  '{json}'");
-                }
-                if (DataType == null)
-                {
-                    throw new InvalidOperationException(
-                        $"Table '{tableName}' in JSON payload has column '{ColumnName}' "
-                        + $"without data type ({nameof(DataType)}):  '{json}'");
-                }
-                if (ColumnType == null)
-                {
-                    throw new InvalidOperationException(
-                        $"Table '{tableName}' in JSON payload has column '{ColumnName}' "
-                        + $"without column type ({nameof(ColumnType)}):  '{json}'");
-                }
-            }
-        }
-        #endregion
-
-        private static readonly TimeSpan TIMEOUT = TimeSpan.FromSeconds(10);
-        private static readonly Random _random = new Random();
-
         private readonly Uri _clusterUri;
         private readonly string _database;
-        private readonly ITokenProvider _tokenProvider;
+        private readonly ICslAdminProvider _commandProvider;
         private readonly ITracer _tracer;
-        private readonly SimpleHttpClientFactory _httpClientFactory;
 
         public KustoManagementGateway(
             Uri clusterUri,
             string database,
-            ITokenProvider tokenProvider,
-            ITracer tracer,
-            SimpleHttpClientFactory httpClientFactory)
+            TokenProviderParameterization tokenProvider,
+            ITracer tracer)
         {
             _clusterUri = clusterUri;
             _database = database;
-            _tokenProvider = tokenProvider;
+
+            var kustoConnectionStringBuilder = CreateKustoConnectionStringBuilder(
+                clusterUri,
+                tokenProvider);
+
+            _commandProvider =
+                KustoClientFactory.CreateCslCmAdminProvider(kustoConnectionStringBuilder);
             _tracer = tracer;
-            _httpClientFactory = httpClientFactory;
         }
 
         async Task<IImmutableList<CommandBase>> IKustoManagementGateway.ReverseEngineerDatabaseAsync(
@@ -350,10 +63,19 @@ namespace DeltaKustoIntegration.Kusto
             _tracer.WriteLine(true, "Fetch schema commands end");
             tracerTimer.WriteTime(true, "Fetch schema commands time");
 
-            var schemaCommandText =
-                schemaOutput.GetFirstTable().ProjectRows<string>("DatabaseSchemaScript");
+            var schemaCommandText = Select(
+                schemaOutput,
+                r => (string)r["DatabaseSchemaScript"]);
             var schemaCommands = CommandBase.FromScript(string.Join("\n\n", schemaCommandText), true);
-            var mappingCommands = ExtractMappingCommands(mappingsOutput.GetFirstTable());
+            var mappingCommands = Select(
+                mappingsOutput,
+                r => new CreateMappingCommand(
+                    new EntityName((string)r["Name"]),
+                    (string)r["Kind"],
+                    new QuotedText((string)r["Mapping"]),
+                    new QuotedText((string)r["Table"])))
+                .Cast<CommandBase>()
+                .ToImmutableArray();
             var allCommands = schemaCommands
                 .Concat(mappingCommands)
                 .ToImmutableArray();
@@ -383,25 +105,28 @@ namespace DeltaKustoIntegration.Kusto
                 _tracer.WriteLine(true, ".execute database script commands end");
                 tracerTimer.WriteTime(true, ".execute database script commands time");
 
-                var content = output.Tables![0].ProjectRows<string, string, string, Guid>(
-                    "Result",
-                    "Reason",
-                    "CommandText",
-                    "OperationId")
-                    .Select(t => (result: t.Item1, reason: t.Item2, commandText: t.Item3, operationId: t.Item4));
-                var failedItems = content.Where(t => t.result != "Completed");
+                var content = Select(
+                    output,
+                    r => new
+                    {
+                        Result = (string)r["Result"],
+                        Reason = (string)r["Reason"],
+                        CommandText = (string)r["CommandText"],
+                        OperationId = (Guid)r["OperationId"]
+                    });
+                var failedItems = content.Where(t => t.Result != "Completed");
 
                 if (failedItems.Any())
                 {
                     var failedItem = failedItems.First();
-                    var failedItemCommand = PackageString(failedItem.commandText);
+                    var failedItemCommand = PackageString(failedItem.CommandText);
                     var allCommands = string.Join(
                         ", ",
-                        content.Select(i => $"({i.result}:  '{PackageString(i.commandText)}')"));
+                        content.Select(i => $"({i.Result}:  '{PackageString(i.CommandText)}')"));
 
                     throw new InvalidOperationException(
-                        $"Command failed to execute with reason '{failedItem.reason}'.  "
-                        + $"Operation ID:  {failedItem.operationId}.  "
+                        $"Command failed to execute with reason '{failedItem.Reason}'.  "
+                        + $"Operation ID:  {failedItem.OperationId}.  "
                         + $"Cluster URI:  {_clusterUri}.  "
                         + $"Database:  {_database}.  "
                         + $"Command:  '{failedItemCommand}'.  "
@@ -410,112 +135,68 @@ namespace DeltaKustoIntegration.Kusto
             }
         }
 
+        private static KustoConnectionStringBuilder CreateKustoConnectionStringBuilder(
+            Uri clusterUri,
+            TokenProviderParameterization tokenProvider)
+        {
+            var builder = new KustoConnectionStringBuilder(clusterUri.ToString());
+
+            if (tokenProvider.Login != null)
+            {
+                return builder.WithAadApplicationKeyAuthentication(
+                    tokenProvider.Login.ClientId,
+                    tokenProvider.Login.Secret,
+                    tokenProvider.Login.TenantId);
+            }
+            else if (tokenProvider.Tokens != null)
+            {
+                var token = tokenProvider.Tokens.Values
+                    .Where(t => t.ClusterUri != null)
+                    .Where(t => t.ClusterUri!.Trim().ToLower() == clusterUri.ToString().Trim().ToLower())
+                    .Select(t => t.Token)
+                    .FirstOrDefault();
+
+                if (token != null)
+                {
+                    return builder.WithAadUserTokenAuthentication(token);
+                }
+                else
+                {
+                    throw new DeltaException($"No token was provided for {clusterUri}");
+                }
+            }
+            else
+            {
+                throw new NotSupportedException("Token provider isn't supported");
+            }
+        }
         private static string PackageString(string text)
         {
             return text.Replace("\n", "\\n").Replace("\r", "\\r");
         }
 
-        private IImmutableList<CommandBase> ExtractMappingCommands(TableOutput mappingTable)
+        private static IEnumerable<T> Select<T>(IDataReader reader, Func<IDataReader, T> projection)
         {
-            IEnumerable<(string name, string kind, string mapping, string table)> mappingRows =
-                mappingTable.ProjectRows<string, string, string, string>(
-                    "Name",
-                    "Kind",
-                    "Mapping",
-                    "Table");
-            var commands = mappingRows
-                .Select(t => new CreateMappingCommand(
-                    new EntityName(t.table),
-                    t.kind,
-                    new QuotedText(t.name),
-                    new QuotedText(t.mapping)))
-                .Cast<CommandBase>()
-                .ToImmutableArray();
-
-            return commands;
+            while (reader.Read())
+            {
+                yield return projection(reader);
+            }
         }
 
-        private async Task<ApiOutput> ExecuteCommandAsync(
+        private async Task<IDataReader> ExecuteCommandAsync(
             string commandScript,
             CancellationToken ct)
         {
             try
             {
-                var response = await ExecuteCommandResponseAsync(commandScript, ct);
+                var reader = await _commandProvider.ExecuteControlCommandAsync(_database, commandScript);
 
-                if (response.status != HttpStatusCode.OK)
-                {
-                    if (response.status == HttpStatusCode.TooManyRequests)
-                    {   //  Backoff a little
-                        await Task.Delay(TimeSpan.FromMilliseconds(100 + _random.Next(100)));
-
-                        //  Retry
-                        return await ExecuteCommandAsync(commandScript, ct);
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException(
-                            $"'{commandScript}' command failed for cluster URI '{_clusterUri}' "
-                            + $"with status code '{response.status}' "
-                            + $"and payload '{response.payload}'");
-                    }
-                }
-
-                var output = ApiOutput.FromJson(response.payload);
-
-                return output;
+                return reader;
             }
             catch (Exception ex)
             {
                 throw new DeltaException(
-                    $"Issue running Kusto script on cluster '{_clusterUri}' / "
-                    + $"database '{_database}'",
-                    ex);
-            }
-        }
-
-        private async Task<(HttpStatusCode status, string payload)> ExecuteCommandResponseAsync(
-            string commandScript,
-            CancellationToken ct)
-        {
-            try
-            {
-                ct = CancellationTokenHelper.MergeCancellationToken(ct, TIMEOUT);
-
-                var token = await _tokenProvider.GetTokenAsync(_clusterUri.ToString(), ct);
-
-                //  Reset the timeout for the second API call
-                ct = CancellationTokenHelper.MergeCancellationToken(ct, TIMEOUT);
-
-                //  Implementation of https://docs.microsoft.com/en-us/azure/data-explorer/kusto/api/rest/request#examples
-                using (var client = _httpClientFactory.CreateHttpClient())
-                {
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-                    var managementUrl = $"{_clusterUri}/v1/rest/mgmt";
-                    var body = new
-                    {
-                        db = _database,
-                        csl = commandScript
-                    };
-                    var bodyText = JsonSerializer.Serialize(body);
-                    var response = await client.PostAsync(
-                        managementUrl,
-                        new StringContent(bodyText, null, "application/json"),
-                        ct);
-
-                    _tracer.WriteLine(true, "KustoManagementGateway.ExecuteCommandAsync retrieve payload");
-
-                    var responseText =
-                        await response.Content.ReadAsStringAsync(ct);
-
-                    return (response.StatusCode, responseText);
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new DeltaException(
-                    $"Issue running Kusto script on cluster '{_clusterUri}' / "
+                    $"Issue running Kusto script '{commandScript}' on cluster '{_clusterUri}' / "
                     + $"database '{_database}'",
                     ex);
             }

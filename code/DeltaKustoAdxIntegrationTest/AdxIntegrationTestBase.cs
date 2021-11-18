@@ -291,14 +291,6 @@ namespace DeltaKustoAdxIntegrationTest
             var gateway = GatewayFactory.CreateGateway(
                 ClusterUri,
                 dbName,
-                CreateTokenProvider());
-
-            return gateway;
-        }
-
-        private ITokenProvider CreateTokenProvider()
-        {
-            var tokenProvider = TokenProviderFactory.CreateProvider(
                 new TokenProviderParameterization
                 {
                     Login = new ServicePrincipalLoginParameterization
@@ -309,7 +301,7 @@ namespace DeltaKustoAdxIntegrationTest
                     }
                 });
 
-            return tokenProvider!;
+            return gateway;
         }
     }
 }

@@ -117,7 +117,7 @@ namespace DeltaKustoFileIntegrationTest
             var tracer = new ConsoleTracer(false);
 
             HttpClientFactory = new SimpleHttpClientFactory(tracer);
-            GatewayFactory = new KustoManagementGatewayFactory(tracer, HttpClientFactory);
+            GatewayFactory = new KustoManagementGatewayFactory(tracer);
             TokenProviderFactory = new TokenProviderFactory(tracer, HttpClientFactory);
         }
 

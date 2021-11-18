@@ -113,9 +113,7 @@ namespace delta_kusto
             var tracer = new ConsoleTracer(options.Verbose);
             var httpClientFactory = new SimpleHttpClientFactory(tracer);
             var apiClient = new ApiClient(tracer, httpClientFactory);
-            var kustoManagementGatewayFactory = new KustoManagementGatewayFactory(
-                tracer,
-                httpClientFactory);
+            var kustoManagementGatewayFactory = new KustoManagementGatewayFactory(tracer);
             var tokenProviderFactory = new TokenProviderFactory(
                 tracer,
                 httpClientFactory);

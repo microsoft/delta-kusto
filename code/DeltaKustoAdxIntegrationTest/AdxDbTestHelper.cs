@@ -1,5 +1,6 @@
 using DeltaKustoIntegration;
 using DeltaKustoIntegration.Kusto;
+using DeltaKustoIntegration.Parameterization;
 using DeltaKustoIntegration.TokenProvider;
 using DeltaKustoLib;
 using DeltaKustoLib.CommandModel;
@@ -62,24 +63,31 @@ namespace DeltaKustoAdxIntegrationTest
 
             var tracer = new ConsoleTracer(false);
             var httpClientFactory = new SimpleHttpClientFactory(tracer);
-            var tokenProvider = new LoginTokenProvider(
-                tracer,
-                httpClientFactory,
-                tenantId,
-                servicePrincipalId,
-                servicePrincipalSecret);
+            var tokenProvider = new TokenProviderParameterization
+            {
+                Login = new ServicePrincipalLoginParameterization
+                {
+                    TenantId = tenantId,
+                    ClientId = servicePrincipalId,
+                    Secret = servicePrincipalSecret
+                }
+            };
             Func<string, IKustoManagementGateway> kustoManagementGatewayFactory = (db) =>
             {
                 return new KustoManagementGateway(
                     new Uri(clusterUri),
                     db,
                     tokenProvider,
-                    tracer,
-                    httpClientFactory);
+                    tracer);
             };
             var azureManagementGateway = new AzureManagementGateway(
                         clusterId,
-                        tokenProvider,
+                        new LoginTokenProvider(
+                            tracer,
+                            httpClientFactory,
+                            tenantId,
+                            servicePrincipalId,
+                            servicePrincipalSecret),
                         tracer,
                         httpClientFactory);
             var helper = new AdxDbTestHelper(

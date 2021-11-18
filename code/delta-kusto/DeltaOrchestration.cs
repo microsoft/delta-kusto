@@ -75,7 +75,6 @@ namespace delta_kusto
             try
             {
                 var localFileGateway = _fileGateway.ChangeFolder(parameterFolderPath!);
-                var tokenProvider = _tokenProviderFactory.CreateProvider(parameters.TokenProvider);
                 var orderedJobs = parameters.Jobs.OrderBy(p => p.Value.Priority);
                 var success = true;
 
@@ -87,7 +86,7 @@ namespace delta_kusto
                     var jobSuccess = await ProcessJobAsync(
                         parameters,
                         localFileGateway,
-                        tokenProvider,
+                        parameters.TokenProvider,
                         jobName,
                         job);
 
@@ -113,7 +112,7 @@ namespace delta_kusto
         private async Task<bool> ProcessJobAsync(
             MainParameterization parameters,
             IFileGateway localFileGateway,
-            ITokenProvider? tokenProvider,
+            TokenProviderParameterization tokenProvider,
             string jobName,
             JobParameterization job)
         {
@@ -240,7 +239,7 @@ namespace delta_kusto
         private IImmutableList<IActionProvider> CreateActionProvider(
             ActionParameterization action,
             IFileGateway localFileGateway,
-            ITokenProvider? tokenProvider,
+            TokenProviderParameterization tokenProvider,
             AdxSourceParameterization? database)
         {
             var builder = ImmutableArray<IActionProvider>.Empty.ToBuilder();
@@ -257,12 +256,6 @@ namespace delta_kusto
             }
             if (action.PushToCurrent)
             {
-                if (tokenProvider == null)
-                {
-                    throw new InvalidOperationException(
-                        $"{tokenProvider} can't be null at this point");
-                }
-
                 var kustoManagementGateway = _kustoManagementGatewayFactory.CreateGateway(
                     new Uri(database!.ClusterUri!),
                     database!.Database!,
@@ -276,7 +269,7 @@ namespace delta_kusto
 
         private IDatabaseProvider CreateDatabaseProvider(
             SourceParameterization? source,
-            ITokenProvider? tokenProvider,
+            TokenProviderParameterization tokenProvider,
             IFileGateway localFileGateway)
         {
             if (source == null)
