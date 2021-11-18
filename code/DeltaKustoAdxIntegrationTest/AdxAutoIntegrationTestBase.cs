@@ -2,7 +2,6 @@
 using DeltaKustoIntegration.Database;
 using DeltaKustoIntegration.Kusto;
 using DeltaKustoIntegration.Parameterization;
-using DeltaKustoIntegration.TokenProvider;
 using DeltaKustoLib;
 using DeltaKustoLib.CommandModel;
 using DeltaKustoLib.KustoModel;

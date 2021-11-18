@@ -1,5 +1,4 @@
 ﻿using DeltaKustoIntegration.Parameterization;
-using DeltaKustoIntegration.TokenProvider;
 using DeltaKustoLib;
 using System;
 using System.Collections.Generic;

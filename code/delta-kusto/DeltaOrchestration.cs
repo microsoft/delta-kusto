@@ -3,7 +3,6 @@ using DeltaKustoIntegration.Action;
 using DeltaKustoIntegration.Database;
 using DeltaKustoIntegration.Kusto;
 using DeltaKustoIntegration.Parameterization;
-using DeltaKustoIntegration.TokenProvider;
 using DeltaKustoLib;
 using DeltaKustoLib.CommandModel;
 using DeltaKustoLib.KustoModel;
@@ -26,19 +25,16 @@ namespace delta_kusto
         private readonly ApiClient _apiClient;
         private readonly IFileGateway _fileGateway;
         private readonly IKustoManagementGatewayFactory _kustoManagementGatewayFactory;
-        private readonly ITokenProviderFactory _tokenProviderFactory;
 
         public DeltaOrchestration(
             ITracer tracer,
             ApiClient apiClient,
             IKustoManagementGatewayFactory kustoManagementGatewayFactory,
-            ITokenProviderFactory tokenProviderFactory,
             IFileGateway? fileGateway = null)
         {
             _tracer = tracer;
             _apiClient = apiClient;
             _kustoManagementGatewayFactory = kustoManagementGatewayFactory;
-            _tokenProviderFactory = tokenProviderFactory;
             _fileGateway = fileGateway ?? new FileGateway();
         }
 

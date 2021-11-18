@@ -2,7 +2,6 @@
 using DeltaKustoIntegration;
 using DeltaKustoIntegration.Kusto;
 using DeltaKustoIntegration.Parameterization;
-using DeltaKustoIntegration.TokenProvider;
 using DeltaKustoLib;
 using DeltaKustoLib.CommandModel;
 using System;
@@ -91,8 +90,6 @@ namespace DeltaKustoFileIntegrationTest
 
         protected IKustoManagementGatewayFactory GatewayFactory { get; }
 
-        protected ITokenProviderFactory TokenProviderFactory { get; }
-
         protected IntegrationTestBase()
         {
             CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("en-US");
@@ -118,7 +115,6 @@ namespace DeltaKustoFileIntegrationTest
 
             HttpClientFactory = new SimpleHttpClientFactory(tracer);
             GatewayFactory = new KustoManagementGatewayFactory(tracer);
-            TokenProviderFactory = new TokenProviderFactory(tracer, HttpClientFactory);
         }
 
         protected async virtual Task<int> RunMainAsync(params string[] args)
@@ -196,8 +192,7 @@ namespace DeltaKustoFileIntegrationTest
             var orchestration = new DeltaOrchestration(
                 tracer,
                 apiClient,
-                GatewayFactory,
-                TokenProviderFactory);
+                GatewayFactory);
             var parameters = await orchestration.LoadParameterizationAsync(
                 parameterFilePath,
                 pathOverrides);
