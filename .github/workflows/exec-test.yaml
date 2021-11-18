@@ -122,7 +122,6 @@ jobs:
       deltaDbPrefix:  github_mac_os_
 
     steps:
-    steps:
     - uses: actions/checkout@v2
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
