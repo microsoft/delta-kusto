@@ -92,7 +92,7 @@ jobs:
         echo "Exec path:  $deltaKustoSingleExecPath"
         echo "Delta DBs prefix:  $deltaDbPrefix"
         # Exec path
-        echo "deltaKustoSingleExecPath=$deltaKustoSingleExecPath" >> $GITHUB_ENV
+        # echo "deltaKustoSingleExecPath=$deltaKustoSingleExecPath" >> $GITHUB_ENV
         # ADX integration
         echo "deltaKustoClusterId=$clusterId" >> $GITHUB_ENV
         echo "deltaKustoClusterUri=$clusterUri" >> $GITHUB_ENV
