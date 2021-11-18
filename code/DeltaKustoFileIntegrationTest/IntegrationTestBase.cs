@@ -86,10 +86,6 @@ namespace DeltaKustoFileIntegrationTest
             }
         }
 
-        protected SimpleHttpClientFactory HttpClientFactory { get; }
-
-        protected IKustoManagementGatewayFactory GatewayFactory { get; }
-
         protected IntegrationTestBase()
         {
             CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("en-US");
@@ -111,11 +107,14 @@ namespace DeltaKustoFileIntegrationTest
                 }
             }
 
-            var tracer = new ConsoleTracer(false);
+            Tracer = new ConsoleTracer(false);
 
-            HttpClientFactory = new SimpleHttpClientFactory(tracer);
-            GatewayFactory = new KustoManagementGatewayFactory(tracer);
+            HttpClientFactory = new SimpleHttpClientFactory(Tracer);
         }
+
+        protected SimpleHttpClientFactory HttpClientFactory { get; }
+        
+        protected ITracer Tracer { get; }
 
         protected async virtual Task<int> RunMainAsync(params string[] args)
         {
@@ -191,8 +190,7 @@ namespace DeltaKustoFileIntegrationTest
             var apiClient = new ApiClient(tracer, HttpClientFactory);
             var orchestration = new DeltaOrchestration(
                 tracer,
-                apiClient,
-                GatewayFactory);
+                apiClient);
             var parameters = await orchestration.LoadParameterizationAsync(
                 parameterFilePath,
                 pathOverrides);

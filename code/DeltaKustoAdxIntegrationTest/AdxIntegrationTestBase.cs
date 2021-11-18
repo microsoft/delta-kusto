@@ -49,6 +49,17 @@ namespace DeltaKustoAdxIntegrationTest
             TenantId = tenantId;
             ServicePrincipalId = servicePrincipalId;
             ServicePrincipalSecret = servicePrincipalSecret;
+            KustoGatewayFactory = new KustoManagementGatewayFactory(
+                new TokenProviderParameterization
+                {
+                    Login = new ServicePrincipalLoginParameterization
+                    {
+                        TenantId = TenantId,
+                        ClientId = ServicePrincipalId,
+                        Secret = ServicePrincipalSecret
+                    }
+                },
+                Tracer);
         }
 
         protected Uri ClusterUri { get; }
@@ -58,6 +69,8 @@ namespace DeltaKustoAdxIntegrationTest
         protected string ServicePrincipalId { get; }
 
         protected string ServicePrincipalSecret { get; }
+
+        protected IKustoManagementGatewayFactory KustoGatewayFactory { get; }
 
         protected async Task<string> InitializeDbAsync()
         {
@@ -124,7 +137,7 @@ namespace DeltaKustoAdxIntegrationTest
                     var targetDbName = await InitializeDbAsync();
 
                     await PrepareDbAsync(toFile, targetDbName);
-                    
+
                     var outputPath = Path.Combine("outputs", statesFolderPath, "file-to-adx/")
                         + Path.GetFileNameWithoutExtension(fromFile)
                         + "_2_"
@@ -220,11 +233,9 @@ namespace DeltaKustoAdxIntegrationTest
             }
         }
 
-        private async Task ApplyCommandsAsync(
-            IEnumerable<CommandBase> commands,
-            string dbName)
+        private async Task ApplyCommandsAsync(IEnumerable<CommandBase> commands, string dbName)
         {
-            var gateway = CreateKustoManagementGateway(dbName);
+            var gateway = KustoGatewayFactory.CreateGateway(ClusterUri, dbName);
 
             //  Apply commands to the db
             await gateway.ExecuteCommandsAsync(commands);
@@ -232,7 +243,7 @@ namespace DeltaKustoAdxIntegrationTest
 
         private async Task<IImmutableList<CommandBase>> FetchDbCommandsAsync(string dbName)
         {
-            var gateway = CreateKustoManagementGateway(dbName);
+            var gateway = KustoGatewayFactory.CreateGateway(ClusterUri, dbName);
             var dbProvider = (IDatabaseProvider)new KustoDatabaseProvider(
                 new ConsoleTracer(false),
                 gateway);
@@ -271,7 +282,7 @@ namespace DeltaKustoAdxIntegrationTest
             try
             {
                 var commands = CommandBase.FromScript(script);
-                var gateway = CreateKustoManagementGateway(dbName);
+                var gateway = KustoGatewayFactory.CreateGateway(ClusterUri, dbName);
 
                 await gateway.ExecuteCommandsAsync(commands);
             }
@@ -283,24 +294,6 @@ namespace DeltaKustoAdxIntegrationTest
                     + $"Script = '{script.Replace("\n", "\\n").Replace("\r", "\\r")}'",
                     ex);
             }
-        }
-
-        private IKustoManagementGateway CreateKustoManagementGateway(string dbName)
-        {
-            var gateway = GatewayFactory.CreateGateway(
-                ClusterUri,
-                dbName,
-                new TokenProviderParameterization
-                {
-                    Login = new ServicePrincipalLoginParameterization
-                    {
-                        TenantId = TenantId,
-                        ClientId = ServicePrincipalId,
-                        Secret = ServicePrincipalSecret
-                    }
-                });
-
-            return gateway;
         }
     }
 }
