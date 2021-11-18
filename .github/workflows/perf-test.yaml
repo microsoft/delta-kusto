@@ -16,7 +16,7 @@ jobs:
     steps:
     # Login
     - name: Azure Login
-      run: az login --service-principal -u ${{ secrets.deploy_sp_id }} -p ${{ secrets.deploy_sp_secret }} --tenant ${{ secrets.tenant_id }}
+      run: az login --service-principal -u ${{ secrets.test_deploy_sp_id }} -p ${{ secrets.test_deploy_sp_secret }} --tenant ${{ secrets.test_tenant_id }}
     # Add Kusto extension to Azure CLI
     - name: Install Kusto extension
       run: az extension add -n kusto
@@ -77,7 +77,7 @@ jobs:
           -o code/perf-test
     # Login
     - name: Azure Login
-      run: az login --service-principal -u ${{ secrets.deploy_sp_id }} -p ${{ secrets.deploy_sp_secret }} --tenant ${{ secrets.tenant_id }}
+      run: az login --service-principal -u ${{ secrets.test_deploy_sp_id }} -p ${{ secrets.test_deploy_sp_secret }} --tenant ${{ secrets.test_tenant_id }}
     # Add Kusto extension to Azure CLI
     - name: Install Kusto extension
       run: az extension add -n kusto
