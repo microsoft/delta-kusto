@@ -53,6 +53,10 @@ jobs:
     - name: Install dependencies
       shell:  bash
       run: dotnet restore code
+    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-build
+    - name: Build
+      shell:  bash
+      run: dotnet build code --configuration Release --no-restore
     # See https://github.com/dotnet/designs/blob/main/accepted/2020/single-file/design.md#user-experience
     # & https://docs.microsoft.com/en-us/dotnet/core/deploying/single-file
     # & https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-publish
@@ -125,6 +129,10 @@ jobs:
     - name: Install dependencies
       shell:  bash
       run: dotnet restore code
+    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-build
+    - name: Build
+      shell:  bash
+      run: dotnet build code --configuration Release --no-restore
     # See https://github.com/dotnet/designs/blob/main/accepted/2020/single-file/design.md#user-experience
     # & https://docs.microsoft.com/en-us/dotnet/core/deploying/single-file
     # & https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-publish
@@ -154,7 +162,7 @@ jobs:
         echo "Exec path:  $deltaKustoSingleExecPath"
         echo "Delta DBs prefix:  $deltaDbPrefix"
         # Exec path
-        # echo "deltaKustoSingleExecPath=$deltaKustoSingleExecPath" >> $GITHUB_ENV
+        echo "deltaKustoSingleExecPath=$deltaKustoSingleExecPath" >> $GITHUB_ENV
         # ADX integration
         echo "deltaKustoClusterId=$clusterId" >> $GITHUB_ENV
         echo "deltaKustoClusterUri=$clusterUri" >> $GITHUB_ENV
