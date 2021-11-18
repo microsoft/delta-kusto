@@ -11,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace DeltaKustoAdxIntegrationTest
+namespace DeltaKustoAdxIntegrationTest.GivenTokenProvider
 {
     public class GivenTokenProviderTest : AdxIntegrationTestBase
     {

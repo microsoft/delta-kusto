@@ -18,17 +18,14 @@
 
   <ItemGroup>
     <Compile Remove="Functions\**" />
-    <Compile Remove="GivenTokenProvider\**" />
     <Compile Remove="Mappings\**" />
     <Compile Remove="Policies\**" />
     <Compile Remove="Tables\**" />
     <EmbeddedResource Remove="Functions\**" />
-    <EmbeddedResource Remove="GivenTokenProvider\**" />
     <EmbeddedResource Remove="Mappings\**" />
     <EmbeddedResource Remove="Policies\**" />
     <EmbeddedResource Remove="Tables\**" />
     <None Remove="Functions\**" />
-    <None Remove="GivenTokenProvider\**" />
     <None Remove="Mappings\**" />
     <None Remove="Policies\**" />
     <None Remove="Tables\**" />
