@@ -1,17 +1,11 @@
-﻿using DeltaKustoIntegration.Parameterization;
-using DeltaKustoLib;
+﻿using DeltaKustoLib;
 using DeltaKustoLib.CommandModel;
-using Kusto.Data;
 using Kusto.Data.Common;
-using Kusto.Data.Net.Client;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Data;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,18 +25,12 @@ namespace DeltaKustoIntegration.Kusto
         public KustoManagementGateway(
             Uri clusterUri,
             string database,
-            TokenProviderParameterization tokenProvider,
+            ICslAdminProvider commandProvider,
             ITracer tracer)
         {
             _clusterUri = clusterUri;
             _database = database;
-
-            var kustoConnectionStringBuilder = CreateKustoConnectionStringBuilder(
-                clusterUri,
-                tokenProvider);
-
-            _commandProvider =
-                KustoClientFactory.CreateCslCmAdminProvider(kustoConnectionStringBuilder);
+            _commandProvider = commandProvider;
             _tracer = tracer;
         }
 
@@ -135,41 +123,6 @@ namespace DeltaKustoIntegration.Kusto
             }
         }
 
-        private static KustoConnectionStringBuilder CreateKustoConnectionStringBuilder(
-            Uri clusterUri,
-            TokenProviderParameterization tokenProvider)
-        {
-            var builder = new KustoConnectionStringBuilder(clusterUri.ToString());
-
-            if (tokenProvider.Login != null)
-            {
-                return builder.WithAadApplicationKeyAuthentication(
-                    tokenProvider.Login.ClientId,
-                    tokenProvider.Login.Secret,
-                    tokenProvider.Login.TenantId);
-            }
-            else if (tokenProvider.Tokens != null)
-            {
-                var token = tokenProvider.Tokens.Values
-                    .Where(t => t.ClusterUri != null)
-                    .Where(t => t.ClusterUri!.Trim().ToLower() == clusterUri.ToString().Trim().ToLower())
-                    .Select(t => t.Token)
-                    .FirstOrDefault();
-
-                if (token != null)
-                {
-                    return builder.WithAadUserTokenAuthentication(token);
-                }
-                else
-                {
-                    throw new DeltaException($"No token was provided for {clusterUri}");
-                }
-            }
-            else
-            {
-                throw new NotSupportedException("Token provider isn't supported");
-            }
-        }
         private static string PackageString(string text)
         {
             return text.Replace("\n", "\\n").Replace("\r", "\\r");
