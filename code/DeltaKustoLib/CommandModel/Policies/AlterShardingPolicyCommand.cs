@@ -66,7 +66,7 @@ namespace DeltaKustoLib.CommandModel.Policies
                 rootElement.GetUniqueDescendant<LiteralExpression>(
                     "Sharding",
                     e => e.NameInParent == "ShardingPolicy"));
-            var policy = JsonSerializer.Deserialize<JsonDocument>(policyText.Text);
+            var policy = Deserialize<JsonDocument>(policyText.Text);
 
             if (policy == null)
             {

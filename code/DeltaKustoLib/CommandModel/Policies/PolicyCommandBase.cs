@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -35,11 +36,13 @@ namespace DeltaKustoLib.CommandModel.Policies
             return areEqualed;
         }
 
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2026:RequiresUnreferencedCode")]
         public string SerializePolicy()
         {
             return JsonSerializer.Serialize(Policy, _policiesSerializerOptions);
         }
 
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2026:RequiresUnreferencedCode")]
         public T DeserializePolicy<T>()
         {
             var obj = JsonSerializer.Deserialize<T>(SerializePolicy());
@@ -52,6 +55,7 @@ namespace DeltaKustoLib.CommandModel.Policies
             return obj;
         }
 
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2026:RequiresUnreferencedCode")]
         public static JsonDocument ToJsonDocument(object obj)
         {
             var text = JsonSerializer.Serialize(obj);
@@ -63,6 +67,25 @@ namespace DeltaKustoLib.CommandModel.Policies
             }
 
             return doc;
+        }
+
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2026:RequiresUnreferencedCode")]
+        protected static T Deserialize<T>(string text)
+        {
+            var document = JsonSerializer.Deserialize<T>(text);
+
+            if (document == null)
+            {
+                throw new DeltaException($"Can't deserialize '{text}'");
+            }
+
+            return document;
+        }
+
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2026:RequiresUnreferencedCode")]
+        protected static string Serialize<T>(T obj, JsonSerializerOptions? options = null)
+        {
+            return JsonSerializer.Serialize(obj, options);
         }
 
         private bool ElementEquals(JsonElement element1, JsonElement element2)
