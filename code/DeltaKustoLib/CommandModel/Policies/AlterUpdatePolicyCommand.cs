@@ -56,7 +56,7 @@ namespace DeltaKustoLib.CommandModel.Policies
                 rootElement.GetUniqueDescendant<LiteralExpression>(
                     "UpdatePolicy",
                     e => e.NameInParent == "UpdatePolicy"));
-            var policies = JsonSerializer.Deserialize<UpdatePolicy[]>(policiesText.Text);
+            var policies = Deserialize<UpdatePolicy[]>(policiesText.Text);
 
             if (policies == null)
             {
@@ -89,7 +89,7 @@ namespace DeltaKustoLib.CommandModel.Policies
             builder.Append(" policy update");
             builder.AppendLine();
             builder.Append("```");
-            builder.Append(JsonSerializer.Serialize(UpdatePolicies, _policiesSerializerOptions));
+            builder.Append(Serialize(UpdatePolicies, _policiesSerializerOptions));
             builder.AppendLine();
             builder.Append("```");
 
