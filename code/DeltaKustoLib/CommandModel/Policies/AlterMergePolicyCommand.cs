@@ -66,7 +66,7 @@ namespace DeltaKustoLib.CommandModel.Policies
                 rootElement.GetUniqueDescendant<LiteralExpression>(
                     "Merge",
                     e => e.NameInParent == "MergePolicy"));
-            var policy = JsonSerializer.Deserialize<JsonDocument>(policyText.Text);
+            var policy = Deserialize<JsonDocument>(policyText.Text);
 
             if (policy == null)
             {

@@ -32,7 +32,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 6.0.100-preview.1.21103.13
+        dotnet-version: 6.x
     - name: Patch version
       id:  patch-version
       run: python3 deployment/patch-version.py code/DeltaKustoApi/DeltaKustoApi.csproj ${{ github.run_number }}

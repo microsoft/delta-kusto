@@ -2,10 +2,12 @@
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFramework>net5.0</TargetFramework>
+		<TargetFramework>net6.0</TargetFramework>
 		<RootNamespace>delta_kusto</RootNamespace>
 		<Nullable>enable</Nullable>
 		<Version>0.6.1</Version>
+		<!--	Important to avoid the trimming warning hell ; since we automate-test everything, we do not need static analysis	-->
+		<ILLinkTreatWarningsAsErrors>false</ILLinkTreatWarningsAsErrors>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

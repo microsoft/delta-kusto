@@ -24,17 +24,14 @@ namespace delta_kusto
         private readonly ITracer _tracer;
         private readonly ApiClient _apiClient;
         private readonly IFileGateway _fileGateway;
-        private readonly IKustoManagementGatewayFactory _kustoManagementGatewayFactory;
 
         public DeltaOrchestration(
             ITracer tracer,
             ApiClient apiClient,
-            IKustoManagementGatewayFactory kustoManagementGatewayFactory,
             IFileGateway? fileGateway = null)
         {
             _tracer = tracer;
             _apiClient = apiClient;
-            _kustoManagementGatewayFactory = kustoManagementGatewayFactory;
             _fileGateway = fileGateway ?? new FileGateway();
         }
 
@@ -71,18 +68,20 @@ namespace delta_kusto
             try
             {
                 var localFileGateway = _fileGateway.ChangeFolder(parameterFolderPath!);
+                var kustoManagementGatewayFactory = new KustoManagementGatewayFactory(
+                    parameters.TokenProvider,
+                    _tracer);
                 var orderedJobs = parameters.Jobs.OrderBy(p => p.Value.Priority);
                 var success = true;
 
                 _tracer.WriteLine(false, $"{orderedJobs.Count()} jobs");
-
                 foreach (var jobPair in orderedJobs)
                 {
                     var (jobName, job) = jobPair;
                     var jobSuccess = await ProcessJobAsync(
                         parameters,
+                        kustoManagementGatewayFactory,
                         localFileGateway,
-                        parameters.TokenProvider,
                         jobName,
                         job);
 
@@ -107,8 +106,8 @@ namespace delta_kusto
 
         private async Task<bool> ProcessJobAsync(
             MainParameterization parameters,
+            IKustoManagementGatewayFactory kustoGatewayFactory,
             IFileGateway localFileGateway,
-            TokenProviderParameterization tokenProvider,
             string jobName,
             JobParameterization job)
         {
@@ -118,13 +117,11 @@ namespace delta_kusto
             {
                 _tracer.WriteLine(true, "Current DB Provider...  ");
 
-                var currentDbProvider =
-                    CreateDatabaseProvider(job.Current, tokenProvider, localFileGateway);
+                var currentDbProvider = CreateDatabaseProvider(job.Current, kustoGatewayFactory, localFileGateway);
 
                 _tracer.WriteLine(true, "Target DB Provider...  ");
 
-                var targetDbProvider =
-                    CreateDatabaseProvider(job.Target, tokenProvider, localFileGateway);
+                var targetDbProvider = CreateDatabaseProvider(job.Target, kustoGatewayFactory, localFileGateway);
 
                 var currentDbTask = RetrieveDatabaseAsync(currentDbProvider, "current");
                 var targetDbTask = RetrieveDatabaseAsync(targetDbProvider, "target");
@@ -141,8 +138,8 @@ namespace delta_kusto
                 var jobSuccess = ReportOnDeltaCommands(parameters, actions);
                 var actionProviders = CreateActionProvider(
                     job.Action!,
+                    kustoGatewayFactory,
                     localFileGateway,
-                    tokenProvider,
                     job.Current?.Adx);
 
                 _tracer.WriteLine(false, "Processing delta commands...");
@@ -234,8 +231,8 @@ namespace delta_kusto
 
         private IImmutableList<IActionProvider> CreateActionProvider(
             ActionParameterization action,
+            IKustoManagementGatewayFactory kustoGatewayFactory,
             IFileGateway localFileGateway,
-            TokenProviderParameterization tokenProvider,
             AdxSourceParameterization? database)
         {
             var builder = ImmutableArray<IActionProvider>.Empty.ToBuilder();
@@ -252,10 +249,9 @@ namespace delta_kusto
             }
             if (action.PushToCurrent)
             {
-                var kustoManagementGateway = _kustoManagementGatewayFactory.CreateGateway(
+                var kustoManagementGateway = kustoGatewayFactory.CreateGateway(
                     new Uri(database!.ClusterUri!),
-                    database!.Database!,
-                    tokenProvider);
+                    database!.Database!);
 
                 builder.Add(new KustoActionProvider(kustoManagementGateway));
             }
@@ -265,7 +261,7 @@ namespace delta_kusto
 
         private IDatabaseProvider CreateDatabaseProvider(
             SourceParameterization? source,
-            TokenProviderParameterization tokenProvider,
+            IKustoManagementGatewayFactory kustoGatewayFactory,
             IFileGateway localFileGateway)
         {
             if (source == null)
@@ -283,15 +279,9 @@ namespace delta_kusto
                         $"ADX Database:  cluster '{source.Adx.ClusterUri}', "
                         + $"database '{source.Adx.Database}'");
 
-                    if (tokenProvider == null)
-                    {
-                        throw new InvalidOperationException($"{tokenProvider} can't be null at this point");
-                    }
-
-                    var kustoManagementGateway = _kustoManagementGatewayFactory.CreateGateway(
+                    var kustoManagementGateway = kustoGatewayFactory.CreateGateway(
                         new Uri(source.Adx.ClusterUri!),
-                        source.Adx.Database!,
-                        tokenProvider);
+                        source.Adx.Database!);
 
                     return new KustoDatabaseProvider(_tracer, kustoManagementGateway);
                 }

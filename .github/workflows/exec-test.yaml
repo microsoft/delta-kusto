@@ -79,16 +79,14 @@ jobs:
       shell:  bash
       run: |
         # Fetch cluster context
-        clusterId=$(az kusto cluster list -g ${{ secrets.test_rg }} --query "[?tags.testLevel=='integration'].id" -o tsv)
         clusterUri=$(az kusto cluster list -g ${{ secrets.test_rg }} --query "[?tags.testLevel=='integration'].uri" -o tsv)
         deltaKustoSingleExecPath="$(pwd)/bin/$exec"
         echo "Cluster Uri:  $clusterUri"
         echo "Exec path:  $deltaKustoSingleExecPath"
         echo "Delta DBs prefix:  $deltaDbPrefix"
         # Exec path
-        # echo "deltaKustoSingleExecPath=$deltaKustoSingleExecPath" >> $GITHUB_ENV
+        #echo "deltaKustoSingleExecPath=$deltaKustoSingleExecPath" >> $GITHUB_ENV
         # ADX integration
-        echo "deltaKustoClusterId=$clusterId" >> $GITHUB_ENV
         echo "deltaKustoClusterUri=$clusterUri" >> $GITHUB_ENV
         echo "deltaKustoDbPrefix=$deltaDbPrefix" >> $GITHUB_ENV
         echo "deltaKustoTenantId=${{ secrets.test_tenant_id }}" >> $GITHUB_ENV
@@ -125,6 +123,9 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 6.x
+    - name: Temporary patch for MAC
+      shell:  bash
+      run: brew update && brew install azure-cli
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-restore
     - name: Install dependencies
       shell:  bash
@@ -155,7 +156,6 @@ jobs:
       shell:  bash
       run: |
         # Fetch cluster context
-        clusterId=$(az kusto cluster list -g ${{ secrets.test_rg }} --query "[?tags.testLevel=='integration'].id" -o tsv)
         clusterUri=$(az kusto cluster list -g ${{ secrets.test_rg }} --query "[?tags.testLevel=='integration'].uri" -o tsv)
         deltaKustoSingleExecPath="$(pwd)/bin/$exec"
         echo "Cluster Uri:  $clusterUri"
@@ -164,7 +164,6 @@ jobs:
         # Exec path
         echo "deltaKustoSingleExecPath=$deltaKustoSingleExecPath" >> $GITHUB_ENV
         # ADX integration
-        echo "deltaKustoClusterId=$clusterId" >> $GITHUB_ENV
         echo "deltaKustoClusterUri=$clusterUri" >> $GITHUB_ENV
         echo "deltaKustoDbPrefix=$deltaDbPrefix" >> $GITHUB_ENV
         echo "deltaKustoTenantId=${{ secrets.test_tenant_id }}" >> $GITHUB_ENV

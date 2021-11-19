@@ -8,9 +8,6 @@ namespace DeltaKustoIntegration.Kusto
 {
     public interface IKustoManagementGatewayFactory
     {
-        IKustoManagementGateway CreateGateway(
-            Uri clusterUri,
-            string database,
-            TokenProviderParameterization tokenProvider);
+        IKustoManagementGateway CreateGateway(Uri clusterUri, string database);
     }
 }

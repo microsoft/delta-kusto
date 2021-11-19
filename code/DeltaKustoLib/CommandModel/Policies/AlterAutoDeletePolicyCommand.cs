@@ -46,7 +46,7 @@ namespace DeltaKustoLib.CommandModel.Policies
                 rootElement.GetUniqueDescendant<LiteralExpression>(
                     "AutoDeletePolicy",
                     e => e.NameInParent == "AutoDeletePolicy"));
-            var policy = JsonSerializer.Deserialize<JsonDocument>(policyText.Text);
+            var policy = Deserialize<JsonDocument>(policyText.Text);
 
             if (policy == null)
             {

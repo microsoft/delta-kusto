@@ -3,6 +3,7 @@ using DeltaKustoLib;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -174,6 +175,7 @@ namespace delta_kusto
             return Environment.GetEnvironmentVariable("disable-api-calls") != "true";
         }
 
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2026:RequiresUnreferencedCode")]
         private async Task<T?> GetAsync<T>(
             string urlSuffix,
             CancellationToken ct,
@@ -216,6 +218,7 @@ namespace delta_kusto
             return null;
         }
 
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2026:RequiresUnreferencedCode")]
         private async Task<T?> PostAsync<T>(
             string urlSuffix,
             object telemetry,

@@ -16,7 +16,7 @@ jobs:
     steps:
     # Login
     - name: Azure Login
-      run: az login --service-principal -u ${{ secrets.deploy_sp_id }} -p ${{ secrets.deploy_sp_secret }} --tenant ${{ secrets.tenant_id }}
+      run: az login --service-principal -u ${{ secrets.test_deploy_sp_id }} -p ${{ secrets.test_deploy_sp_secret }} --tenant ${{ secrets.test_tenant_id }}
     # Add Kusto extension to Azure CLI
     - name: Install Kusto extension
       run: az extension add -n kusto
@@ -56,7 +56,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 5.0.x
+        dotnet-version: 6.x
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-restore
     - name: Install dependencies
       shell:  bash
@@ -77,7 +77,7 @@ jobs:
           -o code/perf-test
     # Login
     - name: Azure Login
-      run: az login --service-principal -u ${{ secrets.deploy_sp_id }} -p ${{ secrets.deploy_sp_secret }} --tenant ${{ secrets.tenant_id }}
+      run: az login --service-principal -u ${{ secrets.test_deploy_sp_id }} -p ${{ secrets.test_deploy_sp_secret }} --tenant ${{ secrets.test_tenant_id }}
     # Add Kusto extension to Azure CLI
     - name: Install Kusto extension
       run: az extension add -n kusto
@@ -111,7 +111,7 @@ jobs:
         set -e
         cd code/perf-test
         # Package the login in a JSON payload
-        login='{"tenantId":"${{ secrets.TENANT_ID }}","clientId":"${{ secrets.KUSTO_SP_ID }}","secret":"${{ secrets.KUSTO_SP_SECRET }}"}'
+        login='{"tenantId":"${{ secrets.TENANT_ID }}","clientId":"${{ secrets.TESTER_SP_ID }}","secret":"${{ secrets.TESTER_SP_SECRET }}"}'
         ./delta-kusto -p from-parameters.yaml -o tokenProvider.login=$login
     # Sleep to reset throttling
     - name: Sleep
@@ -123,5 +123,5 @@ jobs:
         set -e
         cd code/perf-test
         # Package the login in a JSON payload
-        login='{"tenantId":"${{ secrets.TENANT_ID }}","clientId":"${{ secrets.KUSTO_SP_ID }}","secret":"${{ secrets.KUSTO_SP_SECRET }}"}'
+        login='{"tenantId":"${{ secrets.TENANT_ID }}","clientId":"${{ secrets.TESTER_SP_ID }}","secret":"${{ secrets.TESTER_SP_SECRET }}"}'
         ./delta-kusto -p to-parameters.yaml -o tokenProvider.login=$login

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.Json;
 
@@ -169,6 +170,7 @@ namespace DeltaKustoLib.KustoModel
                 MappingAsJson);
         }
 
+        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2026:RequiresUnreferencedCode")]
         private bool MappingAsJsonEquals(QuotedText otherMappingAsJson)
         {
             var thisElements = JsonSerializer
