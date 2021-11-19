@@ -34,15 +34,18 @@ namespace DeltaKustoIntegration.Kusto
             if (!_providerCache.TryGetValue(clusterUri, out commandProvider))
             {
                 lock (_providerCache)
-                {
-                    var kustoConnectionStringBuilder = CreateKustoConnectionStringBuilder(
+                {   //  Double-check within lock
+                    if (!_providerCache.TryGetValue(clusterUri, out commandProvider))
+                    {
+                        var kustoConnectionStringBuilder = CreateKustoConnectionStringBuilder(
                         clusterUri,
                         _tokenProvider);
 
-                    commandProvider =
-                        KustoClientFactory.CreateCslCmAdminProvider(kustoConnectionStringBuilder);
+                        commandProvider =
+                            KustoClientFactory.CreateCslCmAdminProvider(kustoConnectionStringBuilder);
 
-                    _providerCache.Add(clusterUri, commandProvider);
+                        _providerCache.Add(clusterUri, commandProvider);
+                    }
                 }
             }
 
