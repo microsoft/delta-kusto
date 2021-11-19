@@ -1,8 +1,12 @@
 ﻿using DeltaKustoIntegration.Parameterization;
 using DeltaKustoLib;
+using Kusto.Data;
+using Kusto.Data.Common;
+using Kusto.Data.Net.Client;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace DeltaKustoIntegration.Kusto
@@ -11,8 +15,8 @@ namespace DeltaKustoIntegration.Kusto
     {
         private readonly TokenProviderParameterization _tokenProvider;
         private readonly ITracer _tracer;
-        private readonly IDictionary<(Uri, string), IKustoManagementGateway> _gatewayCache =
-            new ConcurrentDictionary<(Uri clusterUri, string database), IKustoManagementGateway>();
+        private readonly IDictionary<Uri, ICslAdminProvider> _providerCache =
+            new ConcurrentDictionary<Uri, ICslAdminProvider>();
 
         public KustoManagementGatewayFactory(
             TokenProviderParameterization tokenProvider,
@@ -22,29 +26,67 @@ namespace DeltaKustoIntegration.Kusto
             _tracer = tracer;
         }
 
-        public IKustoManagementGateway CreateGateway(
-            Uri clusterUri,
-            string database)
+        public IKustoManagementGateway CreateGateway(Uri clusterUri, string database)
         {
-            var key = (clusterUri, database);
-            IKustoManagementGateway? gateway;
+            ICslAdminProvider? commandProvider;
 
-            //  Make the gateways singleton as they hold Kusto-SDK connections
-            if (!_gatewayCache.TryGetValue(key, out gateway))
+            //  Make the command provider singleton as they hold HTTP connections
+            if (!_providerCache.TryGetValue(clusterUri, out commandProvider))
             {
-                lock (_gatewayCache)
+                lock (_providerCache)
                 {
-                    gateway = new KustoManagementGateway(
+                    var kustoConnectionStringBuilder = CreateKustoConnectionStringBuilder(
                         clusterUri,
-                        database,
-                        _tokenProvider,
-                        _tracer);
+                        _tokenProvider);
 
-                    _gatewayCache.Add(key, gateway);
+                    commandProvider =
+                        KustoClientFactory.CreateCslCmAdminProvider(kustoConnectionStringBuilder);
+
+                    _providerCache.Add(clusterUri, commandProvider);
                 }
             }
 
-            return gateway;
+            return new KustoManagementGateway(
+                clusterUri,
+                database,
+                commandProvider,
+                _tracer);
+        }
+
+        private static KustoConnectionStringBuilder CreateKustoConnectionStringBuilder(
+            Uri clusterUri,
+            TokenProviderParameterization tokenProvider)
+        {
+            var builder = new KustoConnectionStringBuilder(clusterUri.ToString());
+
+            if (tokenProvider.Login != null)
+            {
+                return builder.WithAadApplicationKeyAuthentication(
+                    tokenProvider.Login.ClientId,
+                    tokenProvider.Login.Secret,
+                    tokenProvider.Login.TenantId);
+            }
+            else if (tokenProvider.Tokens != null)
+            {
+                var token = tokenProvider.Tokens.Values
+                    .Where(t => t.ClusterUri != null)
+                    .Where(t => t.ClusterUri!.Trim().ToLower() == clusterUri.ToString().Trim().ToLower())
+                    .Select(t => t.Token)
+                    .FirstOrDefault();
+
+                if (token != null)
+                {
+                    return builder.WithAadUserTokenAuthentication(token);
+                }
+                else
+                {
+                    throw new DeltaException($"No token was provided for {clusterUri}");
+                }
+            }
+            else
+            {
+                throw new NotSupportedException("Token provider isn't supported");
+            }
         }
     }
 }
