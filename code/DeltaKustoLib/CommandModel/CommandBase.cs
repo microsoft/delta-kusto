@@ -27,9 +27,9 @@ namespace DeltaKustoLib.CommandModel
         }
 
         public abstract string CommandFriendlyName { get; }
-        
+
         public abstract string SortIndex { get; }
-        
+
         public abstract string ScriptPath { get; }
 
         public abstract bool Equals([AllowNull] CommandBase other);
@@ -143,7 +143,17 @@ namespace DeltaKustoLib.CommandModel
                         return DeleteAutoDeletePolicyCommand.FromCode(commandBlock);
                     case "AlterDatabasePolicyCaching":
                     case "AlterTablePolicyCaching":
-                        return AlterCachingPolicyCommand.FromCode(commandBlock);
+                        var partitioning = commandBlock.GetDescendants<SyntaxElement>(s => s.Kind == SyntaxKind.PartitioningKeyword).Count();
+
+                        if (partitioning == 1)
+                        {
+                            throw new DeltaException(
+                                $"Can't handle CommandKind 'AlterTablePolicyPartitioning'");
+                        }
+                        else
+                        {
+                            return AlterCachingPolicyCommand.FromCode(commandBlock);
+                        }
                     case "DeleteDatabasePolicyCaching":
                     case "DeleteTablePolicyCaching":
                         return DeleteCachingPolicyCommand.FromCode(commandBlock);

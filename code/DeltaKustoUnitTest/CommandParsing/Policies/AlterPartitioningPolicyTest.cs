@@ -1,3 +1,4 @@
+using DeltaKustoLib;
 using DeltaKustoLib.CommandModel;
 using DeltaKustoLib.CommandModel.Policies;
 using System;
@@ -9,7 +10,7 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
 {
     public class AlterPartitioningPolicyTest : ParsingTestBase
     {
-        //[Fact]
+        [Fact]
         public void SimpleTable()
         {
             var commandText = @"
@@ -28,9 +29,81 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
   ]
 }```
 ";
-            var command = ParseOneCommand(commandText);
+            try
+            {
+                var command = ParseOneCommand(commandText);
+            }
+            catch(DeltaException ex)
+            {
+                if(!ex.InnerException!.Message.Contains("Partitioning"))
+                {
+                    throw;
+                }
+            }
+        }
 
-            //Assert.IsType<AlterRetentionPolicyCommand>(command);
+        [Fact]
+        public void DbComposedTableName()
+        {
+            var commandText = @"
+.alter table mydb.mytable policy partitioning ```
+{
+  'PartitionKeys': [
+    {
+                'ColumnName': 'my_string_column',
+      'Kind': 'Hash',
+      'Properties': {
+                    'Function': 'XxHash64',
+        'MaxPartitionCount': 128,
+        'PartitionAssignmentMode': 'Uniform'
+      }
+            }
+  ]
+}```
+";
+            try
+            {
+                var command = ParseOneCommand(commandText);
+            }
+            catch (DeltaException ex)
+            {
+                if (!ex.InnerException!.Message.Contains("Partitioning"))
+                {
+                    throw;
+                }
+            }
+        }
+
+        [Fact]
+        public void ClusterComposedTableName()
+        {
+            var commandText = @"
+.alter table mycluster.mydb.mytable policy partitioning ```
+{
+  'PartitionKeys': [
+    {
+                'ColumnName': 'my_string_column',
+      'Kind': 'Hash',
+      'Properties': {
+                    'Function': 'XxHash64',
+        'MaxPartitionCount': 128,
+        'PartitionAssignmentMode': 'Uniform'
+      }
+            }
+  ]
+}```
+";
+            try
+            {
+                var command = ParseOneCommand(commandText);
+            }
+            catch (DeltaException ex)
+            {
+                if (!ex.InnerException!.Message.Contains("Partitioning"))
+                {
+                    throw;
+                }
+            }
         }
     }
 }
