@@ -147,8 +147,15 @@ namespace DeltaKustoLib.CommandModel
 
                         if (partitioning == 1)
                         {
-                            throw new DeltaException(
-                                $"Can't handle CommandKind 'AlterTablePolicyPartitioning'");
+                            if (ignoreUnknownCommands)
+                            {
+                                return null;
+                            }
+                            else
+                            {
+                                throw new DeltaException(
+                                    $"Can't handle CommandKind 'AlterTablePolicyPartitioning'");
+                            }
                         }
                         else
                         {

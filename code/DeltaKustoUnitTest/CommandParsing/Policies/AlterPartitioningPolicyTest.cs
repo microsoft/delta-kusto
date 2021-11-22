@@ -29,17 +29,9 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
   ]
 }```
 ";
-            try
-            {
-                var command = ParseOneCommand(commandText);
-            }
-            catch(DeltaException ex)
-            {
-                if(!ex.InnerException!.Message.Contains("Partitioning"))
-                {
-                    throw;
-                }
-            }
+            var commands = CommandBase.FromScript(commandText, true);
+
+            Assert.Empty(commands);
         }
 
         [Fact]
@@ -61,17 +53,9 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
   ]
 }```
 ";
-            try
-            {
-                var command = ParseOneCommand(commandText);
-            }
-            catch (DeltaException ex)
-            {
-                if (!ex.InnerException!.Message.Contains("Partitioning"))
-                {
-                    throw;
-                }
-            }
+            var commands = CommandBase.FromScript(commandText, true);
+
+            Assert.Empty(commands);
         }
 
         [Fact]
@@ -93,17 +77,9 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
   ]
 }```
 ";
-            try
-            {
-                var command = ParseOneCommand(commandText);
-            }
-            catch (DeltaException ex)
-            {
-                if (!ex.InnerException!.Message.Contains("Partitioning"))
-                {
-                    throw;
-                }
-            }
+            var commands = CommandBase.FromScript(commandText, true);
+
+            Assert.Empty(commands);
         }
     }
 }
