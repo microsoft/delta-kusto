@@ -14,7 +14,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+	<!--   Added explicitely for Kusto.Data dependencies     -->
+    <PackageReference Include="Microsoft.Identity.Client" Version="4.37.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+	<!--   This is required     -->
     <PackageReference Include="Polly" Version="7.2.2" />
   </ItemGroup>
 
