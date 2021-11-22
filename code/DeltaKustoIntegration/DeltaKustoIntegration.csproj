@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -22,8 +22,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="Kusto.Cloud.Platform">
+      <HintPath>Kusto.Data\Kusto.Cloud.Platform.dll</HintPath>
+    </Reference>
+    <Reference Include="Kusto.Cloud.Platform.Aad">
+      <HintPath>Kusto.Data\Kusto.Cloud.Platform.Aad.dll</HintPath>
+    </Reference>
     <Reference Include="Kusto.Data">
-      <HintPath>Kusto.Data.dll</HintPath>
+      <HintPath>Kusto.Data\Kusto.Data.dll</HintPath>
     </Reference>
   </ItemGroup>
 
