@@ -1,4 +1,6 @@
-﻿using DeltaKustoLib.CommandModel;
+using DeltaKustoLib;
+using DeltaKustoLib.CommandModel;
+using DeltaKustoLib.CommandModel.Policies;
 using System;
 using System.Linq;
 using System.Text.Json;
