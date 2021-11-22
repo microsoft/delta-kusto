@@ -88,4 +88,4 @@ jobs:
     - name: Deploy
       run: |
         cd deployment/integration-test
-        bash deploy-integration-test-infra.sh ${{ secrets.test_rg }} ${{ secrets.tenant_id }} ${{ secrets.deploy_sp_id }}
+        bash deploy-integration-test-infra.sh ${{ secrets.test_rg }} ${{ secrets.test_tenant_id }} ${{ secrets.TESTER_SP_ID }}
