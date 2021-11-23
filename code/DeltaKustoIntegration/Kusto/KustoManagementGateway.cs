@@ -1,10 +1,13 @@
 ﻿using DeltaKustoLib;
 using DeltaKustoLib.CommandModel;
 using Kusto.Data.Common;
+using Polly;
+using Polly.Retry;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
@@ -17,6 +20,10 @@ namespace DeltaKustoIntegration.Kusto
     /// </summary>
     internal class KustoManagementGateway : IKustoManagementGateway
     {
+        private static readonly AsyncRetryPolicy _retryPolicy = Policy.Handle<IOException>().WaitAndRetryAsync(
+            3,
+            attempt => TimeSpan.FromSeconds(attempt));
+
         private readonly Uri _clusterUri;
         private readonly string _database;
         private readonly ICslAdminProvider _commandProvider;
@@ -142,9 +149,13 @@ namespace DeltaKustoIntegration.Kusto
         {
             try
             {
-                var reader = await _commandProvider.ExecuteControlCommandAsync(_database, commandScript);
-
-                return reader;
+                return await _retryPolicy.ExecuteAsync(async () =>
+                {
+                    var reader = await _commandProvider.ExecuteControlCommandAsync(
+                        _database, commandScript);
+                
+                    return reader;
+                });
             }
             catch (Exception ex)
             {
