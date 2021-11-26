@@ -1,6 +1,12 @@
 name:  Exec tests
 
-on:  workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      outOfProc:
+        required:  true
+        default:  true
+        description:  'Execute Delta Kusto out-of-proc:  true or false'
 
 jobs:
   clusterSetup:
@@ -85,7 +91,10 @@ jobs:
         echo "Exec path:  $deltaKustoSingleExecPath"
         echo "Delta DBs prefix:  $deltaDbPrefix"
         # Exec path
-        echo "deltaKustoSingleExecPath=$deltaKustoSingleExecPath" >> $GITHUB_ENV
+        if [ ${{ github.event.inputs.dbCount }} == "true" ]
+        then
+          echo "deltaKustoSingleExecPath=$deltaKustoSingleExecPath" >> $GITHUB_ENV
+        fi
         # ADX integration
         echo "deltaKustoClusterUri=$clusterUri" >> $GITHUB_ENV
         echo "deltaKustoDbPrefix=$deltaDbPrefix" >> $GITHUB_ENV
@@ -162,7 +171,10 @@ jobs:
         echo "Exec path:  $deltaKustoSingleExecPath"
         echo "Delta DBs prefix:  $deltaDbPrefix"
         # Exec path
-        echo "deltaKustoSingleExecPath=$deltaKustoSingleExecPath" >> $GITHUB_ENV
+        if [ ${{ github.event.inputs.dbCount }} == "true" ]
+        then
+          echo "deltaKustoSingleExecPath=$deltaKustoSingleExecPath" >> $GITHUB_ENV
+        fi
         # ADX integration
         echo "deltaKustoClusterUri=$clusterUri" >> $GITHUB_ENV
         echo "deltaKustoDbPrefix=$deltaDbPrefix" >> $GITHUB_ENV
