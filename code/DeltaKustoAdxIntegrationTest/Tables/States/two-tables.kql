@@ -2,4 +2,14 @@
 
 .alter-merge table GithubEvent column-docstrings (Actor:"Person doing action", Payload:"JSON describing the event")
 
-.create table OccupancyDetection (Timestamp: datetime, Temperature: real, Humidity: real, Light: real, CO2: real, HumidityRatio: real, Occupancy: bool, Test: bool) 
+.create table OccupancyDetection (
+	Timestamp: datetime,
+	Temperature: real,
+	Humidity: real,
+	Light: real,
+	//	This column is intentionally a reserved word
+	['period']:  int,
+	CO2: real,
+	HumidityRatio: real,
+	Occupancy: bool,
+	Test: bool) 

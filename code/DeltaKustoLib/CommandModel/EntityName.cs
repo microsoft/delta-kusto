@@ -23,6 +23,12 @@ namespace DeltaKustoLib.CommandModel
             }
             Name = name;
 
+            //  See https://docs.microsoft.com/en-us/azure/data-explorer/kusto/query/schema-entities/entity-names#naming-your-entities-to-avoid-collisions-with-kusto-language-keywords
+            if (char.IsLower(name[0]))
+            {
+                NeedEscape = true;
+            }
+            //  Scan the name for unsupported characters / special characters
             foreach (var c in name)
             {
                 if (char.IsLetterOrDigit(c) || c == '_')
