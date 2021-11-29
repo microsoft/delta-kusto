@@ -1,0 +1,9 @@
+﻿#   Reverse engineer db content into a folder
+jobs: 
+  main:
+    target:
+        adx:
+            clusterUri: to-be-overriden
+            database: to-be-overriden
+    action:
+        folderPath:  folder
