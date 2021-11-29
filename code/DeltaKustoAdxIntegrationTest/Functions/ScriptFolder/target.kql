@@ -1,3 +1,3 @@
 ﻿//	Random comment
 
-.create function with (folder='root/branch/sub') MyFunction() { 42 }
+.create function with (folder="root") MyFunction() { 42 }
