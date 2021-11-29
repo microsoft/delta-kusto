@@ -6,4 +6,4 @@ jobs:
             clusterUri: to-be-overriden
             database: to-be-overriden
     action:
-        folderPath:  folder
+        folderPath:  scriptFolder

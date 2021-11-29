@@ -15,9 +15,10 @@ namespace DeltaKustoAdxIntegrationTest.Functions
         protected override string StatesFolderPath => "Functions";
 
         [Fact]
-        public async Task ToFolder()
+        public async Task ToScriptFolder()
         {
-            var scriptPath = "Functions/Folder/target.kql";
+            var scriptPath = "Functions/ScriptFolder/target.kql";
+            var paramsPath = "Functions/ScriptFolder/folder-params.yaml";
             var dbName = await InitializeDbAsync();
 
             await PrepareDbAsync(scriptPath, dbName);
@@ -26,35 +27,14 @@ namespace DeltaKustoAdxIntegrationTest.Functions
                 .Empty
                 .Add(("jobs.main.target.adx.clusterUri", ClusterUri.ToString()))
                 .Add(("jobs.main.target.adx.database", dbName));
-            var parameters = await RunParametersAsync(
-                "Functions/Folder/folder-params.yaml",
-                overrides);
+            var parameters = await RunParametersAsync(paramsPath, overrides);
             var outputPath = parameters.Jobs.First().Value.Action!.FolderPath!;
             var outputCommands = await LoadScriptAsync(
-                outputPath,
-                "");
+                paramsPath,
+                Path.Combine(outputPath, "functions/create/root/branch/sub/MyFunction.kql"));
 
-            throw new NotImplementedException();
-
-            //var targetFileCommands = CommandBase.FromScript(
-            //    await File.ReadAllTextAsync(toFile));
-
-            //await Task.WhenAll(
-            //    ApplyCommandsAsync(outputCommands, currentDbName),
-            //    ApplyCommandsAsync(targetFileCommands, dbName));
-
-            //var finalCommandsTask = FetchDbCommandsAsync(currentDbName);
-            //var targetAdxCommands = await FetchDbCommandsAsync(dbName);
-            //var finalCommands = await finalCommandsTask;
-            //var targetModel = DatabaseModel.FromCommands(targetAdxCommands);
-            //var finalModel = DatabaseModel.FromCommands(finalCommands);
-            //var finalScript = string.Join(";\n\n", finalCommands.Select(c => c.ToScript()));
-            //var targetScript = string.Join(";\n\n", targetFileCommands.Select(c => c.ToScript()));
-
-            //Assert.True(
-            //    finalModel.Equals(targetModel),
-            //    $"From {fromFile} to {toFile}:\n\n{finalScript}\nvs\n\n{targetScript}");
-            //AdxDbTestHelper.Instance.ReleaseDb(currentDbName);
+            Assert.Single(outputCommands);
+            Assert.IsType<CreateFunctionCommand>(outputCommands.First());
         }
     }
 }
