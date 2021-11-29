@@ -1,3 +1,3 @@
-﻿.create table ['my-table'] (a: real, b: int, c: string) with (docstring = "bla2", folder="my-tables")
+﻿.create table ['my-table'] (A: real, B: int, C: string) with (docstring = "bla2", folder="my-tables")
 
-.alter-merge table ['my-table'] column-docstrings (a:"new param a", b:"new param b", c:"new param c")
+.alter-merge table ['my-table'] column-docstrings (A:"new param A", B:"new param B", C:"new param C")
