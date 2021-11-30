@@ -199,7 +199,7 @@ jobs:
     env:
       # See OS catalog here:  https://docs.microsoft.com/en-us/dotnet/core/rid-catalog
       dotnetOs:  win-x64
-      exec:  delta-kusto
+      exec:  delta-kusto.exe
       deltaDbPrefix:  github_win_
       
     steps:
