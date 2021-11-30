@@ -91,7 +91,7 @@ jobs:
         echo "Exec path:  $deltaKustoSingleExecPath"
         echo "Delta DBs prefix:  $deltaDbPrefix"
         # Exec path
-        if [ ${{ github.event.inputs.dbCount }} == "true" ]
+        if [ ${{ github.event.inputs.outOfProc }} == "true" ]
         then
           echo "deltaKustoSingleExecPath=$deltaKustoSingleExecPath" >> $GITHUB_ENV
         fi
@@ -168,7 +168,7 @@ jobs:
         echo "Exec path:  $deltaKustoSingleExecPath"
         echo "Delta DBs prefix:  $deltaDbPrefix"
         # Exec path
-        if [ ${{ github.event.inputs.dbCount }} == "true" ]
+        if [ ${{ github.event.inputs.outOfProc }} == "true" ]
         then
           echo "deltaKustoSingleExecPath=$deltaKustoSingleExecPath" >> $GITHUB_ENV
         fi
@@ -244,7 +244,7 @@ jobs:
         echo "Exec path:  $deltaKustoSingleExecPath"
         echo "Delta DBs prefix:  $deltaDbPrefix"
         # Exec path
-        if [ ${{ github.event.inputs.dbCount }} == "true" ]
+        if [ ${{ github.event.inputs.outOfProc }} == "true" ]
         then
           echo "deltaKustoSingleExecPath=$deltaKustoSingleExecPath" >> $GITHUB_ENV
         fi
