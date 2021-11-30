@@ -1,18 +1,26 @@
 ﻿using System;
+using System.Collections.Immutable;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace DeltaKustoLib.CommandModel.Policies
 {
     public record UpdatePolicy
     {
-        public bool IsEnabled { get; init; } = false;
+        public bool IsEnabled { get; set; } = false;
 
-        public string? Source { get; init; } = null;
+        public string? Source { get; set; } = null;
 
-        public string? Query { get; init; } = null;
+        public string? Query { get; set; } = null;
 
-        public bool IsTransactional { get; init; } = false;
+        public bool IsTransactional { get; set; } = false;
 
-        public bool PropagateIngestionProperties { get; init; } = false;
+        public bool PropagateIngestionProperties { get; set; } = false;
+    }
+
+    [JsonSerializable(typeof(UpdatePolicy))]
+    [JsonSerializable(typeof(IImmutableList<UpdatePolicy>))]
+    internal partial class UpdatePolicySerializerContext : JsonSerializerContext
+    {
     }
 }

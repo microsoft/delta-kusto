@@ -73,7 +73,7 @@ namespace delta_kusto
         private static void DisplayGenericException(Exception ex, string tab = "")
         {
             Console.Error.WriteLine($"{tab}Exception encountered:  {ex.GetType().FullName} ; {ex.Message}");
-            Console.Error.WriteLine(ex.StackTrace);
+            Console.Error.WriteLine($"{tab}Stack trace:  {ex.StackTrace}");
             if (ex.InnerException != null)
             {
                 DisplayGenericException(ex.InnerException, tab + "  ");
