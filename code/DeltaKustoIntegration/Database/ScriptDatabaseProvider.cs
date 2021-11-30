@@ -33,7 +33,8 @@ namespace DeltaKustoIntegration.Database
             _tracer.WriteLine(true, "Retrieve scripts DB start");
 
             var scriptTasks = _scripts
-                .Select(s => LoadScriptsAsync(s, ct));
+                .Select(s => LoadScriptsAsync(s, ct))
+                .ToArray();
 
             await Task.WhenAll(scriptTasks);
 
