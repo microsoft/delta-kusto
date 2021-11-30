@@ -111,7 +111,6 @@ jobs:
       shell:  bash
       run: |
         dotnet test code/DeltaKustoAdxIntegrationTest \
-        --blame-hang-timeout 20s \
         --configuration Release --no-build --verbosity normal
 
   mac:
@@ -183,7 +182,6 @@ jobs:
       shell:  bash
       run: |
         dotnet test code/DeltaKustoFileIntegrationTest \
-        --blame-hang-timeout 30s \
         --configuration Release --no-build --verbosity normal
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
     - name: ADX-based integration tests (out-of-proc)
@@ -266,5 +264,4 @@ jobs:
       shell:  bash
       run: |
         dotnet test code/DeltaKustoAdxIntegrationTest \
-        --blame-hang-timeout 20s \
         --configuration Release --no-build --verbosity normal
