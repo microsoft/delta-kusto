@@ -1,14 +1,12 @@
 ﻿using CommandLine;
 using CommandLine.Text;
 using DeltaKustoIntegration;
-using DeltaKustoIntegration.Kusto;
 using DeltaKustoLib;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace delta_kusto
@@ -75,6 +73,7 @@ namespace delta_kusto
         private static void DisplayGenericException(Exception ex, string tab = "")
         {
             Console.Error.WriteLine($"{tab}Exception encountered:  {ex.GetType().FullName} ; {ex.Message}");
+            Console.Error.WriteLine(ex.StackTrace);
             if (ex.InnerException != null)
             {
                 DisplayGenericException(ex.InnerException, tab + "  ");
