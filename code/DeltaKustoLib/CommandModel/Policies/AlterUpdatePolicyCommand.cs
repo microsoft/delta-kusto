@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace DeltaKustoLib.CommandModel.Policies
 {
@@ -15,10 +16,11 @@ namespace DeltaKustoLib.CommandModel.Policies
     [Command(16000, "Alter Update Policies")]
     public class AlterUpdatePolicyCommand : TableOnlyPolicyCommandBase
     {
-        private static readonly JsonSerializerOptions _policiesSerializerOptions = new JsonSerializerOptions
-        {
-            WriteIndented = true
-        };
+        private static readonly UpdatePolicySerializerContext _serializerContext = new UpdatePolicySerializerContext(
+            new JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
 
         public IImmutableList<UpdatePolicy> UpdatePolicies { get; }
 
@@ -89,7 +91,7 @@ namespace DeltaKustoLib.CommandModel.Policies
             builder.Append(" policy update");
             builder.AppendLine();
             builder.Append("```");
-            builder.Append(Serialize(UpdatePolicies, _policiesSerializerOptions));
+            builder.Append(Serialize(UpdatePolicies, _serializerContext));
             builder.AppendLine();
             builder.Append("```");
 

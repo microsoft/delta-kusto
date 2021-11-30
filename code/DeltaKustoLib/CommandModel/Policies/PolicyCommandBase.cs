@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace DeltaKustoLib.CommandModel.Policies
@@ -82,10 +83,11 @@ namespace DeltaKustoLib.CommandModel.Policies
             return document;
         }
 
-        [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2026:RequiresUnreferencedCode")]
-        protected static string Serialize<T>(T obj, JsonSerializerOptions? options = null)
+        protected static string Serialize<T>(T obj, JsonSerializerContext serializerContext)
         {
-            return JsonSerializer.Serialize(obj, options);
+            var buffer = JsonSerializer.SerializeToUtf8Bytes(obj, typeof(T), serializerContext);
+
+            return UTF8Encoding.ASCII.GetString(buffer);
         }
 
         private bool ElementEquals(JsonElement element1, JsonElement element2)
