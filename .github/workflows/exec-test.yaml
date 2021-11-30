@@ -200,7 +200,7 @@ jobs:
       # See OS catalog here:  https://docs.microsoft.com/en-us/dotnet/core/rid-catalog
       dotnetOs:  win-x64
       exec:  delta-kusto
-      deltaDbPrefix:  github_windows_
+      deltaDbPrefix:  github_win_
       
     steps:
     - uses: actions/checkout@v2
