@@ -42,8 +42,9 @@ namespace delta_kusto
 
         private class ErrorInput
         {
-            public ErrorInput(Exception ex)
+            public ErrorInput(string sessionId, Exception ex)
             {
+                SessionId = sessionId;
                 Source = ex.Source ?? string.Empty;
                 Exceptions = ExceptionInfo.FromException(ex);
             }
@@ -103,6 +104,7 @@ namespace delta_kusto
 
         private readonly ITracer _tracer;
         private readonly SimpleHttpClientFactory _httpClientFactory;
+        private string _sessionId = string.Empty;
 
         public ApiClient(ITracer tracer, SimpleHttpClientFactory httpClientFactory)
         {
@@ -132,6 +134,8 @@ namespace delta_kusto
 
                     if (output != null)
                     {
+                        _sessionId = output.SessionId;
+
                         return output.NewestVersions;
                     }
                 }
@@ -154,7 +158,9 @@ namespace delta_kusto
                 _tracer.WriteLine(true, "RegisterExceptionAsync - Start");
                 try
                 {
-                    var output = await PostAsync<ErrorOutput>("/error", new ErrorInput(ex), ct);
+                    var output = await PostAsync<ErrorOutput>(
+                        "/error",
+                        new ErrorInput(_sessionId, ex), ct);
 
                     _tracer.WriteLine(true, "RegisterExceptionAsync - End");
 
