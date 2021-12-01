@@ -35,6 +35,8 @@ namespace delta_kusto
         {
             public ApiInfo ApiInfo { get; set; } = new ApiInfo();
 
+            public string SessionId { get; set; } = string.Empty;
+
             public IImmutableList<string> NewestVersions { get; set; } = ImmutableArray<string>.Empty;
         }
 
@@ -47,6 +49,8 @@ namespace delta_kusto
             }
 
             public ClientInfo ClientInfo { get; set; } = new ClientInfo();
+
+            public string SessionId { get; set; } = string.Empty;
 
             public string Source { get; set; }
 

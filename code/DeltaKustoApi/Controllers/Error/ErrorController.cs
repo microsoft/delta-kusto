@@ -25,15 +25,24 @@ namespace DeltaKustoApi.Controllers.Error
         public ErrorOutput Post(ErrorInput input)
         {
             try
-            {
+            {   //  Fixing error from version previous to 0.3.0
+                Guid operationId;
+
+                if (!Guid.TryParse(input.SessionId, out operationId))
+                {
+                    operationId = Guid.Empty;
+                }
                 _telemetryWriter.PostTelemetry(input, Request);
-         
-                return new ErrorOutput();
+
+                return new ErrorOutput()
+                {
+                    OperationID = operationId
+                };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-             
+
                 return new ErrorOutput();
             }
         }
