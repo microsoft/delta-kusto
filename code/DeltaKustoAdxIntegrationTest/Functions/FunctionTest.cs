@@ -31,7 +31,7 @@ namespace DeltaKustoAdxIntegrationTest.Functions
             var outputPath = parameters.Jobs.First().Value.Action!.FolderPath!;
             var outputCommands = await LoadScriptAsync(
                 paramsPath,
-                Path.Combine(outputPath, "functions/create/root/branch/sub/MyFunction.kql"));
+                Path.Combine(outputPath, "functions/create/root/branch_departments/sub/MyFunction.kql"));
 
             Assert.Single(outputCommands);
             Assert.IsType<CreateFunctionCommand>(outputCommands.First());

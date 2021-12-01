@@ -27,7 +27,7 @@ namespace DeltaKustoLib.CommandModel
         public override string SortIndex => $"{Folder?.Text}_{TableName.Name}";
 
         public override string ScriptPath => Folder != null && Folder.Text.Any()
-            ? $"tables/create/{Folder.Text}/{TableName}"
+            ? $"tables/create/{FolderHelper.Escape(Folder).Text}/{TableName}"
             : $"tables/create/{TableName}";
 
         internal CreateTableCommand(
