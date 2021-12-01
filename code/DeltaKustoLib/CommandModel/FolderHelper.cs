@@ -16,7 +16,6 @@ namespace DeltaKustoLib.CommandModel
             builder.Replace('>', '_');
             builder.Replace(':', '_');
             builder.Replace('\"', '_');
-            builder.Replace('/', '_');
             builder.Replace('\\', '_');
             builder.Replace('|', '_');
             builder.Replace('?', '_');
