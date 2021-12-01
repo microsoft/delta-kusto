@@ -35,11 +35,19 @@ namespace DeltaKustoApi.Controllers.Activation
         {
             var newestVersions = await _clientVersionCacheProxy.GetNewestClientVersionsAsync(
                 input.ClientInfo.ClientVersion);
+            var sessionId = Guid.NewGuid().ToString();
 
-            _telemetryWriter.PostTelemetry(input, Request);
+            _telemetryWriter.PostTelemetry(
+                new
+                {
+                    SessionId = sessionId,
+                    ClientInfo = input.ClientInfo
+                },
+                Request);
 
             return new ActivationOutput
             {
+                SessionId = sessionId,
                 NewestVersions = newestVersions
             };
         }

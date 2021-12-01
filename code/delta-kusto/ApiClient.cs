@@ -1,4 +1,5 @@
 ﻿using DeltaKustoIntegration;
+using DeltaKustoIntegration.Parameterization;
 using DeltaKustoLib;
 using System;
 using System.Collections.Generic;
@@ -35,18 +36,21 @@ namespace delta_kusto
         {
             public ApiInfo ApiInfo { get; set; } = new ApiInfo();
 
+            public string SessionId { get; set; } = string.Empty;
+
             public IImmutableList<string> NewestVersions { get; set; } = ImmutableArray<string>.Empty;
         }
 
         private class ErrorInput
         {
-            public ErrorInput(Exception ex)
+            public ErrorInput(string sessionId, Exception ex)
             {
+                SessionId = sessionId;
                 Source = ex.Source ?? string.Empty;
                 Exceptions = ExceptionInfo.FromException(ex);
             }
 
-            public ClientInfo ClientInfo { get; set; } = new ClientInfo();
+            public string SessionId { get; set; } = string.Empty;
 
             public string Source { get; set; }
 
@@ -89,6 +93,128 @@ namespace delta_kusto
 
             public Guid OperationID { get; set; } = Guid.NewGuid();
         }
+
+        private class EndSessionInput
+        {
+            public EndSessionInput(string sessionId, bool isSuccess)
+            {
+                SessionId = sessionId;
+                IsSuccess = isSuccess;
+            }
+
+            public string SessionId { get; set; } = string.Empty;
+
+            public bool IsSuccess { get; set; }
+        }
+
+        private class EndSessionOutput
+        {
+            public ApiInfo ApiInfo { get; set; } = new ApiInfo();
+        }
+
+        private class LogParameterTelemetryInput
+        {
+            public LogParameterTelemetryInput(string sessionId, MainParameterization parameters)
+            {
+                SessionId = sessionId;
+                SendErrorOptIn = parameters.SendErrorOptIn;
+                FailIfDataLoss = parameters.FailIfDataLoss;
+                TokenProvider = ExtractTokenProvider(parameters.TokenProvider);
+                Jobs = parameters.Jobs.Values.Select(j => new JobInfo(j)).ToArray();
+            }
+
+            public string SessionId { get; set; } = string.Empty;
+
+            public bool SendErrorOptIn { get; set; }
+
+            public bool FailIfDataLoss { get; set; }
+
+            public string TokenProvider { get; set; }
+
+            public JobInfo[] Jobs { get; set; }
+
+            private string ExtractTokenProvider(TokenProviderParameterization tokenProvider)
+            {
+                if (tokenProvider.Login != null)
+                {
+                    return "Login";
+                }
+                else if (tokenProvider.Tokens != null)
+                {
+                    return "Tokens";
+                }
+                else
+                {
+                    return "None";
+                }
+            }
+        }
+
+        private class JobInfo
+        {
+            public JobInfo(JobParameterization job)
+            {
+                Current = ExtractSource(job.Current);
+                Target = ExtractSource(job.Target);
+                FilePath = job.Action!.FilePath != null;
+                FolderPath = job.Action!.FolderPath != null;
+                UsePluralForms = job.Action!.UsePluralForms;
+                PushToConsole = job.Action!.PushToConsole;
+            }
+
+            public string Current { get; set; }
+
+            public string Target { get; set; }
+
+            public bool FilePath { get; set; }
+
+            public bool FolderPath { get; set; }
+
+            public bool UsePluralForms { get; set; }
+
+            public bool PushToConsole { get; set; }
+
+            public bool PushToCurrent { get; set; }
+
+            private string ExtractSource(SourceParameterization? current)
+            {
+                if (current == null)
+                {
+                    return "None";
+                }
+                else if (current.Adx != null)
+                {
+                    return "Cluster";
+                }
+                else if (current.Scripts != null)
+                {
+                    if (current.Scripts.FirstOrDefault() != null)
+                    {
+                        if (current.Scripts.First().FilePath != null)
+                        {
+                            return "File";
+                        }
+                        else
+                        {
+                            return "Folder";
+                        }
+                    }
+                    else
+                    {
+                        return "NoScript";
+                    }
+                }
+                else
+                {
+                    return "Unknown";
+                }
+            }
+        }
+
+        private class LogParameterTelemetryOutput
+        {
+            public ApiInfo ApiInfo { get; set; } = new ApiInfo();
+        }
         #endregion
 
         private const string DEFAULT_ROOT_URL = "https://delta-kusto.azurefd.net/";
@@ -99,6 +225,7 @@ namespace delta_kusto
 
         private readonly ITracer _tracer;
         private readonly SimpleHttpClientFactory _httpClientFactory;
+        private string _sessionId = string.Empty;
 
         public ApiClient(ITracer tracer, SimpleHttpClientFactory httpClientFactory)
         {
@@ -128,6 +255,8 @@ namespace delta_kusto
 
                     if (output != null)
                     {
+                        _sessionId = output.SessionId;
+
                         return output.NewestVersions;
                     }
                 }
@@ -140,7 +269,30 @@ namespace delta_kusto
             return null;
         }
 
-        public async Task<Guid?> RegisterExceptionAsync(Exception ex)
+        public async Task LogParameterTelemetryAsync(MainParameterization parameters)
+        {
+            if (_doApiCalls)
+            {
+                var tokenSource = new CancellationTokenSource(TIMEOUT);
+                var ct = tokenSource.Token;
+
+                _tracer.WriteLine(true, "LogParameterTelemetryAsync - Start");
+                try
+                {
+                    var output = await PostAsync<LogParameterTelemetryOutput>(
+                        "/logparametertelemetry",
+                        new LogParameterTelemetryInput(_sessionId, parameters), ct);
+
+                    _tracer.WriteLine(true, "LogParameterTelemetryAsync - End");
+                }
+                catch
+                {
+                    _tracer.WriteLine(true, "LogParameterTelemetryAsync - Failed");
+                }
+            }
+        }
+
+        public async Task<string?> RegisterExceptionAsync(Exception ex)
         {
             if (_doApiCalls)
             {
@@ -150,11 +302,13 @@ namespace delta_kusto
                 _tracer.WriteLine(true, "RegisterExceptionAsync - Start");
                 try
                 {
-                    var output = await PostAsync<ErrorOutput>("/error", new ErrorInput(ex), ct);
+                    var output = await PostAsync<ErrorOutput>(
+                        "/error",
+                        new ErrorInput(_sessionId, ex), ct);
 
                     _tracer.WriteLine(true, "RegisterExceptionAsync - End");
 
-                    return output?.OperationID;
+                    return _sessionId;
                 }
                 catch
                 {
@@ -163,6 +317,29 @@ namespace delta_kusto
             }
 
             return null;
+        }
+
+        public async Task EndSessionAsync(bool success)
+        {
+            if (_doApiCalls)
+            {
+                var tokenSource = new CancellationTokenSource(TIMEOUT);
+                var ct = tokenSource.Token;
+
+                _tracer.WriteLine(true, "EndSessionAsync - Start");
+                try
+                {
+                    var output = await PostAsync<EndSessionOutput>(
+                        "/endsession",
+                        new EndSessionInput(_sessionId, success), ct);
+
+                    _tracer.WriteLine(true, "EndSessionAsync - End");
+                }
+                catch
+                {
+                    _tracer.WriteLine(true, "EndSessionAsync - Failed");
+                }
+            }
         }
 
         private static string ComputeRootUrl()

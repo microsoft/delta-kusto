@@ -63,6 +63,7 @@ namespace delta_kusto
 
             var parameters =
                 await LoadParameterizationAsync(parameterFilePath, pathOverrides);
+            var parameterTelemetryTask = _apiClient.LogParameterTelemetryAsync(parameters);
             var parameterFolderPath = Path.GetDirectoryName(parameterFilePath);
 
             try
@@ -88,19 +89,25 @@ namespace delta_kusto
                     success = success && jobSuccess;
                 }
 
+                await _apiClient.EndSessionAsync(success);
+
                 return success;
             }
             catch (Exception ex)
             {
                 if (parameters.SendErrorOptIn)
                 {
-                    var operationID = await _apiClient.RegisterExceptionAsync(ex);
+                    var sessionID = await _apiClient.RegisterExceptionAsync(ex);
 
                     _tracer.WriteLine(
                         false,
-                        $"Exception registered with Operation ID '{operationID}'");
+                        $"Exception registered with Session ID '{sessionID}'");
                 }
                 throw;
+            }
+            finally
+            {
+                await parameterTelemetryTask;
             }
         }
 
