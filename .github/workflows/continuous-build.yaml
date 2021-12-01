@@ -31,9 +31,9 @@ jobs:
     - name: Unit Tests
       run: |
         dotnet test code/DeltaKustoUnitTest --configuration Release \
-          --no-build --verbosity normal --blame-hang-timeout 5s
+          --no-build --verbosity normal
     - name: File-base integration tests (in-proc)
       run: |
         dotnet test code/DeltaKustoFileIntegrationTest --configuration Release \
-          --no-build --verbosity normal --blame-hang-timeout 3s \
+          --no-build --verbosity normal \
           -p:ParallelizeTestCollections=false
