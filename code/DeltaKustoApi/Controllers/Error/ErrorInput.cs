@@ -2,8 +2,6 @@
 {
     public class ErrorInput
     {
-        public ClientInfo ClientInfo { get; set; } = new ClientInfo();
-
         public string SessionId { get; set; } = string.Empty;
         
         public string Source { get; set; } = "";
