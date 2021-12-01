@@ -145,7 +145,7 @@ namespace delta_kusto
                 }
                 else
                 {
-                    return "Others?";
+                    return "None";
                 }
             }
         }
