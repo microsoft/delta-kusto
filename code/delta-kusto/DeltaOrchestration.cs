@@ -97,11 +97,11 @@ namespace delta_kusto
             {
                 if (parameters.SendErrorOptIn)
                 {
-                    var operationID = await _apiClient.RegisterExceptionAsync(ex);
+                    var sessionID = await _apiClient.RegisterExceptionAsync(ex);
 
                     _tracer.WriteLine(
                         false,
-                        $"Exception registered with Operation ID '{operationID}'");
+                        $"Exception registered with Session ID '{sessionID}'");
                 }
                 throw;
             }

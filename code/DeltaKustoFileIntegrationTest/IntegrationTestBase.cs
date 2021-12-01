@@ -120,9 +120,7 @@ namespace DeltaKustoFileIntegrationTest
         {
             if (_executablePath == null)
             {
-                //  Temporary, just to test API in staging
-                //Environment.SetEnvironmentVariable("disable-api-calls", "true");
-                Environment.SetEnvironmentVariable("api-url", "https://delta-kusto-api-staging-delta-kusto-kkicda6xmeixw.azurewebsites.net");
+                Environment.SetEnvironmentVariable("disable-api-calls", "true");
 
                 var returnedValue = await Program.Main(args);
 

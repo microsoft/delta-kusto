@@ -292,7 +292,7 @@ namespace delta_kusto
             }
         }
 
-        public async Task<Guid?> RegisterExceptionAsync(Exception ex)
+        public async Task<string?> RegisterExceptionAsync(Exception ex)
         {
             if (_doApiCalls)
             {
@@ -308,7 +308,7 @@ namespace delta_kusto
 
                     _tracer.WriteLine(true, "RegisterExceptionAsync - End");
 
-                    return output?.OperationID;
+                    return _sessionId;
                 }
                 catch
                 {
