@@ -5,4 +5,4 @@ jobs:
         scripts:
         - filePath:  target.kql
     action:
-        folderPath:  outputs/toScriptFolder
+        csvPath:  outputs/tocsv.csv
