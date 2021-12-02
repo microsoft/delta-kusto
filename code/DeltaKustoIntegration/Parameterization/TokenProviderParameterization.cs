@@ -12,24 +12,30 @@ namespace DeltaKustoIntegration.Parameterization
 
         public ServicePrincipalLoginParameterization? Login { get; set; }
 
+        public bool SystemManagedIdentity { get; set; } = false;
+
+        public UserManagedIdentityParameterization? UserManagedIdentity { get; set; }
+
         internal void Validate()
         {
-            if (Tokens != null && Login != null)
+            var tokenProviderCount = (Tokens != null ? 1 : 0)
+                + (Login != null ? 1 : 0)
+                + (!SystemManagedIdentity ? 1 : 0)
+                + (UserManagedIdentity != null ? 1 : 0);
+
+            if (tokenProviderCount > 1)
             {
-                throw new DeltaException(
-                    "Both 'tokens' and 'login' can't both be populated in token provider");
+                throw new DeltaException("Only one token provider can be populated");
             }
-            if (Tokens == null && Login == null)
+            if (tokenProviderCount == 0)
             {
-                throw new DeltaException(
-                    "Either 'tokens' or 'login' must be populated in a source");
+                throw new DeltaException("At least one token provider must be populated");
             }
             if (Tokens != null)
             {
                 if (Tokens.Count == 0)
                 {
-                    throw new DeltaException(
-                        "'tokens' can't be empty");
+                    throw new DeltaException("'tokens' can't be empty");
                 }
                 foreach (var map in Tokens.Values)
                 {
@@ -56,6 +62,10 @@ namespace DeltaKustoIntegration.Parameterization
             if (Login != null)
             {
                 Login.Validate();
+            }
+            if (UserManagedIdentity != null)
+            {
+                UserManagedIdentity.Validate();
             }
         }
     }

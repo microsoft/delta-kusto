@@ -86,6 +86,14 @@ namespace DeltaKustoIntegration.Kusto
                     throw new DeltaException($"No token was provided for {clusterUri}");
                 }
             }
+            else if (tokenProvider.SystemManagedIdentity)
+            {
+                return builder.WithAadSystemManagedIdentity();
+            }
+            else if (tokenProvider.UserManagedIdentity != null)
+            {
+                return builder.WithAadUserManagedIdentity(tokenProvider.UserManagedIdentity.ClientId!);
+            }
             else
             {
                 throw new NotSupportedException("Token provider isn't supported");
