@@ -1,0 +1,8 @@
+﻿#   Reverse engineer db content into a folder
+jobs: 
+  main:
+    target:
+        scripts:
+        - filePath:  target.kql
+    action:
+        folderPath:  outputs/toScriptFolder

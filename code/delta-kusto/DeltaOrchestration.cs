@@ -254,6 +254,10 @@ namespace delta_kusto
             {
                 builder.Add(new MultiFilesActionProvider(localFileGateway, action.FolderPath));
             }
+            if (action.CsvPath != null)
+            {
+                builder.Add(new CsvActionProvider(localFileGateway, action.CsvPath));
+            }
             if (action.PushToCurrent)
             {
                 var kustoManagementGateway = kustoGatewayFactory.CreateGateway(
