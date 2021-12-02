@@ -158,6 +158,7 @@ namespace delta_kusto
                 Target = ExtractSource(job.Target);
                 FilePath = job.Action!.FilePath != null;
                 FolderPath = job.Action!.FolderPath != null;
+                CsvPath = job.Action!.CsvPath != null;
                 UsePluralForms = job.Action!.UsePluralForms;
                 PushToConsole = job.Action!.PushToConsole;
             }
@@ -169,6 +170,8 @@ namespace delta_kusto
             public bool FilePath { get; set; }
 
             public bool FolderPath { get; set; }
+
+            public bool CsvPath { get; set; }
 
             public bool UsePluralForms { get; set; }
 

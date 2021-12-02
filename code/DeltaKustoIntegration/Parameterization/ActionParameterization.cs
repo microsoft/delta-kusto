@@ -8,7 +8,9 @@ namespace DeltaKustoIntegration.Parameterization
     {
         public string? FilePath { get; set; } = null;
 
-        public string? FolderPath { get; set; }
+        public string? FolderPath { get; set; } = null;
+        
+        public string? CsvPath { get; set; } = null;
 
         public bool UsePluralForms { get; set; } = false;
 
@@ -20,6 +22,7 @@ namespace DeltaKustoIntegration.Parameterization
         {
             if (string.IsNullOrWhiteSpace(FilePath)
                 && string.IsNullOrWhiteSpace(FolderPath)
+                && string.IsNullOrWhiteSpace(CsvPath)
                 && !PushToCurrent
                 && !PushToConsole)
             {
@@ -29,6 +32,16 @@ namespace DeltaKustoIntegration.Parameterization
             {
                 throw new DeltaException(
                     "Both 'filePath' and 'folderPath' can't both be populated");
+            }
+            if (!string.IsNullOrWhiteSpace(FilePath) && !string.IsNullOrWhiteSpace(CsvPath))
+            {
+                throw new DeltaException(
+                    "Both 'filePath' and 'csvPath' can't both be populated");
+            }
+            if (!string.IsNullOrWhiteSpace(FolderPath) && !string.IsNullOrWhiteSpace(CsvPath))
+            {
+                throw new DeltaException(
+                    "Both 'folderPath' and 'csvPath' can't both be populated");
             }
         }
     }
