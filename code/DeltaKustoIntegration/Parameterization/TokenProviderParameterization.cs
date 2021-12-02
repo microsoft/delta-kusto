@@ -20,7 +20,7 @@ namespace DeltaKustoIntegration.Parameterization
         {
             var tokenProviderCount = (Tokens != null ? 1 : 0)
                 + (Login != null ? 1 : 0)
-                + (!SystemManagedIdentity ? 1 : 0)
+                + (SystemManagedIdentity ? 1 : 0)
                 + (UserManagedIdentity != null ? 1 : 0);
 
             if (tokenProviderCount > 1)
