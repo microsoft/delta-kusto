@@ -41,6 +41,9 @@ tokenProvider:
         tenantId:  "string"
         clientId:  "string"
         secret:  "string"
+    systemManagedIdentity:  "boolean"
+    userManagedIdentity:
+        clientId:  "string"
 ```
 
 ## Property Values
@@ -74,6 +77,8 @@ Name|Type|Required|Default|Value
 -|-|-|-|-
 tokens|dictionary|No|N/A|Dictionary mapping a token *name* to a [Token object](#token-object).
 login|object|No|N/A|[Login object](#login-object).
+systemManagedIdentity|boolean|No|false|Opting in means using the system managed identity of whatever compute Delta Kusto runs on (e.g. Azure VM, AKS, etc.).
+userManagedIdentity|object|No|N/A|[User Managed Identity object](#user-managed-identity-object).
 
 Although both properties are not required, one (and only one) of them must be provided if the token provider object is provided.
 
@@ -138,3 +143,9 @@ Name|Type|Required|Default|Value
 tenantId|string|Yes|N/A|Azure AD Tenant ID
 clientId|string|Yes|N/A|Client ID, also known as *Application ID*, of a Azure AD Service Principal
 secret|string|Yes|N/A|Secret associated to an Azure AD Service Principal
+
+### User Managed Identity object
+
+Name|Type|Required|Default|Value
+-|-|-|-|-
+clientId|string|Yes|N/A|Client ID of the User Managed Identity
