@@ -38,8 +38,8 @@ namespace DeltaKustoIntegration.Kusto
                     if (!_providerCache.TryGetValue(clusterUri, out commandProvider))
                     {
                         var kustoConnectionStringBuilder = CreateKustoConnectionStringBuilder(
-                        clusterUri,
-                        _tokenProvider);
+                            clusterUri,
+                            _tokenProvider);
 
                         commandProvider =
                             KustoClientFactory.CreateCslCmAdminProvider(kustoConnectionStringBuilder);
