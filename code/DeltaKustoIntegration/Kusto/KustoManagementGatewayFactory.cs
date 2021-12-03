@@ -38,8 +38,8 @@ namespace DeltaKustoIntegration.Kusto
                     if (!_providerCache.TryGetValue(clusterUri, out commandProvider))
                     {
                         var kustoConnectionStringBuilder = CreateKustoConnectionStringBuilder(
-                        clusterUri,
-                        _tokenProvider);
+                            clusterUri,
+                            _tokenProvider);
 
                         commandProvider =
                             KustoClientFactory.CreateCslCmAdminProvider(kustoConnectionStringBuilder);
@@ -85,6 +85,14 @@ namespace DeltaKustoIntegration.Kusto
                 {
                     throw new DeltaException($"No token was provided for {clusterUri}");
                 }
+            }
+            else if (tokenProvider.SystemManagedIdentity)
+            {
+                return builder.WithAadSystemManagedIdentity();
+            }
+            else if (tokenProvider.UserManagedIdentity != null)
+            {
+                return builder.WithAadUserManagedIdentity(tokenProvider.UserManagedIdentity.ClientId!);
             }
             else
             {
