@@ -63,10 +63,10 @@ namespace DeltaKustoIntegration.Kusto
             var mappingCommands = Select(
                 mappingsOutput,
                 r => new CreateMappingCommand(
-                    new EntityName((string)r["Name"]),
+                    new EntityName((string)r["Table"]),
                     (string)r["Kind"],
-                    new QuotedText((string)r["Mapping"]),
-                    new QuotedText((string)r["Table"])))
+                    new QuotedText((string)r["Name"]),
+                    new QuotedText((string)r["Mapping"])))
                 .Cast<CommandBase>()
                 .ToImmutableArray();
             var allCommands = schemaCommands
@@ -151,7 +151,7 @@ namespace DeltaKustoIntegration.Kusto
                 {
                     var reader = await _commandProvider.ExecuteControlCommandAsync(
                         _database, commandScript);
-                
+
                     return reader;
                 });
             }
