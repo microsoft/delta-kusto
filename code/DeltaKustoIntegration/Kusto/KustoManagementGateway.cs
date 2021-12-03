@@ -49,9 +49,7 @@ namespace DeltaKustoIntegration.Kusto
             _tracer.WriteLine(true, "Fetch schema commands start");
 
             var schemaOutputTask = ExecuteCommandAsync(".show database schema as csl script", ct);
-            var mappingsOutputTask = ExecuteCommandAsync(
-                ".show ingestion mappings | where Database==current_database()",
-                ct);
+            var mappingsOutputTask = ExecuteCommandAsync(".show database ingestion mappings", ct);
             var schemaOutput = await schemaOutputTask;
             var mappingsOutput = await mappingsOutputTask;
 
