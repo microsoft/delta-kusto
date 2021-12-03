@@ -132,6 +132,7 @@ namespace delta_kusto
             {
                 h.AutoVersion = false;
                 h.Copyright = string.Empty;
+                h.Heading = string.Empty;
 
                 return HelpText.DefaultParsingErrorsHandler(result, h);
             }, example => example);
