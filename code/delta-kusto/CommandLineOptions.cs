@@ -13,7 +13,7 @@ namespace delta_kusto
         [Option('p', "parameter", Required = true, HelpText = "Set parameter file path.")]
         public string ParameterFilePath { get; set; } = string.Empty;
 
-        [Option('o', "parameter", Required = false, HelpText = "Parameter path overrides (list).")]
+        [Option('o', "override", Required = false, HelpText = "Parameter path overrides (list).")]
         public IEnumerable<string> Overrides { get; set; } = new string[0];
     }
 }
