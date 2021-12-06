@@ -1,0 +1,10 @@
+﻿//	Random comment
+
+.create function with (folder='simple') MyFunctionRoot() { 42 }
+
+.create function with (folder='simple') MyFunction1() { 42 }
+
+.create function with (folder='simple') MyFunction2() { 42 }
+
+.create function with (folder='simple') MyFunction21() { 42 }
+

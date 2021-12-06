@@ -84,9 +84,9 @@ namespace DeltaKustoIntegration
             }
             foreach (var directory in directories)
             {
-                var directoryName = Path.GetDirectoryName(directory)!;
+                var directoryName = Path.GetFileName(directory)!;
                 var localFileGateway = fileGateway.ChangeFolder(directoryName);
-                var scripts = fileGateway.GetFolderContentsAsync(extensions, ct);
+                var scripts = localFileGateway.GetFolderContentsAsync(extensions, ct);
 
                 await foreach (var script in scripts)
                 {

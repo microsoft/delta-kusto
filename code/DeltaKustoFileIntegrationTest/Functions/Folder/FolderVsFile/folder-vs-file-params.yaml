@@ -1,0 +1,10 @@
+﻿jobs: 
+  main:
+    current:
+      scripts:
+        - folderPath:  source
+    target:
+      scripts:
+        - filePath:  target.kql
+    action:
+      filePath:  outputs/folder-vs-file.kql

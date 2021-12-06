@@ -1,0 +1,2 @@
+﻿.create function with (folder='simple') MyFunctionRoot() { 42 }
+
