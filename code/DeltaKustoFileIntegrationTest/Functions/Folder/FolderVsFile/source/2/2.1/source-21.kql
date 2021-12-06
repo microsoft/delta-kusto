@@ -1,0 +1,1 @@
+﻿.create function with (folder='simple') MyFunction21() { 42 }

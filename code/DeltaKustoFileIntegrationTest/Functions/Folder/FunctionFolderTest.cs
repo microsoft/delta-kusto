@@ -34,6 +34,17 @@ namespace DeltaKustoFileIntegrationTest.Functions.Folder
                 "my folder");
         }
 
+        [Fact]
+        public async Task FolderVsFile()
+        {
+            var paramPath = "Functions/Folder/FolderVsFile/folder-vs-file-params.yaml";
+            var parameters = await RunParametersAsync(paramPath);
+            var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
+            var outputCommands = await LoadScriptAsync(paramPath, outputPath);
+
+            Assert.Empty(outputCommands);
+        }
+
         private async Task TestFunctionWithFolderAsync(string paramPath, string folderPath)
         {
             var parameters = await RunParametersAsync(paramPath);
