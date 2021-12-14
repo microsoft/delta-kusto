@@ -1,0 +1,3 @@
+﻿.create table GithubEvent (Id: int, Type: string, Actor: dynamic, Repo: dynamic, Payload: dynamic, CreatedAt: datetime)
+
+.create table OccupancyDetection (Timestamp: datetime, Temperature: real, Humidity: real, Light: real, CO2: real, HumidityRatio: real, Occupancy: bool, Test: bool)

@@ -1,0 +1,13 @@
+﻿jobs:
+  main:
+    current:
+      adx:
+        clusterUri: to-be-overriden
+        database: to-be-overriden
+    target:
+      scripts:
+        - filePath: source.kql
+    action:
+      pushToCurrent: true
+tokenProvider:
+  systemManagedIdentity: true
