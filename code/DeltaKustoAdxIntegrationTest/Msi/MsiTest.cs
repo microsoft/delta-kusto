@@ -42,5 +42,32 @@ namespace DeltaKustoAdxIntegrationTest.Msi
             {
             }
         }
+
+        /// <summary>
+        /// Idem
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task TestUserManagedMsi()
+        {
+            try
+            {
+                var targetDbName = await InitializeDbAsync();
+                var overrides = ImmutableArray<(string path, string value)>
+                    .Empty
+                    .Add(("jobs.main.target.adx.clusterUri", ClusterUri.ToString()))
+                    .Add(("jobs.main.target.adx.database", targetDbName));
+
+                await RunParametersAsync("Msi/UserAssigned/user-assigned.yaml", overrides);
+            }
+            //  This should be thrown when we're in-proc
+            catch (DeltaException)
+            {
+            }
+            //  This should be thrown when we're out-of-proc
+            catch (InvalidOperationException)
+            {
+            }
+        }
     }
 }
