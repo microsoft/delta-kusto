@@ -14,6 +14,12 @@ namespace DeltaKustoAdxIntegrationTest.Msi
 {
     public class MsiTest : AdxIntegrationTestBase
     {
+        /// <summary>
+        /// This test doesn't test much.  It is only there to track the missing Azure.Identity
+        /// assembly issue in integration tests (with a single file exec).
+        /// See https://github.com/microsoft/delta-kusto/issues/86.
+        /// </summary>
+        /// <returns></returns>
         [Fact]
         public async Task TestSystemManagedMsi()
         {
