@@ -68,6 +68,10 @@ namespace delta_kusto
 
                 return 1;
             }
+            finally
+            {
+                Console.Out.Flush();
+            }
         }
 
         private static void DisplayGenericException(Exception ex, string tab = "")
