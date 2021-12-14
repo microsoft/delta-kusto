@@ -111,9 +111,8 @@ jobs:
         set -e
         cd code/perf-test
         # Package the login in a JSON payload
-        # login='{"tenantId":"${{ secrets.test_tenant_id }}","clientId":"${{ secrets.TESTER_SP_ID }}","secret":"${{ secrets.TESTER_SP_SECRET }}"}'
-        # ./delta-kusto -p from-parameters.yaml -o tokenProvider.login=$login
-        ./delta-kusto -p from-parameters.yaml -o tokenProvider.systemManagedIdentity=true
+        login='{"tenantId":"${{ secrets.test_tenant_id }}","clientId":"${{ secrets.TESTER_SP_ID }}","secret":"${{ secrets.TESTER_SP_SECRET }}"}'
+        ./delta-kusto -p from-parameters.yaml -o tokenProvider.login=$login
     # Sleep to reset throttling
     - name: Sleep
       run:  sleep 3s
