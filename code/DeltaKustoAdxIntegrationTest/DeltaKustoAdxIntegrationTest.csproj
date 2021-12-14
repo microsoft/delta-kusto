@@ -17,15 +17,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Compile Remove="FailIfDataLoss\**" />
-		<Compile Remove="Functions\**" />
-		<Compile Remove="GivenTokenProvider\**" />
-		<Compile Remove="Mappings\**" />
-		<Compile Remove="Policies\**" />
-		<Compile Remove="Tables\**" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory" Version="5.2.9" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.1" />
 		<PackageReference Include="xunit" Version="2.4.1" />
