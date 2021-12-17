@@ -13,7 +13,7 @@ Here is the list of tutorials for Delta-Kusto:
 * [Delta Kusto Overview](tutorials/overview-tutorial/README.md) (a tour of Delta Kusto)
 * [Delta Kusto Download / Install](tutorials/install/README.md)
 * [Authenticating to ADX Clusters](tutorials/authentication/README.md)
-* [Multi tenant](tutorials/multi-tenant/README.md)
+* Multi tenant
 * Use API to find the latest client version
 * [Using Delta Kusto in Azure DevOps](tutorials/az-dev-ops/README.md)
 * Using Delta Kusto in GitHub Actions
