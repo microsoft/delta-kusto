@@ -30,8 +30,8 @@ namespace delta_kusto
 
         internal static async Task<int> Main(string[] args)
         {
-            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("en-US");
-            CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("en-US");
+            CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+            CultureInfo.CurrentUICulture = CultureInfo.InvariantCulture;
 
             Console.WriteLine();
             Console.WriteLine($"delta-kusto { AssemblyVersion }");
