@@ -156,6 +156,20 @@ namespace DeltaKustoFileIntegrationTest
 
                         await process.WaitForExitAsync(ct);
 
+                        var outputs = await process.StandardOutput.ReadToEndAsync();
+                        var errors = await process.StandardError.ReadToEndAsync();
+
+                        if (!string.IsNullOrWhiteSpace(outputs))
+                        {
+                            Console.WriteLine("Outputs:");
+                            Console.WriteLine(outputs);
+                        }
+                        if (!string.IsNullOrWhiteSpace(errors))
+                        {
+                            Console.WriteLine("Errors:");
+                            Console.WriteLine(errors);
+                        }
+
                         return process.ExitCode;
                     }
                     else
