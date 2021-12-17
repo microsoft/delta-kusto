@@ -113,7 +113,7 @@ namespace DeltaKustoFileIntegrationTest
         }
 
         protected SimpleHttpClientFactory HttpClientFactory { get; }
-        
+
         protected ITracer Tracer { get; }
 
         protected async virtual Task<int> RunMainAsync(params string[] args)
@@ -137,10 +137,6 @@ namespace DeltaKustoFileIntegrationTest
                     {
                         process.StartInfo.ArgumentList.Add(arg);
                     }
-                    process.OutputDataReceived +=
-                        (sender, data) => Console.WriteLine(data.Data);
-                    process.ErrorDataReceived +=
-                        (sender, data) => Console.WriteLine(data.Data);
 
                     var started = process.Start();
 
@@ -149,6 +145,20 @@ namespace DeltaKustoFileIntegrationTest
                         var ct = new CancellationTokenSource(PROCESS_TIMEOUT).Token;
 
                         await process.WaitForExitAsync(ct);
+
+                        var output = await process.StandardOutput.ReadToEndAsync();
+                        var errors = await process.StandardError.ReadToEndAsync();
+
+                        if (output.Length != 0)
+                        {
+                            Console.WriteLine("Output:  ");
+                            Console.WriteLine(output);
+                        }
+                        if (errors.Length != 0)
+                        {
+                            Console.WriteLine("Errors:  ");
+                            Console.WriteLine(errors);
+                        }
 
                         return process.ExitCode;
                     }
