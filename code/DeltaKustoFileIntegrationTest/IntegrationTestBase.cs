@@ -135,6 +135,7 @@ namespace DeltaKustoFileIntegrationTest
                     process.StartInfo.FileName = _executablePath;
                     process.StartInfo.RedirectStandardError = true;
                     process.StartInfo.RedirectStandardOutput = true;
+                    process.StartInfo.UseShellExecute = false;
                     foreach (var arg in args)
                     {
                         process.StartInfo.ArgumentList.Add(arg);
