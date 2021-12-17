@@ -133,10 +133,20 @@ namespace DeltaKustoFileIntegrationTest
                     //  Disable API calls for tests
                     process.StartInfo.EnvironmentVariables.Add("disable-api-calls", "true");
                     process.StartInfo.FileName = _executablePath;
+                    process.StartInfo.RedirectStandardError = true;
+                    process.StartInfo.RedirectStandardOutput = true;
                     foreach (var arg in args)
                     {
                         process.StartInfo.ArgumentList.Add(arg);
                     }
+                    process.OutputDataReceived += (sender, e) =>
+                    {
+                        Console.Write($"Output:  {e.Data}");
+                    };
+                    process.ErrorDataReceived += (sender, e) =>
+                    {
+                        Console.Write($"Error:  {e.Data}");
+                    };
 
                     var started = process.Start();
 
@@ -145,20 +155,6 @@ namespace DeltaKustoFileIntegrationTest
                         var ct = new CancellationTokenSource(PROCESS_TIMEOUT).Token;
 
                         await process.WaitForExitAsync(ct);
-
-                        var output = await process.StandardOutput.ReadToEndAsync();
-                        var errors = await process.StandardError.ReadToEndAsync();
-
-                        if (output.Length != 0)
-                        {
-                            Console.WriteLine("Output:  ");
-                            Console.WriteLine(output);
-                        }
-                        if (errors.Length != 0)
-                        {
-                            Console.WriteLine("Errors:  ");
-                            Console.WriteLine(errors);
-                        }
 
                         return process.ExitCode;
                     }
@@ -169,6 +165,11 @@ namespace DeltaKustoFileIntegrationTest
                     }
                 }
             }
+        }
+
+        private void Process_OutputDataReceived(object sender, DataReceivedEventArgs e)
+        {
+            throw new NotImplementedException();
         }
 
         protected async virtual Task RunSuccessfulMainAsync(params string[] args)
