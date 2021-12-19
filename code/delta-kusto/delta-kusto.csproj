@@ -5,11 +5,16 @@
 		<TargetFramework>net6.0</TargetFramework>
 		<RootNamespace>delta_kusto</RootNamespace>
 		<Nullable>enable</Nullable>
-		<Version>0.8.1</Version>
+		<Version>0.8.2</Version>
 		<!--	Important to avoid the trimming warning hell ; since we automate-test everything, we do not need static analysis	-->
 		<ILLinkTreatWarningsAsErrors>false</ILLinkTreatWarningsAsErrors>
 	</PropertyGroup>
 
+	<!--	This is to avoid Issue https://github.com/microsoft/delta-kusto/issues/89	-->
+	<PropertyGroup>
+		<InvariantGlobalization>true</InvariantGlobalization>
+	</PropertyGroup>
+	
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 	</PropertyGroup>

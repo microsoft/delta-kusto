@@ -113,7 +113,7 @@ namespace DeltaKustoFileIntegrationTest
         }
 
         protected SimpleHttpClientFactory HttpClientFactory { get; }
-        
+
         protected ITracer Tracer { get; }
 
         protected async virtual Task<int> RunMainAsync(params string[] args)
@@ -133,14 +133,21 @@ namespace DeltaKustoFileIntegrationTest
                     //  Disable API calls for tests
                     process.StartInfo.EnvironmentVariables.Add("disable-api-calls", "true");
                     process.StartInfo.FileName = _executablePath;
+                    process.StartInfo.RedirectStandardError = true;
+                    process.StartInfo.RedirectStandardOutput = true;
+                    process.StartInfo.UseShellExecute = false;
                     foreach (var arg in args)
                     {
                         process.StartInfo.ArgumentList.Add(arg);
                     }
-                    process.OutputDataReceived +=
-                        (sender, data) => Console.WriteLine(data.Data);
-                    process.ErrorDataReceived +=
-                        (sender, data) => Console.WriteLine(data.Data);
+                    process.OutputDataReceived += (sender, e) =>
+                    {
+                        Console.Write($"Output:  {e.Data}");
+                    };
+                    process.ErrorDataReceived += (sender, e) =>
+                    {
+                        Console.Write($"Error:  {e.Data}");
+                    };
 
                     var started = process.Start();
 
@@ -149,6 +156,20 @@ namespace DeltaKustoFileIntegrationTest
                         var ct = new CancellationTokenSource(PROCESS_TIMEOUT).Token;
 
                         await process.WaitForExitAsync(ct);
+
+                        var outputs = await process.StandardOutput.ReadToEndAsync();
+                        var errors = await process.StandardError.ReadToEndAsync();
+
+                        if (!string.IsNullOrWhiteSpace(outputs))
+                        {
+                            Console.WriteLine("Outputs:");
+                            Console.WriteLine(outputs);
+                        }
+                        if (!string.IsNullOrWhiteSpace(errors))
+                        {
+                            Console.WriteLine("Errors:");
+                            Console.WriteLine(errors);
+                        }
 
                         return process.ExitCode;
                     }
@@ -159,6 +180,11 @@ namespace DeltaKustoFileIntegrationTest
                     }
                 }
             }
+        }
+
+        private void Process_OutputDataReceived(object sender, DataReceivedEventArgs e)
+        {
+            throw new NotImplementedException();
         }
 
         protected async virtual Task RunSuccessfulMainAsync(params string[] args)
