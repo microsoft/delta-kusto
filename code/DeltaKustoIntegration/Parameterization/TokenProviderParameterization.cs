@@ -14,6 +14,8 @@ namespace DeltaKustoIntegration.Parameterization
 
         public bool SystemManagedIdentity { get; set; } = false;
 
+        public UserPromptParameterization? UserPrompt { get; set; }
+
         public UserManagedIdentityParameterization? UserManagedIdentity { get; set; }
 
         internal void Validate()
@@ -21,6 +23,7 @@ namespace DeltaKustoIntegration.Parameterization
             var tokenProviderCount = (Tokens != null ? 1 : 0)
                 + (Login != null ? 1 : 0)
                 + (SystemManagedIdentity ? 1 : 0)
+                + (UserPrompt != null ? 1 : 0)
                 + (UserManagedIdentity != null ? 1 : 0);
 
             if (tokenProviderCount > 1)
@@ -66,6 +69,10 @@ namespace DeltaKustoIntegration.Parameterization
             if (UserManagedIdentity != null)
             {
                 UserManagedIdentity.Validate();
+            }
+            if (UserPrompt != null)
+            {
+                UserPrompt.Validate();
             }
         }
     }

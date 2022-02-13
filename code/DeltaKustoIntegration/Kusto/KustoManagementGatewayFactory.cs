@@ -94,6 +94,12 @@ namespace DeltaKustoIntegration.Kusto
             {
                 return builder.WithAadUserManagedIdentity(tokenProvider.UserManagedIdentity.ClientId!);
             }
+            else if (tokenProvider.UserPrompt != null)
+            {
+                return builder.WithAadUserPromptAuthentication(
+                    tokenProvider.UserPrompt.TenantId,
+                    tokenProvider.UserPrompt.UserId);
+            }
             else
             {
                 throw new NotSupportedException("Token provider isn't supported");
