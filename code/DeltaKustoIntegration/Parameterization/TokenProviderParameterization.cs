@@ -15,6 +15,8 @@ namespace DeltaKustoIntegration.Parameterization
         public bool SystemManagedIdentity { get; set; } = false;
 
         public UserPromptParameterization? UserPrompt { get; set; }
+        
+        public AzCliParameterization? AzCli { get; set; }
 
         public UserManagedIdentityParameterization? UserManagedIdentity { get; set; }
 
@@ -73,6 +75,10 @@ namespace DeltaKustoIntegration.Parameterization
             if (UserPrompt != null)
             {
                 UserPrompt.Validate();
+            }
+            if (AzCli != null)
+            {
+                AzCli.Validate();
             }
         }
     }

@@ -100,6 +100,10 @@ namespace DeltaKustoIntegration.Kusto
                     tokenProvider.UserPrompt.TenantId,
                     tokenProvider.UserPrompt.UserId);
             }
+            else if (tokenProvider.AzCli != null)
+            {
+                return builder.WithAadAzCliAuthentication(tokenProvider.AzCli.Interactive);
+            }
             else
             {
                 throw new NotSupportedException("Token provider isn't supported");
