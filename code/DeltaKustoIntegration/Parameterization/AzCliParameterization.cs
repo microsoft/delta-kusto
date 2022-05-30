@@ -2,7 +2,7 @@
 {
     public class AzCliParameterization
     {
-        public bool Interactive { get; set; }
+        public bool Interactive { get; set; } = false;
 
         internal void Validate()
         {
