@@ -47,6 +47,8 @@ tokenProvider:
     userPrompt:
         tenantId:  "string"
         userId:  "string"
+    azCli:
+        interactive:  "boolean"
 ```
 
 ## Property Values
@@ -83,6 +85,7 @@ login|object|No|N/A|[Login object](#login-object).
 systemManagedIdentity|boolean|No|false|Opting in means using the system managed identity of whatever compute Delta Kusto runs on (e.g. Azure VM, AKS, etc.).
 userManagedIdentity|object|No|N/A|[User Managed Identity object](#user-managed-identity-object).
 userPrompt|object|No|N/A|[User Prompt object](#user-prompt-object).
+azCli|object|No|N/A|[AzCli object](#az-CLI-object).
 
 Although none of the properties are not required, one and only one of them must be provided if the token provider object is provided.
 
@@ -160,3 +163,9 @@ Name|Type|Required|Default|Value
 -|-|-|-|-
 tenantId|string|No|N/A|Azure AD Tenant ID
 userId|string|No|N/A|User ID
+
+### Az CLI object
+
+Name|Type|Required|Default|Value
+-|-|-|-|-
+interactive|boolean|No|false|Is the Az CLI operates in *interactive* mode or not
