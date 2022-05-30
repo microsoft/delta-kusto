@@ -26,7 +26,8 @@ namespace DeltaKustoIntegration.Parameterization
                 + (Login != null ? 1 : 0)
                 + (SystemManagedIdentity ? 1 : 0)
                 + (UserPrompt != null ? 1 : 0)
-                + (UserManagedIdentity != null ? 1 : 0);
+                + (UserManagedIdentity != null ? 1 : 0)
+                + (AzCli != null ? 1 : 0);
 
             if (tokenProviderCount > 1)
             {
