@@ -85,7 +85,7 @@ login|object|No|N/A|[Login object](#login-object).
 systemManagedIdentity|boolean|No|false|Opting in means using the system managed identity of whatever compute Delta Kusto runs on (e.g. Azure VM, AKS, etc.).
 userManagedIdentity|object|No|N/A|[User Managed Identity object](#user-managed-identity-object).
 userPrompt|object|No|N/A|[User Prompt object](#user-prompt-object).
-azCli|object|No|N/A|[AzCli object](#az-CLI-object).
+azCli|object|No|N/A|[Az CLI object](#az-CLI-object).
 
 Although none of the properties are not required, one and only one of them must be provided if the token provider object is provided.
 
