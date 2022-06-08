@@ -14,30 +14,13 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<!--   Added explicitely for Kusto.Data dependencies     -->
-		<!--   Check https://www.nuget.org/packages/Microsoft.Azure.Kusto.Data/ for version higher than 9.4.1   -->
-		<PackageReference Include="Azure.Identity" Version="1.5.0" />
-		<PackageReference Include="Microsoft.Identity.Client" Version="4.37.0" />
-		<PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-		<!--   This is required     -->
 		<PackageReference Include="CsvHelper" Version="27.2.1" />
+		<PackageReference Include="Microsoft.Azure.Kusto.Data" Version="10.0.3" />
 		<PackageReference Include="Polly" Version="7.2.2" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\DeltaKustoLib\DeltaKustoLib.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<Reference Include="Kusto.Cloud.Platform">
-			<HintPath>Kusto.Data\Kusto.Cloud.Platform.dll</HintPath>
-		</Reference>
-		<Reference Include="Kusto.Cloud.Platform.Aad">
-			<HintPath>Kusto.Data\Kusto.Cloud.Platform.Aad.dll</HintPath>
-		</Reference>
-		<Reference Include="Kusto.Data">
-			<HintPath>Kusto.Data\Kusto.Data.dll</HintPath>
-		</Reference>
 	</ItemGroup>
 
 	<ItemGroup>
