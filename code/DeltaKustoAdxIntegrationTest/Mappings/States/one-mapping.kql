@@ -3,6 +3,6 @@
 .create table BIAzureTraceMsitScus ingestion csv mapping 'my-mapping'
 ```
 [
-	{"column" : \"PreciseTimeStamp\", "properties":{"ordinal":"0"}}
+	{"Column" : "PreciseTimeStamp", "Properties":{"Ordinal":"0"}}
 ]
 ```
