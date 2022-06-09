@@ -1,7 +1,6 @@
 using DeltaKustoIntegration.Database;
 using DeltaKustoLib;
 using DeltaKustoLib.CommandModel;
-//using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Microsoft.Identity.Client;
 using System;
 using System.Collections.Generic;
@@ -31,13 +30,8 @@ namespace DeltaKustoAdxIntegrationTest.GivenTokenProvider
                 .WithTenantId(TenantId)
                 .Build();
             var authenticationResult = await clientApp
-                .AcquireTokenForClient(new[] { ClusterUri.ToString() })
+                .AcquireTokenForClient(new[] { $"{ClusterUri}/.default" })
                 .ExecuteAsync();
-            //var authenticationContext =
-            //    new AuthenticationContext("https://login.windows.net/" + TenantId);
-            //var authenticationResult = await authenticationContext.AcquireTokenAsync(
-            //    ClusterUri.ToString(),
-            //    new ClientCredential(ServicePrincipalId, ServicePrincipalSecret));
             var token = authenticationResult.AccessToken;
             var targetDbName = await InitializeDbAsync();
             var overrides = ImmutableArray<(string path, string value)>
