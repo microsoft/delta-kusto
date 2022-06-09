@@ -28,6 +28,7 @@ namespace DeltaKustoIntegration.Kusto
         private readonly string _database;
         private readonly ICslAdminProvider _commandProvider;
         private readonly ITracer _tracer;
+        private readonly Guid _sessionId = Guid.NewGuid();
 
         public KustoManagementGateway(
             Uri clusterUri,
@@ -150,7 +151,12 @@ namespace DeltaKustoIntegration.Kusto
                 return await _retryPolicy.ExecuteAsync(async () =>
                 {
                     var reader = await _commandProvider.ExecuteControlCommandAsync(
-                        _database, commandScript);
+                        _database,
+                        commandScript,
+                        new ClientRequestProperties
+                        {
+                            ClientRequestId = $"delta-kusto|sid={_sessionId};{Guid.NewGuid()}"
+                        });
 
                     return reader;
                 });
