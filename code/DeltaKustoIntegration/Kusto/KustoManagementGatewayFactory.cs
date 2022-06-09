@@ -15,15 +15,18 @@ namespace DeltaKustoIntegration.Kusto
     {
         private readonly TokenProviderParameterization _tokenProvider;
         private readonly ITracer _tracer;
+        private readonly string _clientVersion;
         private readonly IDictionary<Uri, ICslAdminProvider> _providerCache =
             new ConcurrentDictionary<Uri, ICslAdminProvider>();
 
         public KustoManagementGatewayFactory(
             TokenProviderParameterization tokenProvider,
-            ITracer tracer)
+            ITracer tracer,
+            string clientVersion)
         {
             _tokenProvider = tokenProvider;
             _tracer = tracer;
+            _clientVersion = clientVersion;
         }
 
         public IKustoManagementGateway CreateGateway(Uri clusterUri, string database)
@@ -53,7 +56,8 @@ namespace DeltaKustoIntegration.Kusto
                 clusterUri,
                 database,
                 commandProvider,
-                _tracer);
+                _tracer,
+                _clientVersion);
         }
 
         private static KustoConnectionStringBuilder CreateKustoConnectionStringBuilder(

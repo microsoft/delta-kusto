@@ -28,18 +28,21 @@ namespace DeltaKustoIntegration.Kusto
         private readonly string _database;
         private readonly ICslAdminProvider _commandProvider;
         private readonly ITracer _tracer;
+        private readonly string _clientVersion;
         private readonly Guid _sessionId = Guid.NewGuid();
 
         public KustoManagementGateway(
             Uri clusterUri,
             string database,
             ICslAdminProvider commandProvider,
-            ITracer tracer)
+            ITracer tracer,
+            string clientVersion)
         {
             _clusterUri = clusterUri;
             _database = database;
             _commandProvider = commandProvider;
             _tracer = tracer;
+            _clientVersion = clientVersion;
         }
 
         async Task<IImmutableList<CommandBase>> IKustoManagementGateway.ReverseEngineerDatabaseAsync(
@@ -150,12 +153,13 @@ namespace DeltaKustoIntegration.Kusto
             {
                 return await _retryPolicy.ExecuteAsync(async () =>
                 {
+                    var requestId = $"delta-kusto|cv={_clientVersion}|sid={_sessionId};{Guid.NewGuid()}";
                     var reader = await _commandProvider.ExecuteControlCommandAsync(
                         _database,
                         commandScript,
                         new ClientRequestProperties
                         {
-                            ClientRequestId = $"delta-kusto|sid={_sessionId};{Guid.NewGuid()}"
+                            ClientRequestId = requestId
                         });
 
                     return reader;

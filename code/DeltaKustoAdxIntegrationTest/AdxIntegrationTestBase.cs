@@ -59,7 +59,8 @@ namespace DeltaKustoAdxIntegrationTest
                         Secret = ServicePrincipalSecret
                     }
                 },
-                Tracer);
+                Tracer,
+                "test-version");
         }
 
         protected Uri ClusterUri { get; }

@@ -71,7 +71,8 @@ namespace delta_kusto
                 var localFileGateway = _fileGateway.ChangeFolder(parameterFolderPath!);
                 var kustoManagementGatewayFactory = new KustoManagementGatewayFactory(
                     parameters.TokenProvider,
-                    _tracer);
+                    _tracer,
+                    Program.AssemblyVersion);
                 var orderedJobs = parameters.Jobs.OrderBy(p => p.Value.Priority);
                 var success = true;
 
