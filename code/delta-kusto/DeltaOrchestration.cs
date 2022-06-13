@@ -69,10 +69,11 @@ namespace delta_kusto
             try
             {
                 var localFileGateway = _fileGateway.ChangeFolder(parameterFolderPath!);
+                var requestDescription = GetRequestDescription(parameters);
                 var kustoManagementGatewayFactory = new KustoManagementGatewayFactory(
                     parameters.TokenProvider,
                     _tracer,
-                    Program.AssemblyVersion);
+                    requestDescription);
                 var orderedJobs = parameters.Jobs.OrderBy(p => p.Value.Priority);
                 var success = true;
 
@@ -109,6 +110,86 @@ namespace delta_kusto
             finally
             {
                 await parameterTelemetryTask;
+            }
+        }
+
+        private string? GetRequestDescription(MainParameterization parameters)
+        {
+            if (Environment.GetEnvironmentVariable("delta-kusto-automated-tests") != "true")
+            {
+                var tokenProvider = parameters.TokenProvider.Login != null
+                    ? "login"
+                    : parameters.TokenProvider.UserPrompt != null
+                    ? "userPrompt"
+                    : parameters.TokenProvider.AzCli != null
+                    ? "azCli"
+                    : parameters.TokenProvider.Tokens != null
+                    ? "tokens"
+                    : parameters.TokenProvider.SystemManagedIdentity
+                    ? "systemManagedIdentity"
+                    : parameters.TokenProvider.UserManagedIdentity != null
+                    ? "userManagedIdentity"
+                    : "unknown";
+                var description = new
+                {
+                    clientVersion = Program.AssemblyVersion,
+                    os = Environment.OSVersion.Platform.ToString(),
+                    osVersion = Environment.OSVersion.VersionString,
+                    session = Guid.NewGuid().ToString(),
+                    failIfDataLoss = parameters.FailIfDataLoss,
+                    tokenProvider = tokenProvider,
+                    jobs = parameters.Jobs.Select(p => p.Value).Select(j => new
+                    {
+                        current = ExtractSource(j.Current),
+                        target = ExtractSource(j.Target),
+                        FilePath = j.Action!.FilePath != null,
+                        FolderPath = j.Action!.FolderPath != null,
+                        CsvPath = j.Action!.CsvPath != null,
+                        UsePluralForms = j.Action!.UsePluralForms,
+                        PushToConsole = j.Action!.PushToConsole
+                    })
+                };
+                var jsonDescription = JsonSerializer.Serialize(description);
+
+                return jsonDescription;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        private static string ExtractSource(SourceParameterization? current)
+        {
+            if (current == null)
+            {
+                return "None";
+            }
+            else if (current.Adx != null)
+            {
+                return "Cluster";
+            }
+            else if (current.Scripts != null)
+            {
+                if (current.Scripts.FirstOrDefault() != null)
+                {
+                    if (current.Scripts.First().FilePath != null)
+                    {
+                        return "File";
+                    }
+                    else
+                    {
+                        return "Folder";
+                    }
+                }
+                else
+                {
+                    return "NoScript";
+                }
+            }
+            else
+            {
+                return "Unknown";
             }
         }
 

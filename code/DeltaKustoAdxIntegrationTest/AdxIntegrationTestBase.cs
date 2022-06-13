@@ -60,7 +60,7 @@ namespace DeltaKustoAdxIntegrationTest
                     }
                 },
                 Tracer,
-                "test-version");
+                null);
         }
 
         protected Uri ClusterUri { get; }

@@ -67,7 +67,7 @@ namespace DeltaKustoAdxIntegrationTest
             var kustoGatewayFactory = new KustoManagementGatewayFactory(
                 tokenParameterization,
                 tracer,
-                "test-version");
+                null);
             var helper = new AdxDbTestHelper(
                 dbPrefix,
                 db => kustoGatewayFactory.CreateGateway(new Uri(clusterUri), db));
