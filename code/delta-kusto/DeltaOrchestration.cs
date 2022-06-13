@@ -41,7 +41,7 @@ namespace delta_kusto
         {
             _tracer.WriteLine(false, "Activating Client...");
 
-            var availableClientVersions = await _apiClient.ActivateAsync();
+            var availableClientVersions = await _apiClient.GetNewestClientVersionsAsync();
 
             if (availableClientVersions == null)
             {
@@ -63,54 +63,31 @@ namespace delta_kusto
 
             var parameters =
                 await LoadParameterizationAsync(parameterFilePath, pathOverrides);
-            var parameterTelemetryTask = _apiClient.LogParameterTelemetryAsync(parameters);
             var parameterFolderPath = Path.GetDirectoryName(parameterFilePath);
+            var localFileGateway = _fileGateway.ChangeFolder(parameterFolderPath!);
+            var requestDescription = GetRequestDescription(parameters);
+            var kustoManagementGatewayFactory = new KustoManagementGatewayFactory(
+                parameters.TokenProvider,
+                _tracer,
+                requestDescription);
+            var orderedJobs = parameters.Jobs.OrderBy(p => p.Value.Priority);
+            var success = true;
 
-            try
+            _tracer.WriteLine(false, $"{orderedJobs.Count()} jobs");
+            foreach (var jobPair in orderedJobs)
             {
-                var localFileGateway = _fileGateway.ChangeFolder(parameterFolderPath!);
-                var requestDescription = GetRequestDescription(parameters);
-                var kustoManagementGatewayFactory = new KustoManagementGatewayFactory(
-                    parameters.TokenProvider,
-                    _tracer,
-                    requestDescription);
-                var orderedJobs = parameters.Jobs.OrderBy(p => p.Value.Priority);
-                var success = true;
+                var (jobName, job) = jobPair;
+                var jobSuccess = await ProcessJobAsync(
+                    parameters,
+                    kustoManagementGatewayFactory,
+                    localFileGateway,
+                    jobName,
+                    job);
 
-                _tracer.WriteLine(false, $"{orderedJobs.Count()} jobs");
-                foreach (var jobPair in orderedJobs)
-                {
-                    var (jobName, job) = jobPair;
-                    var jobSuccess = await ProcessJobAsync(
-                        parameters,
-                        kustoManagementGatewayFactory,
-                        localFileGateway,
-                        jobName,
-                        job);
-
-                    success = success && jobSuccess;
-                }
-
-                await _apiClient.EndSessionAsync(success);
-
-                return success;
+                success = success && jobSuccess;
             }
-            catch (Exception ex)
-            {
-                if (parameters.SendErrorOptIn)
-                {
-                    var sessionID = await _apiClient.RegisterExceptionAsync(ex);
 
-                    _tracer.WriteLine(
-                        false,
-                        $"Exception registered with Session ID '{sessionID}'");
-                }
-                throw;
-            }
-            finally
-            {
-                await parameterTelemetryTask;
-            }
+            return success;
         }
 
         private string? GetRequestDescription(MainParameterization parameters)
