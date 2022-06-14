@@ -37,7 +37,8 @@ namespace delta_kusto
 
         public async Task<bool> ComputeDeltaAsync(
             string parameterFilePath,
-            IEnumerable<string> pathOverrides)
+            IEnumerable<string> pathOverrides,
+            string sessionId)
         {
             _tracer.WriteLine(false, "Activating Client...");
 
@@ -65,7 +66,7 @@ namespace delta_kusto
                 await LoadParameterizationAsync(parameterFilePath, pathOverrides);
             var parameterFolderPath = Path.GetDirectoryName(parameterFilePath);
             var localFileGateway = _fileGateway.ChangeFolder(parameterFolderPath!);
-            var requestDescription = GetRequestDescription(parameters);
+            var requestDescription = GetRequestDescription(parameters, sessionId);
             var kustoManagementGatewayFactory = new KustoManagementGatewayFactory(
                 parameters.TokenProvider,
                 _tracer,
@@ -90,7 +91,7 @@ namespace delta_kusto
             return success;
         }
 
-        private string? GetRequestDescription(MainParameterization parameters)
+        private string? GetRequestDescription(MainParameterization parameters, string sessionId)
         {
             if (Environment.GetEnvironmentVariable("delta-kusto-automated-tests") != "true")
             {
@@ -109,10 +110,10 @@ namespace delta_kusto
                     : "unknown";
                 var description = new
                 {
+                    session = sessionId,
                     clientVersion = Program.AssemblyVersion,
                     os = Environment.OSVersion.Platform.ToString(),
                     osVersion = Environment.OSVersion.VersionString,
-                    session = Guid.NewGuid().ToString(),
                     failIfDataLoss = parameters.FailIfDataLoss,
                     tokenProvider = tokenProvider,
                     jobs = parameters.Jobs.Select(p => p.Value).Select(j => new

@@ -33,16 +33,18 @@ namespace delta_kusto
             CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
             CultureInfo.CurrentUICulture = CultureInfo.InvariantCulture;
 
-            Console.WriteLine();
-            Console.WriteLine($"delta-kusto { AssemblyVersion }");
-            Console.WriteLine();
-
             //  Use CommandLineParser NuGet package to parse command line
             //  See https://github.com/commandlineparser/commandline
             var parser = new Parser(with =>
             {
                 with.HelpWriter = null;
             });
+            var sessionId = Guid.NewGuid().ToString();
+
+            Console.WriteLine();
+            Console.WriteLine($"delta-kusto {AssemblyVersion}");
+            Console.WriteLine($"Session:  {sessionId}");
+            Console.WriteLine();
 
             try
             {
@@ -50,7 +52,7 @@ namespace delta_kusto
 
                 await result
                     .WithNotParsed(errors => HandleParseError(result, errors))
-                    .WithParsedAsync(RunOptionsAsync);
+                    .WithParsedAsync(async options => await RunOptionsAsync(options, sessionId));
 
                 return result.Tag == ParserResultType.Parsed
                     ? 0
@@ -104,7 +106,7 @@ namespace delta_kusto
             }
         }
 
-        private static async Task RunOptionsAsync(CommandLineOptions options)
+        private static async Task RunOptionsAsync(CommandLineOptions options, string sessionId)
         {
             if (options.Verbose)
             {
@@ -119,7 +121,8 @@ namespace delta_kusto
                 apiClient);
             var success = await orchestration.ComputeDeltaAsync(
                 options.ParameterFilePath,
-                options.Overrides);
+                options.Overrides,
+                sessionId);
 
             if (!success)
             {
