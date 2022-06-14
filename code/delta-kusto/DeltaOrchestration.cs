@@ -110,7 +110,7 @@ namespace delta_kusto
                     : "unknown";
                 var description = new
                 {
-                    session = sessionId,
+                    sessionId = sessionId,
                     clientVersion = Program.AssemblyVersion,
                     os = Environment.OSVersion.Platform.ToString(),
                     osVersion = Environment.OSVersion.VersionString,
