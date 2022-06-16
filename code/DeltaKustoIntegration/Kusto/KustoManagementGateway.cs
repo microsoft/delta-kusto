@@ -159,13 +159,11 @@ namespace DeltaKustoIntegration.Kusto
             {
                 return await _retryPolicy.ExecuteAsync(async () =>
                 {
-                    var requestId = $"delta-kusto;{Guid.NewGuid()}";
                     var reader = await _commandProvider.ExecuteControlCommandAsync(
                         _database,
                         commandScript,
                         new ClientRequestProperties(_requestOptions, null)
                         {
-                            ClientRequestId = requestId,
                             Application = "Delta-Kusto"
                         });
 
