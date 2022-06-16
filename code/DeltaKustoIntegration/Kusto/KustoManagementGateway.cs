@@ -47,10 +47,7 @@ namespace DeltaKustoIntegration.Kusto
                     .Empty
                     .Add(KeyValuePair.Create(
                         ClientRequestProperties.OptionRequestDescription,
-                        (object)requestDescription))
-                    .Add(KeyValuePair.Create(
-                        ClientRequestProperties.OptionRequestAppName,
-                        (object)"Delta-Kusto"));
+                        (object)requestDescription));
             }
         }
 
@@ -168,7 +165,8 @@ namespace DeltaKustoIntegration.Kusto
                         commandScript,
                         new ClientRequestProperties(_requestOptions, null)
                         {
-                            ClientRequestId = requestId
+                            ClientRequestId = requestId,
+                            Application = "Delta-Kusto"
                         });
 
                     return reader;
