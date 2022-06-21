@@ -100,41 +100,42 @@ namespace DeltaKustoLib.CommandModel
         private static (QuotedText? folder, QuotedText? docString) ExtractWithProperties(
             SyntaxElement rootElement)
         {
-            var keywords = rootElement
-                .GetDescendants<SyntaxElement>(n => n.Kind == SyntaxKind.FolderKeyword
-                || n.Kind == SyntaxKind.DocStringKeyword);
+            //var keywords = rootElement
+            //    .GetDescendants<SyntaxElement>(n => n.Kind == SyntaxKind.FolderKeyword
+            //    || n.Kind == SyntaxKind.DocStringKeyword);
 
-            if (!keywords.Any())
-            {
-                return (null, null);
-            }
-            else
-            {
-                var propertiesParent = keywords.First().Parent;
-                var tokenSequence = propertiesParent
-                    .GetDescendants<SyntaxToken>(n => n.Kind == SyntaxKind.StringLiteralToken)
-                    .Select(n => QuotedText.FromToken(n));
-                var zip = keywords
-                    .Select(n => n.Kind)
-                    .Zip(tokenSequence, (k, t) => (k, t))
-                    .ToImmutableArray();
-                QuotedText? folder = null;
-                QuotedText? docString = null;
+            //if (!keywords.Any())
+            //{
+            //    return (null, null);
+            //}
+            //else
+            //{
+            //    var propertiesParent = keywords.First().Parent;
+            //    var tokenSequence = propertiesParent
+            //        .GetDescendants<SyntaxToken>(n => n.Kind == SyntaxKind.StringLiteralToken)
+            //        .Select(n => QuotedText.FromToken(n));
+            //    var zip = keywords
+            //        .Select(n => n.Kind)
+            //        .Zip(tokenSequence, (k, t) => (k, t))
+            //        .ToImmutableArray();
+            //    QuotedText? folder = null;
+            //    QuotedText? docString = null;
 
-                foreach (var p in zip)
-                {
-                    if (p.k == SyntaxKind.FolderKeyword)
-                    {
-                        folder = p.t;
-                    }
-                    else
-                    {
-                        docString = p.t;
-                    }
-                }
+            //    foreach (var p in zip)
+            //    {
+            //        if (p.k == SyntaxKind.FolderKeyword)
+            //        {
+            //            folder = p.t;
+            //        }
+            //        else
+            //        {
+            //            docString = p.t;
+            //        }
+            //    }
 
-                return (folder, docString);
-            }
+            //    return (folder, docString);
+            //}
+            throw new NotImplementedException();
         }
 
         public override bool Equals(CommandBase? other)

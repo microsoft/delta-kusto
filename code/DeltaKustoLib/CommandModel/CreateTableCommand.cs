@@ -47,25 +47,26 @@ namespace DeltaKustoLib.CommandModel
             var tableName = rootElement.GetUniqueDescendant<NameDeclaration>(
                 "TableName",
                 n => n.NameInParent == "TableName");
-            var folder = GetProperty(rootElement, SyntaxKind.FolderKeyword);
-            var docString = GetProperty(rootElement, SyntaxKind.DocStringKeyword);
-            var columns = rootElement
-                .GetDescendants<NameDeclaration>(n => n.NameInParent == "ColumnName")
-                .Select(n => n.Parent)
-                .Select(n => new
-                {
-                    Name = n.GetUniqueDescendant<NameDeclaration>("Table column name"),
-                    Type = n.GetUniqueDescendant<PrimitiveTypeExpression>("Table column type")
-                })
-                .Select(c => new TableColumn(
-                    EntityName.FromCode(c.Name),
-                    c.Type.Type.Text));
+            //var folder = GetProperty(rootElement, SyntaxKind.FolderKeyword);
+            //var docString = GetProperty(rootElement, SyntaxKind.DocStringKeyword);
+            //var columns = rootElement
+            //    .GetDescendants<NameDeclaration>(n => n.NameInParent == "ColumnName")
+            //    .Select(n => n.Parent)
+            //    .Select(n => new
+            //    {
+            //        Name = n.GetUniqueDescendant<NameDeclaration>("Table column name"),
+            //        Type = n.GetUniqueDescendant<PrimitiveTypeExpression>("Table column type")
+            //    })
+            //    .Select(c => new TableColumn(
+            //        EntityName.FromCode(c.Name),
+            //        c.Type.Type.Text));
 
-            return new CreateTableCommand(
-                EntityName.FromCode(tableName),
-                columns,
-                folder,
-                docString);
+            //return new CreateTableCommand(
+            //    EntityName.FromCode(tableName),
+            //    columns,
+            //    folder,
+            //    docString);
+            throw new NotImplementedException();
         }
 
         public override bool Equals(CommandBase? other)

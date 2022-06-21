@@ -46,6 +46,24 @@ namespace DeltaKustoLib.CommandModel
             return descendants.First();
         }
 
+        public static TElement? GetAtMostOneDescendant<TElement>(
+            this SyntaxElement parent,
+            string descendantNameForExceptionMessage,
+            Func<TElement, bool>? predicate = null)
+            where TElement : SyntaxElement
+        {
+            var descendants = parent.GetDescendants<TElement>(predicate);
+
+            if (descendants.Count > 1)
+            {
+                throw new DeltaException(
+                    $"There should be at most one {descendantNameForExceptionMessage} but there are {descendants.Count}",
+                    parent.Root.ToString(IncludeTrivia.All));
+            }
+
+            return descendants.FirstOrDefault();
+        }
+
         public static TElement GetUniqueImmediateDescendant<TElement>(
             this SyntaxElement parent,
             string descendantNameForExceptionMessage,

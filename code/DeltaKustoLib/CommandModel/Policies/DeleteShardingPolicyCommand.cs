@@ -28,22 +28,23 @@ namespace DeltaKustoLib.CommandModel.Policies
 
         internal static CommandBase FromCode(SyntaxElement rootElement)
         {
-            var entityKinds = rootElement
-                .GetDescendants<SyntaxElement>(s => s.Kind == SyntaxKind.TableKeyword
-                || s.Kind == SyntaxKind.DatabaseKeyword)
-                .Select(s => s.Kind);
+            //var entityKinds = rootElement
+            //    .GetDescendants<SyntaxElement>(s => s.Kind == SyntaxKind.TableKeyword
+            //    || s.Kind == SyntaxKind.DatabaseKeyword)
+            //    .Select(s => s.Kind);
 
-            if (!entityKinds.Any())
-            {
-                throw new DeltaException("Delete sharding policy requires to act on a table or database (cluster isn't supported)");
-            }
-            var entityKind = entityKinds.First();
-            var entityType = entityKind == SyntaxKind.TableKeyword
-                ? EntityType.Table
-                : EntityType.Database;
-            var entityName = rootElement.GetFirstDescendant<NameReference>();
+            //if (!entityKinds.Any())
+            //{
+            //    throw new DeltaException("Delete sharding policy requires to act on a table or database (cluster isn't supported)");
+            //}
+            //var entityKind = entityKinds.First();
+            //var entityType = entityKind == SyntaxKind.TableKeyword
+            //    ? EntityType.Table
+            //    : EntityType.Database;
+            //var entityName = rootElement.GetFirstDescendant<NameReference>();
 
-            return new DeleteShardingPolicyCommand(entityType, EntityName.FromCode(entityName.Name));
+            //return new DeleteShardingPolicyCommand(entityType, EntityName.FromCode(entityName.Name));
+            throw new NotImplementedException();
         }
 
         public override string ToScript(ScriptingContext? context)
