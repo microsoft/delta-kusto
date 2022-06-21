@@ -78,7 +78,7 @@ namespace DeltaKustoLib.KustoModel
                 var other = obj as MappingElement;
                 var result = other != null
                     && other.Column.Equals(Column)
-                    && other.DataType.Equals(DataType)
+                    && other.DataType != null && other.DataType.Equals(DataType)
                     && other.Properties.Equals(Properties);
 
                 return result;
