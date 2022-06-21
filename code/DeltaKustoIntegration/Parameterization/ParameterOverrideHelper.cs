@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace DeltaKustoIntegration.Parameterization
 {
@@ -37,18 +38,10 @@ namespace DeltaKustoIntegration.Parameterization
             {
                 try
                 {
-                    var splits = pathOverrides.Select(t => t.Split('='));
-                    var noEquals = splits.FirstOrDefault(s => s.Length != 2);
-
-                    if (noEquals != null)
-                    {
-                        throw new DeltaException(
-                            $"Override must be of the form path=value ; "
-                            + $"exception:  '{string.Join('=', noEquals)}'");
-                    }
-
-                    var overrides = splits.Select(s => (path: s[0], textValue: s[1]));
-
+                    var regExStr = @"(?<path>.+)=(?<textValue>.+)";
+                    var regEx = new Regex(regExStr, RegexOptions.Compiled);
+                    var splits = pathOverrides.Select(s => regEx.Match(s)).Where(m => m.Success);
+                    var overrides = splits.Select(m => (path: m.Groups[1].Value, textValue: m.Groups[2].Value));
                     InplaceOverride(target, overrides);
                 }
                 catch (Exception ex)
