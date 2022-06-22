@@ -37,7 +37,7 @@ namespace DeltaKustoIntegration.Parameterization
             {
                 try
                 {
-                    var splits = pathOverrides.Select(t => t.Split('='));
+                    var splits = pathOverrides.Select(t => t.Split('=', 2));
                     var noEquals = splits.FirstOrDefault(s => s.Length != 2);
 
                     if (noEquals != null)
