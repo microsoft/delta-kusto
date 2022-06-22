@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace DeltaKustoLib.CommandModel.Policies
@@ -15,6 +16,13 @@ namespace DeltaKustoLib.CommandModel.Policies
     [Command(15100, "Alter Sharding Policies")]
     public class AlterShardingPolicyCommand : EntityPolicyCommandBase
     {
+        private static readonly ShardingPolicySerializerContext _serializerContext
+            = new ShardingPolicySerializerContext(
+                new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                });
+
         public int? MaxRowCount { get; }
 
         public int? MaxExtentSizeInMb { get; }
@@ -76,9 +84,6 @@ namespace DeltaKustoLib.CommandModel.Policies
                 MaxExtentSizeInMb = MaxExtentSizeInMb,
                 MaxOriginalSizeInMb = MaxOriginalSizeInMb
             };
-            var policyText = JsonSerializer.Serialize(
-                policy,
-                new JsonSerializerOptions { WriteIndented = true });
 
             builder.Append(".alter ");
             builder.Append(EntityType == EntityType.Table ? "table" : "database");
@@ -93,7 +98,7 @@ namespace DeltaKustoLib.CommandModel.Policies
             }
             builder.AppendLine(" policy sharding");
             builder.AppendLine("```");
-            builder.AppendLine(policyText);
+            builder.AppendLine(SerializePolicy());
             builder.AppendLine("```");
 
             return builder.ToString();
@@ -144,8 +149,8 @@ namespace DeltaKustoLib.CommandModel.Policies
                 map[nameof(maxOriginalSizeInMb)] = maxOriginalSizeInMb.Value;
             }
 
-            var text = JsonSerializer.Serialize(map);
-            var doc = JsonSerializer.Deserialize<JsonDocument>(text);
+            var text = Serialize(map, _serializerContext);
+            var doc = Deserialize<JsonDocument>(text);
 
             return doc!;
         }
@@ -206,5 +211,10 @@ namespace DeltaKustoLib.CommandModel.Policies
                     maxOriginalSizeInMb);
             }
         }
+    }
+
+    [JsonSerializable(typeof(Dictionary<string, int>))]
+    internal partial class ShardingPolicySerializerContext : JsonSerializerContext
+    {
     }
 }
