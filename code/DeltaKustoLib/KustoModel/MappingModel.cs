@@ -58,7 +58,7 @@ namespace DeltaKustoLib.KustoModel
                 var result = new MappingElement
                 {
                     Column = string.IsNullOrWhiteSpace(Name) ? Column : Name,
-                    DataType = DataType,
+                    DataType = DataType ?? string.Empty,
                     Properties = new MappingProperties
                     {
                         Ordinal = string.IsNullOrWhiteSpace(Ordinal) ? Properties.Ordinal : Ordinal,
