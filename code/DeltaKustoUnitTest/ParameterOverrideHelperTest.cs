@@ -21,6 +21,17 @@ namespace DeltaKustoUnitTest
             Assert.Equal(!before, main.SendErrorOptIn);
         }
 
+        [Fact]
+        public void TestSinglePropertyWithEqualInValue()
+        {
+            var main = new MainParameterization();
+            var value = "bla==this#=";
+
+            ParameterOverrideHelper.InplaceOverride(main, $"tokenProvider.login.secret={value}");
+
+            Assert.Equal(value, main.TokenProvider!.Login!.Secret);
+        }
+
         #region Expected errors
         [Fact]
         public void TestSinglePropertyWrongType()
