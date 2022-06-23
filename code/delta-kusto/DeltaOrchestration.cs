@@ -6,11 +6,13 @@ using DeltaKustoIntegration.Parameterization;
 using DeltaKustoLib;
 using DeltaKustoLib.CommandModel;
 using DeltaKustoLib.KustoModel;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -109,25 +111,29 @@ namespace delta_kusto
                     : parameters.TokenProvider.UserManagedIdentity != null
                     ? "userManagedIdentity"
                     : "unknown";
-                var description = new
+                var description = new RequestDescription
                 {
-                    sessionId = sessionId,
-                    os = Environment.OSVersion.Platform.ToString(),
-                    osVersion = Environment.OSVersion.VersionString,
-                    failIfDataLoss = parameters.FailIfDataLoss,
-                    tokenProvider = tokenProvider,
-                    jobs = parameters.Jobs.Select(p => p.Value).Select(j => new
+                    SessionId = sessionId,
+                    Os = Environment.OSVersion.Platform.ToString(),
+                    OsVersion = Environment.OSVersion.VersionString,
+                    FailIfDataLoss = parameters.FailIfDataLoss,
+                    TokenProvider = tokenProvider,
+                    Jobs = parameters.Jobs.Select(p => p.Value).Select(j => new RequestDescriptionJob
                     {
-                        current = ExtractSource(j.Current),
-                        target = ExtractSource(j.Target),
+                        Current = ExtractSource(j.Current),
+                        Target = ExtractSource(j.Target),
                         FilePath = j.Action!.FilePath != null,
                         FolderPath = j.Action!.FolderPath != null,
                         CsvPath = j.Action!.CsvPath != null,
                         UsePluralForms = j.Action!.UsePluralForms,
                         PushToConsole = j.Action!.PushToConsole
-                    })
+                    }).ToList()
                 };
-                var jsonDescription = JsonSerializer.Serialize(description);
+                var buffer = JsonSerializer.SerializeToUtf8Bytes(
+                    description,
+                    typeof(RequestDescription),
+                    new RequestDescriptionSerializerContext());
+                var jsonDescription = UTF8Encoding.ASCII.GetString(buffer);
 
                 return jsonDescription;
             }
