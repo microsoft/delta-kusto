@@ -26,7 +26,7 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
         {
             var command = ParseOneCommand(
                 ".alter table mydb.mytable policy sharding "
-                + "@'{\"MaxRowCount\":\"200000\"}'");
+                + "@'{\"MaxRowCount\":200000}'");
 
             Assert.IsType<AlterShardingPolicyCommand>(command);
 
@@ -41,7 +41,7 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
         {
             var command = ParseOneCommand(
                 ".alter table mycluster.['my db'].mytable policy sharding "
-                + "@'{\"MaxRowCount\":\"300000\"}'");
+                + "@'{\"MaxRowCount\":300000}'");
 
             Assert.IsType<AlterShardingPolicyCommand>(command);
 
