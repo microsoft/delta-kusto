@@ -64,7 +64,11 @@ namespace DeltaKustoAdxIntegrationTest
                     Secret = servicePrincipalSecret
                 }
             };
-            var kustoGatewayFactory = new KustoManagementGatewayFactory(tokenParameterization, tracer);
+            var kustoGatewayFactory = new KustoManagementGatewayFactory(
+                tokenParameterization,
+                tracer,
+                "test",
+                null);
             var helper = new AdxDbTestHelper(
                 dbPrefix,
                 db => kustoGatewayFactory.CreateGateway(new Uri(clusterUri), db));
