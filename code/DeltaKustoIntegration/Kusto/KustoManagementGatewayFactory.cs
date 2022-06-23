@@ -15,6 +15,7 @@ namespace DeltaKustoIntegration.Kusto
     {
         private readonly TokenProviderParameterization _tokenProvider;
         private readonly ITracer _tracer;
+        private readonly string _version;
         private readonly string? _requestDescription;
         private readonly IDictionary<Uri, ICslAdminProvider> _providerCache =
             new ConcurrentDictionary<Uri, ICslAdminProvider>();
@@ -22,10 +23,12 @@ namespace DeltaKustoIntegration.Kusto
         public KustoManagementGatewayFactory(
             TokenProviderParameterization tokenProvider,
             ITracer tracer,
+            string version,
             string? requestDescription = null)
         {
             _tokenProvider = tokenProvider;
             _tracer = tracer;
+            _version = version;
             _requestDescription = requestDescription;
         }
 
@@ -57,6 +60,7 @@ namespace DeltaKustoIntegration.Kusto
                 database,
                 commandProvider,
                 _tracer,
+                _version,
                 _requestDescription);
         }
 

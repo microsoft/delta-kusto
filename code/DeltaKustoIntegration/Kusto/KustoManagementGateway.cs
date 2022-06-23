@@ -28,6 +28,7 @@ namespace DeltaKustoIntegration.Kusto
         private readonly string _database;
         private readonly ICslAdminProvider _commandProvider;
         private readonly ITracer _tracer;
+        private readonly string _application;
         private readonly IImmutableList<KeyValuePair<string, object>>? _requestOptions;
 
         public KustoManagementGateway(
@@ -35,12 +36,14 @@ namespace DeltaKustoIntegration.Kusto
             string database,
             ICslAdminProvider commandProvider,
             ITracer tracer,
+            string version,
             string? requestDescription = null)
         {
             _clusterUri = clusterUri;
             _database = database;
             _commandProvider = commandProvider;
             _tracer = tracer;
+            _application = $"Delta-Kusto;{version}";
             if (requestDescription != null)
             {
                 _requestOptions = ImmutableArray<KeyValuePair<string, object>>
@@ -164,7 +167,7 @@ namespace DeltaKustoIntegration.Kusto
                         commandScript,
                         new ClientRequestProperties(_requestOptions, null)
                         {
-                            Application = "Delta-Kusto"
+                            Application = _application
                         });
 
                     return reader;

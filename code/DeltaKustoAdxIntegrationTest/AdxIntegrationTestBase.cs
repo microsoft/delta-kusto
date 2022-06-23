@@ -60,6 +60,7 @@ namespace DeltaKustoAdxIntegrationTest
                     }
                 },
                 Tracer,
+                "test",
                 null);
         }
 

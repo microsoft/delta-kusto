@@ -70,6 +70,7 @@ namespace delta_kusto
             var kustoManagementGatewayFactory = new KustoManagementGatewayFactory(
                 parameters.TokenProvider,
                 _tracer,
+                Program.AssemblyVersion,
                 requestDescription);
             var orderedJobs = parameters.Jobs.OrderBy(p => p.Value.Priority);
             var success = true;
@@ -111,7 +112,6 @@ namespace delta_kusto
                 var description = new
                 {
                     sessionId = sessionId,
-                    clientVersion = Program.AssemblyVersion,
                     os = Environment.OSVersion.Platform.ToString(),
                     osVersion = Environment.OSVersion.VersionString,
                     failIfDataLoss = parameters.FailIfDataLoss,
