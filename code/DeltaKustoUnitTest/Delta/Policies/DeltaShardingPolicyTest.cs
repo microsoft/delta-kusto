@@ -27,9 +27,7 @@ namespace DeltaKustoUnitTest.Delta.Policies
                 42,
                 c =>
                 {
-                    var policy = c.DeserializePolicy<ShardingPolicy>();
-
-                    Assert.Equal(42, policy.MaxRowCount);
+                    Assert.Equal(42, c.MaxRowCount);
                 },
                 null);
         }
@@ -54,9 +52,7 @@ namespace DeltaKustoUnitTest.Delta.Policies
                 54,
                 c =>
                 {
-                    var policy = c.DeserializePolicy<ShardingPolicy>();
-                    
-                    Assert.Equal(54, policy.MaxRowCount);
+                    Assert.Equal(54, c.MaxRowCount);
                 },
                 null);
         }
