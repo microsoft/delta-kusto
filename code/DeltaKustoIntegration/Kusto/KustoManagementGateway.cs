@@ -43,14 +43,18 @@ namespace DeltaKustoIntegration.Kusto
             _database = database;
             _commandProvider = commandProvider;
             _tracer = tracer;
-            _application = $"Delta-Kusto;{version}";
             if (requestDescription != null)
             {
+                _application = $"Delta-Kusto;{version}";
                 _requestOptions = ImmutableArray<KeyValuePair<string, object>>
                     .Empty
                     .Add(KeyValuePair.Create(
                         ClientRequestProperties.OptionRequestDescription,
                         (object)requestDescription));
+            }
+            else
+            {
+                _application = string.Empty;
             }
         }
 
@@ -165,10 +169,12 @@ namespace DeltaKustoIntegration.Kusto
                     var reader = await _commandProvider.ExecuteControlCommandAsync(
                         _database,
                         commandScript,
-                        new ClientRequestProperties(_requestOptions, null)
+                        _requestOptions != null
+                        ? new ClientRequestProperties(_requestOptions, null)
                         {
                             Application = _application
-                        });
+                        }
+                        : null);
 
                     return reader;
                 });
