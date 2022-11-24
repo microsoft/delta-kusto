@@ -55,18 +55,20 @@ All scenarios we'll look at will involve change management between those two env
 To simulate development happening before the introduction of Delta Kusto, we'll run the scripts from [dev-start-samples.kql](dev-start-samples.kql) on the *dev* database:
 
 ```kusto
-.create-or-alter function with (docstring = "A list of interesting states",folder = "Helpers") InterestingStates {
+.create-or-alter function with (docstring = "A list of interesting states", folder = "Helpers") InterestingStates {
     dynamic(["WASHINGTON", "FLORIDA", "GEORGIA", "NEW YORK"])
 }
 
-.create-or-alter function  Add(a:real,b:real) {a+b}
+.create-or-alter function Add(a:real,b:real) {a+b}
 
 .create-or-alter function with (docstring = "Direct table access example") DirectTableAccess(myTable:(*)) {
     myTable | count
 }
+
+.create table MyTable(Id:string)
 ```
 
-This creates 3 functions.  The top one is in a folder named *Helpers*.
+This creates 3 functions (the top one is in a folder named *Helpers*) & one table.
 
 ## Download Dev
 
@@ -119,7 +121,7 @@ Executing this CLI command should start Delta Kusto and give an output similar t
 
 ![Download dev](download-dev.png)
 
-We see different steps of the run and the fact that 3 commands were found in the delta.
+We see different steps of the run and the fact that 4 commands were found in the delta.
 
 Looking at the generated script, i.e. `dev-state.kql`:
 
@@ -137,6 +139,8 @@ myTable | count
 .create-or-alter function with (folder="Helpers", docstring="A list of interesting states", skipvalidation="True") InterestingStates () {
 dynamic(["WASHINGTON", "FLORIDA", "GEORGIA", "NEW YORK"])
 }
+
+.create-merge table MyTable(Id:string)
 ```
 
 We see that this script is similar to the script we used to populate the database (and is actually functionally equivalent) but not identical.  This is because the database configuration was loaded into a database model before being re-rendered into scripts.
@@ -197,6 +201,9 @@ Let's simulate that development continues by doing some modification to the *dev
 
 //  Create a new function
 .create-or-alter function Substract(a:real,b:real) {a-b}
+
+//  Drop table 'MyTable'
+.drop table MyTable
 ```
 
 We can reuse [download-dev.yaml](download-dev.yaml) to download the state of the *dev* database again.  Since this perform a delta against an empty *current*, it downloads the full state of the database.
@@ -211,7 +218,7 @@ Doing that we should expect a failure though.
 
 ![Failed push dev to prod](failed-push-dev-to-prod.png)
 
-This is because of the `failIfDataLoss` property we mentioned.  This flag is there to protect against `.drop` commands.  In this case the delta would need to drop the `Add` function.
+This is because of the `failIfDataLoss` property we mentioned.  This flag is there to protect against dataloss commands.  In this case the delta would need to drop the `MyTable` table.
 
 We use that flag if we want to enforce a human approbation in a CI/CD pipeline when `.drop` occurs.
 
