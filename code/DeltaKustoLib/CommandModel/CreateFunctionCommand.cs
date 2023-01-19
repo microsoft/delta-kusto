@@ -89,7 +89,9 @@ namespace DeltaKustoLib.CommandModel
             var propertyList = functionDeclaration
                 .Parent
                 .GetFirstDescendant<SyntaxElement>(
-                e => e.Kind == SyntaxKind.List && e.NameInParent != "Parameters");
+                e => e.Kind == SyntaxKind.List
+                && e.NameInParent != "Parameters"
+                && e.NameInParent != "Columns");
 
             folder = docString = QuotedText.Empty;
             if (propertyList != null)
