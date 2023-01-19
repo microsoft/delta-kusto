@@ -95,6 +95,9 @@ namespace DeltaKustoLib.CommandModel
             }
             else
             {
+#if DEBUG
+                var allElements = commandBlock.GetDescendants<SyntaxElement>();
+#endif
                 var customCommand = commandBlock.GetUniqueDescendant<CustomCommand>("custom command");
 
                 switch (customCommand.CommandKind)
