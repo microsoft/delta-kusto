@@ -88,14 +88,12 @@ namespace DeltaKustoLib.CommandModel
         {
             var propertyList = functionDeclaration
                 .Parent
-                .GetFirstDescendant<SyntaxElement>(e => e.Kind == SyntaxKind.List);
+                .GetFirstDescendant<SyntaxElement>(
+                e => e.Kind == SyntaxKind.List && e.NameInParent != "Parameters");
 
             folder = docString = QuotedText.Empty;
             if (propertyList != null)
             {
-                var q = propertyList
-                    .GetDescendants<SeparatedElement>()
-                    .Select(p => p.GetDescendants<SyntaxToken>());
                 var properties = propertyList
                     .GetDescendants<SeparatedElement>()
                     .Select(p => new
