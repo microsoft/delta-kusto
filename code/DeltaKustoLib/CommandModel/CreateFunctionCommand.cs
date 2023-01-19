@@ -56,10 +56,9 @@ namespace DeltaKustoLib.CommandModel
 
         internal static CommandBase FromCode(SyntaxElement rootElement)
         {
-            var functionName = EntityName.FromCode(
-                rootElement.GetUniqueDescendant<SyntaxElement>(
-                    "Function Name",
-                    e => e.NameInParent == "FunctionName"));
+            var functionNameDeclaration = rootElement.GetFirstDescendant<NameDeclaration>(
+                n => n.NameInParent == "FunctionName" || n.NameInParent == string.Empty);
+            var functionName = EntityName.FromCode(functionNameDeclaration.Name);
             var functionDeclaration = rootElement
                 .GetAtLeastOneDescendant<FunctionDeclaration>("Function declaration")
                 .First();
