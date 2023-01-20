@@ -122,6 +122,7 @@ namespace DeltaKustoLib.CommandModel
                             ReplaceFirstOccurence(script, "alter-merge", "create"),
                             ignoreUnknownCommands);
                     case "CreateTables":
+                    case "CreateMergeTables":
                         return CreateTablesCommand.FromCode(commandBlock);
                     case "DropTable":
                         return DropTableCommand.FromCode(commandBlock);

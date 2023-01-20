@@ -47,7 +47,7 @@ namespace DeltaKustoLib.CommandModel
             var tableName = rootElement.GetUniqueDescendant<NameDeclaration>(
                 "TableName",
                 n => n.NameInParent == "TableName");
-            var (folder, docString) = GetProperties(rootElement);
+            var (folder, docString) = ExtractProperties(rootElement);
             var columns = rootElement
                 .GetDescendants<NameDeclaration>(n => n.NameInParent == "ColumnName")
                 .Select(n => n.Parent)
@@ -125,7 +125,7 @@ namespace DeltaKustoLib.CommandModel
             return pluralCommands.ToImmutableArray();
         }
 
-        private static (QuotedText? folder, QuotedText? docString) GetProperties(
+        private static (QuotedText? folder, QuotedText? docString) ExtractProperties(
             SyntaxElement rootElement)
         {
             var lists = rootElement.GetDescendants<SyntaxElement>(
