@@ -27,6 +27,36 @@ namespace DeltaKustoUnitTest.CommandParsing
         }
 
         [Fact]
+        public void CreateWithMultilineStringLiteral()
+        {
+            var format = @"
+```
+[
+    {
+        'column' : 'rownumber',
+        'DataType' : 'int',
+        'Properties' :
+        {
+            'Ordinal' : '0'
+        }
+    }
+]
+```";
+            var command = ParseOneCommand(
+                ".create table MyTable ingestion csv mapping "
+                + $"'Mapping1' {format}");
+
+            Assert.IsType<CreateMappingCommand>(command);
+
+            var createMappingCommand = (CreateMappingCommand)command;
+
+            Assert.Equal(new EntityName("MyTable"), createMappingCommand.TableName);
+            Assert.Equal(new QuotedText("Mapping1"), createMappingCommand.MappingName);
+            Assert.Equal("csv", createMappingCommand.MappingKind);
+            Assert.Contains("rownumber", createMappingCommand.MappingAsJson.Text);
+        }
+
+        [Fact]
         public void CreateOrAlter()
         {
             var format = "[{ \"column\" : \"rownumber\", \"DataType\":\"int\", "

@@ -95,8 +95,11 @@ namespace DeltaKustoLib.CommandModel
             builder.Append(MappingKind);
             builder.Append(" mapping ");
             builder.Append(MappingName);
-            builder.Append(" ");
-            builder.Append(MappingAsJson);
+            builder.AppendLine();
+            builder.AppendLine("```");
+            builder.Append(MappingAsJson.Text.Trim());
+            builder.AppendLine();
+            builder.Append("```");
 
             return builder.ToString();
         }
