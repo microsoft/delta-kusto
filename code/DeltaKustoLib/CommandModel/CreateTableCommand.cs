@@ -48,30 +48,23 @@ namespace DeltaKustoLib.CommandModel
                 "TableName",
                 n => n.NameInParent == "TableName");
             var (folder, docString) = GetProperties(rootElement);
-            var lists = rootElement.GetDescendants<SyntaxElement>(
-                n => n.Kind == SyntaxKind.List);
-            var columns = lists[1];
-            var properties = lists.Count >= 3 ? lists[2] : null;
-            //var folder = GetProperty(rootElement, SyntaxKind.FolderKeyword);
-            //var docString = GetProperty(rootElement, SyntaxKind.DocStringKeyword);
-            //var columns = rootElement
-            //    .GetDescendants<NameDeclaration>(n => n.NameInParent == "ColumnName")
-            //    .Select(n => n.Parent)
-            //    .Select(n => new
-            //    {
-            //        Name = n.GetUniqueDescendant<NameDeclaration>("Table column name"),
-            //        Type = n.GetUniqueDescendant<PrimitiveTypeExpression>("Table column type")
-            //    })
-            //    .Select(c => new TableColumn(
-            //        EntityName.FromCode(c.Name),
-            //        c.Type.Type.Text));
+            var columns = rootElement
+                .GetDescendants<NameDeclaration>(n => n.NameInParent == "ColumnName")
+                .Select(n => n.Parent)
+                .Select(n => new
+                {
+                    Name = n.GetUniqueDescendant<NameDeclaration>("Table column name"),
+                    Type = n.GetUniqueDescendant<PrimitiveTypeExpression>("Table column type")
+                })
+                .Select(c => new TableColumn(
+                    EntityName.FromCode(c.Name),
+                    c.Type.Type.Text));
 
-            //return new CreateTableCommand(
-            //    EntityName.FromCode(tableName),
-            //    columns,
-            //    folder,
-            //    docString);
-            throw new NotImplementedException();
+            return new CreateTableCommand(
+                EntityName.FromCode(tableName),
+                columns,
+                folder,
+                docString);
         }
 
         public override bool Equals(CommandBase? other)
@@ -114,6 +107,24 @@ namespace DeltaKustoLib.CommandModel
             return builder.ToString();
         }
 
+        IEnumerable<CommandBase>
+            ISingularToPluralCommand.ToPlural(IEnumerable<CommandBase> singularCommands)
+        {
+            //  We might want to cap batches to a maximum size?
+            var pluralCommands = singularCommands
+                .Cast<CreateTableCommand>()
+                .Select(c => new { Key = (c.Folder, c.DocString), Value = c })
+                .GroupBy(c => c.Key)
+                .Select(g => new CreateTablesCommand(
+                    g.Select(c => new CreateTablesCommand.InnerTable(
+                        c.Value.TableName,
+                        c.Value.Columns)),
+                    g.Key.Folder,
+                    g.Key.DocString));
+
+            return pluralCommands.ToImmutableArray();
+        }
+
         private static (QuotedText? folder, QuotedText? docString) GetProperties(
             SyntaxElement rootElement)
         {
@@ -149,36 +160,6 @@ namespace DeltaKustoLib.CommandModel
             }
 
             return (folder, docString);
-        }
-
-        private static QuotedText? GetProperty(SyntaxElement rootElement, SyntaxKind kind)
-        {
-            var literal = rootElement
-                .GetDescendants<SyntaxElement>(e => e.Kind == kind)
-                .Select(e => e.Parent.GetDescendants<LiteralExpression>().FirstOrDefault())
-                .FirstOrDefault();
-
-            return literal == null
-                ? null
-                : QuotedText.FromLiteral(literal);
-        }
-
-        IEnumerable<CommandBase>
-            ISingularToPluralCommand.ToPlural(IEnumerable<CommandBase> singularCommands)
-        {
-            //  We might want to cap batches to a maximum size?
-            var pluralCommands = singularCommands
-                .Cast<CreateTableCommand>()
-                .Select(c => new { Key = (c.Folder, c.DocString), Value = c })
-                .GroupBy(c => c.Key)
-                .Select(g => new CreateTablesCommand(
-                    g.Select(c => new CreateTablesCommand.InnerTable(
-                        c.Value.TableName,
-                        c.Value.Columns)),
-                    g.Key.Folder,
-                    g.Key.DocString));
-
-            return pluralCommands.ToImmutableArray();
         }
     }
 }
