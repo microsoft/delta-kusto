@@ -18,6 +18,8 @@ namespace DeltaKustoLib.CommandModel.Policies
 
         public KustoTimeSpan HotIndex { get; }
 
+        public IImmutableList<HotWindow> HotWindows { get; }
+
         public override string CommandFriendlyName => ".alter <entity> policy caching";
 
         public override string ScriptPath => EntityType == EntityType.Database
@@ -28,10 +30,12 @@ namespace DeltaKustoLib.CommandModel.Policies
             EntityType entityType,
             EntityName entityName,
             TimeSpan hotData,
-            TimeSpan hotIndex) : base(entityType, entityName)
+            TimeSpan hotIndex,
+            IEnumerable<HotWindow> hotWindows) : base(entityType, entityName)
         {
             HotData = new KustoTimeSpan(hotData);
             HotIndex = new KustoTimeSpan(hotIndex);
+            HotWindows = hotWindows.ToImmutableArray();
         }
 
         internal static CommandBase FromCode(SyntaxElement rootElement)
@@ -50,17 +54,30 @@ namespace DeltaKustoLib.CommandModel.Policies
             var entityNames = rootElement.GetDescendants<NameReference>();
             var entityName = entityNames.LastOrDefault();
             var (hotData, hotIndex) = ExtractHotDurations(rootElement);
+            var hotWindowTimes = rootElement.GetDescendants<SyntaxToken>(
+                t => t.Kind == SyntaxKind.DateTimeLiteralToken);
 
             if (entityName == null)
             {
                 throw new DeltaException("No entity name found");
             }
+            if (hotWindowTimes.Count() % 2 == 1)
+            {
+                throw new DeltaException(
+                    "Hot Window date times should come in even numbers, "
+                    + $"not '{hotWindowTimes.Count()}'");
+            }
+
+            var hotWindows = hotWindowTimes
+                .Chunk(2)
+                .Select(c => new HotWindow((DateTime)c[0].Value, (DateTime)c[1].Value));
 
             return new AlterCachingPolicyCommand(
                 entityType,
                 EntityName.FromCode(entityName.Name),
                 hotData,
-                hotIndex);
+                hotIndex,
+                hotWindows);
         }
 
         public override bool Equals(CommandBase? other)
@@ -69,7 +86,8 @@ namespace DeltaKustoLib.CommandModel.Policies
             var areEqualed = otherPolicy != null
                 && base.Equals(otherPolicy)
                 && otherPolicy.HotData.Equals(HotData)
-                && otherPolicy.HotIndex.Equals(HotIndex);
+                && otherPolicy.HotIndex.Equals(HotIndex)
+                && otherPolicy.HotWindows.SequenceEqual(HotWindows);
 
             return areEqualed;
         }
@@ -101,6 +119,12 @@ namespace DeltaKustoLib.CommandModel.Policies
                 builder.Append(HotData);
                 builder.Append(" hotindex = ");
                 builder.Append(HotIndex);
+            }
+            foreach(var hotWindow in HotWindows)
+            {
+                builder.AppendLine();
+                builder.Append(", ");
+                builder.Append(hotWindow);
             }
 
             return builder.ToString();

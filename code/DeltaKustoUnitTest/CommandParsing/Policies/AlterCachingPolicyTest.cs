@@ -50,6 +50,58 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
         }
 
         [Fact]
+        public void OneHotWindow()
+        {
+            foreach (var entityType in new[] { EntityType.Table, EntityType.Database })
+            {
+                var entityTypeName = entityType == EntityType.Table
+                    ? "table"
+                    : "database";
+                var command = ParseOneCommand(
+                    $".alter {entityTypeName} myEntity policy caching"
+                    + " hot=3d, hot_window = datetime(2021-01-01) .. datetime(2021-02-01)");
+
+                Assert.IsType<AlterCachingPolicyCommand>(command);
+
+                var realCommand = (AlterCachingPolicyCommand)command;
+
+                Assert.Equal(entityType, realCommand.EntityType);
+                Assert.Equal("myEntity", realCommand.EntityName.Name);
+                Assert.Equal(1, realCommand.HotWindows.Count);
+                Assert.Equal(new DateTime(2021, 01, 01), realCommand.HotWindows.First().From);
+                Assert.Equal(new DateTime(2021, 02, 01), realCommand.HotWindows.First().To);
+            }
+        }
+
+        [Fact]
+        public void TwoHotWindows()
+        {
+            foreach (var entityType in new[] { EntityType.Table, EntityType.Database })
+            {
+                var entityTypeName = entityType == EntityType.Table
+                    ? "table"
+                    : "database";
+                var command = ParseOneCommand(
+                    $".alter {entityTypeName} myEntity policy caching"
+                    + " hot=3d, "
+                    + "hot_window = datetime(2021-01-01) .. datetime(2021-02-01)"
+                    + "hot_window = datetime(2021-03-01) .. datetime(2021-04-01)");
+
+                Assert.IsType<AlterCachingPolicyCommand>(command);
+
+                var realCommand = (AlterCachingPolicyCommand)command;
+
+                Assert.Equal(entityType, realCommand.EntityType);
+                Assert.Equal("myEntity", realCommand.EntityName.Name);
+                Assert.Equal(2, realCommand.HotWindows.Count);
+                Assert.Equal(new DateTime(2021, 01, 01), realCommand.HotWindows.First().From);
+                Assert.Equal(new DateTime(2021, 02, 01), realCommand.HotWindows.First().To);
+                Assert.Equal(new DateTime(2021, 03, 01), realCommand.HotWindows.Last().From);
+                Assert.Equal(new DateTime(2021, 04, 01), realCommand.HotWindows.Last().To);
+            }
+        }
+
+        [Fact]
         public void SimpleDatabase()
         {
             TestCachingPolicy(EntityType.Database, "Db", TimeSpan.FromSeconds(40));
@@ -73,7 +125,8 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
                     type,
                     new EntityName(name),
                     hotData,
-                    hotIndex)
+                    hotIndex,
+                    new HotWindow[0])
                     .ToScript(null);
                 var command = ParseOneCommand(commandText);
 
