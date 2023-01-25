@@ -36,32 +36,31 @@ namespace DeltaKustoLib.CommandModel.Policies
 
         internal static CommandBase FromCode(SyntaxElement rootElement)
         {
-            //var entityKinds = rootElement
-            //    .GetDescendants<SyntaxElement>(s => s.Kind == SyntaxKind.TableKeyword
-            //    || s.Kind == SyntaxKind.DatabaseKeyword)
-            //    .Select(s => s.Kind);
+            var dbEntityType = rootElement.GetAtMostOneDescendant<SyntaxToken>(
+                "database",
+                t => t.Kind == SyntaxKind.DatabaseKeyword);
+            var tableEntityType = rootElement.GetAtMostOneDescendant<SyntaxToken>(
+                "database",
+                t => t.Kind == SyntaxKind.IdentifierToken && t.Text.ToLower() == "table");
+            var entityType = dbEntityType != null
+                ? EntityType.Database
+                : tableEntityType != null
+                ? EntityType.Table
+                : throw new DeltaException("Can't figure out entity type");
+            var entityNames = rootElement.GetDescendants<NameReference>();
+            var entityName = entityNames.LastOrDefault();
+            var (hotData, hotIndex) = ExtractHotDurations(rootElement);
 
-            //if (!entityKinds.Any())
-            //{
-            //    throw new DeltaException("Alter caching policy requires to act on a table or database (cluster isn't supported)");
-            //}
-            //var entityKind = entityKinds.First();
-            //var entityType = entityKind == SyntaxKind.TableKeyword
-            //    ? EntityType.Table
-            //    : EntityType.Database;
-            //var entityName = rootElement
-            //    .GetDescendants<NameReference>(n => n.NameInParent == "TableName"
-            //    || n.NameInParent == "DatabaseName"
-            //    || n.NameInParent == "Selector")
-            //    .Last();
-            //var (hotData, hotIndex) = ExtractHotDurations(rootElement);
+            if (entityName == null)
+            {
+                throw new DeltaException("No entity name found");
+            }
 
-            //return new AlterCachingPolicyCommand(
-            //    entityType,
-            //    EntityName.FromCode(entityName.Name),
-            //    hotData,
-            //    hotIndex);
-            throw new NotImplementedException();
+            return new AlterCachingPolicyCommand(
+                entityType,
+                EntityName.FromCode(entityName.Name),
+                hotData,
+                hotIndex);
         }
 
         public override bool Equals(CommandBase? other)
@@ -135,65 +134,24 @@ namespace DeltaKustoLib.CommandModel.Policies
         private static (TimeSpan hotData, TimeSpan hotIndex) ExtractHotDurations(
             SyntaxElement rootElement)
         {
-            var durations = GetHotDurations(rootElement);
+            var hotExpression = rootElement.GetUniqueDescendant<LiteralExpression>(
+                "hot",
+                e => e.NameInParent == "HotData" || e.NameInParent == "Timespan");
+            var hotValue = (TimeSpan)hotExpression.LiteralValue;
+            var hotIndexExpression = rootElement.GetAtMostOneDescendant<LiteralExpression>(
+                "hotindex",
+                e => e.NameInParent == "HotIndex");
 
-            //if (durations.Count == 1 && durations.ContainsKey(SyntaxKind.HotKeyword))
-            //{
-            //    var duration = durations.First().Value;
+            if (hotIndexExpression == null)
+            {
+                return (hotValue, hotValue);
+            }
+            else
+            {
+                var hotIndexValue = (TimeSpan)hotIndexExpression.LiteralValue;
 
-            //    return (duration, duration);
-            //}
-            //else if (durations.Count == 2
-            //    && durations.ContainsKey(SyntaxKind.HotDataKeyword)
-            //    && durations.ContainsKey(SyntaxKind.HotIndexKeyword))
-            //{
-            //    var dataDuration = durations[SyntaxKind.HotDataKeyword];
-            //    var indexDuration = durations[SyntaxKind.HotIndexKeyword];
-
-            //    return (dataDuration, indexDuration);
-            //}
-            //else
-            //{
-            //    throw new DeltaException("Caching policy expect either a 'hot' parameter or a 'hotdata' and 'hotindex'");
-            //}
-            throw new NotImplementedException();
-        }
-
-        private static IImmutableDictionary<SyntaxKind, TimeSpan> GetHotDurations(SyntaxElement rootElement)
-        {
-            var elements = rootElement.GetDescendants<SyntaxElement>();
-            var builder = ImmutableDictionary<SyntaxKind, TimeSpan>.Empty.ToBuilder();
-            //SyntaxKind? kind = null;
-
-            //foreach (var e in elements)
-            //{
-                //if (kind == null)
-                //{
-                //    if (e.Kind == SyntaxKind.HotKeyword
-                //        || e.Kind == SyntaxKind.HotDataKeyword
-                //        || e.Kind == SyntaxKind.HotIndexKeyword)
-                //    {
-                //        if (!e.IsMissing)
-                //        {
-                //            kind = e.Kind;
-                //        }
-                //    }
-                //}
-                //else
-                //{
-                //    if (e.Kind == SyntaxKind.TimespanLiteralToken)
-                //    {
-                //        var token = (SyntaxToken)e;
-                //        var t = (TimeSpan)token.Value;
-
-                //        builder.Add(kind.Value, t);
-                //        kind = null;
-                //    }
-                //}
-            //}
-
-            //return builder.ToImmutable();
-                throw new NotImplementedException();
+                return (hotValue, hotIndexValue);
+            }
         }
     }
 }

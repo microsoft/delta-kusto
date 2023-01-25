@@ -147,25 +147,7 @@ namespace DeltaKustoLib.CommandModel
                         return DeleteAutoDeletePolicyCommand.FromCode(commandBlock);
                     case "AlterDatabasePolicyCaching":
                     case "AlterTablePolicyCaching":
-                        //var partitioning = commandBlock.GetDescendants<SyntaxElement>(s => s.Kind == SyntaxKind.PartitioningKeyword).Count();
-
-                        //if (partitioning == 1)
-                        //{
-                        //    if (ignoreUnknownCommands)
-                        //    {
-                        //        return null;
-                        //    }
-                        //    else
-                        //    {
-                        //        throw new DeltaException(
-                        //            $"Can't handle CommandKind 'AlterTablePolicyPartitioning'");
-                        //    }
-                        //}
-                        //else
-                        //{
-                        //    return AlterCachingPolicyCommand.FromCode(commandBlock);
-                        //}
-                        throw new NotImplementedException();
+                        return AlterCachingPolicyCommand.FromCode(commandBlock);
                     case "DeleteDatabasePolicyCaching":
                     case "DeleteTablePolicyCaching":
                         return DeleteCachingPolicyCommand.FromCode(commandBlock);

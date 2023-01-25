@@ -37,7 +37,9 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
         [Fact]
         public void ClusterComposedTableName()
         {
-            var command = ParseOneCommand(".alter table ['my cluster'].mydb.mytable policy caching hot=3d");
+            var command = ParseOneCommand(
+                ".alter table ['my cluster'].mydb.mytable policy caching"
+                + " hot=3d, hotindex=time(10.00:00:00)");
 
             Assert.IsType<AlterCachingPolicyCommand>(command);
 
