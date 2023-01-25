@@ -40,17 +40,7 @@ namespace DeltaKustoLib.CommandModel.Policies
 
         internal static CommandBase FromCode(SyntaxElement rootElement)
         {
-            var dbEntityType = rootElement.GetAtMostOneDescendant<SyntaxToken>(
-                "database",
-                t => t.Kind == SyntaxKind.DatabaseKeyword);
-            var tableEntityType = rootElement.GetAtMostOneDescendant<SyntaxToken>(
-                "database",
-                t => t.Kind == SyntaxKind.IdentifierToken && t.Text.ToLower() == "table");
-            var entityType = dbEntityType != null
-                ? EntityType.Database
-                : tableEntityType != null
-                ? EntityType.Table
-                : throw new DeltaException("Can't figure out entity type");
+            var entityType = ExtractEntityType(rootElement);
             var entityNames = rootElement.GetDescendants<NameReference>();
             var entityName = entityNames.LastOrDefault();
             var (hotData, hotIndex) = ExtractHotDurations(rootElement);
