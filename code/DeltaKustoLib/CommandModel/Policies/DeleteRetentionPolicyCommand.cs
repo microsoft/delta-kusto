@@ -28,23 +28,10 @@ namespace DeltaKustoLib.CommandModel.Policies
 
         internal static CommandBase FromCode(SyntaxElement rootElement)
         {
-            //var entityKinds = rootElement
-            //    .GetDescendants<SyntaxElement>(s => s.Kind == SyntaxKind.TableKeyword
-            //    || s.Kind == SyntaxKind.DatabaseKeyword)
-            //    .Select(s => s.Kind);
+            var entityType = ExtractEntityType(rootElement);
+            var entityName = rootElement.GetFirstDescendant<NameReference>();
 
-            //if (!entityKinds.Any())
-            //{
-            //    throw new DeltaException("Delete retention policy requires to act on a table or database (cluster isn't supported)");
-            //}
-            //var entityKind = entityKinds.First();
-            //var entityType = entityKind == SyntaxKind.TableKeyword
-            //    ? EntityType.Table
-            //    : EntityType.Database;
-            //var entityName = rootElement.GetFirstDescendant<NameReference>();
-
-            //return new DeleteRetentionPolicyCommand(entityType, EntityName.FromCode(entityName.Name));
-            throw new NotImplementedException();
+            return new DeleteRetentionPolicyCommand(entityType, EntityName.FromCode(entityName.Name));
         }
 
         public override string ToScript(ScriptingContext? context)

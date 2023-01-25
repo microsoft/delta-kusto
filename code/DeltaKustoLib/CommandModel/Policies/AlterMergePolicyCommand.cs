@@ -48,37 +48,24 @@ namespace DeltaKustoLib.CommandModel.Policies
 
         internal static CommandBase FromCode(SyntaxElement rootElement)
         {
-            //var entityKinds = rootElement
-            //    .GetDescendants<SyntaxElement>(s => s.Kind == SyntaxKind.TableKeyword
-            //    || s.Kind == SyntaxKind.DatabaseKeyword)
-            //    .Select(s => s.Kind);
+            var entityType = ExtractEntityType(rootElement);
+            var entityName = rootElement.GetDescendants<NameReference>().Last();
+            var policyText = QuotedText.FromLiteral(
+                rootElement.GetUniqueDescendant<LiteralExpression>(
+                    "Merge",
+                    e => e.NameInParent == "MergePolicy"));
+            var policy = Deserialize<JsonDocument>(policyText.Text);
 
-            //if (!entityKinds.Any())
-            //{
-            //    throw new DeltaException("Alter merge policy requires to act on a table or database (cluster isn't supported)");
-            //}
-            //var entityKind = entityKinds.First();
-            //var entityType = entityKind == SyntaxKind.TableKeyword
-            //    ? EntityType.Table
-            //    : EntityType.Database;
-            //var entityName = rootElement.GetDescendants<NameReference>().Last();
-            //var policyText = QuotedText.FromLiteral(
-            //    rootElement.GetUniqueDescendant<LiteralExpression>(
-            //        "Merge",
-            //        e => e.NameInParent == "MergePolicy"));
-            //var policy = Deserialize<JsonDocument>(policyText.Text);
+            if (policy == null)
+            {
+                throw new DeltaException(
+                    $"Can't extract policy objects from {policyText.ToScript()}");
+            }
 
-            //if (policy == null)
-            //{
-            //    throw new DeltaException(
-            //        $"Can't extract policy objects from {policyText.ToScript()}");
-            //}
-
-            //return new AlterMergePolicyCommand(
-            //    entityType,
-            //    EntityName.FromCode(entityName.Name),
-            //    policy);
-            throw new NotImplementedException();
+            return new AlterMergePolicyCommand(
+                entityType,
+                EntityName.FromCode(entityName.Name),
+                policy);
         }
 
         public override string ToScript(ScriptingContext? context)
