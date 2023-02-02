@@ -14,7 +14,7 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
         public void SimpleTable()
         {
             var commandText = @"
-.alter table mydb.mytable policy partitioning ```
+.alter table mytable policy partitioning ```
 {
   'PartitionKeys': [
     {
