@@ -1,6 +1,4 @@
 ﻿using DeltaKustoLib;
-using Kusto.Language.Syntax;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -20,6 +18,8 @@ namespace DeltaKustoIntegration.Parameterization
 
         public UserManagedIdentityParameterization? UserManagedIdentity { get; set; }
 
+        public bool NoAuth { get; set; }
+
         internal void Validate()
         {
             var tokenProviderCount = (Tokens != null ? 1 : 0)
@@ -27,7 +27,8 @@ namespace DeltaKustoIntegration.Parameterization
                 + (SystemManagedIdentity ? 1 : 0)
                 + (UserPrompt != null ? 1 : 0)
                 + (UserManagedIdentity != null ? 1 : 0)
-                + (AzCli != null ? 1 : 0);
+                + (AzCli != null ? 1 : 0)
+                + (NoAuth ? 1 : 0);
 
             if (tokenProviderCount > 1)
             {

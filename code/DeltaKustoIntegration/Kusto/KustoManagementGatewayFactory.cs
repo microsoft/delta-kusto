@@ -7,7 +7,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace DeltaKustoIntegration.Kusto
 {
@@ -111,6 +110,10 @@ namespace DeltaKustoIntegration.Kusto
             else if (tokenProvider.AzCli != null)
             {
                 return builder.WithAadAzCliAuthentication(tokenProvider.AzCli.Interactive);
+            }
+            else if (tokenProvider.NoAuth)
+            {
+                return builder;
             }
             else
             {
