@@ -10,14 +10,14 @@ param tenantId string
 @description('Service Principal Client ID (which should be cluster admin)')
 param clientId string
 
-var intTestDbCountPerPrefix = 120
-var perfTestDbCount = 5000
-var perfPartitionMaxSize = 800
-var perfTestDbPartitions = [for i in range(0, (perfTestDbCount / perfPartitionMaxSize) + 1): {
-  name: 'kustoDbs-${i + 1}-${deployment().name}'
-  dbIndices: range(i * perfPartitionMaxSize, min(perfPartitionMaxSize, perfTestDbCount - (i * perfPartitionMaxSize)))
-  dbPrefix: 'db_'
-}]
+var intTestDbCountPerPrefix = 40
+// var perfTestDbCount = 5000
+// var perfPartitionMaxSize = 800
+// var perfTestDbPartitions = [for i in range(0, (perfTestDbCount / perfPartitionMaxSize) + 1): {
+//   name: 'kustoDbs-${i + 1}-${deployment().name}'
+//   dbIndices: range(i * perfPartitionMaxSize, min(perfPartitionMaxSize, perfTestDbCount - (i * perfPartitionMaxSize)))
+//   dbPrefix: 'db_'
+// }]
 
 var uniqueId = uniqueString(resourceGroup().id, 'delta-kusto')
 var prefixes = [
@@ -27,7 +27,7 @@ var prefixes = [
   'github_laptop_'
 ]
 
-resource intTestCluster 'Microsoft.Kusto/clusters@2021-01-01' = {
+resource intTestCluster 'Microsoft.Kusto/clusters@2022-12-29' = {
   name: 'intTests${uniqueId}'
   location: resourceGroup().location
   tags: {
@@ -41,46 +41,46 @@ resource intTestCluster 'Microsoft.Kusto/clusters@2021-01-01' = {
   }
 }
 
-resource intTestDbs 'Microsoft.Kusto/clusters/databases@2021-01-01' = [for i in range(0, length(prefixes) * intTestDbCountPerPrefix): {
+resource intTestDbs 'Microsoft.Kusto/clusters/databases@2022-12-29' = [for i in range(0, length(prefixes) * intTestDbCountPerPrefix): {
   name: '${prefixes[i / intTestDbCountPerPrefix]}${format('{0:D8}', i % intTestDbCountPerPrefix + 1)}'
   location: resourceGroup().location
   parent: intTestCluster
   kind: 'ReadWrite'
 }]
 
-resource perfTestCluster 'Microsoft.Kusto/clusters@2021-01-01' = {
-  name: 'perfTests${uniqueId}'
-  location: resourceGroup().location
-  tags: {
-    'autoShutdown': 'true'
-    'testLevel': 'perf'
-  }
-  sku: {
-    'name': 'Dev(No SLA)_Standard_E2a_v4'
-    'tier': 'Basic'
-    'capacity': 1
-  }
+// resource perfTestCluster 'Microsoft.Kusto/clusters@2022-12-29' = {
+//   name: 'perfTests${uniqueId}'
+//   location: resourceGroup().location
+//   tags: {
+//     'autoShutdown': 'true'
+//     'testLevel': 'perf'
+//   }
+//   sku: {
+//     'name': 'Dev(No SLA)_Standard_E2a_v4'
+//     'tier': 'Basic'
+//     'capacity': 1
+//   }
 
-  resource admin 'principalAssignments' = {
-    name: 'main-admin'
-    properties: {
-      principalId: clientId
-      principalType: 'App'
-      role: 'AllDatabasesAdmin'
-      tenantId: tenantId
-    }
-  }
-}
+//   resource admin 'principalAssignments' = {
+//     name: 'main-admin'
+//     properties: {
+//       principalId: clientId
+//       principalType: 'App'
+//       role: 'AllDatabasesAdmin'
+//       tenantId: tenantId
+//     }
+//   }
+// }
 
-//  Delegate to a module to work around the 800 resources per deployment limitation
-module perfTestDbs 'dbs-deploy.bicep' = [for p in perfTestDbPartitions: {
-  name: p.name
-  params: {
-    clusterName: perfTestCluster.name
-    dbIndices: p.dbIndices
-    dbPrefix: 'db_'
-  }
-}]
+// //  Delegate to a module to work around the 800 resources per deployment limitation
+// module perfTestDbs 'dbs-deploy.bicep' = [for p in perfTestDbPartitions: {
+//   name: p.name
+//   params: {
+//     clusterName: perfTestCluster.name
+//     dbIndices: p.dbIndices
+//     dbPrefix: 'db_'
+//   }
+// }]
 
 resource autoShutdown 'Microsoft.Logic/workflows@2019-05-01' = {
   name: 'shutdownWorkflow${uniqueId}'
@@ -258,19 +258,19 @@ resource autoShutdownIntTestClusterAuthorization 'Microsoft.Authorization/roleAs
   }
 }
 
-resource autoShutdownPerfTestClusterAuthorization 'Microsoft.Authorization/roleAssignments@2021-04-01-preview' = {
-  name: '${guid(perfTestClusterRoleAssignmentName)}'
-  //  See https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/scope-extension-resources
-  //  for scope for extension
-  scope: perfTestCluster
-  properties: {
-    description: 'Give contributor on the cluster'
-    principalId: autoShutdown.identity.principalId
-    //  Fix the issue of the principal not being ready when deployment the assignment
-    principalType: 'ServicePrincipal'
-    roleDefinitionId: fullContributorId
-  }
-}
+// resource autoShutdownPerfTestClusterAuthorization 'Microsoft.Authorization/roleAssignments@2021-04-01-preview' = {
+//   name: '${guid(perfTestClusterRoleAssignmentName)}'
+//   //  See https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/scope-extension-resources
+//   //  for scope for extension
+//   scope: perfTestCluster
+//   properties: {
+//     description: 'Give contributor on the cluster'
+//     principalId: autoShutdown.identity.principalId
+//     //  Fix the issue of the principal not being ready when deployment the assignment
+//     principalType: 'ServicePrincipal'
+//     roleDefinitionId: fullContributorId
+//   }
+// }
 
 //  Authorize WF as reader on resource group
 var readerId = 'acdd72a7-3385-48ef-bd42-f606fba81ae7'
