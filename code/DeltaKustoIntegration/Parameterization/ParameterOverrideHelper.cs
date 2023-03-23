@@ -11,6 +11,13 @@ namespace DeltaKustoIntegration.Parameterization
 {
     public static class ParameterOverrideHelper
     {
+        //  This is used instead of reflection since this isn't easily supported
+        //  with self-contained executable
+        private readonly static IDictionary<
+            Type,
+            Action<object, IImmutableStack<PathComponent>, string>> _inplaceOverrideMap =
+            CreateInplaceOverrideMap();
+
         #region Inner Types
         private class PathComponent
         {
@@ -99,32 +106,82 @@ namespace DeltaKustoIntegration.Parameterization
                 && target.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>);
 
             if (isDictionary)
-            {   //  Recreate generic method to call strong-type
+            {
                 var arguments = target.GetType().GetGenericArguments();
                 var keyType = arguments[0];
                 var valueType = arguments[1];
-                var genericMethod = typeof(ParameterOverrideHelper).GetMethod(
-                    nameof(RecursiveInplaceOverrideOnDictionary),
-                    BindingFlags.NonPublic | BindingFlags.Static);
+                var method = _inplaceOverrideMap[valueType];
 
-                if (keyType != typeof(string))
-                {
-                    throw new NotSupportedException("We only support string-keyed map");
-                }
-                if (genericMethod == null)
-                {
-                    throw new NotSupportedException(
-                        $"Can't find method '{nameof(RecursiveInplaceOverrideOnDictionary)}'");
-                }
-
-                var specificMethod = genericMethod.MakeGenericMethod(valueType);
-
-                specificMethod.Invoke(null, new object[] { target, components, textValue });
+                method(target, components, textValue);
             }
             else
             {
                 RecursiveInplaceOverrideOnObject(target, components, textValue);
             }
+        }
+
+        private static IDictionary<Type, Action<object, IImmutableStack<PathComponent>, string>>
+            CreateInplaceOverrideMap()
+        {
+            var builder =
+                ImmutableDictionary<Type, Action<object, IImmutableStack<PathComponent>, string>>
+                .Empty
+                .ToBuilder();
+
+            builder.Add(
+                typeof(JobParameterization),
+                RecursiveInplaceOverrideOnDictionaryRouter<JobParameterization>);
+            builder.Add(
+                typeof(TokenParameterization),
+                RecursiveInplaceOverrideOnDictionaryRouter<TokenParameterization>);
+
+            var map = builder.ToImmutableDictionary();
+
+            ValidateInplaceOverrideMap(map, typeof(MainParameterization));
+
+            return map;
+        }
+
+        private static void ValidateInplaceOverrideMap(
+            IImmutableDictionary<Type, Action<object, IImmutableStack<PathComponent>, string>> map,
+            Type type)
+        {
+            foreach (var prop in type.GetProperties())
+            {
+                var isDictionary = prop.PropertyType.IsGenericType
+                    && prop.PropertyType.GetGenericTypeDefinition() == typeof(Dictionary<,>);
+
+                if (isDictionary)
+                {
+                    var arguments = prop.PropertyType.GetGenericArguments();
+                    var keyType = arguments[0];
+                    var valueType = arguments[1];
+
+                    if (keyType != typeof(string))
+                    {
+                        throw new NotSupportedException("We only support string-keyed map");
+                    }
+                    if (!map.ContainsKey(valueType))
+                    {
+                        throw new ArgumentOutOfRangeException(
+                            nameof(map),
+                            $"Missing key '{valueType.Name}'");
+                    }
+                }
+                //  Recursive validation
+                ValidateInplaceOverrideMap(map, prop.PropertyType);
+            }
+        }
+
+        private static void RecursiveInplaceOverrideOnDictionaryRouter<T>(
+            object target,
+            IImmutableStack<PathComponent> components,
+            string textValue) where T : class, new()
+        {
+            RecursiveInplaceOverrideOnDictionary(
+                (IDictionary<string, T>)target,
+                components,
+                textValue);
         }
 
         private static void RecursiveInplaceOverrideOnDictionary<T>(
