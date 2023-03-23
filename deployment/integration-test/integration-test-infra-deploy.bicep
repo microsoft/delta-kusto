@@ -242,7 +242,7 @@ resource autoShutdown 'Microsoft.Logic/workflows@2019-05-01' = {
 var contributorId = 'b24988ac-6180-42a0-ab88-20f7382dd24c'
 var fullContributorId = '/subscriptions/${subscription().subscriptionId}/providers/Microsoft.Authorization/roleDefinitions/${contributorId}'
 var intTestClusterRoleAssignmentName = '${resourceGroup().id}${autoShutdown.name}${fullContributorId}${intTestCluster.name}'
-var perfTestClusterRoleAssignmentName = '${resourceGroup().id}${autoShutdown.name}${fullContributorId}${perfTestCluster.name}'
+// var perfTestClusterRoleAssignmentName = '${resourceGroup().id}${autoShutdown.name}${fullContributorId}${perfTestCluster.name}'
 
 resource autoShutdownIntTestClusterAuthorization 'Microsoft.Authorization/roleAssignments@2021-04-01-preview' = {
   name: '${guid(intTestClusterRoleAssignmentName)}'
