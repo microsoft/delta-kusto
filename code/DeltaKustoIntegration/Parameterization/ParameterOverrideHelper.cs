@@ -17,6 +17,10 @@ namespace DeltaKustoIntegration.Parameterization
             Type,
             Action<object, IImmutableStack<PathComponent>, string>> _inplaceOverrideMap =
             CreateInplaceOverrideMap();
+        private readonly static IDictionary<
+            Type,
+            Func<object>> _newInstanceMap =
+            CreateNewInstanceMap();
 
         #region Inner Types
         private class PathComponent
@@ -147,7 +151,6 @@ namespace DeltaKustoIntegration.Parameterization
 #if DEBUG
         private static void ValidateInplaceOverrideMap(
             IImmutableDictionary<Type, Action<object, IImmutableStack<PathComponent>, string>> map,
-            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
             Type type)
         {
             foreach (var prop in type.GetProperties())
@@ -226,8 +229,72 @@ namespace DeltaKustoIntegration.Parameterization
                 textValue);
         }
 
+        private static IDictionary<Type, Func<object>> CreateNewInstanceMap()
+        {
+            var builder =
+                ImmutableDictionary<Type, Func<object>>
+                .Empty
+                .ToBuilder();
+
+            builder.Add(
+                typeof(TokenProviderParameterization),
+                () => new TokenProviderParameterization());
+            builder.Add(
+                typeof(ServicePrincipalLoginParameterization),
+                () => new ServicePrincipalLoginParameterization());
+            builder.Add(
+                typeof(UserPromptParameterization),
+                () => new UserPromptParameterization());
+            builder.Add(
+                typeof(AzCliParameterization),
+                () => new AzCliParameterization());
+            builder.Add(
+                typeof(UserManagedIdentityParameterization),
+                () => new UserManagedIdentityParameterization());
+            builder.Add(
+                typeof(Dictionary<string, JobParameterization>),
+                () => new Dictionary<string, JobParameterization>());
+            builder.Add(
+                typeof(Dictionary<string, TokenParameterization>),
+                () => new Dictionary<string, TokenParameterization>());
+
+            var map = builder.ToImmutableDictionary();
+
+#if DEBUG
+            ValidateNewInstanceMap(map, typeof(MainParameterization));
+#endif
+
+            return map;
+        }
+
+#if DEBUG
+        private static void ValidateNewInstanceMap(
+            ImmutableDictionary<Type, Func<object>> map,
+            Type type)
+        {
+            foreach (var prop in type.GetProperties())
+            {   //  Excluse string, bool, etc.
+                if (prop.PropertyType.Namespace != "System")
+                {
+                    var isDictionary = prop.PropertyType.IsGenericType
+                        && prop.PropertyType.GetGenericTypeDefinition() == typeof(Dictionary<,>);
+
+                    if (!map.ContainsKey(prop.PropertyType))
+                    {
+                        throw new ArgumentOutOfRangeException(
+                            nameof(map),
+                            $"Missing key '{prop.PropertyType.Name}'");
+                    }
+                    if (!isDictionary)
+                    {   //  Recursive validation
+                        ValidateNewInstanceMap(map, prop.PropertyType);
+                    }
+                }
+            }
+        }
+#endif
+
         private static void RecursiveInplaceOverrideOnObject(
-            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
             object target,
             IImmutableStack<PathComponent> components,
             string textValue)
@@ -249,16 +316,7 @@ namespace DeltaKustoIntegration.Parameterization
 
                 if (newTarget == null)
                 {   //  Property is null, we try to create it
-                    newTarget = propertyInfo
-                        .PropertyType
-                        .GetConstructor(new Type[0])
-                        ?.Invoke(null);
-
-                    if (newTarget == null)
-                    {
-                        throw new InvalidOperationException(
-                            $"Failed constructor on type '{newTarget}'");
-                    }
+                    newTarget = _newInstanceMap[propertyInfo.PropertyType]();
 
                     propertyInfo.GetSetMethod()!.Invoke(target, new[] { newTarget });
                 }
