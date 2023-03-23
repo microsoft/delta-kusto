@@ -84,7 +84,7 @@ namespace DeltaKustoAdxIntegrationTest
             _kustoManagementGatewayFactory = kustoManagementGatewayFactory;
         }
 
-        public async Task<string> GetCleanDbAsync()
+        public async Task<DbNameHolder> GetCleanDbAsync()
         {
             Task<string>? preparingDbTask = null;
 
@@ -92,7 +92,7 @@ namespace DeltaKustoAdxIntegrationTest
             {
                 var dbName = await preparingDbTask;
 
-                return dbName;
+                return new DbNameHolder(dbName, () => ReleaseDb(dbName));
             }
             else
             {   //  No more database available in queue, let's take the next one
@@ -101,11 +101,17 @@ namespace DeltaKustoAdxIntegrationTest
 
                 await CleanDbAsync(dbName);
 
-                return dbName;
+                return new DbNameHolder(dbName, () => ReleaseDb(dbName));
             }
         }
 
-        public void ReleaseDb(string dbName)
+        void IDisposable.Dispose()
+        {
+            //  First clean up the queue
+            Task.WhenAll(_preparingDbs.ToArray()).Wait();
+        }
+
+        private void ReleaseDb(string dbName)
         {
             if (!dbName.StartsWith(_dbPrefix))
             {
@@ -120,12 +126,6 @@ namespace DeltaKustoAdxIntegrationTest
             };
 
             _preparingDbs.Enqueue(prepereDbAsync());
-        }
-
-        void IDisposable.Dispose()
-        {
-            //  First clean up the queue
-            Task.WhenAll(_preparingDbs.ToArray()).Wait();
         }
 
         private async Task CleanDbAsync(string dbName)
