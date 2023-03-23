@@ -17,43 +17,47 @@ namespace DeltaKustoAdxIntegrationTest.FailIfDataLoss
         [Fact]
         public async Task TestFailIfDropsNoDrop()
         {
-            var toFile = "FailIfDataLoss/target.kql";
-            var targetDbName = await InitializeDbAsync();
-            var overrides = ImmutableArray<(string path, string value)>
-                .Empty
-                .Add(("jobs.main.target.adx.clusterUri", ClusterUri.ToString()))
-                .Add(("jobs.main.target.adx.database", targetDbName));
+            using (var targetDb = await InitializeDbAsync())
+            {
+                var toFile = "FailIfDataLoss/target.kql";
+                var overrides = ImmutableArray<(string path, string value)>
+                    .Empty
+                    .Add(("jobs.main.target.adx.clusterUri", ClusterUri.ToString()))
+                    .Add(("jobs.main.target.adx.database", targetDb.Name));
 
-            await PrepareDbAsync(toFile, targetDbName);
-            await RunParametersAsync("FailIfDataLoss/no-fail.json", overrides);
+                await PrepareDbAsync(toFile, targetDb.Name);
+                await RunParametersAsync("FailIfDataLoss/no-fail.json", overrides);
 
-            //  We just test that this doesn't fail
+                //  We just test that this doesn't fail
+            }
         }
 
         [Fact]
         public async Task TestFailIfDrops()
         {
-            var toFile = "FailIfDataLoss/target.kql";
-            var targetDbName = await InitializeDbAsync();
-            var overrides = ImmutableArray<(string path, string value)>
-                .Empty
-                .Add(("jobs.main.target.adx.clusterUri", ClusterUri.ToString()))
-                .Add(("jobs.main.target.adx.database", targetDbName))
-                .Append(("failIfDataLoss", "true"));
-
-            await PrepareDbAsync(toFile, targetDbName);
-
-            try
+            using (var targetDb = await InitializeDbAsync())
             {
-                //  The "Main" will return non-zero which will throw an exception
-                var parameters =
-                    await RunParametersAsync("FailIfDataLoss/no-fail.json", overrides);
+                var toFile = "FailIfDataLoss/target.kql";
+                var overrides = ImmutableArray<(string path, string value)>
+                    .Empty
+                    .Add(("jobs.main.target.adx.clusterUri", ClusterUri.ToString()))
+                    .Add(("jobs.main.target.adx.database", targetDb.Name))
+                    .Append(("failIfDataLoss", "true"));
 
-                Assert.True(parameters.FailIfDataLoss);
-                Assert.False(true, "Should have thrown by now");
-            }
-            catch (InvalidOperationException)
-            {
+                await PrepareDbAsync(toFile, targetDb.Name);
+
+                try
+                {
+                    //  The "Main" will return non-zero which will throw an exception
+                    var parameters =
+                        await RunParametersAsync("FailIfDataLoss/no-fail.json", overrides);
+
+                    Assert.True(parameters.FailIfDataLoss);
+                    Assert.False(true, "Should have thrown by now");
+                }
+                catch (InvalidOperationException)
+                {
+                }
             }
         }
     }

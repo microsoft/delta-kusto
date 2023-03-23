@@ -66,9 +66,7 @@ namespace DeltaKustoIntegration.Kusto
             _tracer.WriteLine(true, "Fetch schema commands start");
 
             var schemaOutputTask = ExecuteCommandAsync(".show database schema as csl script", ct);
-            var mappingsOutputTask = ExecuteCommandAsync(".show database ingestion mappings", ct);
             var schemaOutput = await schemaOutputTask;
-            var mappingsOutput = await mappingsOutputTask;
 
             _tracer.WriteLine(true, "Fetch schema commands end");
             tracerTimer.WriteTime(true, "Fetch schema commands time");
@@ -77,17 +75,7 @@ namespace DeltaKustoIntegration.Kusto
                 schemaOutput,
                 r => (string)r["DatabaseSchemaScript"]);
             var schemaCommands = CommandBase.FromScript(string.Join("\n\n", schemaCommandText), true);
-            var mappingCommands = Select(
-                mappingsOutput,
-                r => new CreateMappingCommand(
-                    new EntityName((string)r["Table"]),
-                    (string)r["Kind"],
-                    new QuotedText((string)r["Name"]),
-                    new QuotedText((string)r["Mapping"])))
-                .Cast<CommandBase>()
-                .ToImmutableArray();
             var allCommands = schemaCommands
-                .Concat(mappingCommands)
                 .ToImmutableArray();
 
             return allCommands;
