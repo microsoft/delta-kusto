@@ -69,7 +69,7 @@ jobs:
     - name: Build single file executable
       shell:  bash
       run: |
-        dotnet publish code/delta-kusto -c release -r $dotnetOs \
+        dotnet publish code/delta-kusto -c release -r $dotnetOs --self-contained \
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
           -p:PublishTrimmed=true -p:PublishReadyToRun=true \
           -o bin
@@ -146,7 +146,7 @@ jobs:
     - name: Build single file executable
       shell:  bash
       run: |
-        dotnet publish code/delta-kusto -c release -r $dotnetOs \
+        dotnet publish code/delta-kusto -c release -r $dotnetOs --self-contained \
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
           -p:PublishTrimmed=true -p:PublishReadyToRun=true \
           -o bin
@@ -222,7 +222,7 @@ jobs:
     - name: Build single file executable
       shell:  bash
       run: |
-        dotnet publish code/delta-kusto -c release -r $dotnetOs \
+        dotnet publish code/delta-kusto -c release -r $dotnetOs --self-contained \
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
           -p:PublishTrimmed=true -p:PublishReadyToRun=true \
           -o bin
