@@ -10,7 +10,7 @@ param tenantId string
 @description('Service Principal Client ID (which should be cluster admin)')
 param clientId string
 
-var intTestDbCountPerPrefix = 40
+var intTestDbCountPerPrefix = 60
 // var perfTestDbCount = 5000
 // var perfPartitionMaxSize = 800
 // var perfTestDbPartitions = [for i in range(0, (perfTestDbCount / perfPartitionMaxSize) + 1): {
