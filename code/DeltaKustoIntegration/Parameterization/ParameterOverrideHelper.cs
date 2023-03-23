@@ -144,6 +144,7 @@ namespace DeltaKustoIntegration.Parameterization
 
         private static void ValidateInplaceOverrideMap(
             IImmutableDictionary<Type, Action<object, IImmutableStack<PathComponent>, string>> map,
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
             Type type)
         {
             foreach (var prop in type.GetProperties())
@@ -222,6 +223,7 @@ namespace DeltaKustoIntegration.Parameterization
         }
 
         private static void RecursiveInplaceOverrideOnObject(
+            [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
             object target,
             IImmutableStack<PathComponent> components,
             string textValue)
