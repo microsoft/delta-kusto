@@ -137,11 +137,14 @@ namespace DeltaKustoIntegration.Parameterization
 
             var map = builder.ToImmutableDictionary();
 
+#if DEBUG
             ValidateInplaceOverrideMap(map, typeof(MainParameterization));
+#endif
 
             return map;
         }
 
+#if DEBUG
         private static void ValidateInplaceOverrideMap(
             IImmutableDictionary<Type, Action<object, IImmutableStack<PathComponent>, string>> map,
             [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
@@ -173,6 +176,7 @@ namespace DeltaKustoIntegration.Parameterization
                 ValidateInplaceOverrideMap(map, prop.PropertyType);
             }
         }
+#endif
 
         private static void RecursiveInplaceOverrideOnDictionaryRouter<T>(
             object target,
