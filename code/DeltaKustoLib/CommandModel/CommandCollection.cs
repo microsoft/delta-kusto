@@ -41,6 +41,7 @@ namespace DeltaKustoLib.CommandModel
                 .ToImmutableArray();
             DataLossCommands = CommandGroups
                 .Where(g => g.CommandType == typeof(DropTableCommand)
+                || g.CommandType == typeof(DropTablesCommand)
                 || g.CommandType == typeof(DropTableColumnsCommand)
                 || g.CommandType == typeof(AlterColumnTypeCommand))
                 .SelectMany(g => g.Commands)

@@ -33,18 +33,21 @@ namespace DeltaKustoAdxIntegrationTest.GivenTokenProvider
                 .AcquireTokenForClient(new[] { $"{ClusterUri}/.default" })
                 .ExecuteAsync();
             var token = authenticationResult.AccessToken;
-            var targetDbName = await InitializeDbAsync();
-            var overrides = ImmutableArray<(string path, string value)>
-                .Empty
-                .Add(("jobs.main.target.adx.clusterUri", ClusterUri.ToString()))
-                .Add(("jobs.main.target.adx.database", targetDbName))
-                .Add(("tokenProvider.tokens.myToken.clusterUri", ClusterUri.ToString()))
-                .Add(("tokenProvider.tokens.myToken.token", token));
 
-            await PrepareDbAsync("GivenTokenProvider/target.kql", targetDbName);
-            await RunParametersAsync("GivenTokenProvider/given-token.yaml", overrides);
+            using (var targetDb = await InitializeDbAsync())
+            {
+                var overrides = ImmutableArray<(string path, string value)>
+                    .Empty
+                    .Add(("jobs.main.target.adx.clusterUri", ClusterUri.ToString()))
+                    .Add(("jobs.main.target.adx.database", targetDb.Name))
+                    .Add(("tokenProvider.tokens.myToken.clusterUri", ClusterUri.ToString()))
+                    .Add(("tokenProvider.tokens.myToken.token", token));
 
-            //  We just test that this doesn't fail
+                await PrepareDbAsync("GivenTokenProvider/target.kql", targetDb.Name);
+                await RunParametersAsync("GivenTokenProvider/given-token.yaml", overrides);
+
+                //  We just test that this doesn't fail
+            }
         }
     }
 }

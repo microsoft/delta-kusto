@@ -28,17 +28,34 @@ namespace DeltaKustoIntegration.Kusto
         private readonly string _database;
         private readonly ICslAdminProvider _commandProvider;
         private readonly ITracer _tracer;
+        private readonly string _application;
+        private readonly IImmutableList<KeyValuePair<string, object>>? _requestOptions;
 
         public KustoManagementGateway(
             Uri clusterUri,
             string database,
             ICslAdminProvider commandProvider,
-            ITracer tracer)
+            ITracer tracer,
+            string version,
+            string? requestDescription = null)
         {
             _clusterUri = clusterUri;
             _database = database;
             _commandProvider = commandProvider;
             _tracer = tracer;
+            if (requestDescription != null)
+            {
+                _application = $"Delta-Kusto;{version}";
+                _requestOptions = ImmutableArray<KeyValuePair<string, object>>
+                    .Empty
+                    .Add(KeyValuePair.Create(
+                        ClientRequestProperties.OptionRequestDescription,
+                        (object)requestDescription));
+            }
+            else
+            {
+                _application = string.Empty;
+            }
         }
 
         async Task<IImmutableList<CommandBase>> IKustoManagementGateway.ReverseEngineerDatabaseAsync(
@@ -49,9 +66,7 @@ namespace DeltaKustoIntegration.Kusto
             _tracer.WriteLine(true, "Fetch schema commands start");
 
             var schemaOutputTask = ExecuteCommandAsync(".show database schema as csl script", ct);
-            var mappingsOutputTask = ExecuteCommandAsync(".show database ingestion mappings", ct);
             var schemaOutput = await schemaOutputTask;
-            var mappingsOutput = await mappingsOutputTask;
 
             _tracer.WriteLine(true, "Fetch schema commands end");
             tracerTimer.WriteTime(true, "Fetch schema commands time");
@@ -60,17 +75,7 @@ namespace DeltaKustoIntegration.Kusto
                 schemaOutput,
                 r => (string)r["DatabaseSchemaScript"]);
             var schemaCommands = CommandBase.FromScript(string.Join("\n\n", schemaCommandText), true);
-            var mappingCommands = Select(
-                mappingsOutput,
-                r => new CreateMappingCommand(
-                    new EntityName((string)r["Table"]),
-                    (string)r["Kind"],
-                    new QuotedText((string)r["Name"]),
-                    new QuotedText((string)r["Mapping"])))
-                .Cast<CommandBase>()
-                .ToImmutableArray();
             var allCommands = schemaCommands
-                .Concat(mappingCommands)
                 .ToImmutableArray();
 
             return allCommands;
@@ -150,7 +155,14 @@ namespace DeltaKustoIntegration.Kusto
                 return await _retryPolicy.ExecuteAsync(async () =>
                 {
                     var reader = await _commandProvider.ExecuteControlCommandAsync(
-                        _database, commandScript);
+                        _database,
+                        commandScript,
+                        _requestOptions != null
+                        ? new ClientRequestProperties(_requestOptions, null)
+                        {
+                            Application = _application
+                        }
+                        : null);
 
                     return reader;
                 });

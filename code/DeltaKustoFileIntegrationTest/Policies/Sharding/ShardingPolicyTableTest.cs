@@ -38,7 +38,7 @@ namespace DeltaKustoFileIntegrationTest.Policies.Sharding
             Assert.Equal("my-table", policyCommand!.EntityName.Name);
             Assert.Equal(
                 750000,
-                policyCommand!.DeserializePolicy<ShardingPolicy>().MaxRowCount);
+                policyCommand!.MaxRowCount);
         }
 
         [Fact]
@@ -92,7 +92,7 @@ namespace DeltaKustoFileIntegrationTest.Policies.Sharding
             Assert.Equal("my-table", policyCommand!.EntityName.Name);
             Assert.Equal(
                1000000,
-               policyCommand!.DeserializePolicy<ShardingPolicy>().MaxRowCount);
+               policyCommand!.MaxRowCount);
         }
     }
 }

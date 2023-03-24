@@ -118,9 +118,11 @@ namespace DeltaKustoFileIntegrationTest
 
         protected async virtual Task<int> RunMainAsync(params string[] args)
         {
+            const string DISABLE_KUSTO_TRACING = "delta-kusto-automated-tests";
+
             if (_executablePath == null)
             {
-                Environment.SetEnvironmentVariable("disable-api-calls", "true");
+                Environment.SetEnvironmentVariable(DISABLE_KUSTO_TRACING, "true");
 
                 var returnedValue = await Program.Main(args);
 
@@ -131,7 +133,7 @@ namespace DeltaKustoFileIntegrationTest
                 using (var process = new Process())
                 {
                     //  Disable API calls for tests
-                    process.StartInfo.EnvironmentVariables.Add("disable-api-calls", "true");
+                    process.StartInfo.EnvironmentVariables.Add(DISABLE_KUSTO_TRACING, "true");
                     process.StartInfo.FileName = _executablePath;
                     process.StartInfo.RedirectStandardError = true;
                     process.StartInfo.RedirectStandardOutput = true;

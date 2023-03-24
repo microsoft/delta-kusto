@@ -6,11 +6,13 @@ using DeltaKustoIntegration.Parameterization;
 using DeltaKustoLib;
 using DeltaKustoLib.CommandModel;
 using DeltaKustoLib.KustoModel;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,11 +39,12 @@ namespace delta_kusto
 
         public async Task<bool> ComputeDeltaAsync(
             string parameterFilePath,
-            IEnumerable<string> pathOverrides)
+            IEnumerable<string> pathOverrides,
+            string sessionId)
         {
             _tracer.WriteLine(false, "Activating Client...");
 
-            var availableClientVersions = await _apiClient.ActivateAsync();
+            var availableClientVersions = await _apiClient.GetNewestClientVersionsAsync();
 
             if (availableClientVersions == null)
             {
@@ -63,51 +66,114 @@ namespace delta_kusto
 
             var parameters =
                 await LoadParameterizationAsync(parameterFilePath, pathOverrides);
-            var parameterTelemetryTask = _apiClient.LogParameterTelemetryAsync(parameters);
             var parameterFolderPath = Path.GetDirectoryName(parameterFilePath);
+            var localFileGateway = _fileGateway.ChangeFolder(parameterFolderPath!);
+            var requestDescription = GetRequestDescription(parameters, sessionId);
+            var kustoManagementGatewayFactory = new KustoManagementGatewayFactory(
+                parameters.TokenProvider,
+                _tracer,
+                Program.AssemblyVersion,
+                requestDescription);
+            var orderedJobs = parameters.Jobs.OrderBy(p => p.Value.Priority);
+            var success = true;
 
-            try
+            _tracer.WriteLine(false, $"{orderedJobs.Count()} jobs");
+            foreach (var jobPair in orderedJobs)
             {
-                var localFileGateway = _fileGateway.ChangeFolder(parameterFolderPath!);
-                var kustoManagementGatewayFactory = new KustoManagementGatewayFactory(
-                    parameters.TokenProvider,
-                    _tracer);
-                var orderedJobs = parameters.Jobs.OrderBy(p => p.Value.Priority);
-                var success = true;
+                var (jobName, job) = jobPair;
+                var jobSuccess = await ProcessJobAsync(
+                    parameters,
+                    kustoManagementGatewayFactory,
+                    localFileGateway,
+                    jobName,
+                    job);
 
-                _tracer.WriteLine(false, $"{orderedJobs.Count()} jobs");
-                foreach (var jobPair in orderedJobs)
-                {
-                    var (jobName, job) = jobPair;
-                    var jobSuccess = await ProcessJobAsync(
-                        parameters,
-                        kustoManagementGatewayFactory,
-                        localFileGateway,
-                        jobName,
-                        job);
-
-                    success = success && jobSuccess;
-                }
-
-                await _apiClient.EndSessionAsync(success);
-
-                return success;
+                success = success && jobSuccess;
             }
-            catch (Exception ex)
-            {
-                if (parameters.SendErrorOptIn)
-                {
-                    var sessionID = await _apiClient.RegisterExceptionAsync(ex);
 
-                    _tracer.WriteLine(
-                        false,
-                        $"Exception registered with Session ID '{sessionID}'");
-                }
-                throw;
-            }
-            finally
+            return success;
+        }
+
+        private string? GetRequestDescription(MainParameterization parameters, string sessionId)
+        {
+            if (Environment.GetEnvironmentVariable("delta-kusto-automated-tests") != "true")
             {
-                await parameterTelemetryTask;
+                var tokenProvider = parameters.TokenProvider.Login != null
+                    ? "login"
+                    : parameters.TokenProvider.UserPrompt != null
+                    ? "userPrompt"
+                    : parameters.TokenProvider.AzCli != null
+                    ? "azCli"
+                    : parameters.TokenProvider.Tokens != null
+                    ? "tokens"
+                    : parameters.TokenProvider.SystemManagedIdentity
+                    ? "systemManagedIdentity"
+                    : parameters.TokenProvider.UserManagedIdentity != null
+                    ? "userManagedIdentity"
+                    : "unknown";
+                var description = new RequestDescription
+                {
+                    SessionId = sessionId,
+                    Os = Environment.OSVersion.Platform.ToString(),
+                    OsVersion = Environment.OSVersion.VersionString,
+                    FailIfDataLoss = parameters.FailIfDataLoss,
+                    TokenProvider = tokenProvider,
+                    Jobs = parameters.Jobs.Select(p => p.Value).Select(j => new RequestDescriptionJob
+                    {
+                        Current = ExtractSource(j.Current),
+                        Target = ExtractSource(j.Target),
+                        FilePath = j.Action!.FilePath != null,
+                        FolderPath = j.Action!.FolderPath != null,
+                        CsvPath = j.Action!.CsvPath != null,
+                        UsePluralForms = j.Action!.UsePluralForms,
+                        PushToConsole = j.Action!.PushToConsole
+                    }).ToList()
+                };
+                var buffer = JsonSerializer.SerializeToUtf8Bytes(
+                    description,
+                    typeof(RequestDescription),
+                    new RequestDescriptionSerializerContext());
+                var jsonDescription = UTF8Encoding.ASCII.GetString(buffer);
+
+                return jsonDescription;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        private static string ExtractSource(SourceParameterization? current)
+        {
+            if (current == null)
+            {
+                return "None";
+            }
+            else if (current.Adx != null)
+            {
+                return "Cluster";
+            }
+            else if (current.Scripts != null)
+            {
+                if (current.Scripts.FirstOrDefault() != null)
+                {
+                    if (current.Scripts.First().FilePath != null)
+                    {
+                        return "File";
+                    }
+                    else
+                    {
+                        return "Folder";
+                    }
+                }
+                else
+                {
+                    return "NoScript";
+                }
+            }
+            else
+            {
+                return "Unknown";
             }
         }
 

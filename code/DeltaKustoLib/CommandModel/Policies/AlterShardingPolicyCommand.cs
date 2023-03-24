@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace DeltaKustoLib.CommandModel.Policies
@@ -15,6 +16,19 @@ namespace DeltaKustoLib.CommandModel.Policies
     [Command(15100, "Alter Sharding Policies")]
     public class AlterShardingPolicyCommand : EntityPolicyCommandBase
     {
+        private static readonly ShardingPolicySerializerContext _serializerContext
+            = new ShardingPolicySerializerContext(
+                new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                });
+
+        public int? MaxRowCount { get; }
+
+        public int? MaxExtentSizeInMb { get; }
+
+        public int? MaxOriginalSizeInMb { get; }
+
         public override string CommandFriendlyName => ".alter <entity> policy sharding";
 
         public override string ScriptPath => EntityType == EntityType.Database
@@ -24,26 +38,17 @@ namespace DeltaKustoLib.CommandModel.Policies
         public AlterShardingPolicyCommand(
             EntityType entityType,
             EntityName entityName,
-            JsonDocument policy) : base(entityType, entityName, policy)
-        {
-        }
-
-        public AlterShardingPolicyCommand(
-            EntityType entityType,
-            EntityName entityName,
-            int maxRowCount,
-            int maxExtentSizeInMb,
-            int maxOriginalSizeInMb)
-            : this(
+            int? maxRowCount,
+            int? maxExtentSizeInMb,
+            int? maxOriginalSizeInMb)
+            : base(
                   entityType,
                   entityName,
-                  ToJsonDocument(new
-                  {
-                      MaxRowCount = maxRowCount,
-                      MaxExtentSizeInMb = maxExtentSizeInMb,
-                      MaxOriginalSizeInMb = maxOriginalSizeInMb
-                  }))
+                  CreatePolicyText(maxRowCount, maxExtentSizeInMb, maxOriginalSizeInMb))
         {
+            MaxRowCount = maxRowCount;
+            MaxExtentSizeInMb = maxExtentSizeInMb;
+            MaxOriginalSizeInMb = maxOriginalSizeInMb;
         }
 
         internal static CommandBase FromCode(SyntaxElement rootElement)
@@ -54,23 +59,19 @@ namespace DeltaKustoLib.CommandModel.Policies
                 rootElement.GetUniqueDescendant<LiteralExpression>(
                     "Sharding",
                     e => e.NameInParent == "ShardingPolicy"));
-            var policy = Deserialize<JsonDocument>(policyText.Text);
 
-            if (policy == null)
-            {
-                throw new DeltaException(
-                    $"Can't extract policy objects from {policyText.ToScript()}");
-            }
-
-            return new AlterShardingPolicyCommand(
-                entityType,
-                EntityName.FromCode(entityName.Name),
-                policy);
+            return CreateFromPolicyText(entityType, entityName, policyText);
         }
 
         public override string ToScript(ScriptingContext? context)
         {
             var builder = new StringBuilder();
+            var policy = new
+            {
+                MaxRowCount = MaxRowCount,
+                MaxExtentSizeInMb = MaxExtentSizeInMb,
+                MaxOriginalSizeInMb = MaxOriginalSizeInMb
+            };
 
             builder.Append(".alter ");
             builder.Append(EntityType == EntityType.Table ? "table" : "database");
@@ -83,12 +84,10 @@ namespace DeltaKustoLib.CommandModel.Policies
             {
                 builder.Append(EntityName.ToScript());
             }
-            builder.Append(" policy sharding");
-            builder.AppendLine();
-            builder.Append("```");
-            builder.Append(SerializePolicy());
-            builder.AppendLine();
-            builder.Append("```");
+            builder.AppendLine(" policy sharding");
+            builder.AppendLine("```");
+            builder.AppendLine(SerializePolicy());
+            builder.AppendLine("```");
 
             return builder.ToString();
         }
@@ -117,5 +116,93 @@ namespace DeltaKustoLib.CommandModel.Policies
             {   //  Both target and current are null:  no delta
             }
         }
+
+        private static JsonDocument CreatePolicyText(
+            int? maxRowCount,
+            int? maxExtentSizeInMb,
+            int? maxOriginalSizeInMb)
+        {
+            var map = new Dictionary<string, int>();
+
+            if (maxRowCount != null)
+            {
+                map[nameof(maxRowCount)] = maxRowCount.Value;
+            }
+            if (maxExtentSizeInMb != null)
+            {
+                map[nameof(maxExtentSizeInMb)] = maxExtentSizeInMb.Value;
+            }
+            if (maxOriginalSizeInMb != null)
+            {
+                map[nameof(maxOriginalSizeInMb)] = maxOriginalSizeInMb.Value;
+            }
+
+            var text = Serialize(map, _serializerContext);
+            var doc = Deserialize<JsonDocument>(text);
+
+            return doc!;
+        }
+
+        private static CommandBase CreateFromPolicyText(
+            EntityType entityType,
+            NameReference entityName,
+            QuotedText policyText)
+        {
+            var policy = Deserialize<JsonDocument>(policyText.Text);
+
+            if (policy == null)
+            {
+                throw new DeltaException(
+                    $"Can't extract policy objects from {policyText.ToScript()}");
+            }
+            else
+            {
+                int? maxRowCount = null;
+                int? maxExtentSizeInMb = null;
+                int? maxOriginalSizeInMb = null;
+                var validProperties = new[]
+                {
+                    (Name:nameof(maxRowCount), Action:(Action<int>)((value) => maxRowCount = value)),
+                    (Name:nameof(maxExtentSizeInMb), Action:(Action<int>)((value) => maxExtentSizeInMb = value)),
+                    (Name:nameof(maxOriginalSizeInMb), Action:(Action<int>)((value) => maxOriginalSizeInMb = value))
+                };
+
+                foreach (var property in policy.RootElement.EnumerateObject())
+                {
+                    foreach (var validProperty in validProperties)
+                    {
+                        if (property.Name.Equals(
+                            validProperty.Name,
+                            StringComparison.InvariantCultureIgnoreCase)
+                            && property.Value.ValueKind != JsonValueKind.Null)
+                        {
+                            int value;
+
+                            if (property.Value.TryGetInt32(out value))
+                            {
+                                validProperty.Action(value);
+                            }
+                            else
+                            {
+                                throw new DeltaException($"{validProperty.Name} should be an integer but is "
+                                    + $"a {property.Value.ValueKind}");
+                            }
+                        }
+                    }
+                }
+
+                return new AlterShardingPolicyCommand(
+                    entityType,
+                    EntityName.FromCode(entityName.Name),
+                    maxRowCount,
+                    maxExtentSizeInMb,
+                    maxOriginalSizeInMb);
+            }
+        }
+    }
+
+    [JsonSerializable(typeof(Dictionary<string, int>))]
+    internal partial class ShardingPolicySerializerContext : JsonSerializerContext
+    {
     }
 }

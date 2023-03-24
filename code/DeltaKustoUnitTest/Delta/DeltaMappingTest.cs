@@ -63,6 +63,24 @@ namespace DeltaKustoUnitTest.Delta
         }
 
         [Fact]
+        public void AlreadyMirrorWithNullDataType()
+        {
+            var currentCommands = Parse(
+                ".create table MyTable (rownumber:int) \n\n"
+                + ".create table MyTable ingestion csv mapping 'my-mapping' "
+                + "'[{\"column\" : \"rownumber\"}]'");
+            var currentDatabase = DatabaseModel.FromCommands(currentCommands);
+            var targetCommands = Parse(
+                ".create table MyTable (rownumber:int) \n\n"
+                + ".create table MyTable ingestion csv mapping 'my-mapping' "
+                + "'[{\"column\" : \"rownumber\", \"dataType\" : null}]'");
+            var targetDatabase = DatabaseModel.FromCommands(targetCommands);
+            var delta = currentDatabase.ComputeDelta(targetDatabase);
+
+            Assert.Empty(delta);
+        }
+
+        [Fact]
         public void AddOne()
         {
             var currentCommands = Parse(
