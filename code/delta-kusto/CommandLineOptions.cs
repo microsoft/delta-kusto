@@ -7,10 +7,6 @@ namespace delta_kusto
 {
     public class CommandLineOptions
     {
-        public CommandLineOptions()
-        {
-        }
-
         [Option('v', "verbose", Required = false, HelpText = "Set output to verbose messages.")]
         public bool Verbose { get; set; } = false;
 
