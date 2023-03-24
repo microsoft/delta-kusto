@@ -48,7 +48,7 @@ namespace delta_kusto
 
             try
             {
-                var result = parser.ParseArguments<CommandLineOptions>(args);
+                var result = parser.ParseArguments(() => new CommandLineOptions(), args);
 
                 await result
                     .WithNotParsed(errors => HandleParseError(result, errors))
