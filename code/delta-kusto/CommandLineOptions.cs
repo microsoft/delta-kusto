@@ -8,12 +8,12 @@ namespace delta_kusto
     public class CommandLineOptions
     {
         [Option('v', "verbose", Required = false, HelpText = "Set output to verbose messages.")]
-        public bool Verbose { get; set; }
+        public bool? Verbose { get; set; } = false;
 
         [Option('p', "parameter", Required = true, HelpText = "Set parameter file path.")]
-        public string ParameterFilePath { get; set; } = string.Empty;
+        public string? ParameterFilePath { get; set; } = string.Empty;
 
         [Option('o', "override", Required = false, HelpText = "Parameter path overrides (list).")]
-        public IEnumerable<string> Overrides { get; set; } = new string[0];
+        public string[]? Overrides { get; set; } = new string[0];
     }
 }

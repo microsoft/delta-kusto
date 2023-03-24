@@ -108,20 +108,20 @@ namespace delta_kusto
 
         private static async Task RunOptionsAsync(CommandLineOptions options, string sessionId)
         {
-            if (options.Verbose)
+            if (options.Verbose!.Value)
             {
                 Console.WriteLine("Verbose output enabled");
             }
 
             //  Dependency injection
-            var tracer = new ConsoleTracer(options.Verbose);
+            var tracer = new ConsoleTracer(options.Verbose!.Value);
             var apiClient = new ApiClient(tracer, new SimpleHttpClientFactory(tracer));
             var orchestration = new DeltaOrchestration(
                 tracer,
                 apiClient);
             var success = await orchestration.ComputeDeltaAsync(
-                options.ParameterFilePath,
-                options.Overrides,
+                options.ParameterFilePath!,
+                options.Overrides!,
                 sessionId);
 
             if (!success)
