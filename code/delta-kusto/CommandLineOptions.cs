@@ -5,7 +5,7 @@ using System.Text;
 
 namespace delta_kusto
 {
-    internal class CommandLineOptions
+    public class CommandLineOptions
     {
         [Option('v', "verbose", Required = false, HelpText = "Set output to verbose messages.")]
         public bool Verbose { get; set; }
