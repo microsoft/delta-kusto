@@ -54,7 +54,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 6.x
+        dotnet-version: 7.x
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-restore
     - name: Install dependencies
       shell:  bash
@@ -69,10 +69,12 @@ jobs:
     - name: Build single file executable
       shell:  bash
       run: |
-        dotnet publish code/delta-kusto -c release -r $dotnetOs \
+        dotnet publish code/delta-kusto -c release -r $dotnetOs --self-contained \
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
           -p:PublishTrimmed=true -p:PublishReadyToRun=true \
           -o bin
+    - name: Observe binaries
+      run: ls -l bin
     - name: Azure CLI Version
       run: az version
     # Login
@@ -131,7 +133,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 6.x
+        dotnet-version: 7.x
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-restore
     - name: Install dependencies
       shell:  bash
@@ -146,10 +148,12 @@ jobs:
     - name: Build single file executable
       shell:  bash
       run: |
-        dotnet publish code/delta-kusto -c release -r $dotnetOs \
+        dotnet publish code/delta-kusto -c release -r $dotnetOs --self-contained \
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
           -p:PublishTrimmed=true -p:PublishReadyToRun=true \
           -o bin
+    - name: Observe binaries
+      run: ls -l bin
     - name: Azure CLI Version
       run: az version
     # Login
@@ -207,7 +211,7 @@ jobs:
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 6.x
+        dotnet-version: 7.x
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-restore
     - name: Install dependencies
       shell:  bash
@@ -222,10 +226,12 @@ jobs:
     - name: Build single file executable
       shell:  bash
       run: |
-        dotnet publish code/delta-kusto -c release -r $dotnetOs \
+        dotnet publish code/delta-kusto -c release -r $dotnetOs --self-contained \
           -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true \
           -p:PublishTrimmed=true -p:PublishReadyToRun=true \
           -o bin
+    - name: Observe binaries
+      run: ls -l bin
     - name: Azure CLI Version
       run: az version
     # Login
