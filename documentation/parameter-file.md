@@ -107,6 +107,8 @@ database|string|Yes|N/A|Database name
 
 ### Scripts source object
 
+The Scripts portion is an array field. If you want to override any of the values using the override option from the command line you have to specify the exact instance index you want to target, e.g. jobs.YOURJOBNAME.target.scripts[0].folderpath
+
 Name|Type|Required|Default|Value
 -|-|-|-|-
 filePath|string|No|N/A|Target a specific script file.
