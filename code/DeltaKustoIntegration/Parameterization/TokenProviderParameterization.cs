@@ -18,7 +18,7 @@ namespace DeltaKustoIntegration.Parameterization
 
         public UserManagedIdentityParameterization? UserManagedIdentity { get; set; }
 
-        public bool NoAuth { get; set; }
+        public bool NoAuth { get; set; } = false;
 
         internal void Validate()
         {
