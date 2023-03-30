@@ -1,0 +1,14 @@
+﻿tokenProvider:
+  noAuth:  true
+
+jobs:
+  main:
+    current:
+      scripts:
+      - filePath:  source.kql
+    target:
+      adx:
+        clusterUri:  to-be-overriden
+        database:  to-be-overriden
+    action:
+      filePath:  outputs/success.kql
