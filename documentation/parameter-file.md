@@ -49,6 +49,7 @@ tokenProvider:
         userId:  "string"
     azCli:
         interactive:  "boolean"
+    noAuth:  "boolean"
 ```
 
 ## Property Values
@@ -86,6 +87,7 @@ systemManagedIdentity|boolean|No|false|Opting in means using the system managed 
 userManagedIdentity|object|No|N/A|[User Managed Identity object](#user-managed-identity-object).
 userPrompt|object|No|N/A|[User Prompt object](#user-prompt-object).
 azCli|object|No|N/A|[Az CLI object](#az-CLI-object).
+noAuth|boolean|No|false|Opting in means no authentication will be performed.  This is useful when using [Kusto Emulator](https://learn.microsoft.com/en-us/azure/data-explorer/kusto-emulator-overview)
 
 Although none of the properties are not required, one and only one of them must be provided if the token provider object is provided.
 
@@ -106,6 +108,8 @@ clusterUri|string|Yes|N/A|Cluster URI of the ADX Cluster.
 database|string|Yes|N/A|Database name
 
 ### Scripts source object
+
+The Scripts portion is an array field. If you want to override any of the values using the override option from the command line you have to specify the exact instance index you want to target, e.g. jobs.YOURJOBNAME.target.scripts[0].folderpath
 
 Name|Type|Required|Default|Value
 -|-|-|-|-

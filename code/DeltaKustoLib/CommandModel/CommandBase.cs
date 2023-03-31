@@ -216,12 +216,12 @@ namespace DeltaKustoLib.CommandModel
             //{
             //    var cutPoint = unknownCommand.Parts[1].TextStart + unknownCommand.Parts[1].FullWidth;
             //    var newScript = ".create tables " + script.Substring(cutPoint);
-
+            
             //    return ParseAndCreateCommand(newScript, ignoreUnknownCommands);
             //}
             //else
             //{
-            //    throw new DeltaException("Unrecognized command");
+            //    return null;
             //}
             throw new NotImplementedException();
         }
