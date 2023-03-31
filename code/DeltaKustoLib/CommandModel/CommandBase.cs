@@ -234,7 +234,7 @@ namespace DeltaKustoLib.CommandModel
             }
             else
             {
-                throw new DeltaException("Unrecognized command");
+                return null;
             }
         }
 
