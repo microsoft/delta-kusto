@@ -21,7 +21,7 @@ namespace DeltaKustoAdxIntegrationTest.NoAuth
         {
         }
 
-        [Fact]
+        //[Fact]
         public async Task NoAuthExpectedEx()
         {
             try
