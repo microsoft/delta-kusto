@@ -114,7 +114,7 @@ namespace DeltaKustoFileIntegrationTest
         protected async virtual Task<int> RunMainAsync(params string[] args)
         {
             //  Make sure that commands sent to cluster won't have application & request details
-            args = args.Concat(new[] { "NoLogs", "true" }).ToArray();
+            args = args.Concat(new[] { "--NoLogs", "true" }).ToArray();
             if (_executablePath == null)
             {
                 var returnedValue = await Program.Main(args);
