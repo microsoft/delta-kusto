@@ -70,13 +70,8 @@ namespace DeltaKustoFileIntegrationTest
                     new JsonSerializerOptions
                     {
                         PropertyNameCaseInsensitive = true
-                    });
-
-                if (mainSetting == null)
-                {
-                    throw new InvalidOperationException("Can't read 'launchSettings.json'");
-                }
-
+                    })
+                    ?? throw new InvalidOperationException("Can't read 'launchSettings.json'");
                 var variables = mainSetting.GetEnvironmentVariables();
 
                 foreach (var variable in variables)
@@ -118,12 +113,10 @@ namespace DeltaKustoFileIntegrationTest
 
         protected async virtual Task<int> RunMainAsync(params string[] args)
         {
-            const string DISABLE_KUSTO_TRACING = "delta-kusto-automated-tests";
-
+            //  Make sure that commands sent to cluster won't have application & request details
+            args = args.Concat(new[] { "NoLogs", "true" }).ToArray();
             if (_executablePath == null)
             {
-                Environment.SetEnvironmentVariable(DISABLE_KUSTO_TRACING, "true");
-
                 var returnedValue = await Program.Main(args);
 
                 return returnedValue;
@@ -133,7 +126,6 @@ namespace DeltaKustoFileIntegrationTest
                 using (var process = new Process())
                 {
                     //  Disable API calls for tests
-                    process.StartInfo.EnvironmentVariables.Add(DISABLE_KUSTO_TRACING, "true");
                     process.StartInfo.FileName = _executablePath;
                     process.StartInfo.RedirectStandardError = true;
                     process.StartInfo.RedirectStandardOutput = true;
@@ -202,7 +194,7 @@ namespace DeltaKustoFileIntegrationTest
         {
             var pathOverrides = overrides != null
                 ? overrides.Select(p => $"{p.path}={p.value}")
-                : new string[0];
+                : Array.Empty<string>();
             var baseParameters = new string[] { "-p", parameterFilePath };
             var cliParameters = overrides != null
                 ? baseParameters.Append("-o").Concat(pathOverrides)

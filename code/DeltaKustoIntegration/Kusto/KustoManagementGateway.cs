@@ -1,6 +1,7 @@
 ﻿using DeltaKustoLib;
 using DeltaKustoLib.CommandModel;
 using Kusto.Data.Common;
+using Kusto.Data.Exceptions;
 using Polly;
 using Polly.Retry;
 using System;
@@ -20,42 +21,28 @@ namespace DeltaKustoIntegration.Kusto
     /// </summary>
     internal class KustoManagementGateway : IKustoManagementGateway
     {
-        private static readonly AsyncRetryPolicy _retryPolicy = Policy.Handle<IOException>().WaitAndRetryAsync(
-            3,
-            attempt => TimeSpan.FromSeconds(attempt));
+        private static readonly AsyncRetryPolicy _retryPolicy = Policy
+            .Handle<KustoException>(ex => !ex.IsPermanent)
+            .WaitAndRetryAsync(3, attempt => TimeSpan.FromSeconds(attempt));
 
         private readonly Uri _clusterUri;
         private readonly string _database;
         private readonly ICslAdminProvider _commandProvider;
         private readonly ITracer _tracer;
-        private readonly string _application;
-        private readonly IImmutableList<KeyValuePair<string, object>>? _requestOptions;
+        private readonly ClientRequestProperties? _requestProperties;
 
         public KustoManagementGateway(
             Uri clusterUri,
             string database,
             ICslAdminProvider commandProvider,
             ITracer tracer,
-            string version,
-            string? requestDescription = null)
+            ClientRequestProperties? requestProperties)
         {
             _clusterUri = clusterUri;
             _database = database;
             _commandProvider = commandProvider;
             _tracer = tracer;
-            if (requestDescription != null)
-            {
-                _application = $"Delta-Kusto;{version}";
-                _requestOptions = ImmutableArray<KeyValuePair<string, object>>
-                    .Empty
-                    .Add(KeyValuePair.Create(
-                        ClientRequestProperties.OptionRequestDescription,
-                        (object)requestDescription));
-            }
-            else
-            {
-                _application = string.Empty;
-            }
+            _requestProperties = requestProperties;
         }
 
         async Task<IImmutableList<CommandBase>> IKustoManagementGateway.ReverseEngineerDatabaseAsync(
@@ -157,12 +144,7 @@ namespace DeltaKustoIntegration.Kusto
                     var reader = await _commandProvider.ExecuteControlCommandAsync(
                         _database,
                         commandScript,
-                        _requestOptions != null
-                        ? new ClientRequestProperties(_requestOptions, null)
-                        {
-                            Application = _application
-                        }
-                        : null);
+                        _requestProperties);
 
                     return reader;
                 });

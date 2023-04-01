@@ -19,7 +19,7 @@ namespace DeltaKustoAdxIntegrationTest
         private readonly string _dbPrefix;
         private readonly Func<string, IKustoManagementGateway> _kustoManagementGatewayFactory;
         private readonly ConcurrentQueue<Task<string>> _preparingDbs =
-            new ConcurrentQueue<Task<string>>();
+            new();
         private volatile int _dbCount = 0;
 
         public static AdxDbTestHelper Instance { get; } = CreateSingleton();
@@ -67,7 +67,6 @@ namespace DeltaKustoAdxIntegrationTest
             var kustoGatewayFactory = new KustoManagementGatewayFactory(
                 tokenParameterization,
                 tracer,
-                "test",
                 null);
             var helper = new AdxDbTestHelper(
                 dbPrefix,
@@ -86,9 +85,7 @@ namespace DeltaKustoAdxIntegrationTest
 
         public async Task<DbNameHolder> GetCleanDbAsync()
         {
-            Task<string>? preparingDbTask = null;
-
-            if (_preparingDbs.TryDequeue(out preparingDbTask))
+            if (_preparingDbs.TryDequeue(out Task<string>? preparingDbTask))
             {
                 var dbName = await preparingDbTask;
 
@@ -118,12 +115,12 @@ namespace DeltaKustoAdxIntegrationTest
                 throw new ArgumentException("Wrong prefix", nameof(dbName));
             }
 
-            Func<Task<string>> prepereDbAsync = async () =>
+            async Task<string> prepereDbAsync()
             {
                 await CleanDbAsync(dbName);
 
                 return dbName;
-            };
+            }
 
             _preparingDbs.Enqueue(prepereDbAsync());
         }
@@ -142,7 +139,7 @@ namespace DeltaKustoAdxIntegrationTest
 
         private string DbNumberToDbName(int c)
         {
-            return $"{_dbPrefix}{c.ToString("D8")}";
+            return $"{_dbPrefix}{c:D8}";
         }
     }
 }
