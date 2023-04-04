@@ -60,7 +60,6 @@ namespace DeltaKustoAdxIntegrationTest
                     }
                 },
                 Tracer,
-                "test",
                 null);
         }
 
@@ -74,7 +73,7 @@ namespace DeltaKustoAdxIntegrationTest
 
         protected IKustoManagementGatewayFactory KustoGatewayFactory { get; }
 
-        protected async Task<DbNameHolder> InitializeDbAsync()
+        protected static async Task<DbNameHolder> InitializeDbAsync()
         {
             var dbNameHolder = await AdxDbTestHelper.Instance.GetCleanDbAsync();
 
@@ -220,7 +219,7 @@ namespace DeltaKustoAdxIntegrationTest
                 });
         }
 
-        private async Task LoopThroughStateFilesAsync(
+        private async static Task LoopThroughStateFilesAsync(
             string folderPath,
             Func<string, string, Task> loopFunction)
         {
@@ -262,9 +261,8 @@ namespace DeltaKustoAdxIntegrationTest
             string parameterFilePath,
             IEnumerable<(string path, string value)>? overrides = null)
         {
-            var adjustedOverrides = overrides != null
-                ? overrides
-                : ImmutableList<(string path, string value)>.Empty;
+            var adjustedOverrides = overrides
+                ?? ImmutableList<(string path, string value)>.Empty;
 
             if (_overrideLoginTokenProvider)
             {

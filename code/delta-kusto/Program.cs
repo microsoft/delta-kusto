@@ -94,9 +94,7 @@ namespace delta_kusto
                 Console.Error.WriteLine($"{tab}Error:  {ex.Script}");
             }
 
-            var deltaInnerException = ex.InnerException as DeltaException;
-
-            if (deltaInnerException != null)
+            if (ex.InnerException is DeltaException deltaInnerException)
             {
                 DisplayDeltaException(deltaInnerException, tab + "  ");
             }
@@ -122,6 +120,7 @@ namespace delta_kusto
             var success = await orchestration.ComputeDeltaAsync(
                 options.ParameterFilePath,
                 options.Overrides,
+                options.NoLogs,
                 sessionId);
 
             if (!success)

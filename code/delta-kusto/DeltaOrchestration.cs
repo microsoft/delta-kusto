@@ -6,6 +6,7 @@ using DeltaKustoIntegration.Parameterization;
 using DeltaKustoLib;
 using DeltaKustoLib.CommandModel;
 using DeltaKustoLib.KustoModel;
+using Kusto.Data.Common;
 using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
@@ -16,8 +17,10 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using YamlDotNet.Core;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace delta_kusto
 {
@@ -40,6 +43,7 @@ namespace delta_kusto
         public async Task<bool> ComputeDeltaAsync(
             string parameterFilePath,
             IEnumerable<string> pathOverrides,
+            bool noLogs,
             string sessionId)
         {
             _tracer.WriteLine(false, "Activating Client...");
@@ -68,12 +72,11 @@ namespace delta_kusto
                 await LoadParameterizationAsync(parameterFilePath, pathOverrides);
             var parameterFolderPath = Path.GetDirectoryName(parameterFilePath);
             var localFileGateway = _fileGateway.ChangeFolder(parameterFolderPath!);
-            var requestDescription = GetRequestDescription(parameters, sessionId);
+            var requestProperties = GetClientRequestProperties(parameters, noLogs, sessionId);
             var kustoManagementGatewayFactory = new KustoManagementGatewayFactory(
                 parameters.TokenProvider,
                 _tracer,
-                Program.AssemblyVersion,
-                requestDescription);
+                requestProperties);
             var orderedJobs = parameters.Jobs.OrderBy(p => p.Value.Priority);
             var success = true;
 
@@ -94,9 +97,16 @@ namespace delta_kusto
             return success;
         }
 
-        private string? GetRequestDescription(MainParameterization parameters, string sessionId)
+        private static ClientRequestProperties? GetClientRequestProperties(
+            MainParameterization parameters,
+            bool noLogs,
+            string sessionId)
         {
-            if (Environment.GetEnvironmentVariable("delta-kusto-automated-tests") != "true")
+            if (noLogs)
+            {
+                return null;
+            }
+            else
             {
                 var tokenProvider = parameters.TokenProvider.Login != null
                     ? "login"
@@ -134,12 +144,17 @@ namespace delta_kusto
                     typeof(RequestDescription),
                     new RequestDescriptionSerializerContext());
                 var jsonDescription = UTF8Encoding.ASCII.GetString(buffer);
+                var requestDescriptionPair = KeyValuePair.Create(
+                    ClientRequestProperties.OptionRequestDescription,
+                    (object)jsonDescription);
+                var properties = new ClientRequestProperties(
+                    new[] { requestDescriptionPair },
+                    null)
+                {
+                    Application = $"Delta-Kusto;{Program.AssemblyVersion}"
+                };
 
-                return jsonDescription;
-            }
-            else
-            {
-                return null;
+                return properties;
             }
         }
 
@@ -252,7 +267,7 @@ namespace delta_kusto
         {
             var success = true;
 
-            _tracer.WriteLine(false, $"{deltaCommands.AllCommands.Count()} commands in delta");
+            _tracer.WriteLine(false, $"{deltaCommands.AllCommands.Count} commands in delta");
             if (deltaCommands.DataLossCommands.Any())
             {
                 _tracer.WriteLine(false, "Delta contains drop commands:");
@@ -281,13 +296,9 @@ namespace delta_kusto
                     .WithNamingConvention(CamelCaseNamingConvention.Instance)
                     .Build();
                 var parameterText = await _fileGateway.GetFileContentAsync(parameterFilePath);
-                var parameters = deserializer.Deserialize<MainParameterization>(parameterText);
-
-                if (parameters == null)
-                {
-                    throw new DeltaException($"File '{parameterFilePath}' doesn't contain valid parameters");
-                }
-
+                var parameters = deserializer.Deserialize<MainParameterization>(parameterText)
+                    ?? throw new DeltaException(
+                        $"File '{parameterFilePath}' doesn't contain valid parameters");
                 ParameterOverrideHelper.InplaceOverride(parameters, pathOverrides);
 
                 parameters.Validate();

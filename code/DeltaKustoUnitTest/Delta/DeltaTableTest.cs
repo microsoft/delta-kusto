@@ -182,5 +182,26 @@ namespace DeltaKustoUnitTest.Delta
             Assert.Contains(new EntityName("c"), columnCommand.Columns.Select(c => c.ColumnName));
             Assert.Equal(QuotedText.Empty, columnCommand.Columns.First().DocString);
         }
+
+        [Fact]
+        public void ChangeDocStringOnColumn()
+        {
+            var currentCommands = Parse(".create table t1(a: string, b: int, c:dynamic)\n\n"
+                + ".alter-merge table t1 column-docstrings (b:'current-comment')");
+            var currentDatabase = DatabaseModel.FromCommands(currentCommands);
+            var targetCommands = Parse(".create table t1(a: string, b: int, c:dynamic)\n\n"
+                + ".alter-merge table t1 column-docstrings (b:'new-comment')");
+            var targetDatabase = DatabaseModel.FromCommands(targetCommands);
+            var delta = currentDatabase.ComputeDelta(targetDatabase);
+
+            Assert.Single(delta);
+            Assert.IsType<AlterMergeTableColumnDocStringsCommand>(delta[0]);
+
+            var columnCommand = (AlterMergeTableColumnDocStringsCommand)delta[0];
+
+            Assert.Equal(new EntityName("t1"), columnCommand.TableName);
+            Assert.Contains(new EntityName("b"), columnCommand.Columns.Select(c => c.ColumnName));
+            Assert.Equal(new QuotedText("new-comment"), columnCommand.Columns.First().DocString);
+        }
     }
 }
