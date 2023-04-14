@@ -86,6 +86,7 @@ namespace DeltaKustoLib.CommandModel
             var areEqualed = otherFunction != null
                 && otherFunction.FunctionName.Equals(FunctionName)
                 //  Check that all parameters are equal
+                && otherFunction.Parameters.Count() == Parameters.Count()
                 && otherFunction.Parameters.Zip(Parameters, (p1, p2) => p1.Equals(p2)).All(p => p)
                 && otherFunction.Body.Equals(Body)
                 && object.Equals(otherFunction.Folder, Folder)
