@@ -77,6 +77,20 @@ namespace DeltaKustoUnitTest.Delta
         }
 
         [Fact]
+        public void UpdateParameterWithDefaultValue()
+        {
+            var currentCommands = Parse(".create function MyFunction(Id:int) { 42 }");
+            var currentDatabase = DatabaseModel.FromCommands(currentCommands);
+            var targetCommands = Parse(".create function MyFunction(Id:int=5){ 42 }");
+            var targetDatabase = DatabaseModel.FromCommands(targetCommands);
+            var delta = currentDatabase.ComputeDelta(targetDatabase);
+
+            Assert.Single(delta);
+            Assert.IsType<CreateFunctionCommand>(delta[0]);
+            Assert.Equal("MyFunction", ((CreateFunctionCommand)delta[0]).FunctionName.Name);
+        }
+
+        [Fact]
         public void DetectDuplicates()
         {
             try
