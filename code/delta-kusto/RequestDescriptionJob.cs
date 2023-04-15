@@ -15,5 +15,7 @@
         public bool? UsePluralForms { get; set; }
         
         public bool? PushToConsole { get; set; }
+        
+        public bool? PushToCurrent { get; set; }
     }
 }

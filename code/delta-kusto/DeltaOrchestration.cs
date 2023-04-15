@@ -136,7 +136,8 @@ namespace delta_kusto
                         FolderPath = j.Action!.FolderPath != null,
                         CsvPath = j.Action!.CsvPath != null,
                         UsePluralForms = j.Action!.UsePluralForms,
-                        PushToConsole = j.Action!.PushToConsole
+                        PushToConsole = j.Action!.PushToConsole,
+                        PushToCurrent = j.Action!.PushToCurrent
                     }).ToList()
                 };
                 var buffer = JsonSerializer.SerializeToUtf8Bytes(
