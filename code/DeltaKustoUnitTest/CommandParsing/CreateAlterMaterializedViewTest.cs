@@ -13,9 +13,10 @@ namespace DeltaKustoUnitTest.CommandParsing
     /// </summary>
     public class CreateAlterMaterializedViewTest : ParsingTestBase
     {
-        //[Fact]
+        [Fact]
         public void Something()
         {
+            Assert.False(true);
         }
     }
 }
