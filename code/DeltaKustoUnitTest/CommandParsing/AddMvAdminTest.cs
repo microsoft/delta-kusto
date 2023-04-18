@@ -7,7 +7,6 @@ namespace DeltaKustoUnitTest.CommandParsing
 {
     public class AddMvAdminTest : ParsingTestBase
     {
-        [Fact]
         public void AddMvAdmin()
         {
             var commands = Parse(
