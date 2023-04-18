@@ -136,6 +136,12 @@ namespace DeltaKustoLib.CommandModel
                         return DropTableColumnsCommand.FromCode(commandBlock);
                     case "CreateTableIngestionMapping":
                         return CreateMappingCommand.FromCode(commandBlock);
+                    case "CreateOrAlterTableIngestionMapping":
+                        //  We need to do this since the parsing is quite different with the with-node
+                        //  between a .create and .create-or-alter (for unknown reasons)
+                        return ParseAndCreateCommand(
+                            ReplaceFirstOccurence(script, "create-or-alter", "create"),
+                            ignoreUnknownCommands);
                     case "DropTableIngestionMapping":
                         return DropMappingCommand.FromCode(commandBlock);
                     case "AlterTablePolicyUpdate":

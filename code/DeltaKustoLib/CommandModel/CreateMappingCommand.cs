@@ -36,39 +36,44 @@ namespace DeltaKustoLib.CommandModel
             QuotedText mappingAsJson)
         {
             TableName = tableName;
-            MappingKind = mappingKind.ToLower();
+            MappingKind = mappingKind.ToLower().Trim();
             MappingName = mappingName;
-            MappingAsJson = mappingAsJson;
+            MappingAsJson = QuotedText.FromText(mappingAsJson.Text.Trim());
         }
 
         internal static CommandBase FromCode(SyntaxElement rootElement)
         {
             var tableNameDeclaration = rootElement.GetUniqueDescendant<NameDeclaration>(
-                "Table Name",
-                n => n.NameInParent == "TableName");
+                "Table Name");
             var mappingNameExpression = rootElement.GetUniqueDescendant<LiteralExpression>(
                 "Mapping Name",
-                n => n.NameInParent == "MappingName");
-            var mappingKindToken = rootElement.GetUniqueDescendant<SyntaxToken>(
+                n => n.Kind == SyntaxKind.StringLiteralExpression
+                && n.NameInParent == "MappingName");
+            var mappingKindElement = rootElement.GetUniqueDescendant<SyntaxElement>(
                 "Mapping Kind",
-                n => n.NameInParent == "MappingKind");
+                n => n.Kind == SyntaxKind.IdentifierToken && n.NameInParent == "MappingKind");
             var mappingFormatExpression = rootElement.GetUniqueDescendant<LiteralExpression>(
                 "Mapping Format",
-                n => n.NameInParent == "MappingFormat");
-            var mappingFormatFirstPart = QuotedText.FromLiteral(mappingFormatExpression);
-            var mappingFormatExtraParts = rootElement
-                .GetDescendants<CompoundStringLiteralExpression>()
-                .SelectMany(c => c.Tokens)
-                .Select(t => QuotedText.FromToken(t));
-            var mappingFormatParts = mappingFormatExtraParts
-                .Prepend(mappingFormatFirstPart)
-                .Select(q => q.Text);
-            var mappingFormat = string.Concat(mappingFormatParts);
+                n => n.Kind == SyntaxKind.StringLiteralExpression
+                && n.NameInParent == "MappingFormat");
+            var skippedTokens = rootElement.GetAtMostOneDescendant<SkippedTokens>(
+                "Skipped tokens",
+                n => n.Kind == SyntaxKind.SkippedTokens && n.NameInParent == "SkippedTokens")
+                ?.Tokens
+                ?.Select(t => QuotedText.FromToken(t))
+                ?.ToImmutableArray();
+            var allTokens = skippedTokens
+                ?.Prepend(QuotedText.FromLiteral(mappingFormatExpression))
+                ?.Select(t => t.Text);
+            var mappingAsJson = allTokens == null
+                ? QuotedText.FromLiteral(mappingFormatExpression)
+                : QuotedText.FromText(string.Concat(allTokens));
+
             var command = new CreateMappingCommand(
                 EntityName.FromCode(tableNameDeclaration),
-                mappingKindToken.Text,
+                EntityName.FromCode(mappingKindElement).Name,
                 QuotedText.FromLiteral(mappingNameExpression),
-                QuotedText.FromText(mappingFormat)!);
+                mappingAsJson);
 
             return command;
         }

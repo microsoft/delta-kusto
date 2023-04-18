@@ -13,7 +13,7 @@ namespace DeltaKustoUnitTest.CommandParsing
             var format = "[{ \"column\" : \"rownumber\", \"DataType\":\"int\", "
                 + "\"Properties\":{\"Ordinal\":\"0\"}}]";
             var command = ParseOneCommand(
-                ".create table MyTable ingestion csv mapping "
+                ".create-or-alter table MyTable ingestion csv mapping "
                 + $"'Mapping1' '{format}'");
 
             Assert.IsType<CreateMappingCommand>(command);
@@ -43,7 +43,7 @@ namespace DeltaKustoUnitTest.CommandParsing
 ]
 ```";
             var command = ParseOneCommand(
-                ".create table MyTable ingestion csv mapping "
+                ".create-or-alter table MyTable ingestion csv mapping "
                 + $"'Mapping1' {format}");
 
             Assert.IsType<CreateMappingCommand>(command);
