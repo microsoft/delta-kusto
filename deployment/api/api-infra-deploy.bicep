@@ -1,4 +1,5 @@
 param frontDoorName string
+param location string = resourceGroup().location
 
 var UniqueId = uniqueString('${resourceGroup().id}kusto-x')
 var Suffix = 'delta-kusto-${UniqueId}'
@@ -23,7 +24,7 @@ var FrontDoor = ((length(frontDoorName) == 0) ? DefaultFrontDoor : frontDoorName
 
 resource App_Insights 'Microsoft.Insights/components@2020-02-02' = {
   name: AppInsights
-  location: resourceGroup().location
+  location: location
   tags: {}
   kind: 'web'
   properties: {
@@ -34,7 +35,7 @@ resource App_Insights 'Microsoft.Insights/components@2020-02-02' = {
 
 resource Log_Analytics 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
   name: LogAnalytics
-  location: resourceGroup().location
+  location: location
   properties: {
     sku: {
       name: 'PerGB2018'
@@ -122,7 +123,7 @@ resource Log_Analytics 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
 
 resource App_Plan 'Microsoft.Web/serverfarms@2022-03-01' = {
   name: AppPlan
-  location: resourceGroup().location
+  location: location
   sku: {
     name: 'B1'
     tier: 'Basic'
@@ -137,9 +138,9 @@ resource App_Plan 'Microsoft.Web/serverfarms@2022-03-01' = {
   dependsOn: []
 }
 
-resource WebApps_name 'Microsoft.Web/sites@2022-03-01' = [for item in WebApps: {
+resource WebAppsLoop 'Microsoft.Web/sites@2022-03-01' = [for item in WebApps: {
   name: item.name
-  location: resourceGroup().location
+  location: location
   tags: {
     env: item.env
   }
@@ -254,7 +255,6 @@ resource Front_Door 'Microsoft.Network/frontDoors@2021-06-01' = {
     enabledState: 'Enabled'
   }
   dependsOn: [
-    resourceId('Microsoft.Web/sites', WebApps[0].name)
-    resourceId('Microsoft.Web/sites', WebApps[1].name)
+    WebAppsLoop
   ]
 }
