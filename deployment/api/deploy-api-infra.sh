@@ -19,5 +19,5 @@ echo
 echo "Deploying ARM template"
 
 az deployment group create -n "deploy-$(uuidgen)" -g $rg \
-    --template-file api-infra-deploy.json \
+    --template-file api-infra-deploy.bicep \
     --parameters frontDoorName=$fd
