@@ -60,11 +60,10 @@ namespace DeltaKustoLib.CommandModel
                 "Skipped tokens",
                 n => n.Kind == SyntaxKind.SkippedTokens && n.NameInParent == "SkippedTokens")
                 ?.Tokens
-                ?.Select(t => QuotedText.FromToken(t))
+                ?.Select(t => t.Text)
                 ?.ToImmutableArray();
             var allTokens = skippedTokens
-                ?.Prepend(QuotedText.FromLiteral(mappingFormatExpression))
-                ?.Select(t => t.Text);
+                ?.Prepend(QuotedText.FromLiteral(mappingFormatExpression).Text);
             var mappingAsJson = allTokens == null
                 ? QuotedText.FromLiteral(mappingFormatExpression)
                 : QuotedText.FromText(string.Concat(allTokens));
