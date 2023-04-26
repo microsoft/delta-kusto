@@ -12,14 +12,11 @@ namespace DeltaKustoApi.Controllers.Error
     public class ErrorController : ControllerBase
     {
         private readonly ILogger<ErrorController> _logger;
-        private readonly TelemetryWriter _telemetryWriter;
 
         public ErrorController(
-            ILogger<ErrorController> logger,
-            TelemetryWriter telemetryWriter)
+            ILogger<ErrorController> logger)
         {
             _logger = logger;
-            _telemetryWriter = telemetryWriter;
         }
 
         public ErrorOutput Post(ErrorInput input)
@@ -32,7 +29,6 @@ namespace DeltaKustoApi.Controllers.Error
                 {
                     operationId = Guid.Empty;
                 }
-                _telemetryWriter.PostTelemetry(input, Request);
 
                 return new ErrorOutput()
                 {

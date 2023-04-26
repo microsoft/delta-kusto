@@ -20,26 +20,19 @@ namespace DeltaKustoApi.Controllers.ClientVersion
     {
         private readonly ClientVersionCacheProxy _clientVersionCacheProxy;
         private readonly ILogger<ClientVersionController> _logger;
-        private readonly TelemetryWriter _telemetryWriter;
 
         public ClientVersionController(
             ClientVersionCacheProxy clientVersionCacheProxy,
-            ILogger<ClientVersionController> logger,
-            TelemetryWriter telemetryWriter)
+            ILogger<ClientVersionController> logger)
         {
             _clientVersionCacheProxy = clientVersionCacheProxy;
             _logger = logger;
-            _telemetryWriter = telemetryWriter;
         }
 
         public async Task<ClientVersionOutput> GetAsync(
             [FromQuery]
             string? fromClientVersion)
         {
-            _telemetryWriter.PostTelemetry(
-                $"clientVersion:  {fromClientVersion}",
-                Request);
-
             var newestVersions = await _clientVersionCacheProxy.GetNewestClientVersionsAsync(
                 fromClientVersion);
 
@@ -54,10 +47,6 @@ namespace DeltaKustoApi.Controllers.ClientVersion
             [FromQuery]
             string? fromClientVersion)
         {
-            _telemetryWriter.PostTelemetry(
-                $"clientVersion:  {fromClientVersion}",
-                Request);
-
             var newestVersions = await _clientVersionCacheProxy.GetNewestClientVersionsAsync(
                 fromClientVersion);
 

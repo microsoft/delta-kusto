@@ -19,22 +19,17 @@ namespace DeltaKustoApi.Controllers.LogParameterTelemetry
     {
         private readonly ClientVersionCacheProxy _clientVersionCacheProxy;
         private readonly ILogger<LogParameterTelemetryController> _logger;
-        private readonly TelemetryWriter _telemetryWriter;
 
         public LogParameterTelemetryController(
             ClientVersionCacheProxy clientVersionCacheProxy,
-            ILogger<LogParameterTelemetryController> logger,
-            TelemetryWriter telemetryWriter)
+            ILogger<LogParameterTelemetryController> logger)
         {
             _clientVersionCacheProxy = clientVersionCacheProxy;
             _logger = logger;
-            _telemetryWriter = telemetryWriter;
         }
 
         public LogParameterTelemetryOutput Post(LogParameterTelemetryInput input)
         {
-            _telemetryWriter.PostTelemetry(input, Request);
-
             return new LogParameterTelemetryOutput();
         }
     }
