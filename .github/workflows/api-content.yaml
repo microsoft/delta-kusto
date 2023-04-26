@@ -61,5 +61,5 @@ jobs:
         cd web-app
         az webapp up \
         --os-type linux \
-        -r "DOTNET|7.0" \
+        -r "DOTNETCORE:7.0" \
         -n ${{ steps.find-web-app.outputs.webAppName }}
