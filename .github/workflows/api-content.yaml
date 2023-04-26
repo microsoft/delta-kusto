@@ -54,7 +54,9 @@ jobs:
     - name: Install zip
       run: sudo apt install zip
     - name: Zip web-app
-      run: zip -r web-app.zip web-app
+      run: |
+        cd web-app
+        zip -r ../web-app.zip .
     # Find Web App resource
     - name: Find Web App
       id:  find-web-app
@@ -65,7 +67,7 @@ jobs:
     # Deploy Web App, see https://learn.microsoft.com/en-us/azure/app-service/deploy-zip?tabs=cli#deploy-a-zip-package
     - name: Deploy
       run: |
-        az webapp deployment source config-zip --resource-group $rg --name ${{ steps.find-web-app.outputs.webAppName }} --src web-app.zip
+        az webapp deployment source config-zip -g $rg -n ${{ steps.find-web-app.outputs.webAppName }} --src web-app.zip
         # cd web-app
         # az webapp up \
         # --os-type linux \
