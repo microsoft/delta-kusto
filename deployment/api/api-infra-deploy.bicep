@@ -148,7 +148,7 @@ resource WebAppsLoop 'Microsoft.Web/sites@2022-03-01' = [for item in WebApps: {
     serverFarmId: App_Plan.id
     siteConfig: {
       alwaysOn: true
-      linuxFxVersion: 'DOTNETCORE|6.0'
+      linuxFxVersion: 'DOTNETCORE|7.0'
       appSettings: [
         // {
         //   name: 'storageConnectionString'
