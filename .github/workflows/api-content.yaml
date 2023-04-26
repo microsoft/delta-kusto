@@ -45,6 +45,8 @@ jobs:
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-publish
     - name: .NET Publish Web App
       run: dotnet publish code/DeltaKustoApi --configuration Release --no-build --output web-app
+    - name: Look at published folder
+      run: ls -l web-app
     # See https://linuxize.com/post/how-to-zip-files-and-directories-in-linux
     # Login
     - name: Azure Login
@@ -59,7 +61,7 @@ jobs:
     # Deploy Web App, see https://learn.microsoft.com/en-us/azure/app-service/deploy-zip?tabs=cli#deploy-a-zip-package
     - name: Deploy
       run: |
-        cd code/DeltaKustoApi
+        cd web-app
         az webapp up \
         --os-type linux \
         --resource-group $rg \
