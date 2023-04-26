@@ -60,7 +60,7 @@ jobs:
     - name: Deploy
       run: |
         cd code/DeltaKustoApi
-        az webapp deploy \
+        az webapp up \
         --os-type linux \
         --resource-group $rg \
         -r "DOTNETCORE|7.0" \
