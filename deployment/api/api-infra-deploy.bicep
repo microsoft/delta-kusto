@@ -44,83 +44,6 @@ resource Log_Analytics 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
   dependsOn: []
 }
 
-// resource Lake_Storage_Account 'Microsoft.Storage/storageAccounts@2019-06-01' = {
-//   name: Lake_Storage_Account_var
-//   location: resourceGroup().location
-//   sku: {
-//     name: 'Standard_LRS'
-//   }
-//   kind: 'StorageV2'
-//   properties: {
-//     isHnsEnabled: true
-//   }
-// }
-
-// resource Lake_Storage_Account_default_API_Telemetry_Container 'Microsoft.Storage/storageAccounts/blobServices/containers@2019-06-01' = {
-//   name: '${Lake_Storage_Account_var}/default/${API_Telemetry_Container}'
-//   properties: {
-//     publicAccess: 'None'
-//   }
-//   dependsOn: [
-//     Lake_Storage_Account
-//   ]
-// }
-
-// resource Lake_Storage_Account_default 'Microsoft.Storage/storageAccounts/managementPolicies@2019-06-01' = {
-//   parent: Lake_Storage_Account
-//   name: 'default'
-//   properties: {
-//     policy: {
-//       rules: [
-//         {
-//           name: 'api-telemetry-raw'
-//           enabled: true
-//           type: 'Lifecycle'
-//           definition: {
-//             filters: {
-//               blobTypes: [
-//                 'blockBlob'
-//               ]
-//               prefixMatch: [
-//                 '${API_Telemetry_Container}/raw-telemetry'
-//               ]
-//             }
-//             actions: {
-//               baseBlob: {
-//                 tierToCool: {
-//                   daysAfterModificationGreaterThan: 1
-//                 }
-//               }
-//             }
-//           }
-//         }
-//       ]
-//     }
-//   }
-// }
-
-// resource Blob_Storage_Account 'Microsoft.Storage/storageAccounts@2019-06-01' = {
-//   name: Blob_Storage_Account_var
-//   location: resourceGroup().location
-//   sku: {
-//     name: 'Standard_LRS'
-//   }
-//   kind: 'StorageV2'
-//   properties: {
-//     isHnsEnabled: false
-//   }
-// }
-
-// resource Blob_Storage_Account_default_API_Telemetry_Container 'Microsoft.Storage/storageAccounts/blobServices/containers@2019-06-01' = {
-//   name: '${Blob_Storage_Account_var}/default/${API_Telemetry_Container}'
-//   properties: {
-//     publicAccess: 'None'
-//   }
-//   dependsOn: [
-//     Blob_Storage_Account
-//   ]
-// }
-
 resource App_Plan 'Microsoft.Web/serverfarms@2022-03-01' = {
   name: AppPlan
   location: location
@@ -154,23 +77,48 @@ resource WebAppsLoop 'Microsoft.Web/sites@2022-03-01' = [for item in WebApps: {
           name:  'WEBSITE_RUN_FROM_PACKAGE'
           value:  '1'
         }
-        // {
-        //   name: 'storageConnectionString'
-        //   value: 'DefaultEndpointsProtocol=https;AccountName=${Blob_Storage_Account_var};AccountKey=${listkeys(Blob_Storage_Account.id, '2019-06-01').keys[0].value};'
-        // }
-        // {
-        //   name: 'telemetryContainerName'
-        //   value: API_Telemetry_Container
-        // }
         {
           name: 'env'
           value: item.env
         }
-      ]
+        //  App Insights configuration ; taken from https://github.com/AndrewBrianHall/BasicImageGallery/blob/c55ada54519e13ce2559823c16ca4f97ddc5c7a4/CoreImageGallery/Deploy/CoreImageGalleryARM/azuredeploy.json#L238
+        {
+          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+          value: App_Insights.InstrumentationKey
+        }
+        {
+          name: 'ApplicationInsightsAgent_EXTENSION_VERSION'
+          //  ~3 is for Linux, cf https://learn.microsoft.com/en-us/azure/azure-monitor/app/azure-web-apps-net-core?tabs=Linux%2Cwindows#application-settings-definitions
+          value: '~3'
+        }
+        {
+          name: 'XDT_MicrosoftApplicationInsights_Mode'
+          value: 'recommended'
+        }
+        {
+          name: 'APPINSIGHTS_PROFILERFEATURE_VERSION'
+          value: '1.0.0'
+        }
+        {
+          name: 'DiagnosticServices_EXTENSION_VERSION'
+          value: '~3'
+        }
+        {
+          name: 'APPINSIGHTS_SNAPSHOTFEATURE_VERSION'
+          value: '1.0.0'
+        }
+        {
+          name: 'SnapshotDebugger_EXTENSION_VERSION'
+          value: '~1'
+        }
+        {
+          name: 'XDT_MicrosoftApplicationInsights_BaseExtensions'
+          value: 'disabled'
+        }
+     ]
     }
   }
   dependsOn: [
-    // Blob_Storage_Account
   ]
 }]
 
