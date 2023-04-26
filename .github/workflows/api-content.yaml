@@ -46,13 +46,6 @@ jobs:
     - name: .NET Publish Web App
       run: dotnet publish code/DeltaKustoApi --configuration Release --no-build --output web-app
     # See https://linuxize.com/post/how-to-zip-files-and-directories-in-linux
-    - name: Install zip
-      run: sudo apt install zip
-    # See https://learn.microsoft.com/en-us/azure/app-service/deploy-run-package#create-a-project-zip-package
-    - name: Zip Web App
-      run: |
-        cd web-app
-        zip ../web-app.zip *
     # Login
     - name: Azure Login
       run: az login --service-principal -u ${{ secrets.deploy_sp_id }} -p ${{ secrets.deploy_sp_secret }} --tenant ${{ secrets.tenant_id }}
@@ -66,7 +59,10 @@ jobs:
     # Deploy Web App, see https://learn.microsoft.com/en-us/azure/app-service/deploy-zip?tabs=cli#deploy-a-zip-package
     - name: Deploy
       run: |
+        cd code/DeltaKustoApi
         az webapp deploy \
+        --os-type linux \
         --resource-group $rg \
+        -r "DOTNETCORE|7.0" \
         -n ${{ steps.find-web-app.outputs.webAppName }} \
-        --src-path web-app.zip
+
