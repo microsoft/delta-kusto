@@ -67,7 +67,14 @@ jobs:
     # Deploy Web App, see https://learn.microsoft.com/en-us/azure/app-service/deploy-zip?tabs=cli#deploy-a-zip-package
     - name: Deploy
       run: |
-        az webapp deployment source config-zip -g $rg -n ${{ steps.find-web-app.outputs.webAppName }} --src web-app.zip
+        cd web-app
+        az webapp up \
+        --os-type linux \
+        -r "DOTNETCORE|7.0" \
+        -n ${{ steps.find-web-app.outputs.webAppName }}
+        
+        # az webapp deploy --clean true 
+        # az webapp deployment source config-zip -g $rg -n ${{ steps.find-web-app.outputs.webAppName }} --src web-app.zip
         # cd web-app
         # az webapp up \
         # --os-type linux \
