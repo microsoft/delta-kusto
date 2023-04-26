@@ -150,6 +150,10 @@ resource WebAppsLoop 'Microsoft.Web/sites@2022-03-01' = [for item in WebApps: {
       alwaysOn: true
       linuxFxVersion: 'DOTNETCORE|7.0'
       appSettings: [
+        { //  This allows to run from a zip package
+          name:  'WEBSITE_RUN_FROM_PACKAGE'
+          value:  '1'
+        }
         // {
         //   name: 'storageConnectionString'
         //   value: 'DefaultEndpointsProtocol=https;AccountName=${Blob_Storage_Account_var};AccountKey=${listkeys(Blob_Storage_Account.id, '2019-06-01').keys[0].value};'
