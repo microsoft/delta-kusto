@@ -19,16 +19,13 @@ namespace DeltaKustoApi.Controllers.Activation
     {
         private readonly ClientVersionCacheProxy _clientVersionCacheProxy;
         private readonly ILogger<ActivationController> _logger;
-        private readonly TelemetryWriter _telemetryWriter;
 
         public ActivationController(
             ClientVersionCacheProxy clientVersionCacheProxy,
-            ILogger<ActivationController> logger,
-            TelemetryWriter telemetryWriter)
+            ILogger<ActivationController> logger)
         {
             _clientVersionCacheProxy = clientVersionCacheProxy;
             _logger = logger;
-            _telemetryWriter = telemetryWriter;
         }
 
         public async Task<ActivationOutput> PostAsync(ActivationInput input)
@@ -36,14 +33,6 @@ namespace DeltaKustoApi.Controllers.Activation
             var newestVersions = await _clientVersionCacheProxy.GetNewestClientVersionsAsync(
                 input.ClientInfo.ClientVersion);
             var sessionId = Guid.NewGuid().ToString();
-
-            _telemetryWriter.PostTelemetry(
-                new
-                {
-                    SessionId = sessionId,
-                    ClientInfo = input.ClientInfo
-                },
-                Request);
 
             return new ActivationOutput
             {

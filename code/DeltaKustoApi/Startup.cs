@@ -7,9 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
-using Serilog;
-using Serilog.Core;
-using Serilog.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,23 +34,6 @@ namespace DeltaKustoApi
             //});
 
             //  Dependency injection
-            //  Serilog
-            string? connectionString = GetEnvironmentVariable("storageConnectionString");
-            var container = GetEnvironmentVariable("telemetryContainerName");
-            var environment = GetEnvironmentVariable("env");
-            var logger = new LoggerConfiguration()
-                .WriteTo
-                .Async(c => c.AzureBlobStorage(
-                    connectionString,
-                    LogEventLevel.Verbose,
-                    container,
-                    $"raw-telemetry/{environment}/{{yyyy}}-{{MM}}-{{dd}}-log.txt",
-                    blobSizeLimitBytes: 200 * 1024 * 1024,
-                    writeInBatches: true,
-                    period: TimeSpan.FromSeconds(10)))
-                .CreateLogger();
-
-            services.TryAddSingleton(new TelemetryWriter(logger));
             services.TryAddSingleton<ClientVersionCacheProxy>();
         }
 

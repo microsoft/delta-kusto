@@ -19,22 +19,17 @@ namespace DeltaKustoApi.Controllers.EndSession
     {
         private readonly ClientVersionCacheProxy _clientVersionCacheProxy;
         private readonly ILogger<EndSessionController> _logger;
-        private readonly TelemetryWriter _telemetryWriter;
 
         public EndSessionController(
             ClientVersionCacheProxy clientVersionCacheProxy,
-            ILogger<EndSessionController> logger,
-            TelemetryWriter telemetryWriter)
+            ILogger<EndSessionController> logger)
         {
             _clientVersionCacheProxy = clientVersionCacheProxy;
             _logger = logger;
-            _telemetryWriter = telemetryWriter;
         }
 
         public EndSessionOutput Post(EndSessionInput input)
         {
-            _telemetryWriter.PostTelemetry(input, Request);
-
             return new EndSessionOutput();
         }
     }

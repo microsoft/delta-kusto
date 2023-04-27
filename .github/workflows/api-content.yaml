@@ -45,9 +45,19 @@ jobs:
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-publish
     - name: .NET Publish Web App
       run: dotnet publish code/DeltaKustoApi --configuration Release --no-build --output web-app
+    - name: Look at published folder
+      run: ls -l web-app
+    # See https://linuxize.com/post/how-to-zip-files-and-directories-in-linux
     # Login
     - name: Azure Login
       run: az login --service-principal -u ${{ secrets.deploy_sp_id }} -p ${{ secrets.deploy_sp_secret }} --tenant ${{ secrets.tenant_id }}
+    - name: Install zip
+      run: sudo apt install zip
+    - name: Zip web-app
+      run: |
+        cd web-app
+        zip -r web-app.zip .
+        mv web-app.zip ..
     # Find Web App resource
     - name: Find Web App
       id:  find-web-app
@@ -55,11 +65,7 @@ jobs:
         wa=$(az webapp list -g $rg --query "[?tags.env=='${{ steps.define-env.outputs.targetEnv }}'].name" -o tsv)
         echo "Found Web App:  $wa"
         echo "::set-output name=webAppName::$wa"
-    # Deploy Web App
+    # Deploy Web App, see https://learn.microsoft.com/en-us/azure/app-service/deploy-zip?tabs=cli#deploy-a-zip-package
     - name: Deploy
       run: |
-        cd web-app
-        az webapp up \
-        --os-type linux \
-        -r "DOTNETCORE:7.0" \
-        -n ${{ steps.find-web-app.outputs.webAppName }}
+        az webapp deployment source config-zip -g $rg -n ${{ steps.find-web-app.outputs.webAppName }} --src web-app.zip
