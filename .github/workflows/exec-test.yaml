@@ -79,7 +79,7 @@ jobs:
     - name: Azure CLI Version
       run: az version
     - name: Azure Login
-      run: az login --service-principal -u ${{ secrets.test_deploy_sp_id }} -p ${{ secrets.test_deploy_sp_secret }} --tenant ${{ secrets.test_tenant_id }}
+      run: az login --service-principal -u ${{ secrets.deploy_sp_id }} -p ${{ secrets.deploy_sp_secret }} --tenant ${{ secrets.tenant_id }}
     - name: Azure Subscription Selection
       run: az account set -n "${{ secrets.TEST_SUB }}"
     - name: CLI Kusto Extension
@@ -159,7 +159,7 @@ jobs:
     - name: Azure CLI Version
       run: az version
     - name: Azure Login
-      run: az login --service-principal -u ${{ secrets.test_deploy_sp_id }} -p ${{ secrets.test_deploy_sp_secret }} --tenant ${{ secrets.test_tenant_id }}
+      run: az login --service-principal -u ${{ secrets.deploy_sp_id }} -p ${{ secrets.deploy_sp_secret }} --tenant ${{ secrets.tenant_id }}
     - name: Azure Subscription Selection
       run: az account set -n "${{ secrets.TEST_SUB }}"
     - name: CLI Kusto Extension
@@ -238,7 +238,7 @@ jobs:
     - name: Azure CLI Version
       run: az version
     - name: Azure Login
-      run: az login --service-principal -u ${{ secrets.test_deploy_sp_id }} -p ${{ secrets.test_deploy_sp_secret }} --tenant ${{ secrets.test_tenant_id }}
+      run: az login --service-principal -u ${{ secrets.deploy_sp_id }} -p ${{ secrets.deploy_sp_secret }} --tenant ${{ secrets.tenant_id }}
     - name: Azure Subscription Selection
       run: az account set -n "${{ secrets.TEST_SUB }}"
     - name: CLI Kusto Extension
