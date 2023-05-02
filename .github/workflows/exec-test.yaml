@@ -103,8 +103,9 @@ jobs:
         echo "deltaKustoClusterUri=$clusterUri" >> $GITHUB_ENV
         echo "deltaKustoDbPrefix=$deltaDbPrefix" >> $GITHUB_ENV
         echo "deltaKustoTenantId=${{ secrets.test_tenant_id }}" >> $GITHUB_ENV
-        echo "deltaKustoSpId=${{ secrets.tester_sp_id }}" >> $GITHUB_ENV
-        echo "deltaKustoSpSecret=${{ secrets.tester_sp_secret }}" >> $GITHUB_ENV    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
+        echo "deltaKustoSpId=${{ secrets.deploy_sp_id }}" >> $GITHUB_ENV
+        echo "deltaKustoSpSecret=${{ secrets.deploy_sp_secret }}" >> $GITHUB_ENV
+    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
     - name: File-based integration tests (out-of-proc)
       shell:  bash
       run: |
@@ -183,8 +184,9 @@ jobs:
         echo "deltaKustoClusterUri=$clusterUri" >> $GITHUB_ENV
         echo "deltaKustoDbPrefix=$deltaDbPrefix" >> $GITHUB_ENV
         echo "deltaKustoTenantId=${{ secrets.test_tenant_id }}" >> $GITHUB_ENV
-        echo "deltaKustoSpId=${{ secrets.tester_sp_id }}" >> $GITHUB_ENV
-        echo "deltaKustoSpSecret=${{ secrets.tester_sp_secret }}" >> $GITHUB_ENV    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
+        echo "deltaKustoSpId=${{ secrets.deploy_sp_id }}" >> $GITHUB_ENV
+        echo "deltaKustoSpSecret=${{ secrets.deploy_sp_secret }}" >> $GITHUB_ENV
+    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
     - name: File-based integration tests (out-of-proc)
       shell:  bash
       run: |
@@ -262,8 +264,9 @@ jobs:
         echo "deltaKustoClusterUri=$clusterUri" >> $GITHUB_ENV
         echo "deltaKustoDbPrefix=$deltaDbPrefix" >> $GITHUB_ENV
         echo "deltaKustoTenantId=${{ secrets.test_tenant_id }}" >> $GITHUB_ENV
-        echo "deltaKustoSpId=${{ secrets.tester_sp_id }}" >> $GITHUB_ENV
-        echo "deltaKustoSpSecret=${{ secrets.tester_sp_secret }}" >> $GITHUB_ENV    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
+        echo "deltaKustoSpId=${{ secrets.deploy_sp_id }}" >> $GITHUB_ENV
+        echo "deltaKustoSpSecret=${{ secrets.deploy_sp_secret }}" >> $GITHUB_ENV
+    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
     - name: File-based integration tests (out-of-proc)
       shell:  bash
       run: |
