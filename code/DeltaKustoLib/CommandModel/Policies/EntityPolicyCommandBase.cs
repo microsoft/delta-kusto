@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Kusto.Language.Syntax;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -45,6 +46,23 @@ namespace DeltaKustoLib.CommandModel.Policies
                 && (EntityType == EntityType.Database || otherPolicy.EntityName.Equals(EntityName));
 
             return areEqualed;
+        }
+
+        protected static EntityType ExtractEntityType(SyntaxElement rootElement)
+        {
+            var dbEntityType = rootElement.GetAtMostOneDescendant<SyntaxToken>(
+                "database",
+                t => t.Kind == SyntaxKind.DatabaseKeyword);
+            var tableEntityType = rootElement.GetAtMostOneDescendant<SyntaxToken>(
+                "table",
+                t => t.Kind == SyntaxKind.IdentifierToken && t.Text.ToLower() == "table");
+            var entityType = dbEntityType != null
+                ? EntityType.Database
+                : tableEntityType != null
+                ? EntityType.Table
+                : throw new DeltaException("Can't figure out entity type");
+
+            return entityType;
         }
     }
 }

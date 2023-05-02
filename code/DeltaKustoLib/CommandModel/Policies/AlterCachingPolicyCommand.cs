@@ -18,6 +18,8 @@ namespace DeltaKustoLib.CommandModel.Policies
 
         public KustoTimeSpan HotIndex { get; }
 
+        public IImmutableList<HotWindow> HotWindows { get; }
+
         public override string CommandFriendlyName => ".alter <entity> policy caching";
 
         public override string ScriptPath => EntityType == EntityType.Database
@@ -28,39 +30,44 @@ namespace DeltaKustoLib.CommandModel.Policies
             EntityType entityType,
             EntityName entityName,
             TimeSpan hotData,
-            TimeSpan hotIndex) : base(entityType, entityName)
+            TimeSpan hotIndex,
+            IEnumerable<HotWindow> hotWindows) : base(entityType, entityName)
         {
             HotData = new KustoTimeSpan(hotData);
             HotIndex = new KustoTimeSpan(hotIndex);
+            HotWindows = hotWindows.ToImmutableArray();
         }
 
         internal static CommandBase FromCode(SyntaxElement rootElement)
         {
-            var entityKinds = rootElement
-                .GetDescendants<SyntaxElement>(s => s.Kind == SyntaxKind.TableKeyword
-                || s.Kind == SyntaxKind.DatabaseKeyword)
-                .Select(s => s.Kind);
-
-            if (!entityKinds.Any())
-            {
-                throw new DeltaException("Alter caching policy requires to act on a table or database (cluster isn't supported)");
-            }
-            var entityKind = entityKinds.First();
-            var entityType = entityKind == SyntaxKind.TableKeyword
-                ? EntityType.Table
-                : EntityType.Database;
-            var entityName = rootElement
-                .GetDescendants<NameReference>(n => n.NameInParent == "TableName"
-                || n.NameInParent == "DatabaseName"
-                || n.NameInParent == "Selector")
-                .Last();
+            var entityType = ExtractEntityType(rootElement);
+            var entityNames = rootElement.GetDescendants<NameReference>();
+            var entityName = entityNames.LastOrDefault();
             var (hotData, hotIndex) = ExtractHotDurations(rootElement);
+            var hotWindowTimes = rootElement.GetDescendants<SyntaxToken>(
+                t => t.Kind == SyntaxKind.DateTimeLiteralToken);
+
+            if (entityName == null)
+            {
+                throw new DeltaException("No entity name found");
+            }
+            if (hotWindowTimes.Count() % 2 == 1)
+            {
+                throw new DeltaException(
+                    "Hot Window date times should come in even numbers, "
+                    + $"not '{hotWindowTimes.Count()}'");
+            }
+
+            var hotWindows = hotWindowTimes
+                .Chunk(2)
+                .Select(c => new HotWindow((DateTime)c[0].Value, (DateTime)c[1].Value));
 
             return new AlterCachingPolicyCommand(
                 entityType,
                 EntityName.FromCode(entityName.Name),
                 hotData,
-                hotIndex);
+                hotIndex,
+                hotWindows);
         }
 
         public override bool Equals(CommandBase? other)
@@ -69,7 +76,8 @@ namespace DeltaKustoLib.CommandModel.Policies
             var areEqualed = otherPolicy != null
                 && base.Equals(otherPolicy)
                 && otherPolicy.HotData.Equals(HotData)
-                && otherPolicy.HotIndex.Equals(HotIndex);
+                && otherPolicy.HotIndex.Equals(HotIndex)
+                && otherPolicy.HotWindows.SequenceEqual(HotWindows);
 
             return areEqualed;
         }
@@ -101,6 +109,12 @@ namespace DeltaKustoLib.CommandModel.Policies
                 builder.Append(HotData);
                 builder.Append(" hotindex = ");
                 builder.Append(HotIndex);
+            }
+            foreach(var hotWindow in HotWindows)
+            {
+                builder.AppendLine();
+                builder.Append(", ");
+                builder.Append(hotWindow);
             }
 
             return builder.ToString();
@@ -134,63 +148,24 @@ namespace DeltaKustoLib.CommandModel.Policies
         private static (TimeSpan hotData, TimeSpan hotIndex) ExtractHotDurations(
             SyntaxElement rootElement)
         {
-            var durations = GetHotDurations(rootElement);
+            var hotExpression = rootElement.GetUniqueDescendant<LiteralExpression>(
+                "hot",
+                e => e.NameInParent == "HotData" || e.NameInParent == "Timespan");
+            var hotValue = (TimeSpan)hotExpression.LiteralValue;
+            var hotIndexExpression = rootElement.GetAtMostOneDescendant<LiteralExpression>(
+                "hotindex",
+                e => e.NameInParent == "HotIndex");
 
-            if (durations.Count == 1 && durations.ContainsKey(SyntaxKind.HotKeyword))
+            if (hotIndexExpression == null)
             {
-                var duration = durations.First().Value;
-
-                return (duration, duration);
-            }
-            else if (durations.Count == 2
-                && durations.ContainsKey(SyntaxKind.HotDataKeyword)
-                && durations.ContainsKey(SyntaxKind.HotIndexKeyword))
-            {
-                var dataDuration = durations[SyntaxKind.HotDataKeyword];
-                var indexDuration = durations[SyntaxKind.HotIndexKeyword];
-
-                return (dataDuration, indexDuration);
+                return (hotValue, hotValue);
             }
             else
             {
-                throw new DeltaException("Caching policy expect either a 'hot' parameter or a 'hotdata' and 'hotindex'");
+                var hotIndexValue = (TimeSpan)hotIndexExpression.LiteralValue;
+
+                return (hotValue, hotIndexValue);
             }
-        }
-
-        private static IImmutableDictionary<SyntaxKind, TimeSpan> GetHotDurations(SyntaxElement rootElement)
-        {
-            var elements = rootElement.GetDescendants<SyntaxElement>();
-            var builder = ImmutableDictionary<SyntaxKind, TimeSpan>.Empty.ToBuilder();
-            SyntaxKind? kind = null;
-
-            foreach (var e in elements)
-            {
-                if (kind == null)
-                {
-                    if (e.Kind == SyntaxKind.HotKeyword
-                        || e.Kind == SyntaxKind.HotDataKeyword
-                        || e.Kind == SyntaxKind.HotIndexKeyword)
-                    {
-                        if (!e.IsMissing)
-                        {
-                            kind = e.Kind;
-                        }
-                    }
-                }
-                else
-                {
-                    if (e.Kind == SyntaxKind.TimespanLiteralToken)
-                    {
-                        var token = (SyntaxToken)e;
-                        var t = (TimeSpan)token.Value;
-
-                        builder.Add(kind.Value, t);
-                        kind = null;
-                    }
-                }
-            }
-
-            return builder.ToImmutable();
         }
     }
 }

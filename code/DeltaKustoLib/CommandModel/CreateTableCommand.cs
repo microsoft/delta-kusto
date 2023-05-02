@@ -47,8 +47,7 @@ namespace DeltaKustoLib.CommandModel
             var tableName = rootElement.GetUniqueDescendant<NameDeclaration>(
                 "TableName",
                 n => n.NameInParent == "TableName");
-            var folder = GetProperty(rootElement, SyntaxKind.FolderKeyword);
-            var docString = GetProperty(rootElement, SyntaxKind.DocStringKeyword);
+            var (folder, docString) = ExtractProperties(rootElement);
             var columns = rootElement
                 .GetDescendants<NameDeclaration>(n => n.NameInParent == "ColumnName")
                 .Select(n => n.Parent)
@@ -108,18 +107,6 @@ namespace DeltaKustoLib.CommandModel
             return builder.ToString();
         }
 
-        private static QuotedText? GetProperty(SyntaxElement rootElement, SyntaxKind kind)
-        {
-            var literal = rootElement
-                .GetDescendants<SyntaxElement>(e => e.Kind == kind)
-                .Select(e => e.Parent.GetDescendants<LiteralExpression>().FirstOrDefault())
-                .FirstOrDefault();
-
-            return literal == null
-                ? null
-                : QuotedText.FromLiteral(literal);
-        }
-
         IEnumerable<CommandBase>
             ISingularToPluralCommand.ToPlural(IEnumerable<CommandBase> singularCommands)
         {
@@ -136,6 +123,43 @@ namespace DeltaKustoLib.CommandModel
                     g.Key.DocString));
 
             return pluralCommands.ToImmutableArray();
+        }
+
+        private static (QuotedText? folder, QuotedText? docString) ExtractProperties(
+            SyntaxElement rootElement)
+        {
+            var lists = rootElement.GetDescendants<SyntaxElement>(
+                n => n.Kind == SyntaxKind.List);
+            var properties = lists.Count >= 3 ? lists[2] : null;
+            QuotedText? folder = null;
+            QuotedText? docString = null;
+
+            if (properties != null)
+            {
+                var customNodes = properties.GetDescendants<CustomNode>();
+
+                foreach (var node in customNodes)
+                {
+                    var identifierToken = node.GetUniqueDescendant<SyntaxToken>(
+                        "Table Property Identifier token",
+                        e => e.Kind == SyntaxKind.IdentifierToken);
+                    var literalToken = node.GetUniqueDescendant<SyntaxToken>(
+                        "Table Property Identifier token",
+                        e => e.Kind == SyntaxKind.StringLiteralToken);
+
+                    switch (identifierToken.ValueText.ToLower())
+                    {
+                        case "folder":
+                            folder = QuotedText.FromToken(literalToken);
+                            break;
+                        case "docstring":
+                            docString = QuotedText.FromToken(literalToken);
+                            break;
+                    }
+                }
+            }
+
+            return (folder, docString);
         }
     }
 }

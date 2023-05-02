@@ -103,14 +103,18 @@ namespace DeltaKustoLib.KustoModel
 
         public QuotedText MappingAsJson { get; }
 
+        public bool RemoveOldestIfRequired { get; }
+
         public MappingModel(
             QuotedText mappingName,
             string mappingKind,
-            QuotedText mappingAsJson)
+            QuotedText mappingAsJson,
+            bool removeOldestIfRequired)
         {
             MappingName = mappingName;
             MappingKind = mappingKind.ToLower();
             MappingAsJson = mappingAsJson;
+            RemoveOldestIfRequired = removeOldestIfRequired;
         }
 
         #region Object methods
@@ -120,7 +124,8 @@ namespace DeltaKustoLib.KustoModel
             var result = other != null
                 && other.MappingName.Equals(MappingName)
                 && other.MappingKind.Equals(MappingKind)
-                && MappingAsJsonEquals(other.MappingAsJson);
+                && MappingAsJsonEquals(other.MappingAsJson)
+                && other.RemoveOldestIfRequired == RemoveOldestIfRequired;
 
             return result;
         }
@@ -129,7 +134,8 @@ namespace DeltaKustoLib.KustoModel
         {
             return MappingName.GetHashCode()
                 ^ MappingKind.GetHashCode()
-                ^ MappingAsJson.GetHashCode();
+                ^ MappingAsJson.GetHashCode()
+                ^ RemoveOldestIfRequired.GetHashCode();
         }
         #endregion
 
@@ -167,7 +173,8 @@ namespace DeltaKustoLib.KustoModel
                 tableName,
                 MappingKind,
                 MappingName,
-                MappingAsJson);
+                MappingAsJson,
+                RemoveOldestIfRequired);
         }
 
         [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2026:RequiresUnreferencedCode")]

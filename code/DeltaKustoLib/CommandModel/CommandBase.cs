@@ -95,6 +95,9 @@ namespace DeltaKustoLib.CommandModel
             }
             else
             {
+#if DEBUG
+                var allElements = commandBlock.GetDescendants<SyntaxElement>();
+#endif
                 var customCommand = commandBlock.GetUniqueDescendant<CustomCommand>("custom command");
 
                 switch (customCommand.CommandKind)
@@ -119,6 +122,7 @@ namespace DeltaKustoLib.CommandModel
                             ReplaceFirstOccurence(script, "alter-merge", "create"),
                             ignoreUnknownCommands);
                     case "CreateTables":
+                    case "CreateMergeTables":
                         return CreateTablesCommand.FromCode(commandBlock);
                     case "DropTable":
                         return DropTableCommand.FromCode(commandBlock);
@@ -132,6 +136,12 @@ namespace DeltaKustoLib.CommandModel
                         return DropTableColumnsCommand.FromCode(commandBlock);
                     case "CreateTableIngestionMapping":
                         return CreateMappingCommand.FromCode(commandBlock);
+                    case "CreateOrAlterTableIngestionMapping":
+                        //  We need to do this since the parsing is quite different with the with-node
+                        //  between a .create and .create-or-alter (for unknown reasons)
+                        return ParseAndCreateCommand(
+                            ReplaceFirstOccurence(script, "create-or-alter", "create"),
+                            ignoreUnknownCommands);
                     case "DropTableIngestionMapping":
                         return DropMappingCommand.FromCode(commandBlock);
                     case "AlterTablePolicyUpdate":
@@ -143,24 +153,7 @@ namespace DeltaKustoLib.CommandModel
                         return DeleteAutoDeletePolicyCommand.FromCode(commandBlock);
                     case "AlterDatabasePolicyCaching":
                     case "AlterTablePolicyCaching":
-                        var partitioning = commandBlock.GetDescendants<SyntaxElement>(s => s.Kind == SyntaxKind.PartitioningKeyword).Count();
-
-                        if (partitioning == 1)
-                        {
-                            if (ignoreUnknownCommands)
-                            {
-                                return null;
-                            }
-                            else
-                            {
-                                throw new DeltaException(
-                                    $"Can't handle CommandKind 'AlterTablePolicyPartitioning'");
-                            }
-                        }
-                        else
-                        {
-                            return AlterCachingPolicyCommand.FromCode(commandBlock);
-                        }
+                        return AlterCachingPolicyCommand.FromCode(commandBlock);
                     case "DeleteDatabasePolicyCaching":
                     case "DeleteTablePolicyCaching":
                         return DeleteCachingPolicyCommand.FromCode(commandBlock);
@@ -211,31 +204,32 @@ namespace DeltaKustoLib.CommandModel
             UnknownCommand unknownCommand,
             bool ignoreUnknownCommands)
         {
-            //  .create-or-alter table ingestion mapping isn't a recognized command by the parser
-            if (unknownCommand.Parts.Count >= 4
-                && unknownCommand.Parts[0].Kind == SyntaxKind.CreateOrAlterKeyword
-                && unknownCommand.Parts[1].Kind == SyntaxKind.TableKeyword
-                && unknownCommand.Parts.Skip(2).Any(p => p.Kind == SyntaxKind.IngestionKeyword))
-            {
-                var cutPoint = unknownCommand.Parts[0].TextStart + unknownCommand.Parts[0].FullWidth;
-                var newScript = ".create " + script.Substring(cutPoint);
+            ////  .create-or-alter table ingestion mapping isn't a recognized command by the parser
+            //if (unknownCommand.Parts.Count >= 4
+            //    && unknownCommand.Parts[0].Kind == SyntaxKind.CreateOrAlterKeyword
+            //    && unknownCommand.Parts[1].Kind == SyntaxKind.TableKeyword
+            //    && unknownCommand.Parts.Skip(2).Any(p => p.Kind == SyntaxKind.IngestionKeyword))
+            //{
+            //    var cutPoint = unknownCommand.Parts[0].TextStart + unknownCommand.Parts[0].FullWidth;
+            //    var newScript = ".create " + script.Substring(cutPoint);
 
-                return ParseAndCreateCommand(newScript, ignoreUnknownCommands);
-            }
-            //  .create merge tables isn't a recognized command by the parser (for some reason)
-            else if (unknownCommand.Parts.Count >= 2
-                && unknownCommand.Parts[0].Kind == SyntaxKind.CreateMergeKeyword
-                && unknownCommand.Parts[1].Kind == SyntaxKind.TablesKeyword)
-            {
-                var cutPoint = unknownCommand.Parts[1].TextStart + unknownCommand.Parts[1].FullWidth;
-                var newScript = ".create tables " + script.Substring(cutPoint);
-
-                return ParseAndCreateCommand(newScript, ignoreUnknownCommands);
-            }
-            else
-            {
-                return null;
-            }
+            //    return ParseAndCreateCommand(newScript, ignoreUnknownCommands);
+            //}
+            ////  .create merge tables isn't a recognized command by the parser (for some reason)
+            //else if (unknownCommand.Parts.Count >= 2
+            //    && unknownCommand.Parts[0].Kind == SyntaxKind.CreateMergeKeyword
+            //    && unknownCommand.Parts[1].Kind == SyntaxKind.TablesKeyword)
+            //{
+            //    var cutPoint = unknownCommand.Parts[1].TextStart + unknownCommand.Parts[1].FullWidth;
+            //    var newScript = ".create tables " + script.Substring(cutPoint);
+            
+            //    return ParseAndCreateCommand(newScript, ignoreUnknownCommands);
+            //}
+            //else
+            //{
+            //    return null;
+            //}
+            throw new NotImplementedException();
         }
 
         private static string ReplaceFirstOccurence(string script, string oldValue, string newValue)

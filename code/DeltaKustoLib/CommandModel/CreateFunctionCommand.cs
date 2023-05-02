@@ -56,10 +56,9 @@ namespace DeltaKustoLib.CommandModel
 
         internal static CommandBase FromCode(SyntaxElement rootElement)
         {
-            var functionName = EntityName.FromCode(
-                rootElement.GetUniqueDescendant<SyntaxElement>(
-                    "Function Name",
-                    e => e.NameInParent == "FunctionName"));
+            var functionNameDeclaration = rootElement.GetFirstDescendant<NameDeclaration>(
+                n => n.NameInParent == "FunctionName" || n.NameInParent == string.Empty);
+            var functionName = EntityName.FromCode(functionNameDeclaration.Name);
             var functionDeclaration = rootElement
                 .GetAtLeastOneDescendant<FunctionDeclaration>("Function declaration")
                 .First();
@@ -69,8 +68,10 @@ namespace DeltaKustoLib.CommandModel
                 .Parameters
                 .Select(p => p.Element)
                 .Select(fp => GetParameter(fp));
-            var folder = GetProperty(rootElement, SyntaxKind.FolderKeyword);
-            var docString = GetProperty(rootElement, SyntaxKind.DocStringKeyword);
+            QuotedText folder;
+            QuotedText docString;
+
+            GetProperties(functionDeclaration, out folder, out docString);
 
             return new CreateFunctionCommand(
                 functionName,
@@ -78,6 +79,45 @@ namespace DeltaKustoLib.CommandModel
                 body,
                 folder,
                 docString);
+        }
+
+        private static void GetProperties(
+            FunctionDeclaration functionDeclaration,
+            out QuotedText folder,
+            out QuotedText docString)
+        {
+            var propertyList = functionDeclaration
+                .Parent
+                .GetFirstDescendant<SyntaxElement>(
+                e => e.Kind == SyntaxKind.List && e.NameInParent == string.Empty);
+
+            folder = docString = QuotedText.Empty;
+            if (propertyList != null)
+            {
+                var properties = propertyList
+                    .GetDescendants<SeparatedElement>()
+                    .Select(p => new
+                    {
+                        Name = p.GetUniqueDescendant<SyntaxToken>(
+                            "Property name",
+                            e => e.Kind == SyntaxKind.IdentifierToken).ValueText,
+                        Value = p.GetAtMostOneDescendant<LiteralExpression>(
+                            "Value",
+                            e => e.Kind == SyntaxKind.StringLiteralExpression)
+                    });
+
+                foreach (var p in properties)
+                {
+                    if (p.Name.Equals("docstring", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        docString = QuotedText.FromLiteral(p.Value!);
+                    }
+                    if (p.Name.Equals("folder", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        folder = QuotedText.FromLiteral(p.Value!);
+                    }
+                }
+            }
         }
 
         public override bool Equals(CommandBase? other)
@@ -201,19 +241,6 @@ namespace DeltaKustoLib.CommandModel
                 .ExtractChildren<NameDeclaration, PrimitiveTypeExpression>("Column pair");
 
             return new TableColumn(new EntityName(name.SimpleName), type.Type.ValueText);
-        }
-
-        private static QuotedText GetProperty(SyntaxElement rootElement, SyntaxKind kind)
-        {
-            var literal = rootElement
-                .GetDescendants<SyntaxElement>(e => e.Kind == kind)
-                .Select(e => e.Parent.Parent.Parent)
-                .Select(p => p.GetDescendants<LiteralExpression>().FirstOrDefault())
-                .FirstOrDefault();
-
-            return literal == null
-                ? QuotedText.Empty
-                : QuotedText.FromLiteral(literal);
         }
 
         private void ValidateNoTableParameterAfterScalar(

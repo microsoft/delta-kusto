@@ -23,55 +23,147 @@ namespace DeltaKustoLib.CommandModel
 
         public QuotedText MappingAsJson { get; }
 
+        public bool RemoveOldestIfRequired { get; }
+
         public override string CommandFriendlyName => ".create ingestion mapping";
 
         public override string SortIndex => $"{TableName.Name}_{MappingName.Text}_{MappingKind}";
 
         public override string ScriptPath => $"tables/ingestion-mappings/create/{TableName}";
 
+        #region Constructors
         public CreateMappingCommand(
             EntityName tableName,
             string mappingKind,
             QuotedText mappingName,
-            QuotedText mappingAsJson)
+            QuotedText mappingAsJson,
+            bool removeOldestIfRequired)
         {
             TableName = tableName;
-            MappingKind = mappingKind.ToLower();
+            MappingKind = mappingKind.ToLower().Trim();
             MappingName = mappingName;
-            MappingAsJson = mappingAsJson;
+            MappingAsJson = QuotedText.FromText(mappingAsJson.Text.Trim());
+            RemoveOldestIfRequired = removeOldestIfRequired;
         }
 
         internal static CommandBase FromCode(SyntaxElement rootElement)
         {
             var tableNameDeclaration = rootElement.GetUniqueDescendant<NameDeclaration>(
-                "Table Name",
-                n => n.NameInParent == "TableName");
+                "Table Name");
             var mappingNameExpression = rootElement.GetUniqueDescendant<LiteralExpression>(
                 "Mapping Name",
-                n => n.NameInParent == "MappingName");
-            var mappingKindToken = rootElement.GetUniqueDescendant<SyntaxToken>(
+                n => n.Kind == SyntaxKind.StringLiteralExpression
+                && n.NameInParent == "MappingName");
+            var mappingKindElement = rootElement.GetUniqueDescendant<SyntaxElement>(
                 "Mapping Kind",
-                n => n.NameInParent == "MappingKind");
+                n => n.Kind == SyntaxKind.IdentifierToken && n.NameInParent == "MappingKind");
             var mappingFormatExpression = rootElement.GetUniqueDescendant<LiteralExpression>(
                 "Mapping Format",
-                n => n.NameInParent == "MappingFormat");
-            var mappingFormatFirstPart = QuotedText.FromLiteral(mappingFormatExpression);
-            var mappingFormatExtraParts = rootElement
-                .GetDescendants<CompoundStringLiteralExpression>()
-                .SelectMany(c => c.Tokens)
-                .Select(t => QuotedText.FromToken(t));
-            var mappingFormatParts = mappingFormatExtraParts
-                .Prepend(mappingFormatFirstPart)
-                .Select(q => q.Text);
-            var mappingFormat = string.Concat(mappingFormatParts);
+                n => n.Kind == SyntaxKind.StringLiteralExpression
+                && n.NameInParent == "MappingFormat");
+            var skippedTokens = rootElement.GetAtMostOneDescendant<SkippedTokens>(
+                "Skipped tokens",
+                n => n.Kind == SyntaxKind.SkippedTokens && n.NameInParent == "SkippedTokens")
+                ?.Tokens
+                ?.ToImmutableArray();
+            var splitTokens = SplitPropertyTokens(skippedTokens);
+            var mappingTokens = splitTokens.Item1
+                ?.Prepend(QuotedText.FromLiteral(mappingFormatExpression).Text);
+            var mappingAsJson = mappingTokens == null
+                ? QuotedText.FromLiteral(mappingFormatExpression)
+                : QuotedText.FromText(string.Concat(mappingTokens));
+            var removeOldestIfRequired = GetRemoveOldestIfRequired(splitTokens.Item2);
+
             var command = new CreateMappingCommand(
                 EntityName.FromCode(tableNameDeclaration),
-                mappingKindToken.Text,
+                EntityName.FromCode(mappingKindElement).Name,
                 QuotedText.FromLiteral(mappingNameExpression),
-                QuotedText.FromText(mappingFormat)!);
+                mappingAsJson,
+                removeOldestIfRequired);
 
             return command;
         }
+
+        private static bool GetRemoveOldestIfRequired(IImmutableList<SyntaxToken>? tokens)
+        {
+            if (tokens != null)
+            {
+                var value = ParseProperties(tokens)
+                    .Where(p => p.name.ToLower() == "removeoldestifrequired")
+                    .Select(p => p.value)
+                    .FirstOrDefault();
+
+                if (value is bool boolValue)
+                {
+                    return boolValue;
+                }
+            }
+
+            return false;
+        }
+
+        private static IEnumerable<(string name, object value)> ParseProperties(
+            IImmutableList<SyntaxToken> tokens)
+        {
+            var previous = (SyntaxToken?)null;
+            var name = (string?)null;
+            var isValue = false;
+
+            foreach (var token in tokens)
+            {
+                if (isValue)
+                {
+                    isValue = false;
+
+                    yield return (name!, token.Value);
+                }
+                else if (token.Kind == SyntaxKind.EqualToken)
+                {
+                    if (previous != null)
+                    {
+                        name = previous.Text;
+                        isValue = true;
+                    }
+                }
+                previous = token;
+            }
+        }
+
+        private static (IImmutableList<string>?, IImmutableList<SyntaxToken>?)
+            SplitPropertyTokens(IImmutableList<SyntaxToken>? skippedTokens)
+        {
+            if (skippedTokens == null)
+            {
+                return (null, null);
+            }
+            else
+            {
+                var index = 0;
+
+                while (index < skippedTokens.Count())
+                {
+                    if (skippedTokens[index].Kind == SyntaxKind.WithKeyword)
+                    {
+                        return (
+                            skippedTokens
+                            .Take(index)
+                            .Select(t => t.Text)
+                            .ToImmutableArray(),
+                            skippedTokens
+                            .Skip(index + 1)
+                            .ToImmutableArray());
+                    }
+                    ++index;
+                }
+
+                return (
+                    skippedTokens
+                    .Select(t => t.Text)
+                    .ToImmutableArray(),
+                    null);
+            }
+        }
+        #endregion
 
         public override bool Equals(CommandBase? other)
         {
@@ -80,7 +172,8 @@ namespace DeltaKustoLib.CommandModel
                 && otherCommand.TableName.Equals(TableName)
                 && otherCommand.MappingName.Equals(MappingName)
                 && otherCommand.MappingKind.Equals(MappingKind)
-                && otherCommand.MappingAsJson.Equals(MappingAsJson);
+                && otherCommand.MappingAsJson.Equals(MappingAsJson)
+                && otherCommand.RemoveOldestIfRequired == RemoveOldestIfRequired;
 
             return areEqualed;
         }
@@ -95,8 +188,15 @@ namespace DeltaKustoLib.CommandModel
             builder.Append(MappingKind);
             builder.Append(" mapping ");
             builder.Append(MappingName);
-            builder.Append(" ");
-            builder.Append(MappingAsJson);
+            builder.AppendLine();
+            builder.AppendLine("```");
+            builder.Append(MappingAsJson.Text.Trim());
+            builder.AppendLine();
+            builder.Append("```");
+            if (RemoveOldestIfRequired)
+            {
+                builder.AppendLine("with (removeOldestIfRequired=true)");
+            }
 
             return builder.ToString();
         }
@@ -106,33 +206,8 @@ namespace DeltaKustoLib.CommandModel
             return new MappingModel(
                 MappingName,
                 MappingKind,
-                MappingAsJson);
-        }
-
-        internal static IEnumerable<CommandBase> ComputeDelta(
-            IImmutableList<CreateFunctionCommand> currentFunctionCommands,
-            IImmutableList<CreateFunctionCommand> targetFunctionCommands)
-        {
-            var currentFunctions =
-                currentFunctionCommands.ToImmutableDictionary(c => c.FunctionName);
-            var currentFunctionNames = currentFunctions.Keys.ToImmutableSortedSet();
-            var targetFunctions =
-                targetFunctionCommands.ToImmutableDictionary(c => c.FunctionName);
-            var targetFunctionNames = targetFunctions.Keys.ToImmutableSortedSet();
-            var dropFunctionNames = currentFunctionNames.Except(targetFunctionNames);
-            var createFunctionNames = targetFunctionNames.Except(currentFunctionNames);
-            var changedFunctionsNames = targetFunctionNames
-                .Intersect(currentFunctionNames)
-                .Where(name => !targetFunctions[name].Equals(currentFunctions[name]));
-            var dropFunctions = dropFunctionNames
-                .Select(name => new DropFunctionCommand(name));
-            var createAlterFunctions = createFunctionNames
-                .Concat(changedFunctionsNames)
-                .Select(name => targetFunctions[name]);
-
-            return dropFunctions
-                .Cast<CommandBase>()
-                .Concat(createAlterFunctions);
+                MappingAsJson,
+                RemoveOldestIfRequired);
         }
     }
 }

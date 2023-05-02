@@ -48,19 +48,7 @@ namespace DeltaKustoLib.CommandModel.Policies
 
         internal static CommandBase FromCode(SyntaxElement rootElement)
         {
-            var entityKinds = rootElement
-                .GetDescendants<SyntaxElement>(s => s.Kind == SyntaxKind.TableKeyword
-                || s.Kind == SyntaxKind.DatabaseKeyword)
-                .Select(s => s.Kind);
-
-            if (!entityKinds.Any())
-            {
-                throw new DeltaException("Alter ingestion batching policy requires to act on a table or database (cluster isn't supported)");
-            }
-            var entityKind = entityKinds.First();
-            var entityType = entityKind == SyntaxKind.TableKeyword
-                ? EntityType.Table
-                : EntityType.Database;
+            var entityType = ExtractEntityType(rootElement);
             var entityName = rootElement.GetDescendants<NameReference>().Last();
             var policyText = QuotedText.FromLiteral(
                 rootElement.GetUniqueDescendant<LiteralExpression>(

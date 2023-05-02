@@ -78,7 +78,7 @@ namespace DeltaKustoLib.CommandModel
 
         internal static CommandBase FromCode(SyntaxElement rootElement)
         {
-            var (folder, docString) = ExtractWithProperties(rootElement);
+            var (folder, docString) = ExtractProperties(rootElement);
             Func<NameDeclaration, InnerTable> tableExtraction = (table) =>
             {
                 var columns = table
@@ -95,46 +95,6 @@ namespace DeltaKustoLib.CommandModel
                 .Select(t => tableExtraction(t));
 
             return new CreateTablesCommand(tables, folder, docString);
-        }
-
-        private static (QuotedText? folder, QuotedText? docString) ExtractWithProperties(
-            SyntaxElement rootElement)
-        {
-            var keywords = rootElement
-                .GetDescendants<SyntaxElement>(n => n.Kind == SyntaxKind.FolderKeyword
-                || n.Kind == SyntaxKind.DocStringKeyword);
-
-            if (!keywords.Any())
-            {
-                return (null, null);
-            }
-            else
-            {
-                var propertiesParent = keywords.First().Parent;
-                var tokenSequence = propertiesParent
-                    .GetDescendants<SyntaxToken>(n => n.Kind == SyntaxKind.StringLiteralToken)
-                    .Select(n => QuotedText.FromToken(n));
-                var zip = keywords
-                    .Select(n => n.Kind)
-                    .Zip(tokenSequence, (k, t) => (k, t))
-                    .ToImmutableArray();
-                QuotedText? folder = null;
-                QuotedText? docString = null;
-
-                foreach (var p in zip)
-                {
-                    if (p.k == SyntaxKind.FolderKeyword)
-                    {
-                        folder = p.t;
-                    }
-                    else
-                    {
-                        docString = p.t;
-                    }
-                }
-
-                return (folder, docString);
-            }
         }
 
         public override bool Equals(CommandBase? other)
@@ -168,6 +128,46 @@ namespace DeltaKustoLib.CommandModel
             }
 
             return builder.ToString();
+        }
+
+        private static (QuotedText? folder, QuotedText? docString) ExtractProperties(
+            SyntaxElement rootElement)
+        {
+            var withKeyword = rootElement
+                .GetDescendants<SyntaxElement>(n => n.Kind == SyntaxKind.WithKeyword)
+                .FirstOrDefault();
+
+            if (withKeyword != null)
+            {
+                var elements = withKeyword.Parent
+                    .GetDescendants<SeparatedElement>();
+                QuotedText? folder = null;
+                QuotedText? docString = null;
+
+                foreach (var element in elements)
+                {
+                    var nameDeclaration =
+                        element.GetUniqueDescendant<NameDeclaration>("Property name");
+                    var valueExpression =
+                        element.GetUniqueDescendant<LiteralExpression>("Property value");
+
+                    switch (nameDeclaration.Name.SimpleName.ToLower())
+                    {
+                        case "folder":
+                            folder = QuotedText.FromLiteral(valueExpression);
+                            break;
+                        case "docstring":
+                            docString = QuotedText.FromLiteral(valueExpression);
+                            break;
+                    }
+                }
+
+                return (folder, docString);
+            }
+            else
+            {
+                return (null, null);
+            }
         }
     }
 }

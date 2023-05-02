@@ -14,9 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    # Login
     - name: Azure Login
-      run: az login --service-principal -u ${{ secrets.test_deploy_sp_id }} -p ${{ secrets.test_deploy_sp_secret }} --tenant ${{ secrets.test_tenant_id }}
+      run: az login --service-principal -u ${{ secrets.deploy_sp_id }} -p ${{ secrets.deploy_sp_secret }} --tenant ${{ secrets.tenant_id }}
+    - name: Azure Subscription Selection
+      run: az account set -n "${{ secrets.TEST_SUB }}"
     # Add Kusto extension to Azure CLI
     - name: Install Kusto extension
       run: az extension add -n kusto
@@ -77,9 +78,10 @@ jobs:
       run: ls -l bin
     - name: Azure CLI Version
       run: az version
-    # Login
     - name: Azure Login
-      run: az login --service-principal -u ${{ secrets.test_deploy_sp_id }} -p ${{ secrets.test_deploy_sp_secret }} --tenant ${{ secrets.test_tenant_id }}
+      run: az login --service-principal -u ${{ secrets.deploy_sp_id }} -p ${{ secrets.deploy_sp_secret }} --tenant ${{ secrets.tenant_id }}
+    - name: Azure Subscription Selection
+      run: az account set -n "${{ secrets.TEST_SUB }}"
     - name: CLI Kusto Extension
       run: az extension add -n kusto
     # Set environment variables
@@ -101,8 +103,9 @@ jobs:
         echo "deltaKustoClusterUri=$clusterUri" >> $GITHUB_ENV
         echo "deltaKustoDbPrefix=$deltaDbPrefix" >> $GITHUB_ENV
         echo "deltaKustoTenantId=${{ secrets.test_tenant_id }}" >> $GITHUB_ENV
-        echo "deltaKustoSpId=${{ secrets.tester_sp_id }}" >> $GITHUB_ENV
-        echo "deltaKustoSpSecret=${{ secrets.tester_sp_secret }}" >> $GITHUB_ENV    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
+        echo "deltaKustoSpId=${{ secrets.deploy_sp_id }}" >> $GITHUB_ENV
+        echo "deltaKustoSpSecret=${{ secrets.deploy_sp_secret }}" >> $GITHUB_ENV
+    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
     - name: File-based integration tests (out-of-proc)
       shell:  bash
       run: |
@@ -156,9 +159,10 @@ jobs:
       run: ls -l bin
     - name: Azure CLI Version
       run: az version
-    # Login
     - name: Azure Login
-      run: az login --service-principal -u ${{ secrets.test_deploy_sp_id }} -p ${{ secrets.test_deploy_sp_secret }} --tenant ${{ secrets.test_tenant_id }}
+      run: az login --service-principal -u ${{ secrets.deploy_sp_id }} -p ${{ secrets.deploy_sp_secret }} --tenant ${{ secrets.tenant_id }}
+    - name: Azure Subscription Selection
+      run: az account set -n "${{ secrets.TEST_SUB }}"
     - name: CLI Kusto Extension
       run: az extension add -n kusto
     # Set environment variables
@@ -180,8 +184,9 @@ jobs:
         echo "deltaKustoClusterUri=$clusterUri" >> $GITHUB_ENV
         echo "deltaKustoDbPrefix=$deltaDbPrefix" >> $GITHUB_ENV
         echo "deltaKustoTenantId=${{ secrets.test_tenant_id }}" >> $GITHUB_ENV
-        echo "deltaKustoSpId=${{ secrets.tester_sp_id }}" >> $GITHUB_ENV
-        echo "deltaKustoSpSecret=${{ secrets.tester_sp_secret }}" >> $GITHUB_ENV    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
+        echo "deltaKustoSpId=${{ secrets.deploy_sp_id }}" >> $GITHUB_ENV
+        echo "deltaKustoSpSecret=${{ secrets.deploy_sp_secret }}" >> $GITHUB_ENV
+    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
     - name: File-based integration tests (out-of-proc)
       shell:  bash
       run: |
@@ -234,9 +239,10 @@ jobs:
       run: ls -l bin
     - name: Azure CLI Version
       run: az version
-    # Login
     - name: Azure Login
-      run: az login --service-principal -u ${{ secrets.test_deploy_sp_id }} -p ${{ secrets.test_deploy_sp_secret }} --tenant ${{ secrets.test_tenant_id }}
+      run: az login --service-principal -u ${{ secrets.deploy_sp_id }} -p ${{ secrets.deploy_sp_secret }} --tenant ${{ secrets.tenant_id }}
+    - name: Azure Subscription Selection
+      run: az account set -n "${{ secrets.TEST_SUB }}"
     - name: CLI Kusto Extension
       run: az extension add -n kusto
     # Set environment variables
@@ -258,8 +264,9 @@ jobs:
         echo "deltaKustoClusterUri=$clusterUri" >> $GITHUB_ENV
         echo "deltaKustoDbPrefix=$deltaDbPrefix" >> $GITHUB_ENV
         echo "deltaKustoTenantId=${{ secrets.test_tenant_id }}" >> $GITHUB_ENV
-        echo "deltaKustoSpId=${{ secrets.tester_sp_id }}" >> $GITHUB_ENV
-        echo "deltaKustoSpSecret=${{ secrets.tester_sp_secret }}" >> $GITHUB_ENV    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
+        echo "deltaKustoSpId=${{ secrets.deploy_sp_id }}" >> $GITHUB_ENV
+        echo "deltaKustoSpSecret=${{ secrets.deploy_sp_secret }}" >> $GITHUB_ENV
+    # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
     - name: File-based integration tests (out-of-proc)
       shell:  bash
       run: |
