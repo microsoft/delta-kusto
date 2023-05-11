@@ -7,6 +7,7 @@ using DeltaKustoLib;
 using DeltaKustoLib.CommandModel;
 using DeltaKustoLib.KustoModel;
 using Kusto.Data.Common;
+using Kusto.Data.Common.Impl;
 using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
@@ -29,6 +30,11 @@ namespace delta_kusto
         private readonly ITracer _tracer;
         private readonly ApiClient _apiClient;
         private readonly IFileGateway _fileGateway;
+
+        static DeltaOrchestration()
+        {
+            KustoTrustedEndpoints.SetOverridePolicy(domain => true);
+        }
 
         public DeltaOrchestration(
             ITracer tracer,
