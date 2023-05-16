@@ -8,7 +8,6 @@ using DeltaKustoLib.CommandModel;
 using DeltaKustoLib.KustoModel;
 using Kusto.Data.Common;
 using Kusto.Data.Common.Impl;
-using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
