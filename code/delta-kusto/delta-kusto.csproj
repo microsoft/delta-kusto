@@ -35,7 +35,7 @@
 		<ProjectReference Include="..\DeltaKustoLib\DeltaKustoLib.csproj" />
 	</ItemGroup>
 
-	<ItemGroup>
+  <ItemGroup>
 		<None Update="Properties\launchSettings.json">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
