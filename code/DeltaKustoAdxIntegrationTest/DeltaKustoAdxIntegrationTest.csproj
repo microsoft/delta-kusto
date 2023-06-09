@@ -35,12 +35,6 @@
 	</ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Kusto.Data">
-      <HintPath>../DeltaKustoIntegration/Kusto.Data.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
 		<Folder Include="Properties\" />
 	</ItemGroup>
 

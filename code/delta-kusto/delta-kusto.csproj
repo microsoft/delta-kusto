@@ -36,12 +36,6 @@
 	</ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Kusto.Data">
-      <HintPath>../DeltaKustoIntegration/Kusto.Data.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
 		<None Update="Properties\launchSettings.json">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
