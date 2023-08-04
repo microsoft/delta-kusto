@@ -38,7 +38,7 @@ namespace DeltaKustoAdxIntegrationTest.NoAuth
 
                     //  We just test that this doesn't fail
                 }
-                Assert.True(false, "This test is failing");
+                Assert.Fail("This test is failing");
             }
             catch (InvalidOperationException)
             {

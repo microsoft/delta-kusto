@@ -42,7 +42,7 @@ namespace DeltaKustoUnitTest
             {
                 ParameterOverrideHelper.InplaceOverride(main, "sendTelemetryOptIn=42");
 
-                Assert.True(false, "Shouldn't reach this point");
+                Assert.Fail("Shouldn't reach this point");
             }
             catch (DeltaException)
             {
@@ -58,7 +58,7 @@ namespace DeltaKustoUnitTest
             {
                 ParameterOverrideHelper.InplaceOverride(main, "myPropertyOrTheHighWay=42");
 
-                Assert.True(false, "Shouldn't reach this point");
+                Assert.Fail("Shouldn't reach this point");
             }
             catch (DeltaException)
             {

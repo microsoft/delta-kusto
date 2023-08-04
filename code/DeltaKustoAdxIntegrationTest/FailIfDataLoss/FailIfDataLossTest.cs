@@ -53,7 +53,7 @@ namespace DeltaKustoAdxIntegrationTest.FailIfDataLoss
                         await RunParametersAsync("FailIfDataLoss/no-fail.json", overrides);
 
                     Assert.True(parameters.FailIfDataLoss);
-                    Assert.False(true, "Should have thrown by now");
+                    Assert.Fail("Should have thrown by now");
                 }
                 catch (InvalidOperationException)
                 {
