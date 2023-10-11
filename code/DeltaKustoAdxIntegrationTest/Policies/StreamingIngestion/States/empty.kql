@@ -1,0 +1,3 @@
+//	Should Trigger deletion of streaming ingestion policy
+
+.create table MyStreamingIngestionTable (TIMESTAMP: datetime, PreciseTimeStamp: datetime, Level: int)

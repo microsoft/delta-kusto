@@ -160,6 +160,12 @@ namespace DeltaKustoLib.CommandModel
                     case "AlterDatabasePolicyIngestionBatching":
                     case "AlterTablePolicyIngestionBatching":
                         return AlterIngestionBatchingPolicyCommand.FromCode(commandBlock);
+                    case "AlterDatabasePolicyStreamingIngestion":
+                    case "AlterTablePolicyStreamingIngestion":
+                        return AlterStreamingIngestionPolicyCommand.FromCode(commandBlock);
+                    case "DeleteDatabasePolicyStreamingIngestion":
+                    case "DeleteTablePolicyStreamingIngestion":
+                        return DeleteStreamingIngestionPolicyCommand.FromCode(commandBlock);
                     case "DeleteDatabasePolicyIngestionBatching":
                     case "DeleteTablePolicyIngestionBatching":
                         return DeleteIngestionBatchingPolicyCommand.FromCode(commandBlock);
@@ -222,7 +228,7 @@ namespace DeltaKustoLib.CommandModel
             //{
             //    var cutPoint = unknownCommand.Parts[1].TextStart + unknownCommand.Parts[1].FullWidth;
             //    var newScript = ".create tables " + script.Substring(cutPoint);
-            
+
             //    return ParseAndCreateCommand(newScript, ignoreUnknownCommands);
             //}
             //else

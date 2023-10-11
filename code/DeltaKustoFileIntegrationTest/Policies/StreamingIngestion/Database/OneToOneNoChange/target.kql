@@ -1,0 +1,7 @@
+﻿.alter database otherdb policy streamingingestion
+```
+{
+  "IsEnabled": true,
+  "HintAllocatedRate": 2.1
+}
+```

@@ -20,7 +20,7 @@ namespace DeltaKustoAdxIntegrationTest
     {
         protected abstract string StatesFolderPath { get; }
 
-        protected AdxAutoIntegrationTestBase(bool overrideLoginTokenProvider = true)
+        protected AdxAutoIntegrationTestBase(bool overrideLoginTokenProvider = true): base(overrideLoginTokenProvider)
         {
         }
 

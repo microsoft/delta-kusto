@@ -1,0 +1,6 @@
+﻿.alter database mydb policy streamingingestion
+```
+{
+  "IsEnabled": false
+}
+```

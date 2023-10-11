@@ -1,0 +1,9 @@
+﻿.create table ['my-table'] (a: real, b: int, c: string)
+
+.alter table ['my-table'] policy streamingingestion
+```
+{
+  "IsEnabled": true,
+  "HintAllocatedRate": 2.1
+}
+```

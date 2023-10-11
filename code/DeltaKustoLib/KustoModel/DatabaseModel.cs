@@ -25,6 +25,7 @@ namespace DeltaKustoLib.KustoModel
             typeof(AlterAutoDeletePolicyCommand),
             typeof(AlterMergePolicyCommand),
             typeof(AlterIngestionBatchingPolicyCommand),
+            typeof(AlterStreamingIngestionPolicyCommand),
             typeof(AlterShardingPolicyCommand)
         }.ToImmutableHashSet();
 
@@ -32,6 +33,7 @@ namespace DeltaKustoLib.KustoModel
         private readonly IImmutableList<TableModel> _tableModels;
         private readonly AlterCachingPolicyCommand? _cachingPolicy;
         private readonly AlterIngestionBatchingPolicyCommand? _ingestionBatchingPolicy;
+        private readonly AlterStreamingIngestionPolicyCommand? _streamingIngestionPolicy;
         private readonly AlterMergePolicyCommand? _mergePolicy;
         private readonly AlterRetentionPolicyCommand? _retentionPolicy;
         private readonly AlterShardingPolicyCommand? _shardingPolicy;
@@ -41,6 +43,7 @@ namespace DeltaKustoLib.KustoModel
             IEnumerable<TableModel> tableModels,
             AlterCachingPolicyCommand? cachingPolicy,
             AlterIngestionBatchingPolicyCommand? ingestionBatchingPolicy,
+            AlterStreamingIngestionPolicyCommand? streamingIngestionPolicy,
             AlterMergePolicyCommand? mergePolicy,
             AlterRetentionPolicyCommand? retentionPolicy,
             AlterShardingPolicyCommand? shardingPolicy)
@@ -52,6 +55,10 @@ namespace DeltaKustoLib.KustoModel
             if (ingestionBatchingPolicy != null && ingestionBatchingPolicy.EntityType != EntityType.Database)
             {
                 throw new NotSupportedException("Only db ingestion batching policy is supported in this context");
+            }
+            if(streamingIngestionPolicy != null && streamingIngestionPolicy.EntityType != EntityType.Database)
+            {
+                throw new NotSupportedException("Only db streaming ingestion policy is supported in this context");
             }
             if (mergePolicy != null && mergePolicy.EntityType != EntityType.Database)
             {
@@ -69,6 +76,7 @@ namespace DeltaKustoLib.KustoModel
                 .ToImmutableArray();
             _cachingPolicy = cachingPolicy;
             _ingestionBatchingPolicy = ingestionBatchingPolicy;
+            _streamingIngestionPolicy = streamingIngestionPolicy;
             _mergePolicy = mergePolicy;
             _retentionPolicy = retentionPolicy;
             _shardingPolicy = shardingPolicy;
@@ -115,6 +123,12 @@ namespace DeltaKustoLib.KustoModel
                 .Where(p => p.EntityType == EntityType.Table);
             var dbIngestionBatchingPolicies = ingestionBatchingPolicies
                 .Where(p => p.EntityType == EntityType.Database);
+            var streamingIngestionPolicy = GetCommands<AlterStreamingIngestionPolicyCommand>(commandTypeIndex)
+                .ToImmutableArray();
+            var dbStreamingIngestionPolicy = streamingIngestionPolicy
+                .Where(p => p.EntityType == EntityType.Database);
+            var tableStreamingIngestionPolicy = streamingIngestionPolicy
+                .Where(p => p.EntityType == EntityType.Table);
             var mergePolicies = GetCommands<AlterMergePolicyCommand>(commandTypeIndex)
                 .ToImmutableArray();
             var tableMergePolicies = mergePolicies
@@ -156,6 +170,8 @@ namespace DeltaKustoLib.KustoModel
             ValidateDuplicates(dbCachingPolicies, m => "Database caching policy");
             ValidateDuplicates(tableIngestionBatchingPolicies, m => m.EntityName.Name);
             ValidateDuplicates(dbIngestionBatchingPolicies, m => "Database ingestion batching policy");
+            ValidateDuplicates(tableStreamingIngestionPolicy, m => m.EntityName.Name);
+            ValidateDuplicates(dbStreamingIngestionPolicy, m => "Database streaming ingestion policy");
             ValidateDuplicates(tableMergePolicies, m => m.EntityName.Name);
             ValidateDuplicates(dbMergePolicies, m => "Database merge policy");
             ValidateDuplicates(tableShardingPolicies, m => m.EntityName.Name);
@@ -171,6 +187,7 @@ namespace DeltaKustoLib.KustoModel
                 autoDeletePolicies,
                 tableCachingPolicies,
                 tableIngestionBatchingPolicies,
+                tableStreamingIngestionPolicy,
                 tableMergePolicies,
                 tableRetentionPolicies,
                 tableShardingPolicies,
@@ -181,6 +198,7 @@ namespace DeltaKustoLib.KustoModel
                 tableModels,
                 dbCachingPolicies.FirstOrDefault(),
                 dbIngestionBatchingPolicies.FirstOrDefault(),
+                dbStreamingIngestionPolicy.FirstOrDefault(),
                 dbMergePolicies.FirstOrDefault(),
                 dbRetentionPolicies.FirstOrDefault(),
                 dbShardingPolicies.FirstOrDefault());
@@ -197,6 +215,8 @@ namespace DeltaKustoLib.KustoModel
             var ingestionBatchingPolicyCommands = AlterIngestionBatchingPolicyCommand.ComputeDelta(
                 _ingestionBatchingPolicy,
                 targetModel._ingestionBatchingPolicy);
+            var streamingIngestionPolicyCommands = AlterStreamingIngestionPolicyCommand.ComputeDelta(
+                _streamingIngestionPolicy, targetModel._streamingIngestionPolicy);
             var mergePolicyCommands =
                 AlterMergePolicyCommand.ComputeDelta(_mergePolicy, targetModel._mergePolicy);
             var retentionPolicyCommands = AlterRetentionPolicyCommand.ComputeDelta(
@@ -208,6 +228,7 @@ namespace DeltaKustoLib.KustoModel
                 .Concat(tableCommands)
                 .Concat(cachingPolicyCommands)
                 .Concat(ingestionBatchingPolicyCommands)
+                .Concat(streamingIngestionPolicyCommands)
                 .Concat(mergePolicyCommands)
                 .Concat(retentionPolicyCommands)
                 .Concat(shardingPolicyCommands);
@@ -224,6 +245,7 @@ namespace DeltaKustoLib.KustoModel
                 && Enumerable.SequenceEqual(_tableModels, other._tableModels)
                 && object.Equals(_cachingPolicy, other._cachingPolicy)
                 && object.Equals(_ingestionBatchingPolicy, other._ingestionBatchingPolicy)
+                && object.Equals(_streamingIngestionPolicy, other._streamingIngestionPolicy)
                 && object.Equals(_mergePolicy, other._mergePolicy)
                 && object.Equals(_retentionPolicy, other._retentionPolicy)
                 && object.Equals(_shardingPolicy, other._shardingPolicy);

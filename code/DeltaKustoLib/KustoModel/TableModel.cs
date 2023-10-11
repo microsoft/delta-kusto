@@ -23,6 +23,8 @@ namespace DeltaKustoLib.KustoModel
 
         public AlterIngestionBatchingPolicyCommand? IngestionBatchingPolicy { get; }
 
+        public AlterStreamingIngestionPolicyCommand? StreamingIngestionPolicy { get; }
+
         public AlterMergePolicyCommand? MergePolicy { get; }
 
         public AlterRetentionPolicyCommand? RetentionPolicy { get; }
@@ -42,6 +44,7 @@ namespace DeltaKustoLib.KustoModel
             AlterAutoDeletePolicyCommand? autoDeletePolicy,
             AlterCachingPolicyCommand? cachingPolicy,
             AlterIngestionBatchingPolicyCommand? ingestionBatchingPolicy,
+            AlterStreamingIngestionPolicyCommand? streamingIngestionPolicy,
             AlterMergePolicyCommand? mergePolicy,
             AlterRetentionPolicyCommand? retentionPolicy,
             AlterShardingPolicyCommand? shardingPolicy,
@@ -58,6 +61,7 @@ namespace DeltaKustoLib.KustoModel
             AutoDeletePolicy = autoDeletePolicy;
             CachingPolicy = cachingPolicy;
             IngestionBatchingPolicy = ingestionBatchingPolicy;
+            StreamingIngestionPolicy = streamingIngestionPolicy;
             MergePolicy = mergePolicy;
             RetentionPolicy = retentionPolicy;
             ShardingPolicy = shardingPolicy;
@@ -79,6 +83,7 @@ namespace DeltaKustoLib.KustoModel
                 && object.Equals(other.CachingPolicy, CachingPolicy)
                 && object.Equals(other.RetentionPolicy, RetentionPolicy)
                 && object.Equals(other.AutoDeletePolicy, AutoDeletePolicy)
+                && object.Equals(other.StreamingIngestionPolicy, StreamingIngestionPolicy)
                 && object.Equals(other.Folder, Folder)
                 && object.Equals(other.DocString, DocString);
 
@@ -101,6 +106,7 @@ namespace DeltaKustoLib.KustoModel
             IEnumerable<AlterAutoDeletePolicyCommand> autoDeletePolicies,
             IEnumerable<AlterCachingPolicyCommand> cachingPolicies,
             IEnumerable<AlterIngestionBatchingPolicyCommand> ingestionBatchingPolicies,
+            IEnumerable<AlterStreamingIngestionPolicyCommand> streamingIngestionPolicies,
             IEnumerable<AlterMergePolicyCommand> mergePolicies,
             IEnumerable<AlterRetentionPolicyCommand> retentionPolicies,
             IEnumerable<AlterShardingPolicyCommand> shardingPolicies,
@@ -115,6 +121,7 @@ namespace DeltaKustoLib.KustoModel
             var autoDeletePolicyMap = autoDeletePolicies.ToImmutableDictionary(c => c.TableName);
             var cachingPolicyMap = cachingPolicies.ToImmutableDictionary(c => c.EntityName);
             var ingestionBatchingPolicyMap = ingestionBatchingPolicies.ToImmutableDictionary(c => c.EntityName);
+            var streamingIngestionPolicyMap = streamingIngestionPolicies.ToImmutableDictionary(c => c.EntityName);
             var mergePolicyMap = mergePolicies.ToImmutableDictionary(c => c.EntityName);
             var retentionPolicyMap = retentionPolicies.ToImmutableDictionary(c => c.EntityName);
             var shardingPolicyMap = shardingPolicies.ToImmutableDictionary(c => c.EntityName);
@@ -138,6 +145,9 @@ namespace DeltaKustoLib.KustoModel
                     : null,
                     ingestionBatchingPolicyMap.ContainsKey(ct.TableName)
                     ? ingestionBatchingPolicyMap[ct.TableName]
+                    : null,
+                    streamingIngestionPolicyMap.ContainsKey(ct.TableName)
+                    ? streamingIngestionPolicyMap[ct.TableName]
                     : null,
                     mergePolicyMap.ContainsKey(ct.TableName)
                     ? mergePolicyMap[ct.TableName]
@@ -236,6 +246,10 @@ namespace DeltaKustoLib.KustoModel
             {
                 yield return IngestionBatchingPolicy;
             }
+            if (StreamingIngestionPolicy != null)
+            {
+                yield return StreamingIngestionPolicy;
+            }
             if (MergePolicy != null)
             {
                 yield return MergePolicy;
@@ -284,6 +298,8 @@ namespace DeltaKustoLib.KustoModel
             var ingestionBatchingPolicyCommands = AlterIngestionBatchingPolicyCommand.ComputeDelta(
                 IngestionBatchingPolicy,
                 targetModel.IngestionBatchingPolicy);
+            var streamingIngestionPolicyCommands = AlterStreamingIngestionPolicyCommand.ComputeDelta(
+                StreamingIngestionPolicy, targetModel.StreamingIngestionPolicy);
             var mergePolicyCommands = AlterMergePolicyCommand.ComputeDelta(
                 MergePolicy,
                 targetModel.MergePolicy);
@@ -335,6 +351,7 @@ namespace DeltaKustoLib.KustoModel
                 .Concat(autoDeletePolicyCommands)
                 .Concat(cachingPolicyCommands)
                 .Concat(ingestionBatchingPolicyCommands)
+                .Concat(streamingIngestionPolicyCommands)
                 .Concat(mergePolicyCommands)
                 .Concat(retentionPolicyCommands)
                 .Concat(shardingPolicyCommands)

@@ -1,0 +1,7 @@
+﻿.alter database mydb policy streamingingestion
+```
+{
+  "InEnabled": true,
+  "HintAllocatedRate": 2.1
+}
+```

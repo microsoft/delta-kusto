@@ -251,7 +251,7 @@ namespace DeltaKustoAdxIntegrationTest
             var emptyProvider = (IDatabaseProvider)new EmptyDatabaseProvider();
             var finalDb = await dbProvider.RetrieveDatabaseAsync();
             var emptyDb = await emptyProvider.RetrieveDatabaseAsync();
-            //  Use the delta from an empty db to get 
+            //  Use the delta from an empty db to get
             var finalCommands = emptyDb.ComputeDelta(finalDb);
 
             return finalCommands;
