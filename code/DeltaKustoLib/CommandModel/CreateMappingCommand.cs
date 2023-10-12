@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Text;
 
@@ -48,8 +49,9 @@ namespace DeltaKustoLib.CommandModel
 
         internal static CommandBase FromCode(SyntaxElement rootElement)
         {
-            var tableNameDeclaration = rootElement.GetUniqueDescendant<NameDeclaration>(
-                "Table Name");
+            var tableNameDeclaration = rootElement
+                .GetAtLeastOneDescendant<NameDeclaration>("Table Name")
+                .First();
             var mappingNameExpression = rootElement.GetUniqueDescendant<LiteralExpression>(
                 "Mapping Name",
                 n => n.Kind == SyntaxKind.StringLiteralExpression
@@ -72,7 +74,11 @@ namespace DeltaKustoLib.CommandModel
             var mappingAsJson = mappingTokens == null
                 ? QuotedText.FromLiteral(mappingFormatExpression)
                 : QuotedText.FromText(string.Concat(mappingTokens));
-            var removeOldestIfRequired = GetRemoveOldestIfRequired(splitTokens.Item2);
+            var withToken = rootElement.GetAtMostOneDescendant<SyntaxToken>(
+                "With token",
+                n => n.Kind == SyntaxKind.WithKeyword);
+            var propertyTokens = GetPropertyTokens(withToken);
+            var removeOldestIfRequired = GetRemoveOldestIfRequired(propertyTokens);
 
             var command = new CreateMappingCommand(
                 EntityName.FromCode(tableNameDeclaration),
@@ -84,32 +90,66 @@ namespace DeltaKustoLib.CommandModel
             return command;
         }
 
-        private static bool GetRemoveOldestIfRequired(IImmutableList<SyntaxToken>? tokens)
+        private static IEnumerable<SyntaxToken> GetPropertyTokens(SyntaxToken? withToken)
         {
-            if (tokens != null)
+            if (withToken != null)
             {
-                var value = ParseProperties(tokens)
-                    .Where(p => p.name.ToLower() == "removeoldestifrequired")
-                    .Select(p => p.value)
-                    .FirstOrDefault();
+                var element = withToken.GetNextSibling();
 
-                if (value is bool boolValue)
+                if (element.Kind != SyntaxKind.OpenParenToken)
                 {
-                    return boolValue;
+                    throw new DeltaException("Expected an open parenthesis after a with keyword");
                 }
+                element = element.GetNextSibling();
+                //  Parsing totally depends on context (weird)
+                if (element.Kind == SyntaxKind.List)
+                {
+                    var descendants = element.GetDescendants<SyntaxToken>();
+
+                    foreach (var i in descendants)
+                    {
+                        yield return i;
+                    }
+                }
+                else
+                {
+                    while (element.Kind != SyntaxKind.CloseParenToken)
+                    {
+                        var token = element as SyntaxToken;
+
+                        if (token != null)
+                        {
+                            yield return token;
+                        }
+                        element = element.GetNextSibling();
+                    }
+                }
+            }
+        }
+
+        private static bool GetRemoveOldestIfRequired(IEnumerable<SyntaxToken> propertyTokens)
+        {
+            var value = ParseProperties(propertyTokens)
+                .Where(p => p.name.ToLower() == "removeoldestifrequired")
+                .Select(p => p.value)
+                .FirstOrDefault();
+
+            if (value is bool boolValue)
+            {
+                return boolValue;
             }
 
             return false;
         }
 
         private static IEnumerable<(string name, object value)> ParseProperties(
-            IImmutableList<SyntaxToken> tokens)
+            IEnumerable<SyntaxToken> propertyTokens)
         {
             var previous = (SyntaxToken?)null;
             var name = (string?)null;
             var isValue = false;
 
-            foreach (var token in tokens)
+            foreach (var token in propertyTokens)
             {
                 if (isValue)
                 {
@@ -192,7 +232,7 @@ namespace DeltaKustoLib.CommandModel
             builder.AppendLine("```");
             builder.Append(MappingAsJson.Text.Trim());
             builder.AppendLine();
-            builder.Append("```");
+            builder.AppendLine("```");
             if (RemoveOldestIfRequired)
             {
                 builder.AppendLine("with (removeOldestIfRequired=true)");
