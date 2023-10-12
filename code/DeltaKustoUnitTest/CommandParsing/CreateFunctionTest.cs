@@ -108,11 +108,13 @@ with (
             var folder = "Storm\\Functions";
             var docString = "";
             var skipValidation = true;
+            var isView = false;
             var command = ParseOneCommand($@"
 .create-or-alter function with (
     folder = ""{folder.Replace("\\", "\\\\")}"",
     docstring = ""{docString}"",
-    skipvalidation = ""{skipValidation}"")
+    skipvalidation = ""{skipValidation}"",
+    view = {isView})
     {name} ({parameterText}) {{
     {body}
 }}
@@ -129,6 +131,7 @@ with (
                 .All(p => p));
             Assert.Equal(body, createFunctionCommand.Body);
             Assert.Equal(folder, createFunctionCommand.Folder!.Text);
+            Assert.Equal(isView, createFunctionCommand.IsView);
             Assert.Equal(string.Empty, createFunctionCommand.DocString.Text);
         }
 
