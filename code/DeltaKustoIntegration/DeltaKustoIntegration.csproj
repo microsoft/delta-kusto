@@ -15,8 +15,8 @@
 
 	<ItemGroup>
 		<PackageReference Include="CsvHelper" Version="30.0.1" />
-		<PackageReference Include="Microsoft.Azure.Kusto.Data" Version="11.3.3" />
-		<PackageReference Include="Polly" Version="7.2.4" />
+		<PackageReference Include="Microsoft.Azure.Kusto.Data" Version="11.3.4" />
+		<PackageReference Include="Polly" Version="8.0.0" />
 	</ItemGroup>
 
 	<ItemGroup>
