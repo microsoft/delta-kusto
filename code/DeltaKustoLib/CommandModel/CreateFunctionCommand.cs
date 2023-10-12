@@ -24,6 +24,8 @@ namespace DeltaKustoLib.CommandModel
 
         public QuotedText DocString { get; }
 
+        public bool IsView { get; }
+
         public override string CommandFriendlyName => ".create function";
 
         public override string SortIndex => $"{Folder?.Text}_{FunctionName.Name}";
@@ -37,7 +39,8 @@ namespace DeltaKustoLib.CommandModel
             IEnumerable<TypedParameterModel> parameters,
             string functionBody,
             QuotedText folder,
-            QuotedText docString)
+            QuotedText docString,
+            bool isView)
         {
             FunctionName = functionName;
             Parameters = parameters.ToImmutableArray();
@@ -52,6 +55,7 @@ namespace DeltaKustoLib.CommandModel
             Body = functionBody.Trim().Replace("\r", string.Empty);
             Folder = folder;
             DocString = docString;
+            IsView = isView;
         }
 
         internal static CommandBase FromCode(SyntaxElement rootElement)
@@ -70,40 +74,45 @@ namespace DeltaKustoLib.CommandModel
                 .Select(fp => GetParameter(fp));
             QuotedText folder;
             QuotedText docString;
+            bool isView;
 
-            GetProperties(functionDeclaration, out folder, out docString);
+            GetProperties(functionDeclaration, out folder, out docString, out isView);
 
             return new CreateFunctionCommand(
                 functionName,
                 parameters,
                 body,
                 folder,
-                docString);
+                docString,
+                isView);
         }
 
         private static void GetProperties(
             FunctionDeclaration functionDeclaration,
             out QuotedText folder,
-            out QuotedText docString)
+            out QuotedText docString,
+            out bool isView)
         {
             var propertyList = functionDeclaration
                 .Parent
                 .GetFirstDescendant<SyntaxElement>(
                 e => e.Kind == SyntaxKind.List && e.NameInParent == string.Empty);
 
+            //  Default values:
             folder = docString = QuotedText.Empty;
+            isView = false;
             if (propertyList != null)
             {
                 var properties = propertyList
                     .GetDescendants<SeparatedElement>()
                     .Select(p => new
                     {
-                        Name = p.GetUniqueDescendant<SyntaxToken>(
-                            "Property name",
-                            e => e.Kind == SyntaxKind.IdentifierToken).ValueText,
+                        Name = p.GetUniqueDescendant<NameDeclaration>(
+                            "Property name").Name.SimpleName,
                         Value = p.GetAtMostOneDescendant<LiteralExpression>(
                             "Value",
-                            e => e.Kind == SyntaxKind.StringLiteralExpression)
+                            e => e.Kind == SyntaxKind.StringLiteralExpression
+                            || e.Kind == SyntaxKind.BooleanLiteralExpression)
                     });
 
                 foreach (var p in properties)
@@ -115,6 +124,17 @@ namespace DeltaKustoLib.CommandModel
                     if (p.Name.Equals("folder", StringComparison.InvariantCultureIgnoreCase))
                     {
                         folder = QuotedText.FromLiteral(p.Value!);
+                    }
+                    if (p.Name.Equals("view", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        var value = p.Value?.LiteralValue;
+
+                        if (!(value is bool))
+                        {
+                            throw new DeltaException(
+                                $"Expected function property 'view' to be boolean but value is {value}");
+                        }
+                        isView = (bool)value!;
                     }
                 }
             }
