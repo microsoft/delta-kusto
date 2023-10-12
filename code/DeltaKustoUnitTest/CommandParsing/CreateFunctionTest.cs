@@ -69,9 +69,18 @@ namespace DeltaKustoUnitTest.CommandParsing
             var body = "let limitVar = 100; let result = MyFunction(limitVar); result";
             var folder = "Demo";
             var docString = "Function calling other function";
+            var isView = true;
             var skipValidation = true;
-            var command = ParseOneCommand(
-                $".create-or-alter function with (folder = \"{folder}\", docstring = \"{docString}\", skipvalidation = \"{skipValidation}\") {name} () {{ {body} }}");
+            var command = ParseOneCommand(@$"
+.create-or-alter function
+with (
+    folder = ""{folder}"",
+    docstring = ""{docString}"",
+    view = {isView},
+    skipvalidation = ""{skipValidation}"") {name} () {{
+    {body}
+}}"
+                );
 
             Assert.IsType<CreateFunctionCommand>(command);
 
@@ -81,6 +90,7 @@ namespace DeltaKustoUnitTest.CommandParsing
             Assert.Equal(body, createFunctionCommand.Body);
             Assert.Equal(folder, createFunctionCommand.Folder?.Text);
             Assert.Equal(docString, createFunctionCommand.DocString?.Text);
+            Assert.Equal(isView, createFunctionCommand.IsView);
         }
 
         [Fact]
@@ -98,11 +108,17 @@ namespace DeltaKustoUnitTest.CommandParsing
             var folder = "Storm\\Functions";
             var docString = "";
             var skipValidation = true;
-            var command = ParseOneCommand(
-                ".create-or-alter function with "
-                + $"(folder = \"{folder.Replace("\\", "\\\\")}\", "
-                + $"docstring = \"{docString}\", skipvalidation = \"{skipValidation}\") "
-                + $"{name} ({parameterText}) {{ {body} }}");
+            var isView = false;
+            var command = ParseOneCommand($@"
+.create-or-alter function with (
+    folder = ""{folder.Replace("\\", "\\\\")}"",
+    docstring = ""{docString}"",
+    skipvalidation = ""{skipValidation}"",
+    view = {isView})
+    {name} ({parameterText}) {{
+    {body}
+}}
+");
 
             Assert.IsType<CreateFunctionCommand>(command);
 
@@ -115,6 +131,7 @@ namespace DeltaKustoUnitTest.CommandParsing
                 .All(p => p));
             Assert.Equal(body, createFunctionCommand.Body);
             Assert.Equal(folder, createFunctionCommand.Folder!.Text);
+            Assert.Equal(isView, createFunctionCommand.IsView);
             Assert.Equal(string.Empty, createFunctionCommand.DocString.Text);
         }
 
