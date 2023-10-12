@@ -108,7 +108,7 @@ namespace DeltaKustoUnitTest.CommandParsing
                 var command = ParseOneCommand(
                     ".create table MyTable ingestion csv mapping "
                     + "'Map ping1' \n"
-                    + "'['\n"
+                    + " '['  \n"
                     + "  '{'\n"
                     + "    '\"column\" : \"rownumber\",'\n"
                     + "    '\"DataType\":\"int\",'\n"

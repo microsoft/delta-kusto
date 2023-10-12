@@ -67,7 +67,7 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
 
                 Assert.Equal(entityType, realCommand.EntityType);
                 Assert.Equal("myEntity", realCommand.EntityName.Name);
-                Assert.Equal(1, realCommand.HotWindows.Count);
+                Assert.Single(realCommand.HotWindows);
                 Assert.Equal(new DateTime(2021, 01, 01), realCommand.HotWindows.First().From);
                 Assert.Equal(new DateTime(2021, 02, 01), realCommand.HotWindows.First().To);
             }
