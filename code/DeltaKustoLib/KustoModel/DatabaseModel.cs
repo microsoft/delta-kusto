@@ -25,7 +25,8 @@ namespace DeltaKustoLib.KustoModel
             typeof(AlterAutoDeletePolicyCommand),
             typeof(AlterMergePolicyCommand),
             typeof(AlterIngestionBatchingPolicyCommand),
-            typeof(AlterShardingPolicyCommand)
+            typeof(AlterShardingPolicyCommand),
+            typeof(AlterStreamingIngestionPolicyCommand)
         }.ToImmutableHashSet();
 
         private readonly IImmutableList<CreateFunctionCommand> _functionCommands;
@@ -35,6 +36,7 @@ namespace DeltaKustoLib.KustoModel
         private readonly AlterMergePolicyCommand? _mergePolicy;
         private readonly AlterRetentionPolicyCommand? _retentionPolicy;
         private readonly AlterShardingPolicyCommand? _shardingPolicy;
+        private readonly AlterStreamingIngestionPolicyCommand? _streamingIngestionPolicy;
 
         private DatabaseModel(
             IEnumerable<CreateFunctionCommand> functionCommands,
@@ -43,7 +45,8 @@ namespace DeltaKustoLib.KustoModel
             AlterIngestionBatchingPolicyCommand? ingestionBatchingPolicy,
             AlterMergePolicyCommand? mergePolicy,
             AlterRetentionPolicyCommand? retentionPolicy,
-            AlterShardingPolicyCommand? shardingPolicy)
+            AlterShardingPolicyCommand? shardingPolicy,
+            AlterStreamingIngestionPolicyCommand? streamingIngestionPolicy)
         {
             if (cachingPolicy != null && cachingPolicy.EntityType != EntityType.Database)
             {
@@ -61,6 +64,12 @@ namespace DeltaKustoLib.KustoModel
             {
                 throw new NotSupportedException("Only db sharding policy is supported in this context");
             }
+            if (streamingIngestionPolicy != null
+                && streamingIngestionPolicy.EntityType != EntityType.Database)
+            {
+                throw new NotSupportedException(
+                    "Only db streaming ingestion policy is supported in this context");
+            }
             _functionCommands = functionCommands
                 .OrderBy(f => f.FunctionName)
                 .ToImmutableArray();
@@ -72,6 +81,7 @@ namespace DeltaKustoLib.KustoModel
             _mergePolicy = mergePolicy;
             _retentionPolicy = retentionPolicy;
             _shardingPolicy = shardingPolicy;
+            _streamingIngestionPolicy = streamingIngestionPolicy;
         }
 
         public static DatabaseModel FromCommands(
@@ -132,6 +142,13 @@ namespace DeltaKustoLib.KustoModel
                 .Where(p => p.EntityType == EntityType.Table);
             var dbShardingPolicies = shardingPolicies
                 .Where(p => p.EntityType == EntityType.Database);
+            var streamingIngestionPolicies =
+                GetCommands<AlterStreamingIngestionPolicyCommand>(commandTypeIndex)
+                .ToImmutableArray();
+            var tableStreamingIngestionPolicies = streamingIngestionPolicies
+                .Where(p => p.EntityType == EntityType.Table);
+            var dbStreamingIngestionPolicies = streamingIngestionPolicies
+                .Where(p => p.EntityType == EntityType.Database);
             var retentionPolicies = GetCommands<AlterRetentionPolicyCommand>(commandTypeIndex)
                 .ToImmutableArray();
             var tableRetentionPolicies = retentionPolicies
@@ -160,6 +177,8 @@ namespace DeltaKustoLib.KustoModel
             ValidateDuplicates(dbMergePolicies, m => "Database merge policy");
             ValidateDuplicates(tableShardingPolicies, m => m.EntityName.Name);
             ValidateDuplicates(dbShardingPolicies, m => "Database sharding policy");
+            ValidateDuplicates(tableStreamingIngestionPolicies, m => m.EntityName.Name);
+            ValidateDuplicates(dbStreamingIngestionPolicies, m => "Database sharding policy");
             ValidateDuplicates(tableRetentionPolicies, m => m.EntityName.Name);
             ValidateDuplicates(dbRetentionPolicies, m => "Database retention policy");
             ValidateDuplicates(updatePolicies, m => m.TableName.Name);
@@ -174,6 +193,7 @@ namespace DeltaKustoLib.KustoModel
                 tableMergePolicies,
                 tableRetentionPolicies,
                 tableShardingPolicies,
+                tableStreamingIngestionPolicies,
                 updatePolicies);
 
             return new DatabaseModel(
@@ -183,7 +203,8 @@ namespace DeltaKustoLib.KustoModel
                 dbIngestionBatchingPolicies.FirstOrDefault(),
                 dbMergePolicies.FirstOrDefault(),
                 dbRetentionPolicies.FirstOrDefault(),
-                dbShardingPolicies.FirstOrDefault());
+                dbShardingPolicies.FirstOrDefault(),
+                dbStreamingIngestionPolicies.FirstOrDefault());
         }
 
         public IImmutableList<CommandBase> ComputeDelta(DatabaseModel targetModel)
