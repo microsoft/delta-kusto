@@ -70,12 +70,20 @@ namespace DeltaKustoLib.CommandModel.Policies
         internal static CommandBase? FromCode(CommandBlock commandBlock)
         {
             var entityType = ExtractEntityType(commandBlock);
-            var entityNameReference = commandBlock.GetDescendants<NameReference>().Last();
-
-            var policyText = QuotedText.FromLiteral(
-                commandBlock.GetUniqueDescendant<LiteralExpression>(
-                    "StreamingIngestion",
-                    e => e.NameInParent == "StreamingIngestionPolicy"));
+            var nameReferences = commandBlock.GetDescendants<NameReference>();
+            var entityNameReference = nameReferences.Last();
+            //  Weird parser behaviour:  if the db (or db + cluster) is used
+            //  in the name, the policy body is encoded differently
+            var policyText = nameReferences.Count == 1
+                ? QuotedText.FromLiteral(
+                    commandBlock.GetUniqueDescendant<LiteralExpression>(
+                        "StreamingIngestion",
+                        e => e.NameInParent == "StreamingIngestionPolicy"))
+                : QuotedText.FromText(
+                    commandBlock
+                    .GetUniqueDescendant<SkippedTokens>(
+                        "StreamingIngestion")
+                    .ToString());
             var policy = Deserialize<JsonDocument>(policyText.Text);
 
             if (policy == null)
