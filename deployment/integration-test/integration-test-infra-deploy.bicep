@@ -39,6 +39,9 @@ resource intTestCluster 'Microsoft.Kusto/clusters@2022-12-29' = {
     'tier': 'Basic'
     'capacity': 1
   }
+  properties: {
+    enableStreamingIngest: true
+  }
 }
 
 resource intTestDbs 'Microsoft.Kusto/clusters/databases@2022-12-29' = [for i in range(0, length(prefixes) * intTestDbCountPerPrefix): {

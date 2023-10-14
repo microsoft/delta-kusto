@@ -1,0 +1,17 @@
+﻿.create table MyStreamingIngestionTable (TIMESTAMP: datetime, PreciseTimeStamp: datetime, Level: int)
+
+.alter table MyStreamingIngestionTable policy streamingingestion
+```
+{
+	"IsEnabled": true,
+	"HintAllocatedRate": 4.2
+}
+```
+
+.alter database ['my-db'] policy streamingingestion
+```
+{
+	"IsEnabled": true,
+	"HintAllocatedRate": 1.2
+}
+```
