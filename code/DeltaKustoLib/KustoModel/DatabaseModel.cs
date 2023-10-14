@@ -225,13 +225,18 @@ namespace DeltaKustoLib.KustoModel
                 targetModel._retentionPolicy);
             var shardingPolicyCommands =
                 AlterShardingPolicyCommand.ComputeDelta(_shardingPolicy, targetModel._shardingPolicy);
+            var streamingIngestionPolicyCommands =
+                AlterStreamingIngestionPolicyCommand.ComputeDelta(
+                    _streamingIngestionPolicy,
+                    targetModel._streamingIngestionPolicy);
             var deltaCommands = functionCommands
                 .Concat(tableCommands)
                 .Concat(cachingPolicyCommands)
                 .Concat(ingestionBatchingPolicyCommands)
                 .Concat(mergePolicyCommands)
                 .Concat(retentionPolicyCommands)
-                .Concat(shardingPolicyCommands);
+                .Concat(shardingPolicyCommands)
+                .Concat(streamingIngestionPolicyCommands);
 
             return deltaCommands.ToImmutableArray();
         }
