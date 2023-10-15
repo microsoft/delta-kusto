@@ -1,0 +1,8 @@
+﻿//	Random comment
+.alter database mydb policy streamingingestion
+```
+{
+	"IsEnabled": true,
+	"HintAllocatedRate": 1.2
+}
+```

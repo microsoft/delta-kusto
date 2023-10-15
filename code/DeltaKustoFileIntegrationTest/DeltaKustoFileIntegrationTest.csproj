@@ -49,4 +49,79 @@
     <Folder Include="Functions\ScriptFolder\ToScriptFolder\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Policies\StreamingIngestion\Database\NoneToOne\current.kql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Policies\StreamingIngestion\Database\NoneToOne\delta-params.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Policies\StreamingIngestion\Database\NoneToOne\target.kql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Policies\StreamingIngestion\Database\OneToNone\current.kql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Policies\StreamingIngestion\Database\OneToNone\delta-params.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Policies\StreamingIngestion\Database\OneToNone\target.kql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Policies\StreamingIngestion\Database\OneToOneNoChange\current.kql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Policies\StreamingIngestion\Database\OneToOneNoChange\delta-params.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Policies\StreamingIngestion\Database\OneToOneNoChange\target.kql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Policies\StreamingIngestion\Database\OneToOneWithChange\current.kql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Policies\StreamingIngestion\Database\OneToOneWithChange\delta-params.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Policies\StreamingIngestion\Database\OneToOneWithChange\target.kql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Policies\StreamingIngestion\Table\NoneToOne\current.kql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Policies\StreamingIngestion\Table\NoneToOne\delta-params.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Policies\StreamingIngestion\Table\NoneToOne\target.kql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Policies\StreamingIngestion\Table\OneToNone\current.kql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Policies\StreamingIngestion\Table\OneToNone\delta-params.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Policies\StreamingIngestion\Table\OneToNone\target.kql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Policies\StreamingIngestion\Table\OneToOneNoChange\current.kql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Policies\StreamingIngestion\Table\OneToOneNoChange\delta-params.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Policies\StreamingIngestion\Table\OneToOneNoChange\target.kql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Policies\StreamingIngestion\Table\OneToOneWithChange\current.kql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Policies\StreamingIngestion\Table\OneToOneWithChange\delta-params.yaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Policies\StreamingIngestion\Table\OneToOneWithChange\target.kql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
