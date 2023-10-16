@@ -26,9 +26,11 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
         {
             var command = ParseOneCommand(@$"
 .alter table mydb.mytable policy streamingingestion
+```
 {{
     ""IsEnabled"":true
-}}");
+}}
+```");
 
             Assert.IsType<AlterStreamingIngestionPolicyCommand>(command);
 
@@ -43,10 +45,12 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
         {
             var command = ParseOneCommand(@$"
 .alter table mycluster.['my db'].mytable policy streamingingestion
+```
 {{
     ""IsEnabled"":true,
     ""HintAllocatedRate"":4.5
-}}");
+}}
+```");
 
             Assert.IsType<AlterStreamingIngestionPolicyCommand>(command);
 
