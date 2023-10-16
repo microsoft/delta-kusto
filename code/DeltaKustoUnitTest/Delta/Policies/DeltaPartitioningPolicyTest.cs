@@ -1,37 +1,73 @@
 ﻿using DeltaKustoLib.CommandModel;
 using DeltaKustoLib.CommandModel.Policies;
 using DeltaKustoLib.KustoModel;
+using Kusto.Language;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using Xunit;
 
 namespace DeltaKustoUnitTest.Delta.Policies
 {
     public class DeltaPartitioningPolicyTest : ParsingTestBase
     {
+        #region Policy objects
+        private static readonly object _policy1 = new
+        {
+            PartitionKeys = new[]
+            {
+                new
+                {
+                    ColumnName="MyColumn",
+                    Kind="Hash",
+                    Properties = new
+                    {
+                        Function="XxHash64",
+                        MaxPartitionCount=128,
+                        PartitionAssignmentMode="Uniform"
+                    }
+                }
+            }
+        };
+        private static readonly object _policy2 = new
+        {
+            PartitionKeys = new[]
+            {
+                new
+                {
+                    ColumnName="MyOtherColumn",
+                    Kind="Hash",
+                    Properties = new
+                    {
+                        Function="XxHash64",
+                        MaxPartitionCount=64,
+                        PartitionAssignmentMode="Uniform"
+                    }
+                }
+            }
+        };
+        #endregion
+
         [Fact]
         public void TableFromEmptyToSomething()
         {
             TestPartitioning(
                 null,
-                42,
-                c =>
-                {
-                    Assert.Equal(42, c.MaxRowCount);
-                },
-                null);
+                _policy1,
+                true,
+                false);
         }
 
         [Fact]
         public void TableFromSomethingToEmpty()
         {
             TestPartitioning(
-                72,
+                _policy1,
                 null,
-                null,
-                c => { });
+                false,
+                true);
         }
 
         [Fact]
@@ -40,83 +76,68 @@ namespace DeltaKustoUnitTest.Delta.Policies
             var targetDuration = TimeSpan.FromDays(25) + TimeSpan.FromHours(4);
 
             TestPartitioning(
-                42,
-                54,
-                c =>
-                {
-                    Assert.Equal(54, c.MaxRowCount);
-                },
-                null);
+                _policy1,
+                _policy2,
+                true,
+                false);
         }
 
         [Fact]
         public void TableSame()
         {
             TestPartitioning(
-                193,
-                193,
-                null,
-                null);
+                _policy2,
+                _policy2,
+                false,
+                false);
         }
 
         private void TestPartitioning(
-            int? currentMaxRowCount,
-            int? targetMaxRowCount,
-            Action<AlterPar>? alterAction,
-            Action<DeleteShardingPolicyCommand>? deleteAction)
+            object? currentPolicy,
+            object? targetPolicy,
+            bool hasAlter,
+            bool hasDelete)
         {
             var createTableCommandText = ".create table A (a:int)\n\n";
+            var currentText = currentPolicy != null
+                ? new AlterPartitioningPolicyCommand(
+                    new EntityName("A"),
+                    JsonSerializer.Deserialize<JsonDocument>(
+                        JsonSerializer.Serialize(currentPolicy))!).ToScript(null)
+                : string.Empty;
+            var currentCommands = Parse(createTableCommandText + currentText);
+            var currentDatabase = DatabaseModel.FromCommands(currentCommands);
+            var targetText = targetPolicy != null
+                ? new AlterPartitioningPolicyCommand(
+                    new EntityName("A"),
+                    JsonSerializer.Deserialize<JsonDocument>(
+                        JsonSerializer.Serialize(targetPolicy))!).ToScript(null)
+                : string.Empty;
+            var targetCommands = Parse(createTableCommandText + targetText);
+            var targetDatabase = DatabaseModel.FromCommands(targetCommands);
+            var delta = currentDatabase.ComputeDelta(targetDatabase);
 
-            foreach (var entityType in new[] { EntityType.Database, EntityType.Table })
+            if (!hasAlter && !hasDelete)
             {
-                var currentText = currentMaxRowCount != null
-                    ? new AlterShardingPolicyCommand(
-                        entityType,
-                        new EntityName("A"),
-                        currentMaxRowCount.Value,
-                        200,
-                        300).ToScript(null)
-                    : string.Empty;
-                var currentCommands = Parse(createTableCommandText + currentText);
-                var currentDatabase = DatabaseModel.FromCommands(currentCommands);
-                var targetText = targetMaxRowCount != null
-                    ? new AlterShardingPolicyCommand(
-                        entityType,
-                        new EntityName("A"),
-                        targetMaxRowCount.Value,
-                        200,
-                        300).ToScript(null)
-                    : string.Empty;
-                var targetCommands = Parse(createTableCommandText + targetText);
-                var targetDatabase = DatabaseModel.FromCommands(targetCommands);
-                var delta = currentDatabase.ComputeDelta(targetDatabase);
+                Assert.Empty(delta);
+            }
+            else if (hasAlter)
+            {
+                Assert.Single(delta);
+                Assert.IsType<AlterPartitioningPolicyCommand>(delta[0]);
 
-                if (alterAction == null && deleteAction == null)
-                {
-                    Assert.Empty(delta);
-                }
-                else if (alterAction != null)
-                {
-                    Assert.Single(delta);
-                    Assert.IsType<AlterShardingPolicyCommand>(delta[0]);
+                var alterCommand = (AlterPartitioningPolicyCommand)delta[0];
 
-                    var alterCommand = (AlterShardingPolicyCommand)delta[0];
+                Assert.Equal("A", alterCommand.TableName.Name);
+            }
+            else if (hasDelete)
+            {
+                Assert.Single(delta);
+                Assert.IsType<DeletePartitioningPolicyCommand>(delta[0]);
 
-                    Assert.Equal(entityType, alterCommand.EntityType);
-                    Assert.Equal("A", alterCommand.EntityName.Name);
-                    alterAction(alterCommand);
-                }
-                else if (deleteAction != null)
-                {
-                    Assert.Single(delta);
-                    Assert.IsType<DeleteShardingPolicyCommand>(delta[0]);
+                var deleteCommand = (DeletePartitioningPolicyCommand)delta[0];
 
-                    var deleteCommand = (DeleteShardingPolicyCommand)delta[0];
-
-                    Assert.Equal(entityType, deleteCommand.EntityType);
-                    Assert.Equal("A", deleteCommand.EntityName.Name);
-                    deleteAction(deleteCommand);
-                }
+                Assert.Equal("A", deleteCommand.TableName.Name);
             }
         }
     }

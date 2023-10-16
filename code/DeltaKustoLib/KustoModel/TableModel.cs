@@ -31,6 +31,8 @@ namespace DeltaKustoLib.KustoModel
 
         public AlterStreamingIngestionPolicyCommand? StreamingIngestionPolicy { get; }
 
+        public AlterPartitioningPolicyCommand? PartitioningPolicy { get; }
+
         public AlterUpdatePolicyCommand? UpdatePolicy { get; }
 
         public QuotedText Folder { get; }
@@ -48,6 +50,7 @@ namespace DeltaKustoLib.KustoModel
             AlterRetentionPolicyCommand? retentionPolicy,
             AlterShardingPolicyCommand? shardingPolicy,
             AlterStreamingIngestionPolicyCommand? streamingIngestionPolicy,
+            AlterPartitioningPolicyCommand? partitioningPolicy,
             AlterUpdatePolicyCommand? updatePolicy,
             QuotedText folder,
             QuotedText docString)
@@ -65,6 +68,7 @@ namespace DeltaKustoLib.KustoModel
             RetentionPolicy = retentionPolicy;
             ShardingPolicy = shardingPolicy;
             StreamingIngestionPolicy = streamingIngestionPolicy;
+            PartitioningPolicy = partitioningPolicy;
             UpdatePolicy = updatePolicy;
             Folder = folder;
             DocString = docString;
@@ -109,6 +113,7 @@ namespace DeltaKustoLib.KustoModel
             IEnumerable<AlterRetentionPolicyCommand> retentionPolicies,
             IEnumerable<AlterShardingPolicyCommand> shardingPolicies,
             IEnumerable<AlterStreamingIngestionPolicyCommand> streamingIngestionPolicies,
+            IEnumerable<AlterPartitioningPolicyCommand> partitioningPolicies,
             IEnumerable<AlterUpdatePolicyCommand> updatePolicies)
         {
             var tableDocStringColumnMap = alterMergeTableColumns
@@ -126,6 +131,8 @@ namespace DeltaKustoLib.KustoModel
             var shardingPolicyMap = shardingPolicies.ToImmutableDictionary(c => c.EntityName);
             var streamingIngestionPolicyMap = streamingIngestionPolicies
                 .ToImmutableDictionary(c => c.EntityName);
+            var partitioningPolicyMap = partitioningPolicies
+                .ToImmutableDictionary(c => c.TableName);
             var updatePolicyMap = updatePolicies.ToImmutableDictionary(c => c.TableName);
             var tables = createTables
                 .Select(ct => new TableModel(
@@ -158,6 +165,9 @@ namespace DeltaKustoLib.KustoModel
                     : null,
                     streamingIngestionPolicyMap.ContainsKey(ct.TableName)
                     ? streamingIngestionPolicyMap[ct.TableName]
+                    : null,
+                    partitioningPolicyMap.ContainsKey(ct.TableName)
+                    ? partitioningPolicyMap[ct.TableName]
                     : null,
                     updatePolicyMap.ContainsKey(ct.TableName)
                     ? updatePolicyMap[ct.TableName]
@@ -311,6 +321,9 @@ namespace DeltaKustoLib.KustoModel
             var streamingIngestionPolicyCommands = AlterStreamingIngestionPolicyCommand.ComputeDelta(
                 StreamingIngestionPolicy,
                 targetModel.StreamingIngestionPolicy);
+            var partitioningPolicyCommands = AlterPartitioningPolicyCommand.ComputeDelta(
+                PartitioningPolicy,
+                targetModel.PartitioningPolicy);
             var updatePolicyCommands =
                 AlterUpdatePolicyCommand.ComputeDelta(UpdatePolicy, targetModel.UpdatePolicy);
 
@@ -357,6 +370,7 @@ namespace DeltaKustoLib.KustoModel
                 .Concat(retentionPolicyCommands)
                 .Concat(shardingPolicyCommands)
                 .Concat(streamingIngestionPolicyCommands)
+                .Concat(partitioningPolicyCommands)
                 .Concat(updatePolicyCommands))
             {
                 yield return command;
