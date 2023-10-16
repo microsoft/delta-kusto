@@ -1,6 +1,7 @@
 using DeltaKustoLib;
 using DeltaKustoLib.CommandModel;
 using DeltaKustoLib.CommandModel.Policies;
+using Kusto.Language.Syntax;
 using System;
 using System.Linq;
 using System.Text.Json;
@@ -13,73 +14,48 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
         [Fact]
         public void SimpleTable()
         {
-            var commandText = @"
-.alter table mytable policy partitioning ```
-{
-  'PartitionKeys': [
-    {
-                'ColumnName': 'my_string_column',
-      'Kind': 'Hash',
-      'Properties': {
-                    'Function': 'XxHash64',
-        'MaxPartitionCount': 128,
-        'PartitionAssignmentMode': 'Uniform'
-      }
-            }
-  ]
-}```
-";
-            var commands = CommandBase.FromScript(commandText, true);
-
-            Assert.Empty(commands);
+            TestAlter("mytable");
         }
 
         [Fact]
         public void DbComposedTableName()
         {
-            var commandText = @"
-.alter table mydb.mytable policy partitioning ```
-{
-  'PartitionKeys': [
-    {
-                'ColumnName': 'my_string_column',
-      'Kind': 'Hash',
-      'Properties': {
-                    'Function': 'XxHash64',
-        'MaxPartitionCount': 128,
-        'PartitionAssignmentMode': 'Uniform'
-      }
-            }
-  ]
-}```
-";
-            var commands = CommandBase.FromScript(commandText, true);
-
-            Assert.Empty(commands);
+            TestAlter("mydb.mytable");
         }
 
         [Fact]
         public void ClusterComposedTableName()
         {
-            var commandText = @"
-.alter table mycluster.mydb.mytable policy partitioning ```
-{
-  'PartitionKeys': [
-    {
-                'ColumnName': 'my_string_column',
-      'Kind': 'Hash',
-      'Properties': {
-                    'Function': 'XxHash64',
-        'MaxPartitionCount': 128,
-        'PartitionAssignmentMode': 'Uniform'
-      }
-            }
+            TestAlter("mycluster.mydb.mytable");
+        }
+
+        private static void TestAlter(string tableExpression)
+        {
+            var commandText = $@"
+.alter table {tableExpression} policy partitioning ```
+{{
+  ""PartitionKeys"": [
+    {{
+      ""ColumnName"": ""my_string_column"",
+      ""Kind"": ""Hash"",
+      ""Properties"": {{
+        ""Function"": ""XxHash64"",
+        ""MaxPartitionCount"": 128,
+        ""PartitionAssignmentMode"": ""Uniform""
+      }}
+    }}
   ]
-}```
+}}
 ";
             var commands = CommandBase.FromScript(commandText, true);
 
-            Assert.Empty(commands);
+            Assert.Single(commands);
+            Assert.IsType<AlterPartitioningPolicyCommand>(commands.First());
+
+            var realCommand = (AlterPartitioningPolicyCommand)commands.First();
+
+            Assert.Equal(EntityType.Table, realCommand.EntityType);
+            Assert.Equal("mytable", realCommand.EntityName.Name);
         }
     }
 }
