@@ -11,18 +11,16 @@ namespace DeltaKustoLib.CommandModel.Policies
     /// Models <see cref="https://learn.microsoft.com/en-us/azure/data-explorer/kusto/management/alter-table-partitioning-policy-command"/>
     /// </summary>
     [Command(18100, "Alter Partitioning Policy")]
-    public class AlterPartitioningPolicyCommand : EntityPolicyCommandBase
+    public class AlterPartitioningPolicyCommand : TableOnlyPolicyCommandBase
     {
         public override string CommandFriendlyName => ".alter <entity> policy partitioning";
 
-        public override string ScriptPath => EntityType == EntityType.Database
-            ? $"tables/policies/partitioning/create/{EntityName}"
-            : $"databases/policies/partitioning/create";
+        public override string ScriptPath =>
+            $"tables/policies/partitioning/create/{TableName}";
 
         public AlterPartitioningPolicyCommand(
-            EntityType entityType,
-            EntityName entityName,
-            JsonDocument policy) : base(entityType, entityName, policy)
+            EntityName tableName,
+            JsonDocument policy) : base(tableName, policy)
         {
         }
 
@@ -30,18 +28,7 @@ namespace DeltaKustoLib.CommandModel.Policies
         {
             var builder = new StringBuilder();
 
-            builder.Append(".alter ");
-            builder.Append(EntityType == EntityType.Table ? "table" : "database");
-            builder.Append(" ");
-            if (EntityType == EntityType.Database && context?.CurrentDatabaseName != null)
-            {
-                builder.Append(context.CurrentDatabaseName.ToScript());
-            }
-            else
-            {
-                builder.Append(EntityName.ToScript());
-            }
-            builder.Append(" policy partitioning ");
+            builder.Append($".alter table {TableName} policy partitioning");
             builder.AppendLine();
             builder.AppendLine("```");
             builder.AppendLine(SerializePolicy());
@@ -52,7 +39,6 @@ namespace DeltaKustoLib.CommandModel.Policies
 
         internal static CommandBase? FromCode(CommandBlock commandBlock)
         {
-            var entityType = ExtractEntityType(commandBlock);
             var nameReferences = commandBlock.GetDescendants<NameReference>();
             var entityNameReference = nameReferences.Last();
             var policyText = QuotedText.FromLiteral(
@@ -68,7 +54,6 @@ namespace DeltaKustoLib.CommandModel.Policies
             }
 
             return new AlterPartitioningPolicyCommand(
-                entityType,
                 EntityName.FromCode(entityNameReference.Name),
                 policy);
         }
@@ -83,9 +68,8 @@ namespace DeltaKustoLib.CommandModel.Policies
             if (hasCurrent && !hasTarget)
             {
                 // No target, we remove the current policy
-                yield return new DeleteStreamingIngestionPolicyCommand(
-                    currentCommand!.EntityType,
-                    currentCommand!.EntityName);
+                yield return new DeletePartitioningPolicyCommand(
+                    currentCommand!.TableName);
             }
             else if (hasTarget)
             {

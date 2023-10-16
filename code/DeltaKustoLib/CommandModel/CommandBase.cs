@@ -191,6 +191,8 @@ namespace DeltaKustoLib.CommandModel
                         return DeleteStreamingIngestionPolicyCommand.FromCode(commandBlock);
                     case "AlterTablePolicyPartitioning":
                         return AlterPartitioningPolicyCommand.FromCode(commandBlock);
+                    case "DeleteTablePolicyPartitioning":
+                        return DeletePartitioningPolicyCommand.FromCode(commandBlock);
                     #endregion
 
                     default:

@@ -14,22 +14,22 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
         [Fact]
         public void SimpleTable()
         {
-            TestAlter("mytable");
+            TestAlterPartitioning("mytable");
         }
 
         [Fact]
         public void DbComposedTableName()
         {
-            TestAlter("mydb.mytable");
+            TestAlterPartitioning("mydb.mytable");
         }
 
         [Fact]
         public void ClusterComposedTableName()
         {
-            TestAlter("mycluster.mydb.mytable");
+            TestAlterPartitioning("mycluster.mydb.mytable");
         }
 
-        private static void TestAlter(string tableExpression)
+        private void TestAlterPartitioning(string tableExpression)
         {
             var commandText = $@"
 .alter table {tableExpression} policy partitioning ```
@@ -47,15 +47,13 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
   ]
 }}
 ";
-            var commands = CommandBase.FromScript(commandText, true);
+            var command = ParseOneCommand(commandText);
 
-            Assert.Single(commands);
-            Assert.IsType<AlterPartitioningPolicyCommand>(commands.First());
+            Assert.IsType<AlterPartitioningPolicyCommand>(command);
 
-            var realCommand = (AlterPartitioningPolicyCommand)commands.First();
+            var realCommand = (AlterPartitioningPolicyCommand)command;
 
-            Assert.Equal(EntityType.Table, realCommand.EntityType);
-            Assert.Equal("mytable", realCommand.EntityName.Name);
+            Assert.Equal("mytable", realCommand.TableName.Name);
         }
     }
 }
