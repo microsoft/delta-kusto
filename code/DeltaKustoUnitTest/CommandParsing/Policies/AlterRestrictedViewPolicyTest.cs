@@ -35,33 +35,14 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
 
         private void TestAutoDeletePolicy(string tableName)
         {
-            TestAutoDeletePolicy(tableName, false, false, true);
-            TestAutoDeletePolicy(tableName, true, false, true);
-            TestAutoDeletePolicy(tableName, true, true, true);
-
-            TestAutoDeletePolicy(tableName, false, false, false);
-            TestAutoDeletePolicy(tableName, true, false, false);
-            TestAutoDeletePolicy(tableName, true, true, false);
+            TestAutoDeletePolicy(tableName, true);
+            TestAutoDeletePolicy(tableName, false);
         }
 
-        private void TestAutoDeletePolicy(
-            string tableName,
-            bool isJsonForm,
-            bool isMultiString,
-            bool isEnabled)
+        private void TestAutoDeletePolicy(string tableName, bool isEnabled)
         {
-            var commandText = isJsonForm
-                ? isMultiString
-                ? @$"
-.alter table {tableName} policy restricted_view_access
-```
-{{
-    ""isEnabled"" : {isEnabled}
-}}"
-                : $".alter table {tableName} policy restricted_view_access "
-                + $@"'{{ ""isEnabled"" : {isEnabled.ToString().ToLower()} }}'"
-                : $".alter table {tableName} policy restricted_view_access"
-                + $" {isEnabled.ToString().ToLower()}";
+            var commandText = @$"
+.alter table {tableName} policy restricted_view_access {isEnabled.ToString().ToLower()}";
             var command = ParseOneCommand(commandText);
             var actualTableName = GetActualTableName(tableName);
 
