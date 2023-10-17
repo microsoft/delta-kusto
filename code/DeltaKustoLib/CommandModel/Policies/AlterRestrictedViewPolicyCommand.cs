@@ -36,21 +36,13 @@ namespace DeltaKustoLib.CommandModel.Policies
         {
             var nameReferences = commandBlock.GetDescendants<NameReference>();
             var tableNameReference = nameReferences.Last();
-            var policyText = QuotedText.FromLiteral(
-                commandBlock.GetUniqueDescendant<LiteralExpression>(
-                    "StreamingIngestion",
-                    e => e.NameInParent == "StreamingIngestionPolicy"));
-            var policy = Deserialize<JsonDocument>(policyText.Text);
-
-            if (policy == null)
-            {
-                throw new DeltaException(
-                    $"Can't extract policy objects from {policyText.ToScript()}");
-            }
+            var booleanToken = commandBlock.GetUniqueDescendant<SyntaxToken>(
+                "boolean",
+                t => t.Kind == SyntaxKind.BooleanLiteralToken);
 
             return new AlterRestrictedViewPolicyCommand(
                 EntityName.FromCode(tableNameReference.Name),
-                true);
+                (bool)booleanToken.Value);
         }
 
         internal static IEnumerable<CommandBase> ComputeDelta(
