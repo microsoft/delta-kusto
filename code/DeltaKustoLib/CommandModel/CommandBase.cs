@@ -191,6 +191,8 @@ namespace DeltaKustoLib.CommandModel
                         return DeleteStreamingIngestionPolicyCommand.FromCode(commandBlock);
                     case "AlterTablePolicyRestrictedViewAccess":
                         return AlterRestrictedViewPolicyCommand.FromCode(commandBlock);
+                    case "AlterTablesPolicyRestrictedViewAccess":
+                        return AlterRestrictedViewPluralPolicyCommand.FromCode(commandBlock);
                     #endregion
 
                     default:

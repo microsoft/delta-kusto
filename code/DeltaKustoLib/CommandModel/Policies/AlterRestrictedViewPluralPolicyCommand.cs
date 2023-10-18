@@ -15,13 +15,13 @@ namespace DeltaKustoLib.CommandModel.Policies
     public class AlterRestrictedViewPluralPolicyCommand : PolicyCommandBase
     {
         public IImmutableList<EntityName> TableNames { get; }
-        
+
         public bool AreEnabled { get; }
 
         public override string CommandFriendlyName => ".alter table policy restricted_view_access";
 
         public override string SortIndex => TableNames.First().Name;
-        
+
         public override string ScriptPath =>
             "tables/policies/restricted_view_access/create-many";
 
@@ -29,7 +29,7 @@ namespace DeltaKustoLib.CommandModel.Policies
             IEnumerable<EntityName> tableNames,
             bool areEnabled)
         {
-            if(!tableNames.Any())
+            if (!tableNames.Any())
             {
                 throw new ArgumentOutOfRangeException(
                     nameof(tableNames),
@@ -45,7 +45,7 @@ namespace DeltaKustoLib.CommandModel.Policies
             var builder = new StringBuilder();
 
             builder.Append(".alter tables (");
-            builder.Append(string.Join(", ", TableNames));
+            builder.Append(string.Join(", ", TableNames.Select(t => t.ToScript())));
             builder.Append($") policy restricted_view_access {AreEnabled}");
             builder.AppendLine();
 
@@ -55,15 +55,13 @@ namespace DeltaKustoLib.CommandModel.Policies
         internal static CommandBase? FromCode(CommandBlock commandBlock)
         {
             var nameReferences = commandBlock.GetDescendants<NameReference>();
-            var tableNameReference = nameReferences.Last();
             var booleanToken = commandBlock.GetUniqueDescendant<SyntaxToken>(
                 "boolean",
                 t => t.Kind == SyntaxKind.BooleanLiteralToken);
 
-            throw new NotImplementedException();
-            //return new AlterRestrictedViewPluralPolicyCommand(
-            //    EntityName.FromCode(tableNameReference.Name),
-            //    (bool)booleanToken.Value);
+            return new AlterRestrictedViewPluralPolicyCommand(
+                nameReferences.Select(r => EntityName.FromCode(r)),
+                (bool)booleanToken.Value);
         }
     }
 }

@@ -50,6 +50,8 @@ namespace DeltaKustoLib.CommandModel
         {
             switch (element)
             {
+                case NameReference nameReference:
+                    return new EntityName(nameReference.Name.SimpleName);
                 case NameDeclaration nameDeclaration:
                     return new EntityName(nameDeclaration.Name.SimpleName);
                 case TokenName tokenName:

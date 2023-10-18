@@ -11,34 +11,34 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
         [Fact]
         public void SimpleTable()
         {
-            TestAutoDeletePolicy("MyTable");
+            TestRestrictedViewPolicy("MyTable");
         }
 
         [Fact]
         public void FunkyTable()
         {
-            TestAutoDeletePolicy("['A- 1']");
+            TestRestrictedViewPolicy("['A- 1']");
         }
 
         [Fact]
         public void DbComposedTableName()
         {
-            TestAutoDeletePolicy("mydb.mytable");
+            TestRestrictedViewPolicy("mydb.mytable");
         }
 
         [Fact]
         public void ClusterComposedTableName()
         {
-            TestAutoDeletePolicy("mycluster.['my db'].mytable");
+            TestRestrictedViewPolicy("mycluster.['my db'].mytable");
         }
 
-        private void TestAutoDeletePolicy(string tableName)
+        private void TestRestrictedViewPolicy(string tableName)
         {
-            TestAutoDeletePolicy(tableName, true);
-            TestAutoDeletePolicy(tableName, false);
+            TestRestrictedViewPolicy(tableName, true);
+            TestRestrictedViewPolicy(tableName, false);
         }
 
-        private void TestAutoDeletePolicy(string tableName, bool isEnabled)
+        private void TestRestrictedViewPolicy(string tableName, bool isEnabled)
         {
             var commandText = @$"
 .alter table {tableName} policy restricted_view_access {isEnabled.ToString().ToLower()}";
