@@ -193,6 +193,8 @@ namespace DeltaKustoLib.CommandModel
                         return AlterRestrictedViewPolicyCommand.FromCode(commandBlock);
                     case "AlterTablesPolicyRestrictedViewAccess":
                         return AlterRestrictedViewPluralPolicyCommand.FromCode(commandBlock);
+                    case "DeleteTablePolicyRestrictedViewAccess":
+                        return DeleteRestrictedViewPolicyCommand.FromCode(commandBlock);
                     #endregion
 
                     default:

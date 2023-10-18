@@ -7,29 +7,29 @@ using Xunit;
 
 namespace DeltaKustoUnitTest.CommandParsing.Policies
 {
-    public class DeleteAutoDeletePolicyTest : ParsingTestBase
+    public class DeleteRestrictedViewPolicyTest : ParsingTestBase
     {
         [Fact]
         public void SimpleTable()
         {
-            TestAutoDeletePolicy("A");
+            TestRestrictedViewPolicy("A");
         }
 
         [Fact]
         public void FunkyTable()
         {
-            TestAutoDeletePolicy("A- 1");
+            TestRestrictedViewPolicy("A- 1");
         }
 
-        private void TestAutoDeletePolicy(string tableName)
+        private void TestRestrictedViewPolicy(string tableName)
         {
-            var commandText = new DeleteAutoDeletePolicyCommand(new EntityName(tableName))
+            var commandText = new DeleteRestrictedViewPolicyCommand(new EntityName(tableName))
                 .ToScript(null);
             var command = ParseOneCommand(commandText);
 
-            Assert.IsType<DeleteAutoDeletePolicyCommand>(command);
+            Assert.IsType<DeleteRestrictedViewPolicyCommand>(command);
 
-            var realCommand = (DeleteAutoDeletePolicyCommand)command;
+            var realCommand = (DeleteRestrictedViewPolicyCommand)command;
 
             Assert.Equal(tableName, realCommand.TableName.Name);
         }
