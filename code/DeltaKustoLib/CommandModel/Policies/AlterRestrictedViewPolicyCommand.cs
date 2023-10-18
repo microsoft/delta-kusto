@@ -17,7 +17,7 @@ namespace DeltaKustoLib.CommandModel.Policies
         public override string CommandFriendlyName => ".alter table policy restricted_view_access";
 
         public override string ScriptPath =>
-            $"tables/policies/streamingingestion/create/{TableName}";
+            $"tables/policies/restricted_view_access/create/{TableName}";
 
         public AlterRestrictedViewPolicyCommand(
             EntityName tableName,
