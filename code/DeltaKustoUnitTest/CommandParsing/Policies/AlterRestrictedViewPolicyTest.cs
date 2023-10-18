@@ -1,4 +1,3 @@
-using DeltaKustoLib.CommandModel;
 using DeltaKustoLib.CommandModel.Policies;
 using System;
 using System.Linq;
