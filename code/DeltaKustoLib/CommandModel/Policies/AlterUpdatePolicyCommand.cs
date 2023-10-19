@@ -87,7 +87,7 @@ namespace DeltaKustoLib.CommandModel.Policies
             var builder = new StringBuilder();
 
             builder.Append(".alter table ");
-            builder.Append(TableName);
+            builder.Append(TableName.ToScript());
             builder.Append(" policy update");
             builder.AppendLine();
             builder.Append("```");

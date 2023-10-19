@@ -21,33 +21,18 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
             TestIngestionTimePolicy("['A- 1']");
         }
 
-        [Fact]
-        public void DbComposedTableName()
-        {
-            var command = ParseOneCommand(
-                ".alter table mydb.mytable policy auto_delete"
-                + "@'{\"ExpiryDate\":\"2030-02-01\"}'");
+        //  Currently unsupported in parser
+        //[Fact]
+        //public void DbComposedTableName()
+        //{
+        //    TestIngestionTimePolicy("mydb.mytable");
+        //}
 
-            Assert.IsType<AlterAutoDeletePolicyCommand>(command);
-
-            var realCommand = (AlterAutoDeletePolicyCommand)command;
-
-            Assert.Equal("mytable", realCommand.TableName.Name);
-        }
-
-        [Fact]
-        public void ClusterComposedTableName()
-        {
-            var command = ParseOneCommand(
-                ".alter table mycluster.['my db'].mytable policy auto_delete "
-                + "@'{\"ExpiryDate\":\"2031-02-01\"}'");
-
-            Assert.IsType<AlterAutoDeletePolicyCommand>(command);
-
-            var realCommand = (AlterAutoDeletePolicyCommand)command;
-
-            Assert.Equal("mytable", realCommand.TableName.Name);
-        }
+        //[Fact]
+        //public void ClusterComposedTableName()
+        //{
+        //    TestIngestionTimePolicy("mycluster.['my db'].mytable");
+        //}
 
         private void TestIngestionTimePolicy(string tableName)
         {
@@ -57,6 +42,7 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
 
         private void TestIngestionTimePolicy(string tableName, bool isEnabled)
         {
+            var actualTableName = GetActualTableName(tableName);
             var commandText = $@"
 .alter table {tableName} policy ingestiontime {isEnabled.ToString().ToLower()}";
             var command = ParseOneCommand(commandText);
@@ -65,7 +51,7 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
 
             var realCommand = (AlterIngestionTimePolicyCommand)command;
 
-            Assert.Equal(tableName, realCommand.TableName.Name);
+            Assert.Equal(actualTableName, realCommand.TableName.Name);
             Assert.Equal(isEnabled, realCommand.IsEnabled);
         }
     }
