@@ -30,19 +30,9 @@ namespace DeltaKustoLib.CommandModel.Policies
         internal static CommandBase FromCode(SyntaxElement rootElement)
         {
             var tableName = rootElement.GetDescendants<NameReference>().Last();
-            var policyText = QuotedText.FromLiteral(
-                rootElement.GetUniqueDescendant<LiteralExpression>(
-                    "AutoDeletePolicy",
-                    e => e.NameInParent == "AutoDeletePolicy"));
-            var policy = Deserialize<JsonDocument>(policyText.Text);
 
-            if (policy == null)
-            {
-                throw new DeltaException(
-                    $"Can't extract policy objects from {policyText.ToScript()}");
-            }
-
-            return new AlterIngestionTimePolicyCommand(EntityName.FromCode(tableName.Name), policy);
+            throw new NotImplementedException();
+            //return new AlterIngestionTimePolicyCommand(EntityName.FromCode(tableName.Name), policy);
         }
 
         public override string ToScript(ScriptingContext? context)
