@@ -17,7 +17,7 @@ namespace DeltaKustoLib.CommandModel.Policies
     {
         public bool IsEnabled { get; }
 
-        public string Query { get; }
+        public QuotedText Query { get; }
 
         public override string CommandFriendlyName => ".alter <entity> policy row_level_security";
 
@@ -26,7 +26,7 @@ namespace DeltaKustoLib.CommandModel.Policies
         public AlterRowLevelSecurityPolicyCommand(
             EntityName tableName,
             bool isEnabled,
-            string query)
+            QuotedText query)
             : base(tableName)
         {
             IsEnabled = isEnabled;
@@ -36,19 +36,28 @@ namespace DeltaKustoLib.CommandModel.Policies
         internal static CommandBase FromCode(SyntaxElement rootElement)
         {
             var tableName = rootElement.GetDescendants<NameReference>().Last();
-            var policyText = QuotedText.FromLiteral(
-                rootElement.GetUniqueDescendant<LiteralExpression>(
-                    "AutoDeletePolicy",
-                    e => e.NameInParent == "AutoDeletePolicy"));
-            var policy = Deserialize<JsonDocument>(policyText.Text);
+            var isEnabled = rootElement
+                .GetDescendants<SyntaxElement>(e => e.Kind == SyntaxKind.IdentifierToken)
+                .Select(e => e.ToString().Trim())
+                .Where(t => t == "enable" || t == "disable")
+                .Select(t => new bool?(t == "enable"))
+                .LastOrDefault();
 
-            if (policy == null)
+            if (isEnabled == null)
             {
                 throw new DeltaException(
-                    $"Can't extract policy objects from {policyText.ToScript()}");
+                    "No 'enable' or 'disable' token found in row level security command");
             }
 
-            return new AlterAutoDeletePolicyCommand(EntityName.FromCode(tableName.Name), policy);
+            var query = QuotedText.FromLiteral(
+                rootElement.GetUniqueDescendant<LiteralExpression>(
+                    "Row Level Security",
+                    e => e.NameInParent == "Query"));
+
+            return new AlterRowLevelSecurityPolicyCommand(
+                EntityName.FromCode(tableName.Name),
+                isEnabled.Value,
+                query);
         }
 
         public override string ToScript(ScriptingContext? context)
@@ -56,13 +65,11 @@ namespace DeltaKustoLib.CommandModel.Policies
             var builder = new StringBuilder();
 
             builder.Append(".alter table ");
-            builder.Append(TableName);
-            builder.Append(" policy auto_delete");
-            builder.AppendLine();
-            builder.Append("```");
-            builder.Append(SerializePolicy());
-            builder.AppendLine();
-            builder.Append("```");
+            builder.Append(TableName.ToScript());
+            builder.Append(" policy row_level_security ");
+            builder.Append(IsEnabled ? "enable" : "disable");
+            builder.Append(" ");
+            builder.AppendLine(Query.ToScript());
 
             return builder.ToString();
         }
