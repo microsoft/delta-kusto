@@ -30,9 +30,12 @@ namespace DeltaKustoLib.CommandModel.Policies
         internal static CommandBase FromCode(SyntaxElement rootElement)
         {
             var tableName = rootElement.GetDescendants<NameReference>().Last();
+            var enabledToken = rootElement.GetUniqueDescendant<SyntaxToken>(
+                "Ingestion time",
+                t => t.Kind == SyntaxKind.BooleanLiteralToken);
+            var isEnabled = (bool)enabledToken.Value;
 
-            throw new NotImplementedException();
-            //return new AlterIngestionTimePolicyCommand(EntityName.FromCode(tableName.Name), policy);
+            return new AlterIngestionTimePolicyCommand(EntityName.FromCode(tableName.Name), isEnabled);
         }
 
         public override string ToScript(ScriptingContext? context)

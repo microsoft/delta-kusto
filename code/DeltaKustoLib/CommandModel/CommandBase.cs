@@ -189,6 +189,8 @@ namespace DeltaKustoLib.CommandModel
                     case "DeleteTablePolicyStreamingIngestion":
                     case "DeleteDatabasePolicyStreamingIngestion":
                         return DeleteStreamingIngestionPolicyCommand.FromCode(commandBlock);
+                    case "AlterTablePolicyIngestionTime":
+                        return AlterIngestionTimePolicyCommand.FromCode(commandBlock);
                     #endregion
 
                     default:
