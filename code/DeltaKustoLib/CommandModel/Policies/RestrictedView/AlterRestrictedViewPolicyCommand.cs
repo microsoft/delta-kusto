@@ -66,10 +66,7 @@ namespace DeltaKustoLib.CommandModel.Policies.RestrictedView
             if (hasCurrent && !hasTarget)
             {
                 // No target, we remove the current policy
-                throw new NotImplementedException();
-                //yield return new DeleteStreamingIngestionPolicyCommand(
-                //    currentCommand!.EntityType,
-                //    currentCommand!.EntityName);
+                yield return new DeleteRestrictedViewPolicyCommand(currentCommand!.TableName);
             }
             else if (hasTarget)
             {
