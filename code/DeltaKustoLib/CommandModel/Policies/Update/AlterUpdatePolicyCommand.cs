@@ -109,9 +109,7 @@ namespace DeltaKustoLib.CommandModel.Policies.Update
 
             if (hasCurrent && !hasTarget)
             {   //  No target, we remove the current policy objects
-                yield return new AlterUpdatePolicyCommand(
-                    currentUpdatePolicyCommand!.TableName,
-                    new UpdatePolicy[0]);
+                yield return new DeleteUpdatePolicyCommand(currentUpdatePolicyCommand!.TableName);
             }
             else if (hasTarget)
             {
