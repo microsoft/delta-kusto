@@ -36,9 +36,11 @@ namespace DeltaKustoLib.KustoModel
             typeof(AlterAutoDeletePolicyCommand),
             typeof(AlterMergePolicyCommand),
             typeof(AlterIngestionTimePolicyCommand),
+            typeof(AlterIngestionTimePluralPolicyCommand),
             typeof(AlterIngestionBatchingPolicyCommand),
             typeof(AlterPartitioningPolicyCommand),
             typeof(AlterRestrictedViewPolicyCommand),
+            typeof(AlterRestrictedViewPluralPolicyCommand),
             typeof(AlterRowLevelSecurityPolicyCommand),
             typeof(AlterShardingPolicyCommand),
             typeof(AlterStreamingIngestionPolicyCommand)
@@ -176,8 +178,13 @@ namespace DeltaKustoLib.KustoModel
             var tableRowLevelSecurityPolicies =
                 GetCommands<AlterRowLevelSecurityPolicyCommand>(commandTypeIndex)
                 .ToImmutableArray();
+            var tablesRestrictedViewPolicies =
+                GetCommands<AlterRestrictedViewPluralPolicyCommand>(commandTypeIndex)
+                .Select(c => c.TableNames.Select(t => new AlterRestrictedViewPolicyCommand(t, c.AreEnabled)))
+                .SelectMany(e => e);
             var tableRestrictedViewPolicies =
                 GetCommands<AlterRestrictedViewPolicyCommand>(commandTypeIndex)
+                .Concat(tablesRestrictedViewPolicies)
                 .ToImmutableArray();
             var tableIngestionTimePolicies =
                 GetCommands<AlterIngestionTimePolicyCommand>(commandTypeIndex)
