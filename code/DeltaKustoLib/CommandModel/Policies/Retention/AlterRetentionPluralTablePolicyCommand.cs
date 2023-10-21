@@ -13,7 +13,7 @@ namespace DeltaKustoLib.CommandModel.Policies.Retention
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/retention-policy#alter-retention-policy"/>
     /// </summary>
     [Command(14200, "Alter Retention Policies")]
-    public class AlterTablesRetentionPolicyCommand : PolicyCommandBase
+    public class AlterRetentionPluralTablePolicyCommand : PolicyCommandBase
     {
         public IImmutableList<EntityName> TableNames { get; }
 
@@ -23,7 +23,7 @@ namespace DeltaKustoLib.CommandModel.Policies.Retention
 
         public override string ScriptPath => "tables/policies/retention/create-many";
 
-        public AlterTablesRetentionPolicyCommand(
+        public AlterRetentionPluralTablePolicyCommand(
             IEnumerable<EntityName> tableNames,
             JsonDocument policy) : base(policy)
         {
@@ -39,7 +39,7 @@ namespace DeltaKustoLib.CommandModel.Policies.Retention
             }
         }
 
-        public AlterTablesRetentionPolicyCommand(
+        public AlterRetentionPluralTablePolicyCommand(
             IEnumerable<EntityName> tableNames,
             TimeSpan softDeletePeriod,
             bool recoverability)
@@ -74,7 +74,7 @@ namespace DeltaKustoLib.CommandModel.Policies.Retention
                     $"Can't extract policy objects from {policyText.ToScript()}");
             }
 
-            return new AlterTablesRetentionPolicyCommand(tableNames, policy);
+            return new AlterRetentionPluralTablePolicyCommand(tableNames, policy);
         }
 
         public override string ToScript(ScriptingContext? context)

@@ -13,7 +13,7 @@ namespace DeltaKustoLib.CommandModel.Policies.IngestionTime
     /// Models <see cref="https://learn.microsoft.com/en-us/azure/data-explorer/kusto/management/alter-ingestion-time-policy-command"/>
     /// </summary>
     [Command(21200, "Alter (plural) Ingestion Time Policies")]
-    public class AlterIngestionTimePluralPolicyCommand : PolicyCommandBase
+    public class AlterIngestionTimePluralPolicyCommand : PolicyCommandBase, ISingularToPluralCommand
     {
         public IImmutableList<EntityName> TableNames { get; }
 
@@ -66,6 +66,22 @@ namespace DeltaKustoLib.CommandModel.Policies.IngestionTime
             builder.AppendLine(AreEnabled.ToString().ToLower());
 
             return builder.ToString();
+        }
+
+        IEnumerable<CommandBase> ISingularToPluralCommand.ToPlural(
+            IEnumerable<CommandBase> singularCommands)
+        {
+            var singularPolicyCommands = singularCommands
+                .Cast<AlterIngestionTimePolicyCommand>();
+
+            //  We might want to cap batches to a maximum size?
+            var pluralCommands = singularPolicyCommands
+                .GroupBy(c => c.IsEnabled)
+                .Select(g => new AlterIngestionTimePluralPolicyCommand(
+                    g.Select(c => c.TableName),
+                    g.Key));
+
+            return pluralCommands.ToImmutableArray();
         }
 
         internal static IEnumerable<CommandBase> ComputeDelta(

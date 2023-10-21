@@ -39,14 +39,14 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies.Retention
             bool recoverability,
             params string[] names)
         {
-            var commandText = new AlterTablesRetentionPolicyCommand(
+            var commandText = new AlterRetentionPluralTablePolicyCommand(
                 names.Select(n => new EntityName(n)),
                 softDeletePeriod,
                 recoverability)
                 .ToScript(null);
             var command = ParseOneCommand(commandText);
 
-            Assert.IsType<AlterTablesRetentionPolicyCommand>(command);
+            Assert.IsType<AlterRetentionPluralTablePolicyCommand>(command);
         }
     }
 }

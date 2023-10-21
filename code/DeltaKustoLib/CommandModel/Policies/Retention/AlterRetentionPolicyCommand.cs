@@ -133,7 +133,7 @@ namespace DeltaKustoLib.CommandModel.Policies.Retention
             var pluralCommands = singularPolicyCommands
                 .Select(c => new { Key = (c.SerializePolicy()), Value = c })
                 .GroupBy(c => c.Key)
-                .Select(g => new AlterTablesRetentionPolicyCommand(
+                .Select(g => new AlterRetentionPluralTablePolicyCommand(
                     g.Select(a => a.Value.EntityName),
                     g.First().Value.Policy));
 

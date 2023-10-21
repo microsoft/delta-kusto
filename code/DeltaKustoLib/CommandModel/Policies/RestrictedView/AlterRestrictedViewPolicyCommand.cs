@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text.Json;
 using Kusto.Language.Syntax;
@@ -11,7 +12,8 @@ namespace DeltaKustoLib.CommandModel.Policies.RestrictedView
     /// Models <see cref="https://learn.microsoft.com/en-us/azure/data-explorer/kusto/management/alter-table-restricted-view-access-policy-command"/>
     /// </summary>
     [Command(19100, "Alter restricted view Policy")]
-    public class AlterRestrictedViewPolicyCommand : TableOnlyPolicyCommandBase
+    public class AlterRestrictedViewPolicyCommand
+        : TableOnlyPolicyCommandBase, ISingularToPluralCommand
     {
         public bool IsEnabled { get; }
 
@@ -41,6 +43,22 @@ namespace DeltaKustoLib.CommandModel.Policies.RestrictedView
                 && otherPolicy.IsEnabled.Equals(IsEnabled);
 
             return areEqualed;
+        }
+
+        IEnumerable<CommandBase> ISingularToPluralCommand.ToPlural(
+            IEnumerable<CommandBase> singularCommands)
+        {
+            var singularPolicyCommands = singularCommands
+                .Cast<AlterRestrictedViewPolicyCommand>();
+
+            //  We might want to cap batches to a maximum size?
+            var pluralCommands = singularPolicyCommands
+                .GroupBy(c => c.IsEnabled)
+                .Select(g => new AlterRestrictedViewPluralPolicyCommand(
+                    g.Select(c => c.TableName),
+                    g.Key));
+
+            return pluralCommands.ToImmutableArray();
         }
 
         internal static CommandBase? FromCode(CommandBlock commandBlock)

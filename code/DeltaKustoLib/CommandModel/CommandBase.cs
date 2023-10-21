@@ -185,7 +185,7 @@ namespace DeltaKustoLib.CommandModel
                     case "AlterTablePolicyRetention":
                         return AlterRetentionPolicyCommand.FromCode(commandBlock);
                     case "AlterTablesPolicyRetention":
-                        return AlterTablesRetentionPolicyCommand.FromCode(commandBlock);
+                        return AlterRetentionPluralTablePolicyCommand.FromCode(commandBlock);
                     case "DeleteDatabasePolicyRetention":
                     case "DeleteTablePolicyRetention":
                         return DeleteRetentionPolicyCommand.FromCode(commandBlock);

@@ -32,7 +32,7 @@ namespace DeltaKustoLib.KustoModel
             typeof(AlterUpdatePolicyCommand),
             typeof(AlterCachingPolicyCommand),
             typeof(AlterRetentionPolicyCommand),
-            typeof(AlterTablesRetentionPolicyCommand),
+            typeof(AlterRetentionPluralTablePolicyCommand),
             typeof(AlterAutoDeletePolicyCommand),
             typeof(AlterMergePolicyCommand),
             typeof(AlterIngestionTimePolicyCommand),
@@ -148,7 +148,7 @@ namespace DeltaKustoLib.KustoModel
                 .Where(p => p.EntityType == EntityType.Table);
             var dbMergePolicies = mergePolicies
                 .Where(p => p.EntityType == EntityType.Database);
-            var retentionTablePluralPolicies = GetCommands<AlterTablesRetentionPolicyCommand>(commandTypeIndex)
+            var retentionTablePluralPolicies = GetCommands<AlterRetentionPluralTablePolicyCommand>(commandTypeIndex)
                 .SelectMany(c => c.TableNames.Select(t => new AlterRetentionPolicyCommand(
                     EntityType.Table,
                     t,
