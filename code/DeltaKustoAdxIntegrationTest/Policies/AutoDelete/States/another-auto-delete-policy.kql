@@ -7,10 +7,3 @@
 	"DeleteIfNotEmpty": false
 }
 ```
-
-.alter database ['my-db'] policy auto_delete
-```
-{
-	"ExpiryDate" : "2036-11-03"
-}
-```
