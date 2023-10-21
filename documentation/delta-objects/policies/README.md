@@ -1,3 +1,0 @@
-# Policies
-
-See [Delta Objects](..).
