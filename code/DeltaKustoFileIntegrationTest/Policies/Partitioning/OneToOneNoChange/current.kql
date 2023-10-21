@@ -1,0 +1,18 @@
+﻿.create table ['my-table'] (a: real, b: int, c: string)
+
+.alter table ['my-table'] policy partitioning
+```
+{
+  "PartitionKeys": [
+    {
+      "ColumnName": "c",
+      "Kind": "Hash",
+      "Properties": {
+        "Function": "XxHash64",
+        "MaxPartitionCount": 128,
+        "PartitionAssignmentMode": "Uniform"
+      }
+    }
+  ]
+}
+```
