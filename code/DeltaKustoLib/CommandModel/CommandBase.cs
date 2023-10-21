@@ -189,6 +189,10 @@ namespace DeltaKustoLib.CommandModel
                     case "DeleteTablePolicyStreamingIngestion":
                     case "DeleteDatabasePolicyStreamingIngestion":
                         return DeleteStreamingIngestionPolicyCommand.FromCode(commandBlock);
+                    case "AlterTablePolicyRowLevelSecurity":
+                        return AlterRowLevelSecurityPolicyCommand.FromCode(commandBlock);
+                    case "DeleteTablePolicyRowLevelSecurity":
+                        return DeleteRowLevelSecurityPolicyCommand.FromCode(commandBlock);
                     case "AlterTablePolicyRestrictedViewAccess":
                         return AlterRestrictedViewPolicyCommand.FromCode(commandBlock);
                     case "AlterTablesPolicyRestrictedViewAccess":

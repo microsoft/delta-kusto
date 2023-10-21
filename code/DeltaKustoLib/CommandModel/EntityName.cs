@@ -41,7 +41,7 @@ namespace DeltaKustoLib.CommandModel
                 }
                 else
                 {
-                    throw new DeltaException($"Unsuppored character for an entity:  '{c}'");
+                    throw new DeltaException($"Unsupported character for an entity:  '{c}'");
                 }
             }
         }

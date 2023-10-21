@@ -10,6 +10,7 @@ namespace DeltaKustoLib.CommandModel
 {
     internal static class CodeHelper
     {
+        #region Descendants
         public static IEnumerable<TElement> GetAtLeastOneDescendant<TElement>(
             this SyntaxElement parent,
             string descendantNameForExceptionMessage,
@@ -95,6 +96,7 @@ namespace DeltaKustoLib.CommandModel
 
             return descendants;
         }
+        #endregion
 
         #region Extract Children
         public static (C1, C2) ExtractChildren<C1, C2>(
