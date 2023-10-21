@@ -8,10 +8,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace DeltaKustoAdxIntegrationTest.Policies.AutoDelete
+namespace DeltaKustoAdxIntegrationTest.Policies.RestrictedView
 {
-    public class AutoDeletePolicyTest : AdxAutoIntegrationTestBase
+    public class RestrictedViewPolicyTest : AdxAutoIntegrationTestBase
     {
-        protected override string StatesFolderPath => "Policies/AutoDelete";
+        protected override string StatesFolderPath => "Policies/RestrictedView";
     }
 }
