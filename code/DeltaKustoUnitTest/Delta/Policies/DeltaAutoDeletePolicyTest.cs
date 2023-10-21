@@ -1,6 +1,7 @@
 ﻿using DeltaKustoLib;
 using DeltaKustoLib.CommandModel;
 using DeltaKustoLib.CommandModel.Policies;
+using DeltaKustoLib.CommandModel.Policies.AutoDelete;
 using DeltaKustoLib.KustoModel;
 using System;
 using System.Collections.Generic;

@@ -1,5 +1,6 @@
 ﻿using DeltaKustoLib.CommandModel;
 using DeltaKustoLib.CommandModel.Policies;
+using DeltaKustoLib.CommandModel.Policies.Partitioning;
 using DeltaKustoLib.KustoModel;
 using Kusto.Language;
 using System;

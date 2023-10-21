@@ -1,6 +1,13 @@
 ﻿using DeltaKustoLib.CommandModel;
-using DeltaKustoLib.CommandModel.Policies;
-using Kusto.Language.Syntax;
+using DeltaKustoLib.CommandModel.Policies.AutoDelete;
+using DeltaKustoLib.CommandModel.Policies.Caching;
+using DeltaKustoLib.CommandModel.Policies.IngestionBatching;
+using DeltaKustoLib.CommandModel.Policies.Merge;
+using DeltaKustoLib.CommandModel.Policies.Partitioning;
+using DeltaKustoLib.CommandModel.Policies.Retention;
+using DeltaKustoLib.CommandModel.Policies.Sharding;
+using DeltaKustoLib.CommandModel.Policies.StreamingIngestion;
+using DeltaKustoLib.CommandModel.Policies.Update;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
