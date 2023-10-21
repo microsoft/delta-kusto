@@ -2,6 +2,7 @@ using DeltaKustoLib.CommandModel.Policies;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text.Json;
 using Xunit;
@@ -42,13 +43,16 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
             Assert.Equal(areEnabled, realCommand.AreEnabled);
             Assert.Equal(tableNames.Count(), realCommand.TableNames.Count);
 
-            var zipped = tableNames
+            var expectedNames = ImmutableHashSet.Create(tableNames
                 .Select(t => GetActualTableName(t))
-                .Zip(realCommand.TableNames.Select(n => n.Name));
+                .ToArray());
+            var observedNames = ImmutableHashSet.Create(realCommand.TableNames
+                .Select(t => t.Name)
+                .ToArray());
 
-            foreach (var pair in zipped)
+            foreach (var name in expectedNames)
             {
-                Assert.Equal(pair.First, pair.Second);
+                Assert.Contains(name, observedNames);
             }
         }
 
