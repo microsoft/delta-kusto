@@ -12,40 +12,58 @@ namespace DeltaKustoLib.CommandModel.Policies
     /// <summary>
     /// Models <see cref="https://learn.microsoft.com/en-us/azure/data-explorer/kusto/management/alter-ingestion-time-policy-command"/>
     /// </summary>
-    [Command(21100, "Alter Ingestion Time Policies")]
-    public class AlterIngestionTimePolicyCommand : TableOnlyPolicyCommandBase
+    [Command(21200, "Alter (plural) Ingestion Time Policies")]
+    public class AlterIngestionTimePluralPolicyCommand : PolicyCommandBase
     {
-        public bool IsEnabled { get; }
+        public IImmutableList<EntityName> TableNames { get; }
 
-        public override string CommandFriendlyName => ".alter table policy ingestiontime";
+        public bool AreEnabled { get; }
 
-        public override string ScriptPath => $"tables/policies/ingestiontime/create/{TableName}";
+        public override string CommandFriendlyName => ".alter tables policy ingestiontime";
 
-        public AlterIngestionTimePolicyCommand(EntityName tableName, bool isEnabled)
-            : base(tableName)
+        public override string SortIndex => TableNames.First().Name;
+
+        public override string ScriptPath => "tables/policies/ingestiontime/create-many/";
+
+        public AlterIngestionTimePluralPolicyCommand(
+            IEnumerable<EntityName> tableNames,
+            bool areEnabled)
         {
-            IsEnabled = isEnabled;
+            TableNames = tableNames
+                .OrderBy(t => t.Name)
+                .ToImmutableArray();
+
+            if (!TableNames.Any())
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(tableNames),
+                    "Should contain at least one table name");
+            }
+
+            AreEnabled = areEnabled;
         }
 
         internal static CommandBase FromCode(SyntaxElement rootElement)
         {
-            var tableName = rootElement.GetDescendants<NameReference>().Last();
+            var tableNames = rootElement.GetDescendants<NameReference>();
             var enabledToken = rootElement.GetUniqueDescendant<SyntaxToken>(
                 "Ingestion time",
                 t => t.Kind == SyntaxKind.BooleanLiteralToken);
-            var isEnabled = (bool)enabledToken.Value;
+            var areEnabled = (bool)enabledToken.Value;
 
-            return new AlterIngestionTimePolicyCommand(EntityName.FromCode(tableName.Name), isEnabled);
+            return new AlterIngestionTimePluralPolicyCommand(
+                tableNames.Select(n => EntityName.FromCode(n)),
+                areEnabled);
         }
 
         public override string ToScript(ScriptingContext? context)
         {
             var builder = new StringBuilder();
 
-            builder.Append(".alter table ");
-            builder.Append(TableName);
-            builder.Append(" policy ingestiontime ");
-            builder.AppendLine(IsEnabled.ToString().ToLower());
+            builder.Append(".alter tables (");
+            builder.Append(string.Join(", ", TableNames.Select(n => n.ToScript())));
+            builder.Append(") policy ingestiontime ");
+            builder.AppendLine(AreEnabled.ToString().ToLower());
 
             return builder.ToString();
         }
