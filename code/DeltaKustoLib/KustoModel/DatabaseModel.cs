@@ -4,6 +4,7 @@ using Kusto.Language.Syntax;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -26,7 +27,8 @@ namespace DeltaKustoLib.KustoModel
             typeof(AlterMergePolicyCommand),
             typeof(AlterIngestionBatchingPolicyCommand),
             typeof(AlterShardingPolicyCommand),
-            typeof(AlterStreamingIngestionPolicyCommand)
+            typeof(AlterStreamingIngestionPolicyCommand),
+            typeof(AlterPartitioningPolicyCommand)
         }.ToImmutableHashSet();
 
         private readonly IImmutableList<CreateFunctionCommand> _functionCommands;
@@ -149,6 +151,8 @@ namespace DeltaKustoLib.KustoModel
                 .Where(p => p.EntityType == EntityType.Table);
             var dbStreamingIngestionPolicies = streamingIngestionPolicies
                 .Where(p => p.EntityType == EntityType.Database);
+            var tablePartitioningPolicies =
+                GetCommands<AlterPartitioningPolicyCommand>(commandTypeIndex);
             var retentionPolicies = GetCommands<AlterRetentionPolicyCommand>(commandTypeIndex)
                 .ToImmutableArray();
             var tableRetentionPolicies = retentionPolicies
@@ -179,6 +183,7 @@ namespace DeltaKustoLib.KustoModel
             ValidateDuplicates(dbShardingPolicies, m => "Database sharding policy");
             ValidateDuplicates(tableStreamingIngestionPolicies, m => m.EntityName.Name);
             ValidateDuplicates(dbStreamingIngestionPolicies, m => "Database sharding policy");
+            ValidateDuplicates(tablePartitioningPolicies, m => m.TableName.Name);
             ValidateDuplicates(tableRetentionPolicies, m => m.EntityName.Name);
             ValidateDuplicates(dbRetentionPolicies, m => "Database retention policy");
             ValidateDuplicates(updatePolicies, m => m.TableName.Name);
@@ -194,6 +199,7 @@ namespace DeltaKustoLib.KustoModel
                 tableRetentionPolicies,
                 tableShardingPolicies,
                 tableStreamingIngestionPolicies,
+                tablePartitioningPolicies,
                 updatePolicies);
 
             return new DatabaseModel(
