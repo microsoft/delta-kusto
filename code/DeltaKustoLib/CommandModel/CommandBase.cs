@@ -156,9 +156,11 @@ namespace DeltaKustoLib.CommandModel
                             ignoreUnknownCommands);
                     case "DropTableIngestionMapping":
                         return DropMappingCommand.FromCode(commandBlock);
+                    #region Policies
                     case "AlterTablePolicyUpdate":
                         return AlterUpdatePolicyCommand.FromCode(commandBlock);
-                    #region Policies
+                    case "DeleteTablePolicyUpdate":
+                        return DeleteUpdatePolicyCommand.FromCode(commandBlock);
                     case "AlterTablePolicyAutoDelete":
                         return AlterAutoDeletePolicyCommand.FromCode(commandBlock);
                     case "DeleteTablePolicyAutoDelete":

@@ -41,6 +41,11 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies.StreamingIngestion
             var command = ParseOneCommand(commandText);
 
             Assert.IsType<DeleteStreamingIngestionPolicyCommand>(command);
+
+            var realCommand = (DeleteStreamingIngestionPolicyCommand)command;
+
+            Assert.Equal(type, realCommand.EntityType);
+            Assert.Equal(name, realCommand.EntityName.Name);
         }
     }
 }
