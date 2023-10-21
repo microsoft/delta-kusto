@@ -43,7 +43,9 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies
             Assert.Equal(areEnabled, realCommand.AreEnabled);
             Assert.Equal(tableNames.Count(), realCommand.TableNames.Count);
 
-            var expectedNames = ImmutableHashSet.Create(tableNames.ToArray());
+            var expectedNames = ImmutableHashSet.Create(tableNames
+                .Select(t => GetActualTableName(t))
+                .ToArray());
             var observedNames = ImmutableHashSet.Create(realCommand.TableNames
                 .Select(t => t.Name)
                 .ToArray());
