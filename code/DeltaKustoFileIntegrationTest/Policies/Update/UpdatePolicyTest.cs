@@ -35,6 +35,25 @@ namespace DeltaKustoFileIntegrationTest.Policies.Update
         }
 
         [Fact]
+        public async Task OneToNone()
+        {
+            var paramPath = "Policies/Update/OneToNone/delta-params.yaml";
+            var parameters = await RunParametersAsync(paramPath);
+            var outputPath = parameters.Jobs!.First().Value.Action!.FilePath!;
+            var outputCommands = await LoadScriptAsync(paramPath, outputPath);
+
+            Assert.Single(outputCommands);
+
+            var deletePolicyCommand = outputCommands
+                .Where(c => c is DeleteUpdatePolicyCommand)
+                .Cast<DeleteUpdatePolicyCommand>()
+                .FirstOrDefault();
+
+            Assert.NotNull(deletePolicyCommand);
+            Assert.Equal("my-table", deletePolicyCommand!.TableName.Name);
+        }
+
+        [Fact]
         public async Task OneToOne()
         {
             var paramPath = "Policies/Update/OneToOneNoChange/delta-params.yaml";
