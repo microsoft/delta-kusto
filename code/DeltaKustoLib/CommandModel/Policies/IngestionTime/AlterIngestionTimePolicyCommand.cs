@@ -1,4 +1,5 @@
-﻿using Kusto.Language.Syntax;
+﻿using DeltaKustoLib.CommandModel.Policies.Caching;
+using Kusto.Language.Syntax;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -48,6 +49,16 @@ namespace DeltaKustoLib.CommandModel.Policies.IngestionTime
             builder.AppendLine(IsEnabled.ToString().ToLower());
 
             return builder.ToString();
+        }
+
+        public override bool Equals(CommandBase? other)
+        {
+            var otherPolicy = other as AlterIngestionTimePolicyCommand;
+            var areEqualed = otherPolicy != null
+                && base.Equals(otherPolicy)
+                && otherPolicy.IsEnabled.Equals(IsEnabled);
+
+            return areEqualed;
         }
 
         internal static IEnumerable<CommandBase> ComputeDelta(

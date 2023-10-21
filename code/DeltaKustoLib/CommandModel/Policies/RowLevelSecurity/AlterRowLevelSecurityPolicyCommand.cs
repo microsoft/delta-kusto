@@ -74,6 +74,17 @@ namespace DeltaKustoLib.CommandModel.Policies.RowLevelSecurity
             return builder.ToString();
         }
 
+        public override bool Equals(CommandBase? other)
+        {
+            var otherPolicy = other as AlterRowLevelSecurityPolicyCommand;
+            var areEqualed = otherPolicy != null
+                && base.Equals(otherPolicy)
+                && otherPolicy.IsEnabled.Equals(IsEnabled)
+                && otherPolicy.Query.Equals(Query);
+
+            return areEqualed;
+        }
+
         internal static IEnumerable<CommandBase> ComputeDelta(
             AlterRowLevelSecurityPolicyCommand? currentCommand,
             AlterRowLevelSecurityPolicyCommand? targetCommand)

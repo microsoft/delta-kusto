@@ -3,9 +3,12 @@ using DeltaKustoLib.CommandModel.Policies;
 using DeltaKustoLib.CommandModel.Policies.AutoDelete;
 using DeltaKustoLib.CommandModel.Policies.Caching;
 using DeltaKustoLib.CommandModel.Policies.IngestionBatching;
+using DeltaKustoLib.CommandModel.Policies.IngestionTime;
 using DeltaKustoLib.CommandModel.Policies.Merge;
 using DeltaKustoLib.CommandModel.Policies.Partitioning;
+using DeltaKustoLib.CommandModel.Policies.RestrictedView;
 using DeltaKustoLib.CommandModel.Policies.Retention;
+using DeltaKustoLib.CommandModel.Policies.RowLevelSecurity;
 using DeltaKustoLib.CommandModel.Policies.Sharding;
 using DeltaKustoLib.CommandModel.Policies.StreamingIngestion;
 using DeltaKustoLib.CommandModel.Policies.Update;
@@ -41,7 +44,13 @@ namespace DeltaKustoLib.KustoModel
         public AlterStreamingIngestionPolicyCommand? StreamingIngestionPolicy { get; }
 
         public AlterPartitioningPolicyCommand? PartitioningPolicy { get; }
-
+        
+        public AlterRowLevelSecurityPolicyCommand? RowLevelSecurityPolicy { get; }
+        
+        public AlterRestrictedViewPolicyCommand? RestrictedViewPolicy { get; }
+        
+        public AlterIngestionTimePolicyCommand? IngestionTimePolicy { get; }
+        
         public AlterUpdatePolicyCommand? UpdatePolicy { get; }
 
         public QuotedText Folder { get; }
@@ -60,6 +69,9 @@ namespace DeltaKustoLib.KustoModel
             AlterShardingPolicyCommand? shardingPolicy,
             AlterStreamingIngestionPolicyCommand? streamingIngestionPolicy,
             AlterPartitioningPolicyCommand? partitioningPolicy,
+            AlterRestrictedViewPolicyCommand? restrictedViewPolicy,
+            AlterRowLevelSecurityPolicyCommand? rowLevelSecurityPolicy,
+            AlterIngestionTimePolicyCommand? ingestionTimePolicy,
             AlterUpdatePolicyCommand? updatePolicy,
             QuotedText folder,
             QuotedText docString)
@@ -78,6 +90,9 @@ namespace DeltaKustoLib.KustoModel
             ShardingPolicy = shardingPolicy;
             StreamingIngestionPolicy = streamingIngestionPolicy;
             PartitioningPolicy = partitioningPolicy;
+            RestrictedViewPolicy = restrictedViewPolicy;
+            RowLevelSecurityPolicy = rowLevelSecurityPolicy;
+            IngestionTimePolicy = ingestionTimePolicy;
             UpdatePolicy = updatePolicy;
             Folder = folder;
             DocString = docString;
@@ -123,6 +138,9 @@ namespace DeltaKustoLib.KustoModel
             IEnumerable<AlterShardingPolicyCommand> shardingPolicies,
             IEnumerable<AlterStreamingIngestionPolicyCommand> streamingIngestionPolicies,
             IEnumerable<AlterPartitioningPolicyCommand> partitioningPolicies,
+            IEnumerable<AlterRowLevelSecurityPolicyCommand> rowLevelSecurityPolicies,
+            IEnumerable<AlterRestrictedViewPolicyCommand> restrictedViewPolicies,
+            IEnumerable<AlterIngestionTimePolicyCommand> ingestionTimePolicies,
             IEnumerable<AlterUpdatePolicyCommand> updatePolicies)
         {
             var tableDocStringColumnMap = alterMergeTableColumns
@@ -141,6 +159,12 @@ namespace DeltaKustoLib.KustoModel
             var streamingIngestionPolicyMap = streamingIngestionPolicies
                 .ToImmutableDictionary(c => c.EntityName);
             var partitioningPolicyMap = partitioningPolicies
+                .ToImmutableDictionary(c => c.TableName);
+            var rowLevelSecurityPolicyMap = rowLevelSecurityPolicies
+                .ToImmutableDictionary(c => c.TableName);
+            var restrictedViewPolicyMap = restrictedViewPolicies
+                .ToImmutableDictionary(c => c.TableName);
+            var ingestionTimePolicyMap = ingestionTimePolicies
                 .ToImmutableDictionary(c => c.TableName);
             var updatePolicyMap = updatePolicies.ToImmutableDictionary(c => c.TableName);
             var tables = createTables
@@ -177,6 +201,15 @@ namespace DeltaKustoLib.KustoModel
                     : null,
                     partitioningPolicyMap.ContainsKey(ct.TableName)
                     ? partitioningPolicyMap[ct.TableName]
+                    : null,
+                    restrictedViewPolicyMap.ContainsKey(ct.TableName)
+                    ? restrictedViewPolicyMap[ct.TableName]
+                    : null,
+                    rowLevelSecurityPolicyMap.ContainsKey(ct.TableName)
+                    ? rowLevelSecurityPolicyMap[ct.TableName]
+                    : null,
+                    ingestionTimePolicyMap.ContainsKey(ct.TableName)
+                    ? ingestionTimePolicyMap[ct.TableName]
                     : null,
                     updatePolicyMap.ContainsKey(ct.TableName)
                     ? updatePolicyMap[ct.TableName]
@@ -333,6 +366,15 @@ namespace DeltaKustoLib.KustoModel
             var partitioningPolicyCommands = AlterPartitioningPolicyCommand.ComputeDelta(
                 PartitioningPolicy,
                 targetModel.PartitioningPolicy);
+            var rowLevelSecurityPolicyCommands = AlterRowLevelSecurityPolicyCommand.ComputeDelta(
+                RowLevelSecurityPolicy,
+                targetModel.RowLevelSecurityPolicy);
+            var ingestionTimePolicyCommands = AlterIngestionTimePolicyCommand.ComputeDelta(
+                IngestionTimePolicy,
+                targetModel.IngestionTimePolicy);
+            var restrictedViewPolicyCommands = AlterRestrictedViewPolicyCommand.ComputeDelta(
+                RestrictedViewPolicy,
+                targetModel.RestrictedViewPolicy);
             var updatePolicyCommands =
                 AlterUpdatePolicyCommand.ComputeDelta(UpdatePolicy, targetModel.UpdatePolicy);
 
@@ -380,6 +422,9 @@ namespace DeltaKustoLib.KustoModel
                 .Concat(shardingPolicyCommands)
                 .Concat(streamingIngestionPolicyCommands)
                 .Concat(partitioningPolicyCommands)
+                .Concat(ingestionTimePolicyCommands)
+                .Concat(restrictedViewPolicyCommands)
+                .Concat(rowLevelSecurityPolicyCommands)
                 .Concat(updatePolicyCommands))
             {
                 yield return command;

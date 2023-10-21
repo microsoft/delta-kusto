@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -30,6 +31,16 @@ namespace DeltaKustoLib.CommandModel.Policies.RestrictedView
         public override string ToScript(ScriptingContext? context = null)
         {
             return $".alter table {TableName} policy restricted_view_access {IsEnabled}";
+        }
+
+        public override bool Equals(CommandBase? other)
+        {
+            var otherPolicy = other as AlterRestrictedViewPolicyCommand;
+            var areEqualed = otherPolicy != null
+                && base.Equals(otherPolicy)
+                && otherPolicy.IsEnabled.Equals(IsEnabled);
+
+            return areEqualed;
         }
 
         internal static CommandBase? FromCode(CommandBlock commandBlock)

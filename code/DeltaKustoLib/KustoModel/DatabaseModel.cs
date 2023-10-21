@@ -2,9 +2,12 @@
 using DeltaKustoLib.CommandModel.Policies.AutoDelete;
 using DeltaKustoLib.CommandModel.Policies.Caching;
 using DeltaKustoLib.CommandModel.Policies.IngestionBatching;
+using DeltaKustoLib.CommandModel.Policies.IngestionTime;
 using DeltaKustoLib.CommandModel.Policies.Merge;
 using DeltaKustoLib.CommandModel.Policies.Partitioning;
+using DeltaKustoLib.CommandModel.Policies.RestrictedView;
 using DeltaKustoLib.CommandModel.Policies.Retention;
+using DeltaKustoLib.CommandModel.Policies.RowLevelSecurity;
 using DeltaKustoLib.CommandModel.Policies.Sharding;
 using DeltaKustoLib.CommandModel.Policies.StreamingIngestion;
 using DeltaKustoLib.CommandModel.Policies.Update;
@@ -32,10 +35,13 @@ namespace DeltaKustoLib.KustoModel
             typeof(AlterTablesRetentionPolicyCommand),
             typeof(AlterAutoDeletePolicyCommand),
             typeof(AlterMergePolicyCommand),
+            typeof(AlterIngestionTimePolicyCommand),
             typeof(AlterIngestionBatchingPolicyCommand),
+            typeof(AlterPartitioningPolicyCommand),
+            typeof(AlterRestrictedViewPolicyCommand),
+            typeof(AlterRowLevelSecurityPolicyCommand),
             typeof(AlterShardingPolicyCommand),
-            typeof(AlterStreamingIngestionPolicyCommand),
-            typeof(AlterPartitioningPolicyCommand)
+            typeof(AlterStreamingIngestionPolicyCommand)
         }.ToImmutableHashSet();
 
         private readonly IImmutableList<CreateFunctionCommand> _functionCommands;
@@ -167,6 +173,15 @@ namespace DeltaKustoLib.KustoModel
                 .Concat(retentionTablePluralPolicies);
             var dbRetentionPolicies = retentionPolicies
                 .Where(p => p.EntityType == EntityType.Database);
+            var tableRowLevelSecurityPolicies =
+                GetCommands<AlterRowLevelSecurityPolicyCommand>(commandTypeIndex)
+                .ToImmutableArray();
+            var tableRestrictedViewPolicies =
+                GetCommands<AlterRestrictedViewPolicyCommand>(commandTypeIndex)
+                .ToImmutableArray();
+            var tableIngestionTimePolicies =
+                GetCommands<AlterIngestionTimePolicyCommand>(commandTypeIndex)
+                .ToImmutableArray();
             var updatePolicies = GetCommands<AlterUpdatePolicyCommand>(commandTypeIndex)
                 .ToImmutableArray();
 
@@ -193,6 +208,9 @@ namespace DeltaKustoLib.KustoModel
             ValidateDuplicates(tablePartitioningPolicies, m => m.TableName.Name);
             ValidateDuplicates(tableRetentionPolicies, m => m.EntityName.Name);
             ValidateDuplicates(dbRetentionPolicies, m => "Database retention policy");
+            ValidateDuplicates(tableRowLevelSecurityPolicies, m => m.TableName.Name);
+            ValidateDuplicates(tableRestrictedViewPolicies, m => m.TableName.Name);
+            ValidateDuplicates(tableIngestionTimePolicies, m => m.TableName.Name);
             ValidateDuplicates(updatePolicies, m => m.TableName.Name);
 
             var tableModels = TableModel.FromCommands(
@@ -207,6 +225,9 @@ namespace DeltaKustoLib.KustoModel
                 tableShardingPolicies,
                 tableStreamingIngestionPolicies,
                 tablePartitioningPolicies,
+                tableRowLevelSecurityPolicies,
+                tableRestrictedViewPolicies,
+                tableIngestionTimePolicies,
                 updatePolicies);
 
             return new DatabaseModel(
