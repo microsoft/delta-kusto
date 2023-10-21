@@ -10,16 +10,16 @@ using System.Threading.Tasks;
 namespace DeltaKustoLib.CommandModel.Policies
 {
     /// <summary>
-    /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/auto-delete-policy-command#delete-policy"/>
+    /// Models <see cref="https://learn.microsoft.com/en-us/azure/data-explorer/kusto/management/delete-table-restricted-view-access-policy-command"/>
     /// </summary>
-    [Command(10000, "Delete Auto Delete Policies")]
-    public class DeleteAutoDeletePolicyCommand : TableOnlyPolicyCommandBase
+    [Command(19000, "Delete restricted view Policies")]
+    public class DeleteRestrictedViewPolicyCommand : TableOnlyPolicyCommandBase
     {
-        public override string CommandFriendlyName => ".delete <entity> policy auto_delete";
+        public override string CommandFriendlyName => ".delete table policy restricted_view_access";
 
-        public override string ScriptPath => "tables/policies/auto_delete/delete";
+        public override string ScriptPath => "tables/policies/restricted_view_access/delete";
 
-        public DeleteAutoDeletePolicyCommand(EntityName tableName) : base(tableName)
+        public DeleteRestrictedViewPolicyCommand(EntityName tableName) : base(tableName)
         {
         }
 
@@ -27,7 +27,7 @@ namespace DeltaKustoLib.CommandModel.Policies
         {
             var entityName = rootElement.GetFirstDescendant<NameReference>();
 
-            return new DeleteAutoDeletePolicyCommand(EntityName.FromCode(entityName.Name));
+            return new DeleteRestrictedViewPolicyCommand(EntityName.FromCode(entityName.Name));
         }
 
         public override string ToScript(ScriptingContext? context)
@@ -36,7 +36,7 @@ namespace DeltaKustoLib.CommandModel.Policies
 
             builder.Append(".delete table ");
             builder.Append(TableName.ToScript());
-            builder.Append(" policy auto_delete");
+            builder.Append(" policy restricted_view_access");
 
             return builder.ToString();
         }
