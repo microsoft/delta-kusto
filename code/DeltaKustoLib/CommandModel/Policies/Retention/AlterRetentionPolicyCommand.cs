@@ -120,7 +120,8 @@ namespace DeltaKustoLib.CommandModel.Policies.Retention
             ISingularToPluralCommand.ToPlural(IEnumerable<CommandBase> singularCommands)
         {
             var singularPolicyCommands = singularCommands
-                .Cast<AlterRetentionPolicyCommand>();
+                .Cast<AlterRetentionPolicyCommand>()
+                .Where(c => c.EntityType == EntityType.Table);
 
             if (singularPolicyCommands.Any(c => c.EntityType != EntityType.Table))
             {

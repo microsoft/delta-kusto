@@ -96,7 +96,8 @@ namespace DeltaKustoLib.CommandModel.Policies.IngestionBatching
             IEnumerable<CommandBase> singularCommands)
         {
             var singularPolicyCommands = singularCommands
-                .Cast<AlterIngestionBatchingPolicyCommand>();
+                .Cast<AlterIngestionBatchingPolicyCommand>()
+                .Where(c => c.EntityType == EntityType.Table);
 
             //  We might want to cap batches to a maximum size?
             var pluralCommands = singularPolicyCommands
