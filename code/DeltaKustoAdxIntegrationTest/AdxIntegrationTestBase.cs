@@ -84,7 +84,7 @@ namespace DeltaKustoAdxIntegrationTest
         {
             await LoopThroughStateFilesAsync(
                 Path.Combine(statesFolderPath, "States"),
-                async (fromFile, toFile) =>
+                async (fromFile, toFile, usePluralForms) =>
                 {
                     using (var testDb = await InitializeDbAsync())
                     using (var currentDb = await InitializeDbAsync())
@@ -101,7 +101,8 @@ namespace DeltaKustoAdxIntegrationTest
                         .Add(("jobs.main.current.adx.clusterUri", ClusterUri.ToString()))
                         .Add(("jobs.main.current.adx.database", currentDb.Name))
                         .Add(("jobs.main.target.scripts[0].filePath", toFile))
-                        .Add(("jobs.main.action.filePath", outputPath));
+                        .Add(("jobs.main.action.filePath", outputPath))
+                        .Add(("jobs.main.action.usePluralForms", usePluralForms.ToString()));
                         var parameters = await RunParametersAsync(
                             "adx-to-file-params.json",
                             overrides);
@@ -132,7 +133,7 @@ namespace DeltaKustoAdxIntegrationTest
         {
             await LoopThroughStateFilesAsync(
                 Path.Combine(statesFolderPath, "States"),
-                async (fromFile, toFile) =>
+                async (fromFile, toFile, usePluralForms) =>
                 {
                     using (var testDb = await InitializeDbAsync())
                     using (var targetDb = await InitializeDbAsync())
@@ -148,8 +149,9 @@ namespace DeltaKustoAdxIntegrationTest
                             .Empty
                             .Add(("jobs.main.target.adx.clusterUri", ClusterUri.ToString()))
                             .Add(("jobs.main.target.adx.database", targetDb.Name))
-                            .Append(("jobs.main.current.scripts[0].filePath", fromFile))
-                            .Append(("jobs.main.action.filePath", outputPath));
+                            .Add(("jobs.main.current.scripts[0].filePath", fromFile))
+                            .Add(("jobs.main.action.filePath", outputPath))
+                            .Add(("jobs.main.action.usePluralForms", usePluralForms.ToString()));
                         var parameters = await RunParametersAsync(
                             "file-to-adx-params.json",
                             overrides);
@@ -180,7 +182,7 @@ namespace DeltaKustoAdxIntegrationTest
         {
             await LoopThroughStateFilesAsync(
                 Path.Combine(statesFolderPath, "States"),
-                async (fromFile, toFile) =>
+                async (fromFile, toFile, usePluralForms) =>
                 {
                     using (var currentDb = await InitializeDbAsync())
                     using (var targetDb = await InitializeDbAsync())
@@ -189,39 +191,40 @@ namespace DeltaKustoAdxIntegrationTest
                             PrepareDbAsync(fromFile, currentDb.Name),
                             PrepareDbAsync(toFile, targetDb.Name));
 
-                    var outputPath = Path.Combine("outputs", statesFolderPath, "adx-to-adx/")
-                        + Path.GetFileNameWithoutExtension(fromFile)
-                        + "_2_"
-                        + Path.GetFileNameWithoutExtension(toFile)
-                        + ".kql";
-                    var overrides = ImmutableArray<(string path, string value)>
-                    .Empty
-                    .Add(("jobs.main.current.adx.clusterUri", ClusterUri.ToString()))
-                    .Add(("jobs.main.current.adx.database", currentDb.Name))
-                    .Add(("jobs.main.target.adx.clusterUri", ClusterUri.ToString()))
-                    .Add(("jobs.main.target.adx.database", targetDb.Name))
-                    .Add(("jobs.main.action.filePath", outputPath));
-                    var parameters = await RunParametersAsync(
-                        "adx-to-adx-params.json",
-                        overrides);
-                    var targetCommandsTask = FetchDbCommandsAsync(targetDb.Name);
-                    var finalCommands = await FetchDbCommandsAsync(currentDb.Name);
-                    var targetCommands = await targetCommandsTask;
-                    var targetModel = DatabaseModel.FromCommands(targetCommands);
-                    var finalModel = DatabaseModel.FromCommands(finalCommands);
-                    var finalScript = string.Join(";\n\n", finalCommands.Select(c => c.ToScript()));
-                    var targetScript = string.Join(";\n\n", targetCommands.Select(c => c.ToScript()));
+                        var outputPath = Path.Combine("outputs", statesFolderPath, "adx-to-adx/")
+                            + Path.GetFileNameWithoutExtension(fromFile)
+                            + "_2_"
+                            + Path.GetFileNameWithoutExtension(toFile)
+                            + ".kql";
+                        var overrides = ImmutableArray<(string path, string value)>
+                        .Empty
+                        .Add(("jobs.main.current.adx.clusterUri", ClusterUri.ToString()))
+                        .Add(("jobs.main.current.adx.database", currentDb.Name))
+                        .Add(("jobs.main.target.adx.clusterUri", ClusterUri.ToString()))
+                        .Add(("jobs.main.target.adx.database", targetDb.Name))
+                        .Add(("jobs.main.action.filePath", outputPath))
+                        .Add(("jobs.main.action.usePluralForms", usePluralForms.ToString()));
+                        var parameters = await RunParametersAsync(
+                            "adx-to-adx-params.json",
+                            overrides);
+                        var targetCommandsTask = FetchDbCommandsAsync(targetDb.Name);
+                        var finalCommands = await FetchDbCommandsAsync(currentDb.Name);
+                        var targetCommands = await targetCommandsTask;
+                        var targetModel = DatabaseModel.FromCommands(targetCommands);
+                        var finalModel = DatabaseModel.FromCommands(finalCommands);
+                        var finalScript = string.Join(";\n\n", finalCommands.Select(c => c.ToScript()));
+                        var targetScript = string.Join(";\n\n", targetCommands.Select(c => c.ToScript()));
 
-                    Assert.True(
-                        targetModel.Equals(finalModel),
-                        $"From {fromFile} to {toFile}:\n\n{finalScript}\nvs\n\n{targetScript}");
+                        Assert.True(
+                            targetModel.Equals(finalModel),
+                            $"From {fromFile} to {toFile}:\n\n{finalScript}\nvs\n\n{targetScript}");
                     }
                 });
         }
 
         private async static Task LoopThroughStateFilesAsync(
             string folderPath,
-            Func<string, string, Task> loopFunction)
+            Func<string, string, bool, Task> loopFunction)
         {
             var stateFiles = Directory.GetFiles(folderPath);
 
@@ -229,7 +232,10 @@ namespace DeltaKustoAdxIntegrationTest
             {
                 foreach (var toFile in stateFiles)
                 {
-                    await loopFunction(fromFile, toFile);
+                    foreach (var usePluralForms in new[] { true, false })
+                    {
+                        await loopFunction(fromFile, toFile, usePluralForms);
+                    }
                 }
             }
         }
