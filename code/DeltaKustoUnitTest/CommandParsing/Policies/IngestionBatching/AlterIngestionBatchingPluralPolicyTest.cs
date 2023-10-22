@@ -1,7 +1,5 @@
 using DeltaKustoLib.CommandModel;
 using DeltaKustoLib.CommandModel.Policies.IngestionBatching;
-using Kusto.Language.Syntax;
-using Polly;
 using System;
 using System.Collections.Immutable;
 using System.Linq;
