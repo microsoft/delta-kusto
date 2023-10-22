@@ -132,8 +132,18 @@ namespace DeltaKustoLib.KustoModel
                 .ToImmutableArray();
             var cachingPolicies = GetCommands<AlterCachingPolicyCommand>(commandTypeIndex)
                 .ToImmutableArray();
+            var tableCachingPluralPolicies =
+                GetCommands<AlterCachingPluralPolicyCommand>(commandTypeIndex)
+                .Select(c => c.TableNames.Select(t => new AlterCachingPolicyCommand(
+                    EntityType.Table,
+                    t,
+                    c.HotData.Duration!.Value,
+                    c.HotIndex.Duration!.Value,
+                    c.HotWindows)))
+                .SelectMany(e => e);
             var tableCachingPolicies = cachingPolicies
-                .Where(p => p.EntityType == EntityType.Table);
+                .Where(p => p.EntityType == EntityType.Table)
+                .Concat(tableCachingPluralPolicies);
             var dbCachingPolicies = cachingPolicies
                 .Where(p => p.EntityType == EntityType.Database);
             var ingestionBatchingPolicies = GetCommands<AlterIngestionBatchingPolicyCommand>(commandTypeIndex)
@@ -148,11 +158,6 @@ namespace DeltaKustoLib.KustoModel
                 .Where(p => p.EntityType == EntityType.Table);
             var dbMergePolicies = mergePolicies
                 .Where(p => p.EntityType == EntityType.Database);
-            var retentionTablePluralPolicies = GetCommands<AlterRetentionPluralTablePolicyCommand>(commandTypeIndex)
-                .SelectMany(c => c.TableNames.Select(t => new AlterRetentionPolicyCommand(
-                    EntityType.Table,
-                    t,
-                    c.Policy)));
             var shardingPolicies = GetCommands<AlterShardingPolicyCommand>(commandTypeIndex)
                 .ToImmutableArray();
             var tableShardingPolicies = shardingPolicies
@@ -168,6 +173,11 @@ namespace DeltaKustoLib.KustoModel
                 .Where(p => p.EntityType == EntityType.Database);
             var tablePartitioningPolicies =
                 GetCommands<AlterPartitioningPolicyCommand>(commandTypeIndex);
+            var retentionTablePluralPolicies = GetCommands<AlterRetentionPluralTablePolicyCommand>(commandTypeIndex)
+                .SelectMany(c => c.TableNames.Select(t => new AlterRetentionPolicyCommand(
+                    EntityType.Table,
+                    t,
+                    c.Policy)));
             var retentionPolicies = GetCommands<AlterRetentionPolicyCommand>(commandTypeIndex)
                 .ToImmutableArray();
             var tableRetentionPolicies = retentionPolicies
@@ -178,16 +188,21 @@ namespace DeltaKustoLib.KustoModel
             var tableRowLevelSecurityPolicies =
                 GetCommands<AlterRowLevelSecurityPolicyCommand>(commandTypeIndex)
                 .ToImmutableArray();
-            var tablesRestrictedViewPolicies =
+            var tableRestrictedViewPluralPolicies =
                 GetCommands<AlterRestrictedViewPluralPolicyCommand>(commandTypeIndex)
                 .Select(c => c.TableNames.Select(t => new AlterRestrictedViewPolicyCommand(t, c.AreEnabled)))
                 .SelectMany(e => e);
             var tableRestrictedViewPolicies =
                 GetCommands<AlterRestrictedViewPolicyCommand>(commandTypeIndex)
-                .Concat(tablesRestrictedViewPolicies)
+                .Concat(tableRestrictedViewPluralPolicies)
                 .ToImmutableArray();
+            var tableIngestionTimePluralPolicies =
+                GetCommands<AlterIngestionTimePluralPolicyCommand>(commandTypeIndex)
+                .Select(c => c.TableNames.Select(t => new AlterIngestionTimePolicyCommand(t, c.AreEnabled)))
+                .SelectMany(e => e);
             var tableIngestionTimePolicies =
                 GetCommands<AlterIngestionTimePolicyCommand>(commandTypeIndex)
+                .Concat(tableIngestionTimePluralPolicies)
                 .ToImmutableArray();
             var updatePolicies = GetCommands<AlterUpdatePolicyCommand>(commandTypeIndex)
                 .ToImmutableArray();
