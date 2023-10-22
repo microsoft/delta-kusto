@@ -168,6 +168,8 @@ namespace DeltaKustoLib.CommandModel
                     case "AlterDatabasePolicyCaching":
                     case "AlterTablePolicyCaching":
                         return AlterCachingPolicyCommand.FromCode(commandBlock);
+                    case "AlterTablesPolicyCaching":
+                        return AlterCachingPluralPolicyCommand.FromCode(commandBlock);
                     case "DeleteDatabasePolicyCaching":
                     case "DeleteTablePolicyCaching":
                         return DeleteCachingPolicyCommand.FromCode(commandBlock);

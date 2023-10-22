@@ -1,5 +1,4 @@
-﻿using DeltaKustoLib.CommandModel.Policies.Caching;
-using Kusto.Language.Syntax;
+﻿using Kusto.Language.Syntax;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,7 +13,8 @@ namespace DeltaKustoLib.CommandModel.Policies.IngestionTime
     /// Models <see cref="https://learn.microsoft.com/en-us/azure/data-explorer/kusto/management/alter-ingestion-time-policy-command"/>
     /// </summary>
     [Command(21100, "Alter Ingestion Time Policies")]
-    public class AlterIngestionTimePolicyCommand : TableOnlyPolicyCommandBase
+    public class AlterIngestionTimePolicyCommand
+        : TableOnlyPolicyCommandBase, ISingularToPluralCommand
     {
         public bool IsEnabled { get; }
 
@@ -59,6 +59,22 @@ namespace DeltaKustoLib.CommandModel.Policies.IngestionTime
                 && otherPolicy.IsEnabled.Equals(IsEnabled);
 
             return areEqualed;
+        }
+
+        IEnumerable<CommandBase> ISingularToPluralCommand.ToPlural(
+            IEnumerable<CommandBase> singularCommands)
+        {
+            var singularPolicyCommands = singularCommands
+                .Cast<AlterIngestionTimePolicyCommand>();
+
+            //  We might want to cap batches to a maximum size?
+            var pluralCommands = singularPolicyCommands
+                .GroupBy(c => c.IsEnabled)
+                .Select(g => new AlterIngestionTimePluralPolicyCommand(
+                    g.Select(c => c.TableName),
+                    g.Key));
+
+            return pluralCommands.ToImmutableArray();
         }
 
         internal static IEnumerable<CommandBase> ComputeDelta(

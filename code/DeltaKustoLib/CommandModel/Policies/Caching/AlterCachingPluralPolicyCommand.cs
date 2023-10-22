@@ -11,29 +11,33 @@ namespace DeltaKustoLib.CommandModel.Policies.Caching
     /// <summary>
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/cache-policy#altering-the-cache-policy"/>
     /// </summary>
-    [Command(11100, "Alter Caching Policies")]
-    public class AlterCachingPolicyCommand
-        : EntityPolicyCommandBase, ISingularToPluralCommand
+    [Command(11200, "Alter (plural) Caching Policies")]
+    public class AlterCachingPluralPolicyCommand : PolicyCommandBase, ISingularToPluralCommand
     {
+        public IImmutableList<EntityName> TableNames { get; }
+
         public KustoTimeSpan HotData { get; }
 
         public KustoTimeSpan HotIndex { get; }
 
         public IImmutableList<HotWindow> HotWindows { get; }
 
-        public override string CommandFriendlyName => ".alter <entity> policy caching";
+        public override string CommandFriendlyName => ".alter tables policy caching";
 
-        public override string ScriptPath => EntityType == EntityType.Database
-            ? $"tables/policies/caching/create/{EntityName}"
-            : $"databases/policies/caching/create";
+        public override string SortIndex => TableNames.First().Name;
 
-        public AlterCachingPolicyCommand(
-            EntityType entityType,
-            EntityName entityName,
+        public override string ScriptPath => "tables/policies/caching/create-many";
+
+        public AlterCachingPluralPolicyCommand(
+            IEnumerable<EntityName> tableNames,
             TimeSpan hotData,
             TimeSpan hotIndex,
-            IEnumerable<HotWindow> hotWindows) : base(entityType, entityName)
+            IEnumerable<HotWindow> hotWindows)
         {
+            TableNames = tableNames
+                .OrderBy(t => t.Name)
+                .ToImmutableArray();
+
             HotData = new KustoTimeSpan(hotData);
             HotIndex = new KustoTimeSpan(hotIndex);
             HotWindows = hotWindows.ToImmutableArray();
@@ -41,17 +45,11 @@ namespace DeltaKustoLib.CommandModel.Policies.Caching
 
         internal static CommandBase FromCode(SyntaxElement rootElement)
         {
-            var entityType = ExtractEntityType(rootElement);
-            var entityNames = rootElement.GetDescendants<NameReference>();
-            var entityName = entityNames.LastOrDefault();
+            var tableNames = rootElement.GetDescendants<NameReference>();
             var (hotData, hotIndex) = ExtractHotDurations(rootElement);
             var hotWindowTimes = rootElement.GetDescendants<SyntaxToken>(
                 t => t.Kind == SyntaxKind.DateTimeLiteralToken);
 
-            if (entityName == null)
-            {
-                throw new DeltaException("No entity name found");
-            }
             if (hotWindowTimes.Count() % 2 == 1)
             {
                 throw new DeltaException(
@@ -63,9 +61,8 @@ namespace DeltaKustoLib.CommandModel.Policies.Caching
                 .Chunk(2)
                 .Select(c => new HotWindow((DateTime)c[0].Value, (DateTime)c[1].Value));
 
-            return new AlterCachingPolicyCommand(
-                entityType,
-                EntityName.FromCode(entityName.Name),
+            return new AlterCachingPluralPolicyCommand(
+                tableNames.Select(n => EntityName.FromCode(n)),
                 hotData,
                 hotIndex,
                 hotWindows);
@@ -73,9 +70,10 @@ namespace DeltaKustoLib.CommandModel.Policies.Caching
 
         public override bool Equals(CommandBase? other)
         {
-            var otherPolicy = other as AlterCachingPolicyCommand;
+            var otherPolicy = other as AlterCachingPluralPolicyCommand;
             var areEqualed = otherPolicy != null
                 && base.Equals(otherPolicy)
+                && Enumerable.SequenceEqual(TableNames, otherPolicy.TableNames)
                 && otherPolicy.HotData.Equals(HotData)
                 && otherPolicy.HotIndex.Equals(HotIndex)
                 && otherPolicy.HotWindows.SequenceEqual(HotWindows);
@@ -87,18 +85,9 @@ namespace DeltaKustoLib.CommandModel.Policies.Caching
         {
             var builder = new StringBuilder();
 
-            builder.Append(".alter ");
-            builder.Append(EntityType == EntityType.Table ? "table" : "database");
-            builder.Append(" ");
-            if (EntityType == EntityType.Database && context?.CurrentDatabaseName != null)
-            {
-                builder.Append(context.CurrentDatabaseName.ToScript());
-            }
-            else
-            {
-                builder.Append(EntityName.ToScript());
-            }
-            builder.Append(" policy caching ");
+            builder.Append(".alter tables (");
+            builder.Append(string.Join(", ", TableNames.Select(n => n.ToScript())));
+            builder.Append(") policy caching ");
             if (HotData.Equals(HotIndex))
             {
                 builder.Append("hot = ");
@@ -111,7 +100,7 @@ namespace DeltaKustoLib.CommandModel.Policies.Caching
                 builder.Append(" hotindex = ");
                 builder.Append(HotIndex);
             }
-            foreach(var hotWindow in HotWindows)
+            foreach (var hotWindow in HotWindows)
             {
                 builder.AppendLine();
                 builder.Append(", ");
@@ -121,6 +110,7 @@ namespace DeltaKustoLib.CommandModel.Policies.Caching
 
             return builder.ToString();
         }
+
         IEnumerable<CommandBase> ISingularToPluralCommand.ToPlural(
             IEnumerable<CommandBase> singularCommands)
         {
@@ -137,32 +127,6 @@ namespace DeltaKustoLib.CommandModel.Policies.Caching
                     g.Key.HotWindows));
 
             return pluralCommands.ToImmutableArray();
-        }
-
-
-        internal static IEnumerable<CommandBase> ComputeDelta(
-            AlterCachingPolicyCommand? currentCommand,
-            AlterCachingPolicyCommand? targetCommand)
-        {
-            var hasCurrent = currentCommand != null;
-            var hasTarget = targetCommand != null;
-
-            if (hasCurrent && !hasTarget)
-            {   //  No target, we remove the current policy
-                yield return new DeleteCachingPolicyCommand(
-                    currentCommand!.EntityType,
-                    currentCommand!.EntityName);
-            }
-            else if (hasTarget)
-            {
-                if (!hasCurrent || !currentCommand!.Equals(targetCommand!))
-                {   //  There is a target and either no current or the current is different
-                    yield return targetCommand!;
-                }
-            }
-            else
-            {   //  Both target and current are null:  no delta
-            }
         }
 
         private static (TimeSpan hotData, TimeSpan hotIndex) ExtractHotDurations(

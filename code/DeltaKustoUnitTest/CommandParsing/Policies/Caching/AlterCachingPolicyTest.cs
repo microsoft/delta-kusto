@@ -1,5 +1,4 @@
 using DeltaKustoLib.CommandModel;
-using DeltaKustoLib.CommandModel.Policies;
 using DeltaKustoLib.CommandModel.Policies.Caching;
 using System;
 using System.Linq;
