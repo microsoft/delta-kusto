@@ -7,4 +7,5 @@
       scripts:
         - filePath:  target.kql
     action:
-      filePath:  outputs/one-to-one-no-change.kql
+      filePath:  outputs/one-to-two-with-change.kql
+      usePluralForms:  true

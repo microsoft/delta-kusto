@@ -131,11 +131,10 @@ namespace DeltaKustoLib.CommandModel.Policies.Retention
 
             //  We might want to cap batches to a maximum size?
             var pluralCommands = singularPolicyCommands
-                .Select(c => new { Key = (c.SerializePolicy()), Value = c })
-                .GroupBy(c => c.Key)
+                .GroupBy(c => c.Policy, JsonDocumentComparer)
                 .Select(g => new AlterRetentionPluralTablePolicyCommand(
-                    g.Select(a => a.Value.EntityName),
-                    g.First().Value.Policy));
+                    g.Select(c => c.EntityName),
+                    g.Key));
 
             return pluralCommands.ToImmutableArray();
         }

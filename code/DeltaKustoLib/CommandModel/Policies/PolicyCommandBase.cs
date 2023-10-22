@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -6,11 +7,33 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace DeltaKustoLib.CommandModel.Policies
 {
     public abstract class PolicyCommandBase : CommandBase
     {
+        #region Inner Types
+        private class JsonDocumentEqualityComparer : IEqualityComparer<JsonDocument>
+        {
+            bool IEqualityComparer<JsonDocument>.Equals(JsonDocument? x, JsonDocument? y)
+            {
+                return (x == null && y == null)
+                    || (x != null && y != null && JsonDocumentEquals(x, y));
+            }
+
+            int IEqualityComparer<JsonDocument>.GetHashCode(JsonDocument obj)
+            {
+                return obj.RootElement.GetRawText().GetHashCode();
+            }
+
+            private static bool JsonDocumentEquals(JsonDocument x, JsonDocument y)
+            {
+                return x.RootElement.GetRawText().Equals(y.RootElement.GetRawText());
+            }
+        }
+        #endregion
+
         private static readonly JsonSerializerOptions _policiesSerializerOptions = new JsonSerializerOptions
         {
             WriteIndented = true,
@@ -69,6 +92,9 @@ namespace DeltaKustoLib.CommandModel.Policies
 
             return doc;
         }
+
+        protected static IEqualityComparer<JsonDocument> JsonDocumentComparer { get; }
+            = new JsonDocumentEqualityComparer();
 
         [UnconditionalSuppressMessage("AssemblyLoadTrimming", "IL2026:RequiresUnreferencedCode")]
         protected static T Deserialize<T>(string text)

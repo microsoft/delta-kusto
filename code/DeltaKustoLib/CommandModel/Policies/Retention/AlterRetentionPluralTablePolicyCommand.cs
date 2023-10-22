@@ -13,7 +13,8 @@ namespace DeltaKustoLib.CommandModel.Policies.Retention
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/retention-policy#alter-retention-policy"/>
     /// </summary>
     [Command(14200, "Alter Retention Policies")]
-    public class AlterRetentionPluralTablePolicyCommand : PolicyCommandBase
+    public class AlterRetentionPluralTablePolicyCommand
+        : PolicyCommandBase, ISingularToPluralCommand
     {
         public IImmutableList<EntityName> TableNames { get; }
 
@@ -91,6 +92,22 @@ namespace DeltaKustoLib.CommandModel.Policies.Retention
             builder.Append("```");
 
             return builder.ToString();
+        }
+
+        IEnumerable<CommandBase> ISingularToPluralCommand.ToPlural(
+            IEnumerable<CommandBase> singularCommands)
+        {
+            var singularPolicyCommands = singularCommands
+                .Cast<AlterRetentionPolicyCommand>();
+
+            //  We might want to cap batches to a maximum size?
+            var pluralCommands = singularPolicyCommands
+                .GroupBy(c => c.Policy, JsonDocumentComparer)
+                .Select(g => new AlterRetentionPluralTablePolicyCommand(
+                    g.Select(c => c.EntityName),
+                    g.Key));
+
+            return pluralCommands.ToImmutableArray();
         }
     }
 }

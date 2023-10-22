@@ -99,7 +99,7 @@ namespace DeltaKustoLib.CommandModel.Policies.IngestionBatching
 
             //  We might want to cap batches to a maximum size?
             var pluralCommands = singularPolicyCommands
-                .GroupBy(c => c.Policy)
+                .GroupBy(c => c.Policy, JsonDocumentComparer)
                 .Select(g => new AlterIngestionBatchingPluralPolicyCommand(
                     g.Select(c => c.EntityName),
                     g.Key));

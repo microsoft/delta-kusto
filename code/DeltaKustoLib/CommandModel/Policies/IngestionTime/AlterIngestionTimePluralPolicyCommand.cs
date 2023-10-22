@@ -13,7 +13,8 @@ namespace DeltaKustoLib.CommandModel.Policies.IngestionTime
     /// Models <see cref="https://learn.microsoft.com/en-us/azure/data-explorer/kusto/management/alter-ingestion-time-policy-command"/>
     /// </summary>
     [Command(21200, "Alter (plural) Ingestion Time Policies")]
-    public class AlterIngestionTimePluralPolicyCommand : PolicyCommandBase, ISingularToPluralCommand
+    public class AlterIngestionTimePluralPolicyCommand
+        : PolicyCommandBase, ISingularToPluralCommand
     {
         public IImmutableList<EntityName> TableNames { get; }
 
