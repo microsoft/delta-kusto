@@ -121,6 +121,7 @@ namespace DeltaKustoLib.CommandModel.Policies.Caching
 
             return builder.ToString();
         }
+
         IEnumerable<CommandBase> ISingularToPluralCommand.ToPlural(
             IEnumerable<CommandBase> singularCommands)
         {

@@ -13,7 +13,8 @@ namespace DeltaKustoLib.CommandModel.Policies.IngestionBatching
     /// Models <see cref="https://docs.microsoft.com/en-us/azure/data-explorer/kusto/management/batching-policy#altering-the-ingestionbatching-policy"/>
     /// </summary>
     [Command(12100, "Alter Ingestion Batching Policies")]
-    public class AlterIngestionBatchingPolicyCommand : EntityPolicyCommandBase
+    public class AlterIngestionBatchingPolicyCommand
+        : EntityPolicyCommandBase, ISingularToPluralCommand
     {
         public override string CommandFriendlyName => ".alter <entity> policy ingestionbatching";
 
@@ -83,14 +84,28 @@ namespace DeltaKustoLib.CommandModel.Policies.IngestionBatching
             {
                 builder.Append(EntityName.ToScript());
             }
-            builder.Append(" policy ingestionbatching");
-            builder.AppendLine();
-            builder.Append("```");
-            builder.Append(SerializePolicy());
-            builder.AppendLine();
-            builder.Append("```");
+            builder.AppendLine(" policy ingestionbatching");
+            builder.AppendLine("```");
+            builder.AppendLine(SerializePolicy());
+            builder.AppendLine("```");
 
             return builder.ToString();
+        }
+
+        IEnumerable<CommandBase> ISingularToPluralCommand.ToPlural(
+            IEnumerable<CommandBase> singularCommands)
+        {
+            var singularPolicyCommands = singularCommands
+                .Cast<AlterIngestionBatchingPolicyCommand>();
+
+            //  We might want to cap batches to a maximum size?
+            var pluralCommands = singularPolicyCommands
+                .GroupBy(c => c.Policy)
+                .Select(g => new AlterIngestionBatchingPluralPolicyCommand(
+                    g.Select(c => c.EntityName),
+                    g.Key));
+
+            return pluralCommands.ToImmutableArray();
         }
 
         internal static IEnumerable<CommandBase> ComputeDelta(
