@@ -102,7 +102,7 @@ namespace DeltaKustoAdxIntegrationTest
                         .Add(("jobs.main.current.adx.database", currentDb.Name))
                         .Add(("jobs.main.target.scripts[0].filePath", toFile))
                         .Add(("jobs.main.action.filePath", outputPath))
-                        .Add(("jobs.main.action.usePluralForms", usePluralForms.ToString()));
+                        .Add(("jobs.main.action.usePluralForms", usePluralForms));
                         var parameters = await RunParametersAsync(
                             "adx-to-file-params.json",
                             overrides);
@@ -151,7 +151,7 @@ namespace DeltaKustoAdxIntegrationTest
                             .Add(("jobs.main.target.adx.database", targetDb.Name))
                             .Add(("jobs.main.current.scripts[0].filePath", fromFile))
                             .Add(("jobs.main.action.filePath", outputPath))
-                            .Add(("jobs.main.action.usePluralForms", usePluralForms.ToString()));
+                            .Add(("jobs.main.action.usePluralForms", usePluralForms));
                         var parameters = await RunParametersAsync(
                             "file-to-adx-params.json",
                             overrides);
@@ -203,7 +203,7 @@ namespace DeltaKustoAdxIntegrationTest
                         .Add(("jobs.main.target.adx.clusterUri", ClusterUri.ToString()))
                         .Add(("jobs.main.target.adx.database", targetDb.Name))
                         .Add(("jobs.main.action.filePath", outputPath))
-                        .Add(("jobs.main.action.usePluralForms", usePluralForms.ToString()));
+                        .Add(("jobs.main.action.usePluralForms", usePluralForms));
                         var parameters = await RunParametersAsync(
                             "adx-to-adx-params.json",
                             overrides);
@@ -224,7 +224,7 @@ namespace DeltaKustoAdxIntegrationTest
 
         private async static Task LoopThroughStateFilesAsync(
             string folderPath,
-            Func<string, string, bool, Task> loopFunction)
+            Func<string, string, string, Task> loopFunction)
         {
             var stateFiles = Directory.GetFiles(folderPath);
 
@@ -234,7 +234,10 @@ namespace DeltaKustoAdxIntegrationTest
                 {
                     foreach (var usePluralForms in new[] { true, false })
                     {
-                        await loopFunction(fromFile, toFile, usePluralForms);
+                        await loopFunction(
+                            fromFile,
+                            toFile,
+                            usePluralForms.ToString().ToLower());
                     }
                 }
             }
