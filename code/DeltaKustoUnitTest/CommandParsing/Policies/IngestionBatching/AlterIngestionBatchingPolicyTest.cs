@@ -1,5 +1,4 @@
 using DeltaKustoLib.CommandModel;
-using DeltaKustoLib.CommandModel.Policies;
 using DeltaKustoLib.CommandModel.Policies.IngestionBatching;
 using System;
 using System.Linq;

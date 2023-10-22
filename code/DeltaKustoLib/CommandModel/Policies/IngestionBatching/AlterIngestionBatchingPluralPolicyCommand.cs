@@ -16,11 +16,11 @@ namespace DeltaKustoLib.CommandModel.Policies.IngestionBatching
     public class AlterIngestionBatchingPluralPolicyCommand : PolicyCommandBase, ISingularToPluralCommand
     {
         public IImmutableList<EntityName> TableNames { get; }
- 
+
         public override string CommandFriendlyName => ".alter tables policy ingestionbatching";
 
         public override string SortIndex => TableNames.First().Name;
-        
+
         public override string ScriptPath => "tables/policies/ingestionbatching/create-many";
 
         public AlterIngestionBatchingPluralPolicyCommand(
@@ -30,6 +30,21 @@ namespace DeltaKustoLib.CommandModel.Policies.IngestionBatching
             TableNames = tableNames
                 .OrderBy(t => t.Name)
                 .ToImmutableArray();
+        }
+
+        public AlterIngestionBatchingPluralPolicyCommand(
+            IEnumerable<EntityName> tableNames,
+            TimeSpan maximumBatchingTimeSpan,
+            int maximumNumberOfItems,
+            int maximumRawDataSizeMb) : this(
+                tableNames,
+                ToJsonDocument(new
+                {
+                    MaximumBatchingTimeSpan = maximumBatchingTimeSpan.ToString(),
+                    MaximumNumberOfItems = maximumNumberOfItems,
+                    MaximumRawDataSizeMb = maximumRawDataSizeMb
+                }))
+        {
         }
 
         internal static CommandBase FromCode(SyntaxElement rootElement)
@@ -66,7 +81,9 @@ namespace DeltaKustoLib.CommandModel.Policies.IngestionBatching
         {
             var builder = new StringBuilder();
 
-            builder.AppendLine(".alter tables policy ingestionbatching");
+            builder.Append(".alter tables (");
+            builder.Append(string.Join(", ", TableNames.Select(n => n.ToScript())));
+            builder.AppendLine(") policy ingestionbatching");
             builder.AppendLine("```");
             builder.AppendLine(SerializePolicy());
             builder.AppendLine("```");
