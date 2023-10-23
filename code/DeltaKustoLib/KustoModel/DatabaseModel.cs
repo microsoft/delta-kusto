@@ -308,7 +308,8 @@ namespace DeltaKustoLib.KustoModel
                 && object.Equals(_ingestionBatchingPolicy, other._ingestionBatchingPolicy)
                 && object.Equals(_mergePolicy, other._mergePolicy)
                 && object.Equals(_retentionPolicy, other._retentionPolicy)
-                && object.Equals(_shardingPolicy, other._shardingPolicy);
+                && object.Equals(_shardingPolicy, other._shardingPolicy)
+                && object.Equals(_streamingIngestionPolicy, other._streamingIngestionPolicy);
 
             return result;
         }

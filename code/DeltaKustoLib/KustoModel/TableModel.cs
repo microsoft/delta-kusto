@@ -85,14 +85,14 @@ namespace DeltaKustoLib.KustoModel
             AutoDeletePolicy = autoDeletePolicy;
             CachingPolicy = cachingPolicy;
             IngestionBatchingPolicy = ingestionBatchingPolicy;
+            IngestionTimePolicy = ingestionTimePolicy;
             MergePolicy = mergePolicy;
-            RetentionPolicy = retentionPolicy;
-            ShardingPolicy = shardingPolicy;
-            StreamingIngestionPolicy = streamingIngestionPolicy;
             PartitioningPolicy = partitioningPolicy;
             RestrictedViewPolicy = restrictedViewPolicy;
+            RetentionPolicy = retentionPolicy;
             RowLevelSecurityPolicy = rowLevelSecurityPolicy;
-            IngestionTimePolicy = ingestionTimePolicy;
+            ShardingPolicy = shardingPolicy;
+            StreamingIngestionPolicy = streamingIngestionPolicy;
             UpdatePolicy = updatePolicy;
             Folder = folder;
             DocString = docString;
@@ -107,10 +107,18 @@ namespace DeltaKustoLib.KustoModel
                 && other.Columns.OrderBy(c => c.ColumnName).SequenceEqual(
                     Columns.OrderBy(c => c.ColumnName))
                 && other.Mappings.SequenceEqual(Mappings)
-                && object.Equals(other.UpdatePolicy, UpdatePolicy)
-                && object.Equals(other.CachingPolicy, CachingPolicy)
-                && object.Equals(other.RetentionPolicy, RetentionPolicy)
                 && object.Equals(other.AutoDeletePolicy, AutoDeletePolicy)
+                && object.Equals(other.CachingPolicy, CachingPolicy)
+                && object.Equals(other.IngestionBatchingPolicy, IngestionBatchingPolicy)
+                && object.Equals(other.IngestionTimePolicy, IngestionTimePolicy)
+                && object.Equals(other.MergePolicy, MergePolicy)
+                && object.Equals(other.PartitioningPolicy, PartitioningPolicy)
+                && object.Equals(other.RestrictedViewPolicy, RestrictedViewPolicy)
+                && object.Equals(other.RetentionPolicy, RetentionPolicy)
+                && object.Equals(other.RowLevelSecurityPolicy, RowLevelSecurityPolicy)
+                && object.Equals(other.ShardingPolicy, ShardingPolicy)
+                && object.Equals(other.StreamingIngestionPolicy, StreamingIngestionPolicy)
+                && object.Equals(other.UpdatePolicy, UpdatePolicy)
                 && object.Equals(other.Folder, Folder)
                 && object.Equals(other.DocString, DocString);
 

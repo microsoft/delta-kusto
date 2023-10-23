@@ -103,6 +103,11 @@ namespace DeltaKustoAdxIntegrationTest
                         .Add(("jobs.main.target.scripts[0].filePath", toFile))
                         .Add(("jobs.main.action.filePath", outputPath))
                         .Add(("jobs.main.action.usePluralForms", usePluralForms));
+                        if(fromFile.Contains("one")&& toFile.Contains("two"))
+                        {
+                            int a = 3;
+                            ++a;
+                        }
                         var parameters = await RunParametersAsync(
                             "adx-to-file-params.json",
                             overrides);
