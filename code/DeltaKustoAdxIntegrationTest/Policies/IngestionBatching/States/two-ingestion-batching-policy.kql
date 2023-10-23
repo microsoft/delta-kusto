@@ -9,9 +9,9 @@
 }
 ```
 
-.create table MyTable(Id:string)
+.create table MyIngestionBatchingTable2(Id:string)
 
-.alter table MyTable policy ingestionbatching
+.alter table MyIngestionBatchingTable2 policy ingestionbatching
 ```
 {
   "MaximumBatchingTimeSpan": "00:06:00",
