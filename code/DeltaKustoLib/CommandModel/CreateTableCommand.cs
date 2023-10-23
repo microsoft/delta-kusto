@@ -103,6 +103,7 @@ namespace DeltaKustoLib.CommandModel
                 builder.AppendJoin(", ", nonEmptyProperties);
                 builder.Append(") ");
             }
+            builder.AppendLine();
 
             return builder.ToString();
         }
