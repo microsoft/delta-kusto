@@ -93,7 +93,7 @@ namespace DeltaKustoLib.CommandModel
             var nonEmptyProperties = properties.Where(p => p != null);
 
             builder.Append(".create-merge table ");
-            builder.Append(TableName);
+            builder.Append(TableName.ToScript());
             builder.Append(" (");
             builder.AppendJoin(", ", Columns.Select(c => c.ToString()));
             builder.Append(")");
