@@ -119,6 +119,9 @@ namespace DeltaKustoLib.CommandModel.Policies.Retention
         IEnumerable<CommandBase>
             ISingularToPluralCommand.ToPlural(IEnumerable<CommandBase> singularCommands)
         {
+            var dbPolicyCommands = singularCommands
+                .Cast<EntityPolicyCommandBase>()
+                .Where(c => c.EntityType == EntityType.Database);
             var singularPolicyCommands = singularCommands
                 .Cast<AlterRetentionPolicyCommand>()
                 .Where(c => c.EntityType == EntityType.Table);
@@ -137,7 +140,10 @@ namespace DeltaKustoLib.CommandModel.Policies.Retention
                     g.Select(c => c.EntityName),
                     g.First().Policy));
 
-            return pluralCommands.ToImmutableArray();
+            return pluralCommands
+                .Cast<CommandBase>()
+                .Concat(dbPolicyCommands)
+                .ToImmutableArray();
         }
     }
 }

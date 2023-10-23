@@ -125,8 +125,12 @@ namespace DeltaKustoLib.CommandModel.Policies.Caching
         IEnumerable<CommandBase> ISingularToPluralCommand.ToPlural(
             IEnumerable<CommandBase> singularCommands)
         {
+            var dbPolicyCommands = singularCommands
+                .Cast<EntityPolicyCommandBase>()
+                .Where(c => c.EntityType == EntityType.Database);
             var singularPolicyCommands = singularCommands
-                .Cast<AlterCachingPolicyCommand>();
+                .Cast<AlterCachingPolicyCommand>()
+                .Where(c => c.EntityType == EntityType.Table);
 
             //  We might want to cap batches to a maximum size?
             var pluralCommands = singularPolicyCommands
@@ -137,9 +141,11 @@ namespace DeltaKustoLib.CommandModel.Policies.Caching
                     g.Key.HotIndex.Duration!.Value,
                     g.Key.HotWindows));
 
-            return pluralCommands.ToImmutableArray();
+            return pluralCommands
+                .Cast<CommandBase>()
+                .Concat(dbPolicyCommands)
+                .ToImmutableArray();
         }
-
 
         internal static IEnumerable<CommandBase> ComputeDelta(
             AlterCachingPolicyCommand? currentCommand,
