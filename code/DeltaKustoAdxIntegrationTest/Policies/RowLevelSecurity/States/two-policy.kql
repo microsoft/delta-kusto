@@ -4,4 +4,4 @@
 
 .create table MyRowLevelSecurityTable2(Id:string)
 
-.alter table MyRowLevelSecurityTable policy row_level_security enable "MyRowLevelSecurityTable2"
+.alter table MyRowLevelSecurityTable2 policy row_level_security enable "MyRowLevelSecurityTable2"
