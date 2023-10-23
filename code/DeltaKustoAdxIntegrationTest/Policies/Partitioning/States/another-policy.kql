@@ -1,0 +1,16 @@
+﻿.create table MyPartitioningTable(TIMESTAMP: datetime, TenantId:string, Level: int)
+
+.alter table MyPartitioningTable policy partitioning ```
+{
+  "PartitionKeys": [
+    {
+      "ColumnName": "TenantId",
+      "Kind": "Hash",
+      "Properties": {
+        "Function": "XxHash64",
+        "MaxPartitionCount": 32,
+        "PartitionAssignmentMode": "Uniform"
+      }
+    }
+  ]
+}```

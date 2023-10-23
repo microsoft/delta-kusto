@@ -1,0 +1,37 @@
+﻿.create table MyPartitioningTable(TIMESTAMP: datetime, TenantId:string, Level: int)
+
+.alter table MyPartitioningTable policy partitioning
+```
+{
+  "PartitionKeys": [
+    {
+      "ColumnName": "TenantId",
+      "Kind": "Hash",
+      "Properties": {
+        "Function": "XxHash64",
+        "MaxPartitionCount": 128,
+        "PartitionAssignmentMode": "Uniform"
+      }
+    }
+  ]
+}
+```
+
+.create table MyPartitioningTable2(Id:string)
+
+.alter table MyPartitioningTable2 policy partitioning
+```
+{
+  "PartitionKeys": [
+    {
+      "ColumnName": "Id",
+      "Kind": "Hash",
+      "Properties": {
+        "Function": "XxHash64",
+        "MaxPartitionCount": 128,
+        "PartitionAssignmentMode": "Uniform"
+      }
+    }
+  ]
+}
+```
