@@ -1,0 +1,9 @@
+﻿.create table BIAzureTraceMsitScus (TIMESTAMP: datetime, PreciseTimeStamp: datetime, Level: int, ProviderGuid: string, ProviderName: string, KeywordName: string, TaskName: string, ChannelName: string, EventMessage: string, ActivityId: string, Message: string, SourceTableName: string, ExtraFields: string, Directory: string, TraceTimeStamp: datetime, InstanceId: string, TraceActivityId: string, RootActivityId: string, ActivityType: string, ClientActivityId: string, SourceId: string, EventText: string)
+
+.alter table BIAzureTraceMsitScus policy caching hot = 12h
+
+.create table MyTable(Id:string)
+
+.alter table MyTable policy caching hot = 12h
+
+.alter database ['my-db'] policy caching hot = 30d
