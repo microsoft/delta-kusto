@@ -359,30 +359,30 @@ namespace DeltaKustoLib.KustoModel
             var ingestionBatchingPolicyCommands = AlterIngestionBatchingPolicyCommand.ComputeDelta(
                 IngestionBatchingPolicy,
                 targetModel.IngestionBatchingPolicy);
+            var ingestionTimePolicyCommands = AlterIngestionTimePolicyCommand.ComputeDelta(
+                IngestionTimePolicy,
+                targetModel.IngestionTimePolicy);
             var mergePolicyCommands = AlterMergePolicyCommand.ComputeDelta(
                 MergePolicy,
                 targetModel.MergePolicy);
+            var partitioningPolicyCommands = AlterPartitioningPolicyCommand.ComputeDelta(
+                PartitioningPolicy,
+                targetModel.PartitioningPolicy);
             var retentionPolicyCommands = AlterRetentionPolicyCommand.ComputeDelta(
                 RetentionPolicy,
                 targetModel.RetentionPolicy);
+            var restrictedViewPolicyCommands = AlterRestrictedViewPolicyCommand.ComputeDelta(
+                RestrictedViewPolicy,
+                targetModel.RestrictedViewPolicy);
+            var rowLevelSecurityPolicyCommands = AlterRowLevelSecurityPolicyCommand.ComputeDelta(
+                RowLevelSecurityPolicy,
+                targetModel.RowLevelSecurityPolicy);
             var shardingPolicyCommands = AlterShardingPolicyCommand.ComputeDelta(
                 ShardingPolicy,
                 targetModel.ShardingPolicy);
             var streamingIngestionPolicyCommands = AlterStreamingIngestionPolicyCommand.ComputeDelta(
                 StreamingIngestionPolicy,
                 targetModel.StreamingIngestionPolicy);
-            var partitioningPolicyCommands = AlterPartitioningPolicyCommand.ComputeDelta(
-                PartitioningPolicy,
-                targetModel.PartitioningPolicy);
-            var rowLevelSecurityPolicyCommands = AlterRowLevelSecurityPolicyCommand.ComputeDelta(
-                RowLevelSecurityPolicy,
-                targetModel.RowLevelSecurityPolicy);
-            var ingestionTimePolicyCommands = AlterIngestionTimePolicyCommand.ComputeDelta(
-                IngestionTimePolicy,
-                targetModel.IngestionTimePolicy);
-            var restrictedViewPolicyCommands = AlterRestrictedViewPolicyCommand.ComputeDelta(
-                RestrictedViewPolicy,
-                targetModel.RestrictedViewPolicy);
             var updatePolicyCommands =
                 AlterUpdatePolicyCommand.ComputeDelta(UpdatePolicy, targetModel.UpdatePolicy);
 
@@ -398,10 +398,8 @@ namespace DeltaKustoLib.KustoModel
                     TableName,
                     targetModel.Columns.Select(
                         c => new TableColumn(c.ColumnName, c.PrimitiveType)),
-                    includeFolder ? (targetModel.Folder ?? QuotedText.Empty) : null,
-                    includeDocString
-                    ? (targetModel.DocString ?? QuotedText.Empty)
-                    : null);
+                    targetModel.Folder,
+                    targetModel.DocString);
             }
             if (updateDocStringColumnNames.Any())
             {
