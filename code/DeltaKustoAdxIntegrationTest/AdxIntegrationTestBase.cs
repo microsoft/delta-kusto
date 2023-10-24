@@ -233,7 +233,8 @@ namespace DeltaKustoAdxIntegrationTest
                     .Add(($"jobs.job{i}.target.adx.clusterUri", ClusterUri.ToString()))
                     .Add(($"jobs.job{i}.target.adx.database", targetDbNames[i]))
                     .Add(($"jobs.job{i}.action.filePath", testCases[i].GetOutputPath(statesFolderPath)))
-                    .Add(($"jobs.job{i}.action.usePluralForms", testCases[i].UsePluralForms.ToString())))
+                    .Add(($"jobs.job{i}.action.usePluralForms", testCases[i].UsePluralForms.ToString().ToLower()))
+                    .Add(($"jobs.job{i}.action.pushToCurrent", "true")))
                     .ToImmutableArray();
 
                 await Task.WhenAll(prepareDbTasks);
