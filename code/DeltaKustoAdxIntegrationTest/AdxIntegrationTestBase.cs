@@ -242,17 +242,27 @@ namespace DeltaKustoAdxIntegrationTest
                 var parameters = await RunParametersAsync(
                     "adx-to-adx-params.json",
                     overrides);
-                //var targetCommandsTask = FetchDbCommandsAsync(targetDb.Name);
-                //var finalCommands = await FetchDbCommandsAsync(currentDb.Name);
-                //var targetCommands = await targetCommandsTask;
-                //var targetModel = DatabaseModel.FromCommands(targetCommands);
-                //var finalModel = DatabaseModel.FromCommands(finalCommands);
-                //var finalScript = string.Join(";\n\n", finalCommands.Select(c => c.ToScript()));
-                //var targetScript = string.Join(";\n\n", targetCommands.Select(c => c.ToScript()));
+                Func<int, Task> validateTestCase = async i =>
+                {
+                    var targetCommandsTask = FetchDbCommandsAsync(targetDbNames[i]);
+                    var finalCommands = await FetchDbCommandsAsync(currentDbNames[i]);
+                    var targetCommands = await targetCommandsTask;
+                    var targetModel = DatabaseModel.FromCommands(targetCommands);
+                    var finalModel = DatabaseModel.FromCommands(finalCommands);
+                    var finalScript = string.Join(";\n\n", finalCommands.Select(c => c.ToScript()));
+                    var targetScript = string.Join(";\n\n", targetCommands.Select(c => c.ToScript()));
 
-                //Assert.True(
-                //    targetModel.Equals(finalModel),
-                //    $"From {fromFile} to {toFile}:\n\n{finalScript}\nvs\n\n{targetScript}");
+                    Assert.True(
+                        targetModel.Equals(finalModel),
+                        $"From {testCases[i].FromFile} to {testCases[i].ToFile} "
+                        + $"({testCases[i].UsePluralForms}):  "
+                        + $"\n\n{finalScript}\nvs\n\n{targetScript}");
+                };
+                var validationTasks = Enumerable.Range(0, testCases.Count)
+                    .Select(i => validateTestCase(i))
+                    .ToImmutableArray();
+
+                await Task.WhenAll(validationTasks);
             }
             finally
             {
