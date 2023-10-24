@@ -18,21 +18,21 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    # Login
     - name: Azure Login
       run: az login --service-principal -u ${{ secrets.deploy_sp_id }} -p ${{ secrets.deploy_sp_secret }} --tenant ${{ secrets.tenant_id }}
+    - name: Azure Subscription Selection
+      run: az account set -n "${{ secrets.TEST_SUB }}"
     # Add Kusto extension to Azure CLI
     - name: Install Kusto extension
       run: az extension add -n kusto
     # Turn cluster on
     - name: Turn on cluster (if off)
-      shell:  bash
-      run:  |
+      run: |
         # Retrieve cluster name
         clusterName=$(az kusto cluster list -g ${{ secrets.test_rg }} --query "[?tags.testLevel=='integration'].name" -o tsv)
         state=$(az kusto cluster list -g ${{ secrets.test_rg }} --query "[?tags.testLevel=='integration'].state" -o tsv)
         echo "Cluster Name:  $clusterName"
-        echo "State:  '$state'"
+        echo "State:  $state"
         if [ "$state" == "Stopped" ]
         then
           # Actually start the cluster
