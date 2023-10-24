@@ -1,9 +1,20 @@
 ﻿using DeltaKustoLib.CommandModel;
-using DeltaKustoLib.CommandModel.Policies;
-using Kusto.Language.Syntax;
+using DeltaKustoLib.CommandModel.Policies.AutoDelete;
+using DeltaKustoLib.CommandModel.Policies.Caching;
+using DeltaKustoLib.CommandModel.Policies.IngestionBatching;
+using DeltaKustoLib.CommandModel.Policies.IngestionTime;
+using DeltaKustoLib.CommandModel.Policies.Merge;
+using DeltaKustoLib.CommandModel.Policies.Partitioning;
+using DeltaKustoLib.CommandModel.Policies.RestrictedView;
+using DeltaKustoLib.CommandModel.Policies.Retention;
+using DeltaKustoLib.CommandModel.Policies.RowLevelSecurity;
+using DeltaKustoLib.CommandModel.Policies.Sharding;
+using DeltaKustoLib.CommandModel.Policies.StreamingIngestion;
+using DeltaKustoLib.CommandModel.Policies.Update;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -21,10 +32,16 @@ namespace DeltaKustoLib.KustoModel
             typeof(AlterUpdatePolicyCommand),
             typeof(AlterCachingPolicyCommand),
             typeof(AlterRetentionPolicyCommand),
-            typeof(AlterTablesRetentionPolicyCommand),
+            typeof(AlterRetentionPluralTablePolicyCommand),
             typeof(AlterAutoDeletePolicyCommand),
             typeof(AlterMergePolicyCommand),
+            typeof(AlterIngestionTimePolicyCommand),
+            typeof(AlterIngestionTimePluralPolicyCommand),
             typeof(AlterIngestionBatchingPolicyCommand),
+            typeof(AlterPartitioningPolicyCommand),
+            typeof(AlterRestrictedViewPolicyCommand),
+            typeof(AlterRestrictedViewPluralPolicyCommand),
+            typeof(AlterRowLevelSecurityPolicyCommand),
             typeof(AlterShardingPolicyCommand),
             typeof(AlterStreamingIngestionPolicyCommand)
         }.ToImmutableHashSet();
@@ -115,8 +132,18 @@ namespace DeltaKustoLib.KustoModel
                 .ToImmutableArray();
             var cachingPolicies = GetCommands<AlterCachingPolicyCommand>(commandTypeIndex)
                 .ToImmutableArray();
+            var tableCachingPluralPolicies =
+                GetCommands<AlterCachingPluralPolicyCommand>(commandTypeIndex)
+                .Select(c => c.TableNames.Select(t => new AlterCachingPolicyCommand(
+                    EntityType.Table,
+                    t,
+                    c.HotData.Duration!.Value,
+                    c.HotIndex.Duration!.Value,
+                    c.HotWindows)))
+                .SelectMany(e => e);
             var tableCachingPolicies = cachingPolicies
-                .Where(p => p.EntityType == EntityType.Table);
+                .Where(p => p.EntityType == EntityType.Table)
+                .Concat(tableCachingPluralPolicies);
             var dbCachingPolicies = cachingPolicies
                 .Where(p => p.EntityType == EntityType.Database);
             var ingestionBatchingPolicies = GetCommands<AlterIngestionBatchingPolicyCommand>(commandTypeIndex)
@@ -131,11 +158,6 @@ namespace DeltaKustoLib.KustoModel
                 .Where(p => p.EntityType == EntityType.Table);
             var dbMergePolicies = mergePolicies
                 .Where(p => p.EntityType == EntityType.Database);
-            var retentionTablePluralPolicies = GetCommands<AlterTablesRetentionPolicyCommand>(commandTypeIndex)
-                .SelectMany(c => c.TableNames.Select(t => new AlterRetentionPolicyCommand(
-                    EntityType.Table,
-                    t,
-                    c.Policy)));
             var shardingPolicies = GetCommands<AlterShardingPolicyCommand>(commandTypeIndex)
                 .ToImmutableArray();
             var tableShardingPolicies = shardingPolicies
@@ -149,6 +171,13 @@ namespace DeltaKustoLib.KustoModel
                 .Where(p => p.EntityType == EntityType.Table);
             var dbStreamingIngestionPolicies = streamingIngestionPolicies
                 .Where(p => p.EntityType == EntityType.Database);
+            var tablePartitioningPolicies =
+                GetCommands<AlterPartitioningPolicyCommand>(commandTypeIndex);
+            var retentionTablePluralPolicies = GetCommands<AlterRetentionPluralTablePolicyCommand>(commandTypeIndex)
+                .SelectMany(c => c.TableNames.Select(t => new AlterRetentionPolicyCommand(
+                    EntityType.Table,
+                    t,
+                    c.Policy)));
             var retentionPolicies = GetCommands<AlterRetentionPolicyCommand>(commandTypeIndex)
                 .ToImmutableArray();
             var tableRetentionPolicies = retentionPolicies
@@ -156,6 +185,25 @@ namespace DeltaKustoLib.KustoModel
                 .Concat(retentionTablePluralPolicies);
             var dbRetentionPolicies = retentionPolicies
                 .Where(p => p.EntityType == EntityType.Database);
+            var tableRowLevelSecurityPolicies =
+                GetCommands<AlterRowLevelSecurityPolicyCommand>(commandTypeIndex)
+                .ToImmutableArray();
+            var tableRestrictedViewPluralPolicies =
+                GetCommands<AlterRestrictedViewPluralPolicyCommand>(commandTypeIndex)
+                .Select(c => c.TableNames.Select(t => new AlterRestrictedViewPolicyCommand(t, c.AreEnabled)))
+                .SelectMany(e => e);
+            var tableRestrictedViewPolicies =
+                GetCommands<AlterRestrictedViewPolicyCommand>(commandTypeIndex)
+                .Concat(tableRestrictedViewPluralPolicies)
+                .ToImmutableArray();
+            var tableIngestionTimePluralPolicies =
+                GetCommands<AlterIngestionTimePluralPolicyCommand>(commandTypeIndex)
+                .Select(c => c.TableNames.Select(t => new AlterIngestionTimePolicyCommand(t, c.AreEnabled)))
+                .SelectMany(e => e);
+            var tableIngestionTimePolicies =
+                GetCommands<AlterIngestionTimePolicyCommand>(commandTypeIndex)
+                .Concat(tableIngestionTimePluralPolicies)
+                .ToImmutableArray();
             var updatePolicies = GetCommands<AlterUpdatePolicyCommand>(commandTypeIndex)
                 .ToImmutableArray();
 
@@ -179,8 +227,12 @@ namespace DeltaKustoLib.KustoModel
             ValidateDuplicates(dbShardingPolicies, m => "Database sharding policy");
             ValidateDuplicates(tableStreamingIngestionPolicies, m => m.EntityName.Name);
             ValidateDuplicates(dbStreamingIngestionPolicies, m => "Database sharding policy");
+            ValidateDuplicates(tablePartitioningPolicies, m => m.TableName.Name);
             ValidateDuplicates(tableRetentionPolicies, m => m.EntityName.Name);
             ValidateDuplicates(dbRetentionPolicies, m => "Database retention policy");
+            ValidateDuplicates(tableRowLevelSecurityPolicies, m => m.TableName.Name);
+            ValidateDuplicates(tableRestrictedViewPolicies, m => m.TableName.Name);
+            ValidateDuplicates(tableIngestionTimePolicies, m => m.TableName.Name);
             ValidateDuplicates(updatePolicies, m => m.TableName.Name);
 
             var tableModels = TableModel.FromCommands(
@@ -194,6 +246,10 @@ namespace DeltaKustoLib.KustoModel
                 tableRetentionPolicies,
                 tableShardingPolicies,
                 tableStreamingIngestionPolicies,
+                tablePartitioningPolicies,
+                tableRowLevelSecurityPolicies,
+                tableRestrictedViewPolicies,
+                tableIngestionTimePolicies,
                 updatePolicies);
 
             return new DatabaseModel(
@@ -252,7 +308,8 @@ namespace DeltaKustoLib.KustoModel
                 && object.Equals(_ingestionBatchingPolicy, other._ingestionBatchingPolicy)
                 && object.Equals(_mergePolicy, other._mergePolicy)
                 && object.Equals(_retentionPolicy, other._retentionPolicy)
-                && object.Equals(_shardingPolicy, other._shardingPolicy);
+                && object.Equals(_shardingPolicy, other._shardingPolicy)
+                && object.Equals(_streamingIngestionPolicy, other._streamingIngestionPolicy);
 
             return result;
         }

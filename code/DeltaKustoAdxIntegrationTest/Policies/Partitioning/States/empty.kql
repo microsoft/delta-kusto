@@ -1,0 +1,4 @@
+﻿//	Random comment
+
+.create table MyPartitioningTable(TIMESTAMP: datetime, TenantId:string, Level: int)
+

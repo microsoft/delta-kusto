@@ -1,0 +1,10 @@
+﻿jobs: 
+  main:
+    current:
+      scripts:
+        - filePath:  current.kql
+    target:
+      scripts:
+        - filePath:  target.kql
+    action:
+      filePath:  outputs/one-to-one-with-change.kql

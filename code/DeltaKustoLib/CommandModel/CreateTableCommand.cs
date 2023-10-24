@@ -93,7 +93,7 @@ namespace DeltaKustoLib.CommandModel
             var nonEmptyProperties = properties.Where(p => p != null);
 
             builder.Append(".create-merge table ");
-            builder.Append(TableName);
+            builder.Append(TableName.ToScript());
             builder.Append(" (");
             builder.AppendJoin(", ", Columns.Select(c => c.ToString()));
             builder.Append(")");
@@ -103,12 +103,13 @@ namespace DeltaKustoLib.CommandModel
                 builder.AppendJoin(", ", nonEmptyProperties);
                 builder.Append(") ");
             }
+            builder.AppendLine();
 
             return builder.ToString();
         }
 
-        IEnumerable<CommandBase>
-            ISingularToPluralCommand.ToPlural(IEnumerable<CommandBase> singularCommands)
+        IEnumerable<CommandBase> ISingularToPluralCommand.ToPlural(
+            IEnumerable<CommandBase> singularCommands)
         {
             //  We might want to cap batches to a maximum size?
             var pluralCommands = singularCommands
@@ -122,7 +123,9 @@ namespace DeltaKustoLib.CommandModel
                     g.Key.Folder,
                     g.Key.DocString));
 
-            return pluralCommands.ToImmutableArray();
+            //  Temporarily disable plural as it doesn't seem to work with folder + 
+            //return pluralCommands.ToImmutableArray();
+            return singularCommands;
         }
 
         private static (QuotedText? folder, QuotedText? docString) ExtractProperties(

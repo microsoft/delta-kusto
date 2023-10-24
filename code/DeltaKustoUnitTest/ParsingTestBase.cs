@@ -30,5 +30,19 @@ namespace DeltaKustoUnitTest
 
             return commands.First();
         }
+
+        protected static string GetActualTableName(string tableName)
+        {
+            var actualTableName = tableName.Split('.').Last();
+
+            if (actualTableName.StartsWith('['))
+            {
+                return actualTableName.Substring(2, actualTableName.Length - 4);
+            }
+            else
+            {
+                return actualTableName;
+            }
+        }
     }
 }

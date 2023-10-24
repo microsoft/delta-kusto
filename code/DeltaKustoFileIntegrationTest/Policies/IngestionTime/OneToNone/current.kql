@@ -1,0 +1,4 @@
+﻿.create table ['my-table'] (a: real, b: int, c: string)
+
+//	Random comment
+.alter table ['my-table'] policy ingestiontime true

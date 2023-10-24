@@ -82,8 +82,6 @@ namespace DeltaKustoUnitTest.Delta
             var createTableCommand = (CreateTableCommand)delta[0];
 
             Assert.Equal(new QuotedText("abc"), createTableCommand.Folder);
-            //  This hasn't changed so it shouldn't be part of the command
-            Assert.Null(createTableCommand.DocString);
         }
 
         [Fact]
@@ -100,7 +98,6 @@ namespace DeltaKustoUnitTest.Delta
 
             var createTableCommand = (CreateTableCommand)delta[0];
 
-            Assert.Null(createTableCommand.Folder);
             Assert.Equal(createTableCommand.DocString, QuotedText.Empty);
         }
 

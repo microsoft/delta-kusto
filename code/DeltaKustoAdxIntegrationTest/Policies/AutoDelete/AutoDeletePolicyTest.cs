@@ -10,8 +10,8 @@ using Xunit;
 
 namespace DeltaKustoAdxIntegrationTest.Policies.AutoDelete
 {
-    public class AutoDeletePolicyTest //: AdxAutoIntegrationTestBase
+    public class AutoDeletePolicyTest : AdxAutoIntegrationTestBase
     {
-        //protected override string StatesFolderPath => "Policies/AutoDelete";
+        protected override string StatesFolderPath => "Policies/AutoDelete";
     }
 }

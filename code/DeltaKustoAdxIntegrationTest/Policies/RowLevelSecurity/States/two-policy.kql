@@ -1,0 +1,7 @@
+﻿.create table MyRowLevelSecurityTable(TIMESTAMP: datetime, PreciseTimeStamp: datetime, Level: int)
+
+.alter table MyRowLevelSecurityTable policy row_level_security enable "MyRowLevelSecurityTable"
+
+.create table MyRowLevelSecurityTable2(Id:string)
+
+.alter table MyRowLevelSecurityTable2 policy row_level_security enable "MyRowLevelSecurityTable2"

@@ -17,4 +17,8 @@
     <PackageReference Include="Microsoft.Azure.Kusto.Language" Version="11.3.24011" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="CommandModel\Policies\AutoDelete\" />
+  </ItemGroup>
+
 </Project>

@@ -4,7 +4,7 @@
 .alter table ['my-table'] policy ingestionbatching
 ```
 {
-  "MaximumBatchingTimeSpan": "00:07:18",
+  "MaximumBatchingTimeSpan": "00:08:00",
   "MaximumNumberOfItems": 747, 
   "MaximumRawDataSizeMB": 5
 }

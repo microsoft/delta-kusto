@@ -1,0 +1,7 @@
+﻿.create table MyRestrictedViewTable (TIMESTAMP: datetime, PreciseTimeStamp: datetime, Level: int)
+
+.alter table MyRestrictedViewTable policy restricted_view_access true
+
+.create table MyTable(Id:string)
+
+.alter table MyTable policy restricted_view_access true

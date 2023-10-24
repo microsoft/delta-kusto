@@ -1,0 +1,7 @@
+﻿.create table MyIngestionTimeTable (TIMESTAMP: datetime, PreciseTimeStamp: datetime, Level: int)
+
+.alter table MyIngestionTimeTable policy ingestiontime true
+
+.create table MyIngestionTimeTable2(Id:string)
+
+.alter table MyIngestionTimeTable2 policy ingestiontime true

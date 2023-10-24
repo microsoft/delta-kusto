@@ -1,5 +1,3 @@
-using DeltaKustoIntegration.Database;
-using DeltaKustoLib.CommandModel;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;

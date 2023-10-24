@@ -1,0 +1,4 @@
+﻿//	Random comment
+
+.create table MyIngestionTimeTable(TIMESTAMP: datetime, PreciseTimeStamp: datetime, Level: int)
+

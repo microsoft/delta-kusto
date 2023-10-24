@@ -1,0 +1,4 @@
+﻿//	Random comment
+
+.create table MyRestrictedViewTable (TIMESTAMP: datetime, PreciseTimeStamp: datetime, Level: int)
+

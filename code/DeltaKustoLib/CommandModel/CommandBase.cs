@@ -1,4 +1,16 @@
 ﻿using DeltaKustoLib.CommandModel.Policies;
+using DeltaKustoLib.CommandModel.Policies.AutoDelete;
+using DeltaKustoLib.CommandModel.Policies.Caching;
+using DeltaKustoLib.CommandModel.Policies.IngestionBatching;
+using DeltaKustoLib.CommandModel.Policies.IngestionTime;
+using DeltaKustoLib.CommandModel.Policies.Merge;
+using DeltaKustoLib.CommandModel.Policies.Partitioning;
+using DeltaKustoLib.CommandModel.Policies.RestrictedView;
+using DeltaKustoLib.CommandModel.Policies.Retention;
+using DeltaKustoLib.CommandModel.Policies.RowLevelSecurity;
+using DeltaKustoLib.CommandModel.Policies.Sharding;
+using DeltaKustoLib.CommandModel.Policies.StreamingIngestion;
+using DeltaKustoLib.CommandModel.Policies.Update;
 using Kusto.Language;
 using Kusto.Language.Syntax;
 using System;
@@ -144,9 +156,11 @@ namespace DeltaKustoLib.CommandModel
                             ignoreUnknownCommands);
                     case "DropTableIngestionMapping":
                         return DropMappingCommand.FromCode(commandBlock);
+                    #region Policies
                     case "AlterTablePolicyUpdate":
                         return AlterUpdatePolicyCommand.FromCode(commandBlock);
-                    #region Policies
+                    case "DeleteTablePolicyUpdate":
+                        return DeleteUpdatePolicyCommand.FromCode(commandBlock);
                     case "AlterTablePolicyAutoDelete":
                         return AlterAutoDeletePolicyCommand.FromCode(commandBlock);
                     case "DeleteTablePolicyAutoDelete":
@@ -154,12 +168,16 @@ namespace DeltaKustoLib.CommandModel
                     case "AlterDatabasePolicyCaching":
                     case "AlterTablePolicyCaching":
                         return AlterCachingPolicyCommand.FromCode(commandBlock);
+                    case "AlterTablesPolicyCaching":
+                        return AlterCachingPluralPolicyCommand.FromCode(commandBlock);
                     case "DeleteDatabasePolicyCaching":
                     case "DeleteTablePolicyCaching":
                         return DeleteCachingPolicyCommand.FromCode(commandBlock);
                     case "AlterDatabasePolicyIngestionBatching":
                     case "AlterTablePolicyIngestionBatching":
                         return AlterIngestionBatchingPolicyCommand.FromCode(commandBlock);
+                    case "AlterTablesPolicyIngestionBatching":
+                        return AlterIngestionBatchingPluralPolicyCommand.FromCode(commandBlock);
                     case "DeleteDatabasePolicyIngestionBatching":
                     case "DeleteTablePolicyIngestionBatching":
                         return DeleteIngestionBatchingPolicyCommand.FromCode(commandBlock);
@@ -173,7 +191,7 @@ namespace DeltaKustoLib.CommandModel
                     case "AlterTablePolicyRetention":
                         return AlterRetentionPolicyCommand.FromCode(commandBlock);
                     case "AlterTablesPolicyRetention":
-                        return AlterTablesRetentionPolicyCommand.FromCode(commandBlock);
+                        return AlterRetentionPluralTablePolicyCommand.FromCode(commandBlock);
                     case "DeleteDatabasePolicyRetention":
                     case "DeleteTablePolicyRetention":
                         return DeleteRetentionPolicyCommand.FromCode(commandBlock);
@@ -189,6 +207,26 @@ namespace DeltaKustoLib.CommandModel
                     case "DeleteTablePolicyStreamingIngestion":
                     case "DeleteDatabasePolicyStreamingIngestion":
                         return DeleteStreamingIngestionPolicyCommand.FromCode(commandBlock);
+                    case "AlterTablePolicyRowLevelSecurity":
+                        return AlterRowLevelSecurityPolicyCommand.FromCode(commandBlock);
+                    case "DeleteTablePolicyRowLevelSecurity":
+                        return DeleteRowLevelSecurityPolicyCommand.FromCode(commandBlock);
+                    case "AlterTablePolicyRestrictedViewAccess":
+                        return AlterRestrictedViewPolicyCommand.FromCode(commandBlock);
+                    case "AlterTablesPolicyRestrictedViewAccess":
+                        return AlterRestrictedViewPluralPolicyCommand.FromCode(commandBlock);
+                    case "DeleteTablePolicyRestrictedViewAccess":
+                        return DeleteRestrictedViewPolicyCommand.FromCode(commandBlock);
+                    case "AlterTablePolicyPartitioning":
+                        return AlterPartitioningPolicyCommand.FromCode(commandBlock);
+                    case "DeleteTablePolicyPartitioning":
+                        return DeletePartitioningPolicyCommand.FromCode(commandBlock);
+                    case "AlterTablePolicyIngestionTime":
+                        return AlterIngestionTimePolicyCommand.FromCode(commandBlock);
+                    case "AlterTablesPolicyIngestionTime":
+                        return AlterIngestionTimePluralPolicyCommand.FromCode(commandBlock);
+                    case "DeleteTablePolicyIngestionTime":
+                        return DeleteIngestionTimePolicyCommand.FromCode(commandBlock);
                     #endregion
 
                     default:

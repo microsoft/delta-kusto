@@ -1,6 +1,7 @@
 ﻿using DeltaKustoLib;
 using DeltaKustoLib.CommandModel;
 using DeltaKustoLib.CommandModel.Policies;
+using DeltaKustoLib.CommandModel.Policies.Update;
 using DeltaKustoLib.KustoModel;
 using System;
 using System.Collections.Generic;
@@ -46,12 +47,11 @@ namespace DeltaKustoUnitTest.Delta.Policies
             var delta = currentDatabase.ComputeDelta(targetDatabase);
 
             Assert.Single(delta);
-            Assert.IsType<AlterUpdatePolicyCommand>(delta[0]);
+            Assert.IsType<DeleteUpdatePolicyCommand>(delta[0]);
 
-            var policyCommand = (AlterUpdatePolicyCommand)delta[0];
-            var policies = policyCommand.UpdatePolicies;
+            var policyCommand = (DeleteUpdatePolicyCommand)delta[0];
 
-            Assert.Empty(policies);
+            Assert.Equal("A", policyCommand.TableName.Name);
         }
 
         [Fact]
@@ -74,6 +74,7 @@ namespace DeltaKustoUnitTest.Delta.Policies
 
             var policyCommand = (AlterUpdatePolicyCommand)delta[0];
 
+            Assert.Equal("A", policyCommand.TableName.Name);
             Assert.Equal(targetCommands[1], policyCommand);
         }
 

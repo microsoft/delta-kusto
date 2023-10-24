@@ -41,7 +41,7 @@ namespace DeltaKustoLib.CommandModel
                 }
                 else
                 {
-                    throw new DeltaException($"Unsuppored character for an entity:  '{c}'");
+                    throw new DeltaException($"Unsupported character for an entity:  '{c}'");
                 }
             }
         }
@@ -50,6 +50,8 @@ namespace DeltaKustoLib.CommandModel
         {
             switch (element)
             {
+                case NameReference nameReference:
+                    return new EntityName(nameReference.Name.SimpleName);
                 case NameDeclaration nameDeclaration:
                     return new EntityName(nameDeclaration.Name.SimpleName);
                 case TokenName tokenName:

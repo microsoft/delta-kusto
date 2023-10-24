@@ -1,0 +1,4 @@
+﻿//	Random comment
+.create table ['my-table'] (a: real, b: int, c: string)
+
+.alter table ['my-table'] policy row_level_security disable "['my-table']"

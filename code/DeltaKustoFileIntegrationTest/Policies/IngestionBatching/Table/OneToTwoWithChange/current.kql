@@ -1,0 +1,12 @@
+﻿.create table ['my-table'] (a: real, b: int, c: string)
+
+.create table ['my-table2'] (Id:string)
+
+.alter table ['my-table'] policy ingestionbatching
+```
+{
+  "MaximumBatchingTimeSpan": "00:07:17",
+  "MaximumNumberOfItems": 747, 
+  "MaximumRawDataSizeMB": 5
+}
+```

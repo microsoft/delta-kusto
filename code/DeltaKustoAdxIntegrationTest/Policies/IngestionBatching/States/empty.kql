@@ -1,4 +1,4 @@
 ﻿//	Random comment
 
-.create table MyAutoDeleteTable (TIMESTAMP: datetime, PreciseTimeStamp: datetime, Level: int)
+.create table MyIngestionBatchingTable (TIMESTAMP: datetime, PreciseTimeStamp: datetime, Level: int)
 

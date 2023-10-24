@@ -1,0 +1,4 @@
+﻿//	Random comment
+
+.create table MyRowLevelSecurityTable(TIMESTAMP: datetime, PreciseTimeStamp: datetime, Level: int)
+
