@@ -105,6 +105,7 @@ jobs:
         echo "deltaKustoTenantId=${{ secrets.test_tenant_id }}" >> $GITHUB_ENV
         echo "deltaKustoSpId=${{ secrets.deploy_sp_id }}" >> $GITHUB_ENV
         echo "deltaKustoSpSecret=${{ secrets.deploy_sp_secret }}" >> $GITHUB_ENV
+        echo "maxDbs=150" >> $GITHUB_ENV
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
     - name: File-based integration tests (out-of-proc)
       shell:  bash
@@ -186,6 +187,7 @@ jobs:
         echo "deltaKustoTenantId=${{ secrets.test_tenant_id }}" >> $GITHUB_ENV
         echo "deltaKustoSpId=${{ secrets.deploy_sp_id }}" >> $GITHUB_ENV
         echo "deltaKustoSpSecret=${{ secrets.deploy_sp_secret }}" >> $GITHUB_ENV
+        echo "maxDbs=150" >> $GITHUB_ENV
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
     - name: File-based integration tests (out-of-proc)
       shell:  bash
@@ -266,6 +268,7 @@ jobs:
         echo "deltaKustoTenantId=${{ secrets.test_tenant_id }}" >> $GITHUB_ENV
         echo "deltaKustoSpId=${{ secrets.deploy_sp_id }}" >> $GITHUB_ENV
         echo "deltaKustoSpSecret=${{ secrets.deploy_sp_secret }}" >> $GITHUB_ENV
+        echo "maxDbs=150" >> $GITHUB_ENV
     # See https://docs.microsoft.com/en-us/dotnet/core/tools/dotnet-test
     - name: File-based integration tests (out-of-proc)
       shell:  bash
