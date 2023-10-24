@@ -5,7 +5,6 @@ using DeltaKustoLib;
 using DeltaKustoLib.CommandModel;
 using DeltaKustoLib.KustoModel;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -18,12 +17,14 @@ namespace DeltaKustoAdxIntegrationTest
     {
         private readonly string _dbPrefix;
         private readonly Func<string, IKustoManagementGateway> _kustoManagementGatewayFactory;
-        private readonly ConcurrentQueue<Task<string>> _preparingDbs =
-            new();
-        private volatile int _dbCount = 0;
+        private readonly int _maxDbs;
+        private readonly List<string> _availableDbNames;
+        private readonly object _queueLock = new();
+        private volatile TaskCompletionSource _newDbEvent = new TaskCompletionSource();
 
         public static AdxDbTestHelper Instance { get; } = CreateSingleton();
 
+        #region Constructors
         private static AdxDbTestHelper CreateSingleton()
         {
             var dbPrefix = Environment.GetEnvironmentVariable("deltaKustoDbPrefix");
@@ -31,6 +32,7 @@ namespace DeltaKustoAdxIntegrationTest
             var tenantId = Environment.GetEnvironmentVariable("deltaKustoTenantId");
             var servicePrincipalId = Environment.GetEnvironmentVariable("deltaKustoSpId");
             var servicePrincipalSecret = Environment.GetEnvironmentVariable("deltaKustoSpSecret");
+            var maxDbsText = Environment.GetEnvironmentVariable("maxDbs");
 
             if (string.IsNullOrWhiteSpace(tenantId))
             {
@@ -52,7 +54,12 @@ namespace DeltaKustoAdxIntegrationTest
             {
                 throw new ArgumentNullException(nameof(dbPrefix));
             }
+            if (string.IsNullOrWhiteSpace(maxDbsText) || !int.TryParse(maxDbsText, out _))
+            {
+                throw new ArgumentNullException(nameof(maxDbsText));
+            }
 
+            var maxDbs = int.Parse(maxDbsText);
             var tracer = new ConsoleTracer(false);
             var httpClientFactory = new SimpleHttpClientFactory(tracer);
             var tokenParameterization = new TokenProviderParameterization
@@ -70,62 +77,58 @@ namespace DeltaKustoAdxIntegrationTest
                 null);
             var helper = new AdxDbTestHelper(
                 dbPrefix,
-                db => kustoGatewayFactory.CreateGateway(new Uri(clusterUri), db));
+                db => kustoGatewayFactory.CreateGateway(new Uri(clusterUri), db),
+                maxDbs);
 
             return helper;
         }
 
         private AdxDbTestHelper(
             string dbPrefix,
-            Func<string, IKustoManagementGateway> kustoManagementGatewayFactory)
+            Func<string, IKustoManagementGateway> kustoManagementGatewayFactory,
+            int maxDbs)
         {
             _dbPrefix = dbPrefix;
             _kustoManagementGatewayFactory = kustoManagementGatewayFactory;
+            _maxDbs = maxDbs;
+            _availableDbNames = Enumerable.Range(1, _maxDbs)
+                .Select(i => DbNumberToDbName(i))
+                .ToList();
         }
+        #endregion
 
-        public async Task<DbNameHolder> GetCleanDbAsync()
+        public async Task<IImmutableList<string>> GetDbsAsync(int dbCount)
         {
-            if (_preparingDbs.TryDequeue(out Task<string>? preparingDbTask))
+            while (true)
             {
-                var dbName = await preparingDbTask;
+                var newDbEvent = _newDbEvent;
 
-                return new DbNameHolder(dbName, () => ReleaseDb(dbName));
-            }
-            else
-            {   //  No more database available in queue, let's take the next one
-                var dbNumber = Interlocked.Increment(ref _dbCount);
-                var dbName = DbNumberToDbName(dbNumber);
+                lock (_queueLock)
+                {
+                    if (_availableDbNames.Count >= dbCount)
+                    {
+                        var dbNames = _availableDbNames.Take(dbCount).ToImmutableArray();
 
-                await CleanDbAsync(dbName);
+                        _availableDbNames.RemoveRange(0, dbCount);
 
-                return new DbNameHolder(dbName, () => ReleaseDb(dbName));
+                        return dbNames;
+                    }
+                }
+                //  Not enough db available:  let's wait for some!
+                await newDbEvent.Task;
+                Interlocked.CompareExchange(
+                    ref _newDbEvent,
+                    new TaskCompletionSource(),
+                    newDbEvent);
             }
         }
 
-        void IDisposable.Dispose()
+        public void ReleaseDbs(IEnumerable<string> dbNames)
         {
-            //  First clean up the queue
-            Task.WhenAll(_preparingDbs.ToArray()).Wait();
+            _availableDbNames.AddRange(dbNames);
         }
 
-        private void ReleaseDb(string dbName)
-        {
-            if (!dbName.StartsWith(_dbPrefix))
-            {
-                throw new ArgumentException("Wrong prefix", nameof(dbName));
-            }
-
-            async Task<string> prepereDbAsync()
-            {
-                await CleanDbAsync(dbName);
-
-                return dbName;
-            }
-
-            _preparingDbs.Enqueue(prepereDbAsync());
-        }
-
-        private async Task CleanDbAsync(string dbName)
+        public async Task CleanDbAsync(string dbName)
         {
             var kustoGateway = _kustoManagementGatewayFactory(dbName);
             var currentCommands = await kustoGateway.ReverseEngineerDatabaseAsync();
@@ -135,6 +138,20 @@ namespace DeltaKustoAdxIntegrationTest
                     ImmutableArray<CommandBase>.Empty));
 
             await kustoGateway.ExecuteCommandsAsync(cleanCommands);
+        }
+
+        public Task<DbNameHolder> GetCleanDbAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        void IDisposable.Dispose()
+        {
+        }
+
+        private void ReleaseDb(string dbName)
+        {
+            throw new NotImplementedException();
         }
 
         private string DbNumberToDbName(int c)
