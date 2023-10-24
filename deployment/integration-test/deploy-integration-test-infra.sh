@@ -6,21 +6,14 @@
 ##  Parameters:
 ##
 ##  1- Name of resource group
-##  2- Tenant ID
-##  3- Service Principal Client ID (which should be cluster admin)
 
 rg=$1
-tenantId=$2
-spid=$3
 
 echo "Resource group:  $rg"
-echo "Tenant ID:  $tenantId"
-echo "Service Principal's Client ID:  $spid"
 echo "Current directory:  $(pwd)"
 
 echo
 echo "Deploying ARM template"
 
 az deployment group create -n "deploy-$(uuidgen)" -g $rg \
-    --template-file integration-test-infra-deploy.bicep \
-    --parameters tenantId=$tenantId clientId=$spid
+    --template-file integration-test-infra-deploy.bicep

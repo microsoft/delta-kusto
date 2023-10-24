@@ -42,35 +42,6 @@ jobs:
           echo "Do nothing"
         fi
 
-  # perfTestClusterSetup:
-
-  #   runs-on: ubuntu-latest
-    
-  #   steps:
-  #   # Login
-  #   - name: Azure Login
-  #     run: az login --service-principal -u ${{ secrets.test_deploy_sp_id }} -p ${{ secrets.test_deploy_sp_secret }} --tenant ${{ secrets.test_tenant_id }}
-  #   # Add Kusto extension to Azure CLI
-  #   - name: Install Kusto extension
-  #     run: az extension add -n kusto
-  #   # Turn cluster on
-  #   - name: Turn on cluster (if off)
-  #     shell:  bash
-  #     run:  |
-  #       # Retrieve cluster name
-  #       clusterName=$(az kusto cluster list -g ${{ secrets.test_rg }} --query "[?tags.testLevel=='perf'].name" -o tsv)
-  #       state=$(az kusto cluster list -g ${{ secrets.test_rg }} --query "[?tags.testLevel=='perf'].state" -o tsv)
-  #       echo "Cluster Name:  $clusterName"
-  #       echo "State:  '$state'"
-  #       if [ "$state" == "Stopped" ]
-  #       then
-  #         # Actually start the cluster
-  #         echo "Start cluster"
-  #         az kusto cluster start -n $clusterName -g ${{ secrets.test_rg }} -n $clusterName
-  #       else
-  #         echo "Do nothing"
-  #       fi
-
   deploy:
 
     needs:
@@ -90,4 +61,4 @@ jobs:
     - name: Deploy
       run: |
         cd deployment/integration-test
-        bash deploy-integration-test-infra.sh ${{ secrets.test_rg }} ${{ secrets.test_tenant_id }} ${{ secrets.TESTER_SP_ID }}
+        bash deploy-integration-test-infra.sh ${{ secrets.test_rg }}
