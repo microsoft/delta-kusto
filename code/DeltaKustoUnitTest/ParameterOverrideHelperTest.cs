@@ -7,7 +7,7 @@ using Xunit;
 
 namespace DeltaKustoUnitTest
 {
-    public class ParameterOverrideHelperTest: TestBase
+    public class ParameterOverrideHelperTest : TestBase
     {
         [Fact]
         public void TestSingleProperty()
@@ -251,6 +251,37 @@ namespace DeltaKustoUnitTest
             Assert.Equal(tenantId, main.TokenProvider!.Login!.TenantId);
             Assert.Equal(clientId, main.TokenProvider!.Login!.ClientId);
             Assert.Equal(secret, main.TokenProvider!.Login!.Secret);
+        }
+
+        [Fact]
+        public void TestNonExistingDictionaryEntry()
+        {
+            var main = new MainParameterization();
+            var jobName = "myJob";
+            var value = 42;
+
+            ParameterOverrideHelper.InplaceOverride(main, $"jobs.{jobName}.Priority={value}");
+
+            Assert.Contains(jobName, main.Jobs);
+            Assert.Equal(value, main.Jobs[jobName].Priority);
+        }
+
+        [Fact]
+        public void TestNonExistingSubDictionaryEntry()
+        {
+            var main = new MainParameterization();
+            var jobName = "myJob";
+            var value = "my-cluster";
+
+            ParameterOverrideHelper.InplaceOverride(
+                main,
+                $"jobs.{jobName}.current.adx.clusterUri={value}");
+
+            Assert.Contains(jobName, main.Jobs);
+            Assert.NotNull(main.Jobs[jobName].Current);
+            Assert.NotNull(main.Jobs[jobName].Current!.Adx);
+            Assert.NotNull(main.Jobs[jobName].Current!.Adx!.ClusterUri);
+            Assert.Equal(value, main.Jobs[jobName].Current!.Adx!.ClusterUri);
         }
         #endregion
     }

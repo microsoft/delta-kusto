@@ -34,6 +34,13 @@ namespace DeltaKustoIntegration.Parameterization
             public string Property { get; }
 
             public int? Index { get; }
+
+            public override string ToString()
+            {
+                return Index == null
+                    ? Property
+                    : $"{Property}[{Index}]";
+            }
         }
         #endregion
 
@@ -251,6 +258,18 @@ namespace DeltaKustoIntegration.Parameterization
             builder.Add(
                 typeof(UserManagedIdentityParameterization),
                 () => new UserManagedIdentityParameterization());
+            builder.Add(
+                typeof(SourceParameterization),
+                () => new SourceParameterization());
+            builder.Add(
+                typeof(AdxSourceParameterization),
+                () => new AdxSourceParameterization());
+            builder.Add(
+                typeof(SourceFileParametrization),
+                () => new SourceFileParametrization());
+            builder.Add(
+                typeof(ActionParameterization),
+                () => new ActionParameterization());
             builder.Add(
                 typeof(Dictionary<string, JobParameterization>),
                 () => new Dictionary<string, JobParameterization>());
