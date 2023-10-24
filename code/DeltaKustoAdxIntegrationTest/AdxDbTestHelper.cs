@@ -123,11 +123,6 @@ namespace DeltaKustoAdxIntegrationTest
             }
         }
 
-        public void ReleaseDbs(IEnumerable<string> dbNames)
-        {
-            _availableDbNames.AddRange(dbNames);
-        }
-
         public async Task CleanDbAsync(string dbName)
         {
             var kustoGateway = _kustoManagementGatewayFactory(dbName);
@@ -140,18 +135,13 @@ namespace DeltaKustoAdxIntegrationTest
             await kustoGateway.ExecuteCommandsAsync(cleanCommands);
         }
 
-        public Task<DbNameHolder> GetCleanDbAsync()
+        public void ReleaseDbs(IEnumerable<string> dbNames)
         {
-            throw new NotImplementedException();
+            _availableDbNames.AddRange(dbNames);
         }
 
         void IDisposable.Dispose()
         {
-        }
-
-        private void ReleaseDb(string dbName)
-        {
-            throw new NotImplementedException();
         }
 
         private string DbNumberToDbName(int c)

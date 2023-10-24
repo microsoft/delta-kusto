@@ -18,6 +18,10 @@ namespace DeltaKustoAdxIntegrationTest
 {
     public abstract class AdxIntegrationTestBase : IntegrationTestBase
     {
+        #region Inner Types
+        private record TestCase(string FromFile, string ToFile, bool UsePluralForms);
+        #endregion
+
         private readonly bool _overrideLoginTokenProvider;
 
         protected AdxIntegrationTestBase(bool overrideLoginTokenProvider = true)
@@ -73,11 +77,24 @@ namespace DeltaKustoAdxIntegrationTest
 
         protected IKustoManagementGatewayFactory KustoGatewayFactory { get; }
 
-        protected static async Task<DbNameHolder> InitializeDbAsync()
+        protected static Task<DbNameHolder> InitializeDbAsync()
         {
-            var dbNameHolder = await AdxDbTestHelper.Instance.GetCleanDbAsync();
+            throw new NotImplementedException();
+        }
 
-            return dbNameHolder;
+        protected async Task<IImmutableList<string>> GetDbsAsync(int dbCount)
+        {
+            return await AdxDbTestHelper.Instance.GetDbsAsync(dbCount);
+        }
+
+        protected async Task CleanDbAsync(string dbName)
+        {
+            await AdxDbTestHelper.Instance.CleanDbAsync(dbName);
+        }
+
+        public void ReleaseDbs(IEnumerable<string> dbNames)
+        {
+            AdxDbTestHelper.Instance.ReleaseDbs(dbNames);
         }
 
         protected async Task TestAdxToFile(string statesFolderPath)
@@ -180,6 +197,24 @@ namespace DeltaKustoAdxIntegrationTest
 
         protected async Task TestAdxToAdx(string statesFolderPath)
         {
+            var testCases = CreateTestCases(Path.Combine(statesFolderPath, "States"));
+            var dbNames = await GetDbsAsync(2 * testCases.Count);
+            var currentDbNames = dbNames.Take(testCases.Count).ToImmutableArray();
+            var targetDbNames = dbNames.Take(testCases.Count).ToImmutableArray();
+            Func<int, Task> prepareDbs = async i =>
+            {
+                await Task.WhenAll(
+                    CleanDbAsync(currentDbNames[i]),
+                    CleanDbAsync(targetDbNames[i]));
+                await Task.WhenAll(
+                    PrepareDbAsync(testCases[i].FromFile, currentDbNames[i]),
+                    PrepareDbAsync(testCases[i].ToFile, targetDbNames[i]));
+            };
+            var prepareDbTasks = Enumerable.Range(0, testCases.Count)
+                .Select(i => prepareDbs(i))
+                .ToImmutableArray();
+
+            await Task.WhenAll(prepareDbTasks);
             await LoopThroughStateFilesAsync(
                 Path.Combine(statesFolderPath, "States"),
                 async (fromFile, toFile, usePluralForms) =>
@@ -241,6 +276,21 @@ namespace DeltaKustoAdxIntegrationTest
                     }
                 }
             }
+        }
+
+        private static IImmutableList<TestCase> CreateTestCases(string folderPath)
+        {
+            var stateFiles = Directory.GetFiles(folderPath);
+            var usePluralFormsSet = ImmutableArray<bool>.Empty.Add(true).Add(false);
+            var testCases = stateFiles
+                .SelectMany(fromFile => stateFiles.Select(toFile => (fromFile, toFile)))
+                .SelectMany(pair => usePluralFormsSet.Select(b => new TestCase(
+                    pair.fromFile,
+                    pair.toFile,
+                    b)))
+                .ToImmutableArray();
+
+            return testCases;
         }
 
         private async Task ApplyCommandsAsync(IEnumerable<CommandBase> commands, string dbName)
