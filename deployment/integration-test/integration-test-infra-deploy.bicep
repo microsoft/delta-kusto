@@ -277,18 +277,18 @@ resource intTestDbs 'Microsoft.Kusto/clusters/databases@2022-12-29' = [for i in 
 // }
 
 //  Authorize WF as reader on resource group
-var readerId = 'acdd72a7-3385-48ef-bd42-f606fba81ae7'
-var fullReaderId = '/subscriptions/${subscription().subscriptionId}/providers/Microsoft.Authorization/roleDefinitions/${readerId}'
-var rgRoleAssignmentName = '${resourceGroup().id}${autoShutdown.name}${fullReaderId}'
+// var readerId = 'acdd72a7-3385-48ef-bd42-f606fba81ae7'
+// var fullReaderId = '/subscriptions/${subscription().subscriptionId}/providers/Microsoft.Authorization/roleDefinitions/${readerId}'
+// var rgRoleAssignmentName = '${resourceGroup().id}${autoShutdown.name}${fullReaderId}'
 
-resource autoShutdownRgAuthorization 'Microsoft.Authorization/roleAssignments@2021-04-01-preview' = {
-  name: '${guid(rgRoleAssignmentName)}'
-  scope: resourceGroup()
-  properties: {
-    description: 'Give reader on the resource group'
-    principalId: autoShutdown.identity.principalId
-    //  Fix the issue of the principal not being ready when deployment the assignment
-    principalType: 'ServicePrincipal'
-    roleDefinitionId: fullReaderId
-  }
-}
+// resource autoShutdownRgAuthorization 'Microsoft.Authorization/roleAssignments@2021-04-01-preview' = {
+//   name: '${guid(rgRoleAssignmentName)}'
+//   scope: resourceGroup()
+//   properties: {
+//     description: 'Give reader on the resource group'
+//     principalId: autoShutdown.identity.principalId
+//     //  Fix the issue of the principal not being ready when deployment the assignment
+//     principalType: 'ServicePrincipal'
+//     roleDefinitionId: fullReaderId
+//   }
+// }
