@@ -44,6 +44,7 @@ resource intTestCluster 'Microsoft.Kusto/clusters@2022-12-29' = {
   }
 }
 
+@batchSize(5)
 resource intTestDbs 'Microsoft.Kusto/clusters/databases@2022-12-29' = [for i in range(0, length(prefixes) * intTestDbCountPerPrefix): {
   name: '${prefixes[i / intTestDbCountPerPrefix]}${format('{0:D8}', i % intTestDbCountPerPrefix + 1)}'
   location: resourceGroup().location
