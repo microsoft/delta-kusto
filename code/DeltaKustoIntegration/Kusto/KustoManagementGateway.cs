@@ -31,10 +31,10 @@ namespace DeltaKustoIntegration.Kusto
             })
             .AddRetry(new RetryStrategyOptions
             {
-                ShouldHandle = new PredicateBuilder().Handle<KustoException>(ex => ex.FailureCode==401),
-                MaxRetryAttempts = 1,
+                ShouldHandle = new PredicateBuilder().Handle<KustoException>(ex => ex.FailureCode == 401),
+                MaxRetryAttempts = 2,
                 BackoffType = DelayBackoffType.Linear,
-                Delay = TimeSpan.FromSeconds(1)
+                Delay = TimeSpan.FromSeconds(2)
             })
             .Build();
 
