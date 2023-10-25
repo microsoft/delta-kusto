@@ -86,11 +86,6 @@ namespace DeltaKustoAdxIntegrationTest
 
         protected IKustoManagementGatewayFactory KustoGatewayFactory { get; }
 
-        protected static Task<DbNameHolder> InitializeDbAsync()
-        {
-            throw new NotImplementedException();
-        }
-
         protected async Task<IImmutableList<string>> GetDbsAsync(int dbCount)
         {
             return await AdxDbTestHelper.Instance.GetDbsAsync(dbCount);
@@ -108,51 +103,73 @@ namespace DeltaKustoAdxIntegrationTest
 
         protected async Task TestAdxToFile(string statesFolderPath)
         {
-            await LoopThroughStateFilesAsync(
-                Path.Combine(statesFolderPath, "States"),
-                async (fromFile, toFile, usePluralForms) =>
+            var testCases = CreateTestCases(Path.Combine(statesFolderPath, "States"));
+            var dbNames = await GetDbsAsync(2 * testCases.Count);
+
+            try
+            {
+                var testDbNames = dbNames.Take(testCases.Count).ToImmutableArray();
+                var currentDbNames = dbNames.Skip(testCases.Count).ToImmutableArray();
+                Func<int, Task> prepareDbs = async i =>
                 {
-                    using (var testDb = await InitializeDbAsync())
-                    using (var currentDb = await InitializeDbAsync())
-                    {
-                        await PrepareDbAsync(fromFile, currentDb.Name);
+                    await Task.WhenAll(
+                        CleanDbAsync(testDbNames[i]),
+                        CleanDbAsync(currentDbNames[i]));
+                    await PrepareDbAsync(testCases[i].FromFile, currentDbNames[i]);
+                };
+                var prepareDbTasks = Enumerable.Range(0, testCases.Count)
+                    .Select(i => prepareDbs(i))
+                    .ToImmutableArray();
+                var overrides = Enumerable.Range(0, testCases.Count)
+                    .SelectMany(i => ImmutableArray<(string path, string value)>
+                    .Empty
+                    .Add(($"jobs.job{i}.target.scripts[0].filePath", testCases[i].ToFile))
+                    .Add(($"jobs.job{i}.current.adx.clusterUri", ClusterUri.ToString()))
+                    .Add(($"jobs.job{i}.current.adx.database", currentDbNames[i]))
+                    .Add(($"jobs.job{i}.action.filePath", testCases[i].GetOutputPath(statesFolderPath)))
+                    .Add(($"jobs.job{i}.action.usePluralForms", testCases[i].UsePluralForms.ToString().ToLower())))
+                    .ToImmutableArray();
 
-                        var outputPath = Path.Combine("outputs", statesFolderPath, "adx-to-file/")
-                            + Path.GetFileNameWithoutExtension(fromFile)
-                            + "_2_"
-                            + Path.GetFileNameWithoutExtension(toFile)
-                            + ".kql";
-                        var overrides = ImmutableArray<(string path, string value)>
-                        .Empty
-                        .Add(("jobs.main.current.adx.clusterUri", ClusterUri.ToString()))
-                        .Add(("jobs.main.current.adx.database", currentDb.Name))
-                        .Add(("jobs.main.target.scripts[0].filePath", toFile))
-                        .Add(("jobs.main.action.filePath", outputPath))
-                        .Add(("jobs.main.action.usePluralForms", usePluralForms));
-                        var parameters = await RunParametersAsync(
-                            "adx-to-file-params.json",
-                            overrides);
-                        var outputCommands = await LoadScriptAsync("", outputPath);
-                        var targetFileCommands = CommandBase.FromScript(
-                            await File.ReadAllTextAsync(toFile));
+                await Task.WhenAll(prepareDbTasks);
 
-                        await Task.WhenAll(
-                            ApplyCommandsAsync(outputCommands, currentDb.Name),
-                            ApplyCommandsAsync(targetFileCommands, testDb.Name));
+                var parameters = await RunParametersAsync(
+                    "adx-to-file-params.json",
+                    overrides);
+                Func<int, Task> validateTestCase = async i =>
+                {
+                    var outputCommands = await LoadScriptAsync(
+                        "",
+                        testCases[i].GetOutputPath(statesFolderPath));
+                    var targetFileCommands = CommandBase.FromScript(
+                        await File.ReadAllTextAsync(testCases[i].ToFile));
 
-                        var finalCommandsTask = FetchDbCommandsAsync(currentDb.Name);
-                        var targetAdxCommands = await FetchDbCommandsAsync(testDb.Name);
-                        var finalCommands = await finalCommandsTask;
-                        var targetModel = DatabaseModel.FromCommands(targetAdxCommands);
-                        var finalModel = DatabaseModel.FromCommands(finalCommands);
-                        var finalScript = string.Join(";\n\n", finalCommands.Select(c => c.ToScript()));
-                        var targetScript = string.Join(";\n\n", targetFileCommands.Select(c => c.ToScript()));
+                    await Task.WhenAll(
+                        ApplyCommandsAsync(outputCommands, currentDbNames[i]),
+                        ApplyCommandsAsync(targetFileCommands, testDbNames[i]));
 
-                        Assert.True(
-                            finalModel.Equals(targetModel),
-                            $"From {fromFile} to {toFile}:\n\n{finalScript}\nvs\n\n{targetScript}");
-                    }
-                });
+                    var finalCommandsTask = FetchDbCommandsAsync(currentDbNames[i]);
+                    var targetAdxCommands = await FetchDbCommandsAsync(testDbNames[i]);
+                    var finalCommands = await finalCommandsTask;
+                    var targetModel = DatabaseModel.FromCommands(targetAdxCommands);
+                    var finalModel = DatabaseModel.FromCommands(finalCommands);
+                    var finalScript = string.Join(";\n\n", finalCommands.Select(c => c.ToScript()));
+                    var targetScript = string.Join(";\n\n", targetFileCommands.Select(c => c.ToScript()));
+
+                    Assert.True(
+                        finalModel.Equals(targetModel),
+                        $"From {testCases[i].FromFile} to {testCases[i].ToFile}:\n\n"
+                        + $"{finalScript}\nvs\n\n{targetScript}");
+                };
+                var validationTasks = Enumerable.Range(0, testCases.Count)
+                    .Select(i => validateTestCase(i))
+                    .ToImmutableArray();
+
+                await Task.WhenAll(validationTasks);
+            }
+            finally
+            {
+                ReleaseDbs(dbNames);
+            }
         }
 
         protected async Task TestFileToAdx(string statesFolderPath)
@@ -289,27 +306,6 @@ namespace DeltaKustoAdxIntegrationTest
             finally
             {
                 ReleaseDbs(dbNames);
-            }
-        }
-
-        private async static Task LoopThroughStateFilesAsync(
-            string folderPath,
-            Func<string, string, string, Task> loopFunction)
-        {
-            var stateFiles = Directory.GetFiles(folderPath);
-
-            foreach (var fromFile in stateFiles)
-            {
-                foreach (var toFile in stateFiles)
-                {
-                    foreach (var usePluralForms in new[] { true, false })
-                    {
-                        await loopFunction(
-                            fromFile,
-                            toFile,
-                            usePluralForms.ToString().ToLower());
-                    }
-                }
             }
         }
 

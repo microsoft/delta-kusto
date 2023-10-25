@@ -33,20 +33,26 @@ namespace DeltaKustoAdxIntegrationTest.GivenTokenProvider
                 .AcquireTokenForClient(new[] { $"{ClusterUri}/.default" })
                 .ExecuteAsync();
             var token = authenticationResult.AccessToken;
+            var targetDbs = await GetDbsAsync(1);
+            var targetDb = targetDbs.First();
 
-            using (var targetDb = await InitializeDbAsync())
+            try
             {
                 var overrides = ImmutableArray<(string path, string value)>
                     .Empty
                     .Add(("jobs.main.target.adx.clusterUri", ClusterUri.ToString()))
-                    .Add(("jobs.main.target.adx.database", targetDb.Name))
+                    .Add(("jobs.main.target.adx.database", targetDb))
                     .Add(("tokenProvider.tokens.myToken.clusterUri", ClusterUri.ToString()))
                     .Add(("tokenProvider.tokens.myToken.token", token));
 
-                await PrepareDbAsync("GivenTokenProvider/target.kql", targetDb.Name);
+                await PrepareDbAsync("GivenTokenProvider/target.kql", targetDb);
                 await RunParametersAsync("GivenTokenProvider/given-token.yaml", overrides);
 
                 //  We just test that this doesn't fail
+            }
+            finally
+            {
+                ReleaseDbs(targetDbs);
             }
         }
     }

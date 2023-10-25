@@ -7,7 +7,7 @@
     }
   },
   "jobs": {
-    "main": {
+    "job1": {
       "current": {
         "adx": {
           "clusterUri": "to-be-overriden",
