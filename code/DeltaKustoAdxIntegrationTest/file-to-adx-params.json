@@ -7,7 +7,7 @@
     }
   },
   "jobs": {
-    "main": {
+    "job1": {
       "current": {
         "scripts": [
           {

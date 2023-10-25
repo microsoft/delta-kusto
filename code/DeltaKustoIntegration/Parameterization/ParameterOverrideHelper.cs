@@ -268,6 +268,9 @@ namespace DeltaKustoIntegration.Parameterization
                 typeof(SourceFileParametrization),
                 () => new SourceFileParametrization());
             builder.Add(
+                typeof(SourceFileParametrization[]),
+                () => new SourceFileParametrization[0]);
+            builder.Add(
                 typeof(ActionParameterization),
                 () => new ActionParameterization());
             builder.Add(
@@ -352,8 +355,17 @@ namespace DeltaKustoIntegration.Parameterization
                     }
                     if (array.Length <= component.Index)
                     {
-                        throw new DeltaException(
-                            $"Property '{property}' index '{index}' is out of bound");
+                        var newArray = Array.CreateInstance(
+                            newTarget.GetType().GetElementType()!,
+                            component.Index.Value + 1);
+
+                        Array.Copy(array, newArray, array.Length);
+                        propertyInfo.GetSetMethod()!.Invoke(target, new object[] { newArray });
+                        array = (object[])newArray;
+                    }
+                    if (array[index] == null)
+                    {
+                        array[index] = _newInstanceMap[newTarget.GetType().GetElementType()!]();
                     }
 
                     newTarget = array[index];

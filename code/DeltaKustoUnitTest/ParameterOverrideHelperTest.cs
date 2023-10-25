@@ -283,6 +283,25 @@ namespace DeltaKustoUnitTest
             Assert.NotNull(main.Jobs[jobName].Current!.Adx!.ClusterUri);
             Assert.Equal(value, main.Jobs[jobName].Current!.Adx!.ClusterUri);
         }
+
+        [Fact]
+        public void TestNonExistingArrayEntry()
+        {
+            var main = new MainParameterization();
+            var jobName = "myJob";
+            var value = "my-path";
+
+            ParameterOverrideHelper.InplaceOverride(
+                main,
+                $"jobs.{jobName}.current.scripts[0].filePath={value}");
+
+            Assert.Contains(jobName, main.Jobs);
+            Assert.NotNull(main.Jobs[jobName].Current);
+            Assert.NotNull(main.Jobs[jobName].Current!.Scripts);
+            Assert.Single(main.Jobs[jobName].Current!.Scripts!);
+            Assert.NotNull(main.Jobs[jobName].Current!.Scripts![0]);
+            Assert.Equal(value, main.Jobs[jobName].Current!.Scripts![0].FilePath);
+        }
         #endregion
     }
 }
