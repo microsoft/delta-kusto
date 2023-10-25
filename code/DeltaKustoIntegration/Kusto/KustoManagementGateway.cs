@@ -21,9 +21,22 @@ namespace DeltaKustoIntegration.Kusto
     /// </summary>
     internal class KustoManagementGateway : IKustoManagementGateway
     {
-        private static readonly AsyncRetryPolicy _retryPolicy = Policy
-            .Handle<KustoException>(ex => !ex.IsPermanent)
-            .WaitAndRetryAsync(3, attempt => TimeSpan.FromSeconds(attempt));
+        private static readonly ResiliencePipeline _resiliencePipeline = new ResiliencePipelineBuilder()
+            .AddRetry(new RetryStrategyOptions
+            {
+                ShouldHandle = new PredicateBuilder().Handle<KustoException>(ex => !ex.IsPermanent),
+                MaxRetryAttempts = 3,
+                BackoffType = DelayBackoffType.Linear,
+                Delay = TimeSpan.FromSeconds(1)
+            })
+            .AddRetry(new RetryStrategyOptions
+            {
+                ShouldHandle = new PredicateBuilder().Handle<KustoException>(ex => ex.FailureCode==401),
+                MaxRetryAttempts = 1,
+                BackoffType = DelayBackoffType.Linear,
+                Delay = TimeSpan.FromSeconds(1)
+            })
+            .Build();
 
         private readonly Uri _clusterUri;
         private readonly string _database;
@@ -139,7 +152,7 @@ namespace DeltaKustoIntegration.Kusto
         {
             try
             {
-                return await _retryPolicy.ExecuteAsync(async () =>
+                return await _resiliencePipeline.ExecuteAsync(async (ct) =>
                 {
                     var reader = await _commandProvider.ExecuteControlCommandAsync(
                         _database,
@@ -147,7 +160,7 @@ namespace DeltaKustoIntegration.Kusto
                         _requestProperties);
 
                     return reader;
-                });
+                }, ct);
             }
             catch (Exception ex)
             {
