@@ -25,12 +25,12 @@ namespace DeltaKustoIntegration.Kusto
             .AddRetry(new RetryStrategyOptions
             {
                 ShouldHandle = new PredicateBuilder().Handle<KustoException>(ex => !ex.IsPermanent),
-                MaxRetryAttempts = 3,
-                BackoffType = DelayBackoffType.Linear,
+                MaxRetryAttempts = 5,
+                BackoffType = DelayBackoffType.Exponential,
                 Delay = TimeSpan.FromSeconds(1)
             })
             .AddRetry(new RetryStrategyOptions
-            {
+            {   //  Unauthorized
                 ShouldHandle = new PredicateBuilder().Handle<KustoException>(ex => ex.FailureCode == 401),
                 MaxRetryAttempts = 2,
                 BackoffType = DelayBackoffType.Linear,
