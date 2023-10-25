@@ -116,6 +116,7 @@ namespace DeltaKustoAdxIntegrationTest
                 }
                 //  Not enough db available:  let's wait for some!
                 await newDbEvent.Task;
+                //  Change the event for a fresh one
                 Interlocked.CompareExchange(
                     ref _newDbEvent,
                     new TaskCompletionSource(),
@@ -142,7 +143,7 @@ namespace DeltaKustoAdxIntegrationTest
                 _availableDbNames.AddRange(dbNames);
             }
             //  Pop event for waiting threads
-            _newDbEvent.SetResult();
+            _newDbEvent.TrySetResult();
         }
 
         void IDisposable.Dispose()
