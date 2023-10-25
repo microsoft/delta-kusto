@@ -17,34 +17,44 @@ namespace DeltaKustoAdxIntegrationTest.FailIfDataLoss
         [Fact]
         public async Task TestFailIfDropsNoDrop()
         {
-            using (var targetDb = await InitializeDbAsync())
+            var targetDbs = await GetDbsAsync(1);
+            var targetDb = targetDbs.First();
+
+            try
             {
                 var toFile = "FailIfDataLoss/target.kql";
                 var overrides = ImmutableArray<(string path, string value)>
                     .Empty
                     .Add(("jobs.main.target.adx.clusterUri", ClusterUri.ToString()))
-                    .Add(("jobs.main.target.adx.database", targetDb.Name));
+                    .Add(("jobs.main.target.adx.database", targetDb));
 
-                await PrepareDbAsync(toFile, targetDb.Name);
+                await PrepareDbAsync(toFile, targetDb);
                 await RunParametersAsync("FailIfDataLoss/no-fail.json", overrides);
 
                 //  We just test that this doesn't fail
+            }
+            finally
+            {
+                ReleaseDbs(targetDbs);
             }
         }
 
         [Fact]
         public async Task TestFailIfDrops()
         {
-            using (var targetDb = await InitializeDbAsync())
+            var targetDbs = await GetDbsAsync(1);
+            var targetDb = targetDbs.First();
+
+            try
             {
                 var toFile = "FailIfDataLoss/target.kql";
                 var overrides = ImmutableArray<(string path, string value)>
                     .Empty
                     .Add(("jobs.main.target.adx.clusterUri", ClusterUri.ToString()))
-                    .Add(("jobs.main.target.adx.database", targetDb.Name))
+                    .Add(("jobs.main.target.adx.database", targetDb))
                     .Append(("failIfDataLoss", "true"));
 
-                await PrepareDbAsync(toFile, targetDb.Name);
+                await PrepareDbAsync(toFile, targetDb);
 
                 try
                 {
@@ -58,6 +68,10 @@ namespace DeltaKustoAdxIntegrationTest.FailIfDataLoss
                 catch (InvalidOperationException)
                 {
                 }
+            }
+            finally
+            {
+                ReleaseDbs(targetDbs);
             }
         }
     }

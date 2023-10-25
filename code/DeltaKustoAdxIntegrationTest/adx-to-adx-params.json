@@ -1,13 +1,6 @@
 ﻿{
-  "tokenProvider": {
-    "login": {
-      "tenantId": "to-be-overriden",
-      "clientId": "to-be-overriden",
-      "secret": "to-be-overriden"
-    }
-  },
   "jobs": {
-    "main": {
+    "job1": {
       "current": {
         "adx": {
           "clusterUri": "to-be-overriden",

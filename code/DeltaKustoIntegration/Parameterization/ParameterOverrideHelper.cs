@@ -34,6 +34,13 @@ namespace DeltaKustoIntegration.Parameterization
             public string Property { get; }
 
             public int? Index { get; }
+
+            public override string ToString()
+            {
+                return Index == null
+                    ? Property
+                    : $"{Property}[{Index}]";
+            }
         }
         #endregion
 
@@ -252,6 +259,21 @@ namespace DeltaKustoIntegration.Parameterization
                 typeof(UserManagedIdentityParameterization),
                 () => new UserManagedIdentityParameterization());
             builder.Add(
+                typeof(SourceParameterization),
+                () => new SourceParameterization());
+            builder.Add(
+                typeof(AdxSourceParameterization),
+                () => new AdxSourceParameterization());
+            builder.Add(
+                typeof(SourceFileParametrization),
+                () => new SourceFileParametrization());
+            builder.Add(
+                typeof(SourceFileParametrization[]),
+                () => new SourceFileParametrization[0]);
+            builder.Add(
+                typeof(ActionParameterization),
+                () => new ActionParameterization());
+            builder.Add(
                 typeof(Dictionary<string, JobParameterization>),
                 () => new Dictionary<string, JobParameterization>());
             builder.Add(
@@ -333,8 +355,17 @@ namespace DeltaKustoIntegration.Parameterization
                     }
                     if (array.Length <= component.Index)
                     {
-                        throw new DeltaException(
-                            $"Property '{property}' index '{index}' is out of bound");
+                        var newArray = Array.CreateInstance(
+                            newTarget.GetType().GetElementType()!,
+                            component.Index.Value + 1);
+
+                        Array.Copy(array, newArray, array.Length);
+                        propertyInfo.GetSetMethod()!.Invoke(target, new object[] { newArray });
+                        array = (object[])newArray;
+                    }
+                    if (array[index] == null)
+                    {
+                        array[index] = _newInstanceMap[newTarget.GetType().GetElementType()!]();
                     }
 
                     newTarget = array[index];

@@ -24,24 +24,28 @@ namespace DeltaKustoAdxIntegrationTest.NoAuth
         [Fact]
         public async Task NoAuthExpectedEx()
         {
+            var targetDbs = await GetDbsAsync(1);
+            var targetDb = targetDbs.First();
+
             try
             {
-                using (var targetDb = await InitializeDbAsync())
-                {
-                    var overrides = ImmutableArray<(string path, string value)>
-                        .Empty
-                        .Add(("jobs.main.target.adx.clusterUri", ClusterUri.ToString()))
-                        .Add(("jobs.main.target.adx.database", targetDb.Name));
+                var overrides = ImmutableArray<(string path, string value)>
+                    .Empty
+                    .Add(("jobs.main.target.adx.clusterUri", ClusterUri.ToString()))
+                    .Add(("jobs.main.target.adx.database", targetDb));
 
-                    await PrepareDbAsync("NoAuth/target.kql", targetDb.Name);
-                    await RunParametersAsync("NoAuth/no-auth.yaml", overrides);
+                await PrepareDbAsync("NoAuth/target.kql", targetDb);
+                await RunParametersAsync("NoAuth/no-auth.yaml", overrides);
 
-                    //  We just test that this doesn't fail
-                }
+                //  We just test that this doesn't fail
                 Assert.Fail("This test is failing");
             }
             catch (InvalidOperationException)
             {
+            }
+            finally
+            {
+                ReleaseDbs(targetDbs);
             }
         }
     }
