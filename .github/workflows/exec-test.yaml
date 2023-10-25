@@ -122,6 +122,7 @@ jobs:
   mac:
     needs:
     - clusterSetup
+    - linux
 
     # This can run in parallel with the other job as they target different databases
     runs-on: macos-latest
@@ -204,6 +205,7 @@ jobs:
   windows:
     needs:
     - clusterSetup
+    - mac
 
     runs-on: windows-latest
     
