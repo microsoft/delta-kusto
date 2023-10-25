@@ -137,7 +137,12 @@ namespace DeltaKustoAdxIntegrationTest
 
         public void ReleaseDbs(IEnumerable<string> dbNames)
         {
-            _availableDbNames.AddRange(dbNames);
+            lock (_queueLock)
+            {
+                _availableDbNames.AddRange(dbNames);
+            }
+            //  Pop event for waiting threads
+            _newDbEvent.SetResult();
         }
 
         void IDisposable.Dispose()
