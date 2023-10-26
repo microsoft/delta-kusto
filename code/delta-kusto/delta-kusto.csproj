@@ -5,7 +5,7 @@
 		<TargetFramework>net7.0</TargetFramework>
 		<RootNamespace>delta_kusto</RootNamespace>
 		<Nullable>enable</Nullable>
-		<Version>0.15.0</Version>
+		<Version>0.15.1</Version>
     <!--	Avoid having each library being trimmed (instead of only opt-in ones)	-->
     <TrimMode>partial</TrimMode>
 		<!--	Important to avoid the trimming warning hell ; since we automate-test everything, we do not need static analysis	-->
