@@ -22,30 +22,6 @@ namespace DeltaKustoLib.KustoModel
 {
     public class DatabaseModel
     {
-        private static readonly IImmutableSet<Type> INPUT_COMMANDS = new[]
-        {
-            typeof(CreateFunctionCommand),
-            typeof(CreateTableCommand),
-            typeof(CreateTablesCommand),
-            typeof(AlterMergeTableColumnDocStringsCommand),
-            typeof(CreateMappingCommand),
-            typeof(AlterUpdatePolicyCommand),
-            typeof(AlterCachingPolicyCommand),
-            typeof(AlterRetentionPolicyCommand),
-            typeof(AlterRetentionPluralTablePolicyCommand),
-            typeof(AlterAutoDeletePolicyCommand),
-            typeof(AlterMergePolicyCommand),
-            typeof(AlterIngestionTimePolicyCommand),
-            typeof(AlterIngestionTimePluralPolicyCommand),
-            typeof(AlterIngestionBatchingPolicyCommand),
-            typeof(AlterPartitioningPolicyCommand),
-            typeof(AlterRestrictedViewPolicyCommand),
-            typeof(AlterRestrictedViewPluralPolicyCommand),
-            typeof(AlterRowLevelSecurityPolicyCommand),
-            typeof(AlterShardingPolicyCommand),
-            typeof(AlterStreamingIngestionPolicyCommand)
-        }.ToImmutableHashSet();
-
         private readonly IImmutableList<CreateFunctionCommand> _functionCommands;
         private readonly IImmutableList<TableModel> _tableModels;
         private readonly AlterCachingPolicyCommand? _cachingPolicy;
@@ -207,7 +183,6 @@ namespace DeltaKustoLib.KustoModel
             var updatePolicies = GetCommands<AlterUpdatePolicyCommand>(commandTypeIndex)
                 .ToImmutableArray();
 
-            ValidateCommandTypes(commandTypes);
             ValidateDuplicates(createFunctions, f => f.FunctionName.Name);
             ValidateDuplicates(createTables, t => t.TableName.Name);
             ValidateDuplicates(
@@ -333,23 +308,6 @@ namespace DeltaKustoLib.KustoModel
             else
             {
                 return ImmutableArray<T>.Empty;
-            }
-        }
-
-        private static void ValidateCommandTypes(IEnumerable<(Type type, string friendlyName)> commandTypes)
-        {
-            var extraCommandTypes = commandTypes
-                .Select(p => p.type)
-                .Except(INPUT_COMMANDS);
-
-            if (extraCommandTypes.Any())
-            {
-                var typeToNameMap = commandTypes
-                    .ToImmutableDictionary(p => p.type, p => p.friendlyName);
-
-                throw new DeltaException(
-                    "Unsupported command types:  "
-                    + $"{string.Join(", ", extraCommandTypes.Select(t => typeToNameMap[t]))}");
             }
         }
 
