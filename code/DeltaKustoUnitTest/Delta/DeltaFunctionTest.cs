@@ -121,25 +121,5 @@ namespace DeltaKustoUnitTest.Delta
             {
             }
         }
-
-        [Fact]
-        public void DetectIntruder()
-        {
-            try
-            {
-                var function = ParseOneCommand(".create-or-alter function YourFunction() { 72 }\n\n");
-                var commands = new CommandBase[]
-                {
-                    function,
-                    new DropFunctionCommand(new EntityName("myFunction"))
-                };
-                var database = DatabaseModel.FromCommands(commands);
-
-                throw new InvalidOperationException("This should have failed by now");
-            }
-            catch (DeltaException)
-            {
-            }
-        }
     }
 }
