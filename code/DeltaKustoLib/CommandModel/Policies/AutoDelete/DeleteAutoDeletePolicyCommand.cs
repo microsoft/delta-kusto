@@ -35,7 +35,7 @@ namespace DeltaKustoLib.CommandModel.Policies.AutoDelete
             var builder = new StringBuilder();
 
             builder.Append(".delete table ");
-            builder.Append(TableName.ToScript());
+            builder.Append(EntityName.ToScript());
             builder.Append(" policy auto_delete");
 
             return builder.ToString();

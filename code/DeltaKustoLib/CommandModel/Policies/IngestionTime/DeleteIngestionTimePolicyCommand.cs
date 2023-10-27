@@ -36,7 +36,7 @@ namespace DeltaKustoLib.CommandModel.Policies.IngestionTime
             var builder = new StringBuilder();
 
             builder.Append(".delete table ");
-            builder.Append(TableName.ToScript());
+            builder.Append(EntityName.ToScript());
             builder.AppendLine(" policy ingestiontime");
 
             return builder.ToString();

@@ -17,7 +17,7 @@ namespace DeltaKustoLib.CommandModel.Policies.AutoDelete
     {
         public override string CommandFriendlyName => ".alter <entity> policy auto_delete";
 
-        public override string ScriptPath => $"tables/policies/auto_delete/create/{TableName}";
+        public override string ScriptPath => $"tables/policies/auto_delete/create/{EntityName}";
 
         public AlterAutoDeletePolicyCommand(
             EntityName tableName,
@@ -62,7 +62,7 @@ namespace DeltaKustoLib.CommandModel.Policies.AutoDelete
             var builder = new StringBuilder();
 
             builder.Append(".alter table ");
-            builder.Append(TableName);
+            builder.Append(EntityName);
             builder.Append(" policy auto_delete");
             builder.AppendLine();
             builder.Append("```");
@@ -82,7 +82,7 @@ namespace DeltaKustoLib.CommandModel.Policies.AutoDelete
 
             if (hasCurrent && !hasTarget)
             {   //  No target, we remove the current policy
-                yield return new DeleteAutoDeletePolicyCommand(currentCommand!.TableName);
+                yield return new DeleteAutoDeletePolicyCommand(currentCommand!.EntityName);
             }
             else if (hasTarget)
             {

@@ -26,7 +26,7 @@ namespace DeltaKustoFileIntegrationTest.Policies.IngestionTime
                 .FirstOrDefault();
 
             Assert.NotNull(policyCommand);
-            Assert.Equal("my-table", policyCommand.TableName.Name);
+            Assert.Equal("my-table", policyCommand.EntityName.Name);
             Assert.True(policyCommand.IsEnabled);
         }
 
@@ -46,7 +46,7 @@ namespace DeltaKustoFileIntegrationTest.Policies.IngestionTime
                 .FirstOrDefault();
 
             Assert.NotNull(policyCommand);
-            Assert.Equal("my-table", policyCommand.TableName.Name);
+            Assert.Equal("my-table", policyCommand.EntityName.Name);
         }
 
         [Fact]
@@ -76,7 +76,7 @@ namespace DeltaKustoFileIntegrationTest.Policies.IngestionTime
                 .FirstOrDefault();
 
             Assert.NotNull(policyCommand);
-            Assert.Equal("my-table", policyCommand.TableName.Name);
+            Assert.Equal("my-table", policyCommand.EntityName.Name);
             Assert.False(policyCommand.IsEnabled);
         }
     }

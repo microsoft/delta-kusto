@@ -157,7 +157,7 @@ namespace DeltaKustoLib.KustoModel
             var mappingModelMap = createMappings
                 .GroupBy(m => m.TableName)
                 .ToImmutableDictionary(g => g.Key, g => g.Select(c => c.ToModel()));
-            var autoDeletePolicyMap = autoDeletePolicies.ToImmutableDictionary(c => c.TableName);
+            var autoDeletePolicyMap = autoDeletePolicies.ToImmutableDictionary(c => c.EntityName);
             var cachingPolicyMap = cachingPolicies.ToImmutableDictionary(c => c.EntityName);
             var ingestionBatchingPolicyMap = ingestionBatchingPolicies
                 .ToImmutableDictionary(c => c.EntityName);
@@ -167,14 +167,14 @@ namespace DeltaKustoLib.KustoModel
             var streamingIngestionPolicyMap = streamingIngestionPolicies
                 .ToImmutableDictionary(c => c.EntityName);
             var partitioningPolicyMap = partitioningPolicies
-                .ToImmutableDictionary(c => c.TableName);
+                .ToImmutableDictionary(c => c.EntityName);
             var rowLevelSecurityPolicyMap = rowLevelSecurityPolicies
-                .ToImmutableDictionary(c => c.TableName);
+                .ToImmutableDictionary(c => c.EntityName);
             var restrictedViewPolicyMap = restrictedViewPolicies
-                .ToImmutableDictionary(c => c.TableName);
+                .ToImmutableDictionary(c => c.EntityName);
             var ingestionTimePolicyMap = ingestionTimePolicies
-                .ToImmutableDictionary(c => c.TableName);
-            var updatePolicyMap = updatePolicies.ToImmutableDictionary(c => c.TableName);
+                .ToImmutableDictionary(c => c.EntityName);
+            var updatePolicyMap = updatePolicies.ToImmutableDictionary(c => c.EntityName);
             var tables = createTables
                 .Select(ct => new TableModel(
                     ct.TableName,

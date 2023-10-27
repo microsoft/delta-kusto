@@ -33,7 +33,7 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies.Update
 
             var realCommand = (DeleteUpdatePolicyCommand)command;
 
-            Assert.Equal(tableName, realCommand.TableName.Name);
+            Assert.Equal(tableName, realCommand.EntityName.Name);
         }
     }
 }

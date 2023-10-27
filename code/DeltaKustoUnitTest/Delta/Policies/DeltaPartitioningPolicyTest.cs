@@ -129,7 +129,7 @@ namespace DeltaKustoUnitTest.Delta.Policies
 
                 var alterCommand = (AlterPartitioningPolicyCommand)delta[0];
 
-                Assert.Equal("A", alterCommand.TableName.Name);
+                Assert.Equal("A", alterCommand.EntityName.Name);
             }
             else if (hasDelete)
             {
@@ -138,7 +138,7 @@ namespace DeltaKustoUnitTest.Delta.Policies
 
                 var deleteCommand = (DeletePartitioningPolicyCommand)delta[0];
 
-                Assert.Equal("A", deleteCommand.TableName.Name);
+                Assert.Equal("A", deleteCommand.EntityName.Name);
             }
         }
     }

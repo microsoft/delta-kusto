@@ -77,7 +77,7 @@ namespace DeltaKustoLib.CommandModel.Policies.IngestionTime
 
             if (hasCurrent && !hasTarget)
             {   //  No target, we remove the current policy
-                yield return new DeleteIngestionTimePolicyCommand(currentCommand!.TableName);
+                yield return new DeleteIngestionTimePolicyCommand(currentCommand!.EntityName);
             }
             else if (hasTarget)
             {

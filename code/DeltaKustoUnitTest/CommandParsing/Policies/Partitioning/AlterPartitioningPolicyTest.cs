@@ -54,7 +54,7 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies.Partitioning
 
             var realCommand = (AlterPartitioningPolicyCommand)command;
 
-            Assert.Equal("mytable", realCommand.TableName.Name);
+            Assert.Equal("mytable", realCommand.EntityName.Name);
         }
     }
 }

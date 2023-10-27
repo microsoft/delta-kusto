@@ -36,7 +36,7 @@ namespace DeltaKustoLib.CommandModel.Policies.RowLevelSecurity
             var builder = new StringBuilder();
 
             builder.Append(".delete table ");
-            builder.Append(TableName.ToScript());
+            builder.Append(EntityName.ToScript());
             builder.Append(" policy row_level_security");
 
             return builder.ToString();

@@ -50,7 +50,7 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies.RestrictedView
             Assert.Equal(isEnabled, ((AlterRestrictedViewPolicyCommand)command).IsEnabled);
             Assert.Equal(
                 actualTableName,
-                ((AlterRestrictedViewPolicyCommand)command).TableName.Name);
+                ((AlterRestrictedViewPolicyCommand)command).EntityName.Name);
         }
     }
 }

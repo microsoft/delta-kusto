@@ -16,7 +16,7 @@ namespace DeltaKustoLib.CommandModel.Policies.Partitioning
         public override string CommandFriendlyName => ".alter <entity> policy partitioning";
 
         public override string ScriptPath =>
-            $"tables/policies/partitioning/create/{TableName}";
+            $"tables/policies/partitioning/create/{EntityName}";
 
         public AlterPartitioningPolicyCommand(
             EntityName tableName,
@@ -28,7 +28,7 @@ namespace DeltaKustoLib.CommandModel.Policies.Partitioning
         {
             var builder = new StringBuilder();
 
-            builder.Append($".alter table {TableName} policy partitioning");
+            builder.Append($".alter table {EntityName} policy partitioning");
             builder.AppendLine();
             builder.AppendLine("```");
             builder.AppendLine(SerializePolicy());
@@ -69,7 +69,7 @@ namespace DeltaKustoLib.CommandModel.Policies.Partitioning
             {
                 // No target, we remove the current policy
                 yield return new DeletePartitioningPolicyCommand(
-                    currentCommand!.TableName);
+                    currentCommand!.EntityName);
             }
             else if (hasTarget)
             {

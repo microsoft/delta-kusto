@@ -52,7 +52,7 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies.IngestionTime
 
             var realCommand = (AlterIngestionTimePolicyCommand)command;
 
-            Assert.Equal(actualTableName, realCommand.TableName.Name);
+            Assert.Equal(actualTableName, realCommand.EntityName.Name);
             Assert.Equal(isEnabled, realCommand.IsEnabled);
         }
     }

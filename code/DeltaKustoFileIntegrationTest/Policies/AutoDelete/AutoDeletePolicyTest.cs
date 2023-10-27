@@ -37,7 +37,7 @@ namespace DeltaKustoFileIntegrationTest.Policies.AutoDelete
                 .FirstOrDefault();
 
             Assert.NotNull(policyCommand);
-            Assert.Equal("my-table", policyCommand!.TableName.Name);
+            Assert.Equal("my-table", policyCommand!.EntityName.Name);
             Assert.Equal(
                 new DateTime(2030, 1, 1),
                 policyCommand!.DeserializePolicy<AutoDeletePolicy>().GetExpiryDate());
@@ -59,7 +59,7 @@ namespace DeltaKustoFileIntegrationTest.Policies.AutoDelete
                 .FirstOrDefault();
 
             Assert.NotNull(policyCommand);
-            Assert.Equal("my-table", policyCommand!.TableName.Name);
+            Assert.Equal("my-table", policyCommand!.EntityName.Name);
         }
 
         [Fact]
@@ -89,7 +89,7 @@ namespace DeltaKustoFileIntegrationTest.Policies.AutoDelete
                 .FirstOrDefault();
 
             Assert.NotNull(policyCommand);
-            Assert.Equal("my-table", policyCommand!.TableName.Name);
+            Assert.Equal("my-table", policyCommand!.EntityName.Name);
             Assert.Equal(
                new DateTime(2035, 1, 1),
                policyCommand!.DeserializePolicy<AutoDeletePolicy>().GetExpiryDate());

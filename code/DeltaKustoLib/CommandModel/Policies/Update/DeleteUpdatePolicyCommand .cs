@@ -36,7 +36,7 @@ namespace DeltaKustoLib.CommandModel.Policies.Update
             var builder = new StringBuilder();
 
             builder.Append(".delete table ");
-            builder.Append(TableName.ToScript());
+            builder.Append(EntityName.ToScript());
             builder.AppendLine(" policy update");
 
             return builder.ToString();

@@ -33,7 +33,7 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies.AutoDelete
 
             var realCommand = (AlterAutoDeletePolicyCommand)command;
 
-            Assert.Equal("mytable", realCommand.TableName.Name);
+            Assert.Equal("mytable", realCommand.EntityName.Name);
         }
 
         [Fact]
@@ -47,7 +47,7 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies.AutoDelete
 
             var realCommand = (AlterAutoDeletePolicyCommand)command;
 
-            Assert.Equal("mytable", realCommand.TableName.Name);
+            Assert.Equal("mytable", realCommand.EntityName.Name);
         }
 
         private void TestAutoDeletePolicy(

@@ -92,7 +92,7 @@ namespace DeltaKustoUnitTest.Delta.Policies
 
                 var alterCommand = (AlterIngestionTimePolicyCommand)delta[0];
 
-                Assert.Equal("A", alterCommand.TableName.Name);
+                Assert.Equal("A", alterCommand.EntityName.Name);
                 alterAction(alterCommand);
             }
             else if (deleteAction != null)
@@ -102,7 +102,7 @@ namespace DeltaKustoUnitTest.Delta.Policies
 
                 var deleteCommand = (DeleteIngestionTimePolicyCommand)delta[0];
 
-                Assert.Equal("A", deleteCommand.TableName.Name);
+                Assert.Equal("A", deleteCommand.EntityName.Name);
                 deleteAction(deleteCommand);
             }
         }

@@ -20,7 +20,7 @@ namespace DeltaKustoLib.CommandModel.Policies.IngestionTime
 
         public override string CommandFriendlyName => ".alter table policy ingestiontime";
 
-        public override string ScriptPath => $"tables/policies/ingestiontime/create/{TableName}";
+        public override string ScriptPath => $"tables/policies/ingestiontime/create/{EntityName}";
 
         public AlterIngestionTimePolicyCommand(EntityName tableName, bool isEnabled)
             : base(tableName)
@@ -44,7 +44,7 @@ namespace DeltaKustoLib.CommandModel.Policies.IngestionTime
             var builder = new StringBuilder();
 
             builder.Append(".alter table ");
-            builder.Append(TableName);
+            builder.Append(EntityName);
             builder.Append(" policy ingestiontime ");
             builder.AppendLine(IsEnabled.ToString().ToLower());
 
@@ -71,7 +71,7 @@ namespace DeltaKustoLib.CommandModel.Policies.IngestionTime
             var pluralCommands = singularPolicyCommands
                 .GroupBy(c => c.IsEnabled)
                 .Select(g => new AlterIngestionTimePluralPolicyCommand(
-                    g.Select(c => c.TableName),
+                    g.Select(c => c.EntityName),
                     g.Key));
 
             return pluralCommands.ToImmutableArray();
@@ -86,7 +86,7 @@ namespace DeltaKustoLib.CommandModel.Policies.IngestionTime
 
             if (hasCurrent && !hasTarget)
             {   //  No target, we remove the current policy
-                yield return new DeleteIngestionTimePolicyCommand(currentCommand!.TableName);
+                yield return new DeleteIngestionTimePolicyCommand(currentCommand!.EntityName);
             }
             else if (hasTarget)
             {

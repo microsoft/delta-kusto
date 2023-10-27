@@ -51,7 +51,7 @@ namespace DeltaKustoUnitTest.Delta.Policies
 
             var policyCommand = (DeleteUpdatePolicyCommand)delta[0];
 
-            Assert.Equal("A", policyCommand.TableName.Name);
+            Assert.Equal("A", policyCommand.EntityName.Name);
         }
 
         [Fact]
@@ -74,7 +74,7 @@ namespace DeltaKustoUnitTest.Delta.Policies
 
             var policyCommand = (AlterUpdatePolicyCommand)delta[0];
 
-            Assert.Equal("A", policyCommand.TableName.Name);
+            Assert.Equal("A", policyCommand.EntityName.Name);
             Assert.Equal(targetCommands[1], policyCommand);
         }
 

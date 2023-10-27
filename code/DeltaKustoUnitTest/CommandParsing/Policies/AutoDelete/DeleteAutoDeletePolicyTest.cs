@@ -32,7 +32,7 @@ namespace DeltaKustoUnitTest.CommandParsing.PoliciesAutoDelete
 
             var realCommand = (DeleteAutoDeletePolicyCommand)command;
 
-            Assert.Equal(tableName, realCommand.TableName.Name);
+            Assert.Equal(tableName, realCommand.EntityName.Name);
         }
     }
 }

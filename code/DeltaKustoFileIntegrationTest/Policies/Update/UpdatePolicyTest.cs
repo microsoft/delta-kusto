@@ -28,7 +28,7 @@ namespace DeltaKustoFileIntegrationTest.Policies.Update
                 .FirstOrDefault();
 
             Assert.NotNull(createPolicyCommand);
-            Assert.Equal("my-table", createPolicyCommand!.TableName.Name);
+            Assert.Equal("my-table", createPolicyCommand!.EntityName.Name);
 
             Assert.Single(createPolicyCommand!.UpdatePolicies);
             Assert.Equal("A", createPolicyCommand!.UpdatePolicies[0].Source);
@@ -50,7 +50,7 @@ namespace DeltaKustoFileIntegrationTest.Policies.Update
                 .FirstOrDefault();
 
             Assert.NotNull(deletePolicyCommand);
-            Assert.Equal("my-table", deletePolicyCommand!.TableName.Name);
+            Assert.Equal("my-table", deletePolicyCommand!.EntityName.Name);
         }
 
         [Fact]
@@ -80,7 +80,7 @@ namespace DeltaKustoFileIntegrationTest.Policies.Update
                 .FirstOrDefault();
 
             Assert.NotNull(alterPolicyCommand);
-            Assert.Equal("my-table", alterPolicyCommand!.TableName.Name);
+            Assert.Equal("my-table", alterPolicyCommand!.EntityName.Name);
 
             Assert.Single(alterPolicyCommand!.UpdatePolicies);
             Assert.Equal("A", alterPolicyCommand!.UpdatePolicies[0].Source);

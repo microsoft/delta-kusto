@@ -20,7 +20,7 @@ namespace DeltaKustoLib.CommandModel.Policies.RestrictedView
         public override string CommandFriendlyName => ".alter table policy restricted_view_access";
 
         public override string ScriptPath =>
-            $"tables/policies/restricted_view_access/create/{TableName}";
+            $"tables/policies/restricted_view_access/create/{EntityName}";
 
         public AlterRestrictedViewPolicyCommand(
             EntityName tableName,
@@ -32,7 +32,7 @@ namespace DeltaKustoLib.CommandModel.Policies.RestrictedView
 
         public override string ToScript(ScriptingContext? context = null)
         {
-            return $".alter table {TableName} policy restricted_view_access {IsEnabled}";
+            return $".alter table {EntityName} policy restricted_view_access {IsEnabled}";
         }
 
         public override bool Equals(CommandBase? other)
@@ -55,7 +55,7 @@ namespace DeltaKustoLib.CommandModel.Policies.RestrictedView
             var pluralCommands = singularPolicyCommands
                 .GroupBy(c => c.IsEnabled)
                 .Select(g => new AlterRestrictedViewPluralPolicyCommand(
-                    g.Select(c => c.TableName),
+                    g.Select(c => c.EntityName),
                     g.Key));
 
             return pluralCommands.ToImmutableArray();
@@ -84,7 +84,7 @@ namespace DeltaKustoLib.CommandModel.Policies.RestrictedView
             if (hasCurrent && !hasTarget)
             {
                 // No target, we remove the current policy
-                yield return new DeleteRestrictedViewPolicyCommand(currentCommand!.TableName);
+                yield return new DeleteRestrictedViewPolicyCommand(currentCommand!.EntityName);
             }
             else if (hasTarget)
             {

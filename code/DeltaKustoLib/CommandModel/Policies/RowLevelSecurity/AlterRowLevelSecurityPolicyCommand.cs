@@ -21,7 +21,7 @@ namespace DeltaKustoLib.CommandModel.Policies.RowLevelSecurity
 
         public override string CommandFriendlyName => ".alter <entity> policy row_level_security";
 
-        public override string ScriptPath => $"tables/policies/row_level_security/create/{TableName}";
+        public override string ScriptPath => $"tables/policies/row_level_security/create/{EntityName}";
 
         public AlterRowLevelSecurityPolicyCommand(
             EntityName tableName,
@@ -65,7 +65,7 @@ namespace DeltaKustoLib.CommandModel.Policies.RowLevelSecurity
             var builder = new StringBuilder();
 
             builder.Append(".alter table ");
-            builder.Append(TableName.ToScript());
+            builder.Append(EntityName.ToScript());
             builder.Append(" policy row_level_security ");
             builder.Append(IsEnabled ? "enable" : "disable");
             builder.Append(" ");
@@ -94,7 +94,7 @@ namespace DeltaKustoLib.CommandModel.Policies.RowLevelSecurity
 
             if (hasCurrent && !hasTarget)
             {   //  No target, we remove the current policy
-                yield return new DeleteRowLevelSecurityPolicyCommand(currentCommand!.TableName);
+                yield return new DeleteRowLevelSecurityPolicyCommand(currentCommand!.EntityName);
             }
             else if (hasTarget)
             {

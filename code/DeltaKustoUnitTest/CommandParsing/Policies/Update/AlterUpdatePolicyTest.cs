@@ -74,7 +74,7 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies.Update
 
             var realCommand = (AlterUpdatePolicyCommand)command;
 
-            Assert.Equal("mytable", realCommand.TableName.Name);
+            Assert.Equal("mytable", realCommand.EntityName.Name);
         }
 
         [Fact]
@@ -87,7 +87,7 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies.Update
 
             var realCommand = (AlterUpdatePolicyCommand)command;
 
-            Assert.Equal("my table", realCommand.TableName.Name);
+            Assert.Equal("my table", realCommand.EntityName.Name);
         }
 
         private void TestUpdatePolicy(string tableName, params UpdatePolicy[] policies)

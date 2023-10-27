@@ -26,7 +26,7 @@ namespace DeltaKustoLib.CommandModel.Policies.Update
 
         public override string CommandFriendlyName => ".alter table policy update";
 
-        public override string ScriptPath => $"tables/policies/update/create/{TableName}";
+        public override string ScriptPath => $"tables/policies/update/create/{EntityName}";
 
         public AlterUpdatePolicyCommand(
             EntityName tableName,
@@ -87,7 +87,7 @@ namespace DeltaKustoLib.CommandModel.Policies.Update
             var builder = new StringBuilder();
 
             builder.Append(".alter table ");
-            builder.Append(TableName.ToScript());
+            builder.Append(EntityName.ToScript());
             builder.Append(" policy update");
             builder.AppendLine();
             builder.Append("```");
@@ -109,7 +109,7 @@ namespace DeltaKustoLib.CommandModel.Policies.Update
 
             if (hasCurrent && !hasTarget)
             {   //  No target, we remove the current policy objects
-                yield return new DeleteUpdatePolicyCommand(currentUpdatePolicyCommand!.TableName);
+                yield return new DeleteUpdatePolicyCommand(currentUpdatePolicyCommand!.EntityName);
             }
             else if (hasTarget)
             {

@@ -9,12 +9,12 @@ namespace DeltaKustoLib.CommandModel.Policies
 {
     public abstract class TableOnlyPolicyCommandBase : PolicyCommandBase
     {
-        public EntityName TableName { get; }
+        public EntityName EntityName { get; }
 
         public TableOnlyPolicyCommandBase(EntityName tableName, JsonDocument policy)
             : base(policy)
         {
-            TableName = tableName;
+            EntityName = tableName;
         }
 
         public TableOnlyPolicyCommandBase(EntityName tableName)
@@ -22,14 +22,14 @@ namespace DeltaKustoLib.CommandModel.Policies
         {
         }
 
-        public override string SortIndex => TableName.Name;
+        public override string SortIndex => EntityName.Name;
 
         public override bool Equals(CommandBase? other)
         {
             var otherPolicy = other as TableOnlyPolicyCommandBase;
             var areEqualed = otherPolicy != null
                 && base.Equals(other)
-                && otherPolicy.TableName.Equals(TableName);
+                && otherPolicy.EntityName.Equals(EntityName);
 
             return areEqualed;
         }

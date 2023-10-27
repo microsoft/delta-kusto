@@ -26,7 +26,7 @@ namespace DeltaKustoFileIntegrationTest.Policies.RowLevelSecurity
                 .FirstOrDefault();
 
             Assert.NotNull(policyCommand);
-            Assert.Equal("my-table", policyCommand.TableName.Name);
+            Assert.Equal("my-table", policyCommand.EntityName.Name);
             Assert.True(policyCommand.IsEnabled);
             Assert.Equal("['my-table']", policyCommand.Query.Text);
         }
@@ -47,7 +47,7 @@ namespace DeltaKustoFileIntegrationTest.Policies.RowLevelSecurity
                 .FirstOrDefault();
 
             Assert.NotNull(policyCommand);
-            Assert.Equal("my-table", policyCommand.TableName.Name);
+            Assert.Equal("my-table", policyCommand.EntityName.Name);
         }
 
         [Fact]
@@ -77,7 +77,7 @@ namespace DeltaKustoFileIntegrationTest.Policies.RowLevelSecurity
                 .FirstOrDefault();
 
             Assert.NotNull(policyCommand);
-            Assert.Equal("my-table", policyCommand.TableName.Name);
+            Assert.Equal("my-table", policyCommand.EntityName.Name);
             Assert.False(policyCommand.IsEnabled);
             Assert.Equal("['my-table']", policyCommand.Query.Text);
         }

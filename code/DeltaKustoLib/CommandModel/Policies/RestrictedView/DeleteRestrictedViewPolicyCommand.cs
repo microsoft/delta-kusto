@@ -35,7 +35,7 @@ namespace DeltaKustoLib.CommandModel.Policies.RestrictedView
             var builder = new StringBuilder();
 
             builder.Append(".delete table ");
-            builder.Append(TableName.ToScript());
+            builder.Append(EntityName.ToScript());
             builder.Append(" policy restricted_view_access");
 
             return builder.ToString();

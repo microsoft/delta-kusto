@@ -32,7 +32,7 @@ namespace DeltaKustoUnitTest.CommandParsing.Policies.RestrictedView
 
             var realCommand = (DeleteRestrictedViewPolicyCommand)command;
 
-            Assert.Equal(tableName, realCommand.TableName.Name);
+            Assert.Equal(tableName, realCommand.EntityName.Name);
         }
     }
 }

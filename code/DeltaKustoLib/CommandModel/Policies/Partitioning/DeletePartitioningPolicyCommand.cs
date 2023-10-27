@@ -31,7 +31,7 @@ namespace DeltaKustoLib.CommandModel.Policies.Partitioning
         {
             var builder = new StringBuilder();
 
-            builder.AppendLine($".delete table {TableName} policy partitioning");
+            builder.AppendLine($".delete table {EntityName} policy partitioning");
 
             return builder.ToString();
         }

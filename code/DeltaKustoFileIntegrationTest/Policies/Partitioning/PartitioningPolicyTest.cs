@@ -26,7 +26,7 @@ namespace DeltaKustoFileIntegrationTest.Policies.Partitioning
                 .FirstOrDefault();
 
             Assert.NotNull(policyCommand);
-            Assert.Equal("my-table", policyCommand!.TableName.Name);
+            Assert.Equal("my-table", policyCommand!.EntityName.Name);
         }
 
         [Fact]
@@ -45,7 +45,7 @@ namespace DeltaKustoFileIntegrationTest.Policies.Partitioning
                 .FirstOrDefault();
 
             Assert.NotNull(policyCommand);
-            Assert.Equal("my-table", policyCommand!.TableName.Name);
+            Assert.Equal("my-table", policyCommand!.EntityName.Name);
         }
 
         [Fact]
@@ -75,7 +75,7 @@ namespace DeltaKustoFileIntegrationTest.Policies.Partitioning
                 .FirstOrDefault();
 
             Assert.NotNull(policyCommand);
-            Assert.Equal("my-table", policyCommand!.TableName.Name);
+            Assert.Equal("my-table", policyCommand!.EntityName.Name);
         }
     }
 }

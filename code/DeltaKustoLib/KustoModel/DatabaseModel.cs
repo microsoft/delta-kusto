@@ -191,7 +191,7 @@ namespace DeltaKustoLib.KustoModel
             ValidateDuplicates(
                 createMappings,
                 m => $"{m.TableName}_{m.MappingName}_{m.MappingKind}");
-            ValidateDuplicates(autoDeletePolicies, m => m.TableName.Name);
+            ValidateDuplicates(autoDeletePolicies, m => m.EntityName.Name);
             ValidateDuplicates(tableCachingPolicies, m => m.EntityName.Name);
             ValidateDuplicates(dbCachingPolicies, m => "Database caching policy");
             ValidateDuplicates(tableIngestionBatchingPolicies, m => m.EntityName.Name);
@@ -202,13 +202,13 @@ namespace DeltaKustoLib.KustoModel
             ValidateDuplicates(dbShardingPolicies, m => "Database sharding policy");
             ValidateDuplicates(tableStreamingIngestionPolicies, m => m.EntityName.Name);
             ValidateDuplicates(dbStreamingIngestionPolicies, m => "Database sharding policy");
-            ValidateDuplicates(tablePartitioningPolicies, m => m.TableName.Name);
+            ValidateDuplicates(tablePartitioningPolicies, m => m.EntityName.Name);
             ValidateDuplicates(tableRetentionPolicies, m => m.EntityName.Name);
             ValidateDuplicates(dbRetentionPolicies, m => "Database retention policy");
-            ValidateDuplicates(tableRowLevelSecurityPolicies, m => m.TableName.Name);
-            ValidateDuplicates(tableRestrictedViewPolicies, m => m.TableName.Name);
-            ValidateDuplicates(tableIngestionTimePolicies, m => m.TableName.Name);
-            ValidateDuplicates(updatePolicies, m => m.TableName.Name);
+            ValidateDuplicates(tableRowLevelSecurityPolicies, m => m.EntityName.Name);
+            ValidateDuplicates(tableRestrictedViewPolicies, m => m.EntityName.Name);
+            ValidateDuplicates(tableIngestionTimePolicies, m => m.EntityName.Name);
+            ValidateDuplicates(updatePolicies, m => m.EntityName.Name);
 
             var tableModels = TableModel.FromCommands(
                 createTables,
