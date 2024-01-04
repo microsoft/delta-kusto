@@ -297,14 +297,13 @@ namespace DeltaKustoLib.CommandModel
         {
             var lines = script
                 .Split('\n')
-                .Select(l => l.Trim())
                 //  Remove comment lines
-                .Where(l => !l.StartsWith("//"));
+                .Where(l => !l.Trim().StartsWith("//"));
             var currentCommandLines = new List<string>();
 
             foreach (var line in lines)
             {
-                if (line == string.Empty)
+                if (line.Trim() == string.Empty)
                 {
                     if (currentCommandLines.Any())
                     {

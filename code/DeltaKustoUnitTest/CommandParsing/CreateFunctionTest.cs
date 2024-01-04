@@ -362,5 +362,39 @@ with (
             Assert.Equal("a", param3.ParameterName.Name);
             Assert.Equal("int", param3.PrimitiveType);
         }
+
+        [Fact]
+        public void PythonPlugin()
+        {
+            var name = "PythonFct";
+            var script = $@".create-or-alter function {name}() {{
+range x from 1 to 360 step 1
+| evaluate python(typeof(*, fx:double),
+```
+from scipy.stats import gamma,uniform,bernoulli
+size = kargs['samples']
+result = df
+def GenMixtureUsage(x, size):
+    rand_bern = bernoulli.rvs(x['ProbLowUsage'], size = size)
+    rand_gamma = gamma.rvs(a=1, scale=x['AvgUsage'], size=size)
+    rand_unif = uniform.rvs(size=size)
+    result = rand_bern*rand_unif + (1-rand_bern)*rand_gamma
+    return result
+result['SimulatedUsage'] = df.apply(lambda x: GenMixtureUsage(x, size = size), axis=1)
+```
+, bag_pack('samples', 10)
+)
+}}";
+            var command = ParseOneCommand(script);
+
+            Assert.IsType<CreateFunctionCommand>(command);
+
+            var createFunctionCommand = (CreateFunctionCommand)command;
+            var body = createFunctionCommand.Body;
+            var bernIndex = body.IndexOf("rand_bern");
+
+            Assert.NotEqual(-1, bernIndex);
+            Assert.NotEqual('\n', body[bernIndex-1]);
+        }
     }
 }
