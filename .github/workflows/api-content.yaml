@@ -64,7 +64,7 @@ jobs:
       run: |
         wa=$(az webapp list -g $rg --query "[?tags.env=='${{ steps.define-env.outputs.targetEnv }}'].name" -o tsv)
         echo "Found Web App:  $wa"
-        echo "::set-output name=webAppName::$wa"
+        echo "webAppName=$wa" >> $GITHUB_OUTPUT
     # Deploy Web App, see https://learn.microsoft.com/en-us/azure/app-service/deploy-zip?tabs=cli#deploy-a-zip-package
     - name: Deploy
       run: |
