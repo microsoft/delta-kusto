@@ -29,11 +29,11 @@ namespace DeltaKustoLib.KustoModel
                 var other = obj as MappingProperties;
 
                 return other != null
-                    && other.Ordinal.Equals(Ordinal)
-                    && other.ConstValue.Equals(ConstValue)
-                    && other.Path.Equals(Path)
-                    && other.Transform.Equals(Transform)
-                    && other.Field.Equals(Field);
+                    && (other.Ordinal == null ? Ordinal == null : other.Ordinal.Equals(Ordinal))
+                    && (other.ConstValue == null ? ConstValue == null : other.ConstValue.Equals(ConstValue))
+                    && (other.Path == null ? Path == null : other.Path.Equals(Path))
+                    && (other.Transform == null ? Transform == null : other.Transform.Equals(Transform))
+                    && (other.Field == null ? Field == null : other.Field.Equals(Field));
             }
 
             public override int GetHashCode()
