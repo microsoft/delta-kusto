@@ -8,6 +8,10 @@ on:
         default:  true
         description:  'Execute Delta Kusto out-of-proc:  true or false'
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   clusterSetup:
 
