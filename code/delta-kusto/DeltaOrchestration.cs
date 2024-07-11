@@ -32,7 +32,9 @@ namespace delta_kusto
 
         static DeltaOrchestration()
         {
-            KustoTrustedEndpoints.SetOverridePolicy(domain => true);
+            KustoTrustedEndpoints.SetOverridePolicy(
+                domain => true,
+                new EndpointContext(EndpointType.Kusto));
         }
 
         public DeltaOrchestration(
