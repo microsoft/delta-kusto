@@ -14,10 +14,13 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Azure Login
-      run: az login --service-principal -u ${{ secrets.deploy_sp_id }} -p ${{ secrets.deploy_sp_secret }} --tenant ${{ secrets.tenant_id }}
-    - name: Azure Subscription Selection
-      run: az account set -n "${{ secrets.TEST_SUB }}"
+    # Using the user MI as exposed in https://yourazurecoach.com/2022/12/29/use-github-actions-with-user-assigned-managed-identity/
+    - name: Log into Azure
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.TEST_CLIENT_ID }}
+        tenant-id: ${{ secrets.TEST_TENANT_ID }}
+        subscription-id: ${{ secrets.TEST_SUB }}
     # Add Kusto extension to Azure CLI
     - name: Install Kusto extension
       run: az extension add -n kusto
