@@ -16,6 +16,8 @@ jobs:
   clusterSetup:
 
     runs-on: ubuntu-latest
+    # The environment is bound to the federated credentials on the user managed Identity in Azure
+    environment: dev
     
     steps:
     # Using the user MI as exposed in https://yourazurecoach.com/2022/12/29/use-github-actions-with-user-assigned-managed-identity/
