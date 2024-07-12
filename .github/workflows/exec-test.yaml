@@ -52,6 +52,8 @@ jobs:
     - clusterSetup
 
     runs-on: ubuntu-latest
+    # The environment is bound to the federated credentials on the user managed Identity in Azure
+    environment: dev
     
     env:
       # See OS catalog here:  https://docs.microsoft.com/en-us/dotnet/core/rid-catalog
@@ -87,10 +89,13 @@ jobs:
       run: ls -l bin
     - name: Azure CLI Version
       run: az version
-    - name: Azure Login
-      run: az login --service-principal -u ${{ secrets.deploy_sp_id }} -p ${{ secrets.deploy_sp_secret }} --tenant ${{ secrets.tenant_id }}
-    - name: Azure Subscription Selection
-      run: az account set -n "${{ secrets.TEST_SUB }}"
+    # Using the user MI as exposed in https://yourazurecoach.com/2022/12/29/use-github-actions-with-user-assigned-managed-identity/
+    - name: Log into Azure
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.TEST_CLIENT_ID }}
+        tenant-id: ${{ secrets.TEST_TENANT_ID }}
+        subscription-id: ${{ secrets.TEST_SUB }}
     - name: CLI Kusto Extension
       run: az extension add -n kusto
     # Set environment variables
@@ -135,6 +140,8 @@ jobs:
 
     # This can run in parallel with the other job as they target different databases
     runs-on: macos-latest
+    # The environment is bound to the federated credentials on the user managed Identity in Azure
+    environment: dev
     
     env:
       # See OS catalog here:  https://docs.microsoft.com/en-us/dotnet/core/rid-catalog
@@ -170,10 +177,13 @@ jobs:
       run: ls -l bin
     - name: Azure CLI Version
       run: az version
-    - name: Azure Login
-      run: az login --service-principal -u ${{ secrets.deploy_sp_id }} -p ${{ secrets.deploy_sp_secret }} --tenant ${{ secrets.tenant_id }}
-    - name: Azure Subscription Selection
-      run: az account set -n "${{ secrets.TEST_SUB }}"
+    # Using the user MI as exposed in https://yourazurecoach.com/2022/12/29/use-github-actions-with-user-assigned-managed-identity/
+    - name: Log into Azure
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.TEST_CLIENT_ID }}
+        tenant-id: ${{ secrets.TEST_TENANT_ID }}
+        subscription-id: ${{ secrets.TEST_SUB }}
     - name: CLI Kusto Extension
       run: az extension add -n kusto
     # Set environment variables
@@ -217,6 +227,8 @@ jobs:
     - mac
 
     runs-on: windows-latest
+    # The environment is bound to the federated credentials on the user managed Identity in Azure
+    environment: dev
     
     env:
       # See OS catalog here:  https://docs.microsoft.com/en-us/dotnet/core/rid-catalog
@@ -252,10 +264,13 @@ jobs:
       run: ls -l bin
     - name: Azure CLI Version
       run: az version
-    - name: Azure Login
-      run: az login --service-principal -u ${{ secrets.deploy_sp_id }} -p ${{ secrets.deploy_sp_secret }} --tenant ${{ secrets.tenant_id }}
-    - name: Azure Subscription Selection
-      run: az account set -n "${{ secrets.TEST_SUB }}"
+    # Using the user MI as exposed in https://yourazurecoach.com/2022/12/29/use-github-actions-with-user-assigned-managed-identity/
+    - name: Log into Azure
+      uses: azure/login@v1
+      with:
+        client-id: ${{ secrets.TEST_CLIENT_ID }}
+        tenant-id: ${{ secrets.TEST_TENANT_ID }}
+        subscription-id: ${{ secrets.TEST_SUB }}
     - name: CLI Kusto Extension
       run: az extension add -n kusto
     # Set environment variables
