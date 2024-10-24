@@ -34,5 +34,19 @@ namespace DeltaKustoUnitTest.CommandParsing
             Assert.Equal(new EntityName("c "), alterColumnTypeCommand.ColumnName);
             Assert.Equal("string", alterColumnTypeCommand.Type);
         }
+        
+        [Fact]
+        public void AlterColumnIntegerNames()
+        {
+            var command = ParseOneCommand(".alter column t_able.['1'] type=string");
+
+            Assert.IsType<AlterColumnTypeCommand>(command);
+
+            var alterColumnTypeCommand = (AlterColumnTypeCommand)command;
+
+            Assert.Equal(new EntityName("t_able"), alterColumnTypeCommand.TableName);
+            Assert.Equal(new EntityName("1"), alterColumnTypeCommand.ColumnName);
+            Assert.Equal("string", alterColumnTypeCommand.Type);
+        }
     }
 }
