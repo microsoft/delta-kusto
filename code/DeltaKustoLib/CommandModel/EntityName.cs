@@ -28,6 +28,13 @@ namespace DeltaKustoLib.CommandModel
             {
                 NeedEscape = true;
             }
+
+            // If the entity name is an integer, it needs to be escaped
+            if (int.TryParse(name, out _))
+            {
+                NeedEscape = true;
+            }
+            
             //  Scan the name for unsupported characters / special characters
             foreach (var c in name)
             {

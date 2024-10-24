@@ -215,6 +215,27 @@ with (
             Assert.Equal("int", createFunctionCommand.Parameters.First().PrimitiveType);
             Assert.Equal(body, createFunctionCommand.Body);
         }
+        
+        [Fact]
+        public void ParameterWithIntegerName()
+        {
+            var name = "myfct";
+            var body = "print state, qty, tolerance";
+            var paramName = "1";
+            var command = ParseOneCommand(
+                ".create-or-alter function "
+                + $"{name} (['{paramName}']:string) {{ {body} }}");
+
+            Assert.IsType<CreateFunctionCommand>(command);
+
+            var createFunctionCommand = (CreateFunctionCommand)command;
+
+            Assert.Equal(name, createFunctionCommand.FunctionName.Name);
+            Assert.Single(createFunctionCommand.Parameters);
+            Assert.Equal(paramName, createFunctionCommand.Parameters.First().ParameterName.Name);
+            Assert.Equal("string", createFunctionCommand.Parameters.First().PrimitiveType);
+            Assert.Equal(body, createFunctionCommand.Body);
+        }
 
         [Fact]
         public void DefaultValueParameter()
