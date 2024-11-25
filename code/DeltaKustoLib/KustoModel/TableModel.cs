@@ -323,6 +323,22 @@ namespace DeltaKustoLib.KustoModel
             {
                 yield return StreamingIngestionPolicy;
             }
+            if (PartitioningPolicy != null)
+            {
+                yield return PartitioningPolicy;
+            }
+            if (RowLevelSecurityPolicy != null)
+            {
+                yield return RowLevelSecurityPolicy;
+            }
+            if (RestrictedViewPolicy != null)
+            {
+                yield return RestrictedViewPolicy;
+            }
+            if (IngestionTimePolicy != null)
+            {
+                yield return IngestionTimePolicy;
+            }
             if (UpdatePolicy != null)
             {
                 yield return UpdatePolicy;
