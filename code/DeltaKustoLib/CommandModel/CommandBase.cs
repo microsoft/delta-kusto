@@ -296,9 +296,9 @@ namespace DeltaKustoLib.CommandModel
         private static IEnumerable<string> SplitCommandScripts(string script)
         {
             var lines = script
-                .Split('\n')
+                .Split('\n');
                 //  Remove comment lines
-                .Where(l => !l.Trim().StartsWith("//"));
+                //.Where(l => !l.Trim().StartsWith("//"));
             var currentCommandLines = new List<string>();
 
             foreach (var line in lines)
