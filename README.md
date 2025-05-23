@@ -4,7 +4,8 @@
 
 # Delta-Kusto
 
->> Warning
+>> Warning:  This repo is no longer updated.  We started Delta Kusto February 24, 2021.  The goal of Delta Kusto was to fill a void in the product to support CI/CD flows.  In November 2024, Kusto went GA with [lifecycle management features](https://learn.microsoft.com/en-us/fabric/cicd/).  This new feature marks the productisation of CI/CD flows.  For us that also mark the time to stop evolving Delta Kusto.  We are aware those new features are only available in Fabric and no such solution exists for Azure Data Explorer (ADX, Kusto's Azure offering).  For ADX we recommend using [.show database schema as csl script](https://learn.microsoft.com/en-us/kusto/management/show-schema-database?view=azure-data-explorer#show-database-schema-as-csl-script) & [.execute database script](https://learn.microsoft.com/en-us/kusto/management/execute-database-script?view=azure-data-explorer).
+>> Thank you all for using & supporting the Delta Kusto project all those years!
 
 Delta-Kusto is a Command-line interface (CLI) enabling Continuous Integration / Continuous Deployment (CI / CD) automation with Kusto objects (e.g. tables, functions, policies, security roles, etc.) in [Azure Data Explorer](https://docs.microsoft.com/en-us/azure/data-explorer/data-explorer-overview) (ADX) databases.  It can work on a single database, multiple databases, or an entire cluster.  It also supports *multi-tenant* scenarios.
 
