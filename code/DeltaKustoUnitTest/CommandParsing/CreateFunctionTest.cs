@@ -396,5 +396,68 @@ result['SimulatedUsage'] = df.apply(lambda x: GenMixtureUsage(x, size = size), a
             Assert.NotEqual(-1, bernIndex);
             Assert.NotEqual('\n', body[bernIndex-1]);
         }
+
+        [Fact]
+        public void WithMultilineBody()
+        {
+            var name = "FunctionWithMultilineBody";
+            var body = @"myTable
+            | project property";
+            var bodyWithNormalizedLineEndings = body.ReplaceLineEndings("\n"); // Kusto parsing returns \n as line endings
+            var script = $@".create-or-alter function {name}() {{
+{body}
+}}";
+            var command = ParseOneCommand(script);
+
+            Assert.IsType<CreateFunctionCommand>(command);
+
+            var createFunctionCommand = (CreateFunctionCommand)command;
+
+            Assert.Equal(name, createFunctionCommand.FunctionName.Name);
+            Assert.Equal(bodyWithNormalizedLineEndings, createFunctionCommand.Body);
+        }
+
+        [Fact]
+        public void WithSubQuery()
+        {
+            var name = "FunctionWithExpressionInWhere";
+            var body = @"let myIdList = myOtherTable | project id;
+        myTable | where id in (myIdList)";
+            var bodyWithNormalizedLineEndings = body.ReplaceLineEndings("\n"); // Kusto parsing returns \n as line endings
+
+            var script = $@".create-or-alter function {name}() {{
+{bodyWithNormalizedLineEndings}
+}}";
+            var command = ParseOneCommand(script);
+
+            Assert.IsType<CreateFunctionCommand>(command);
+
+            var createFunctionCommand = (CreateFunctionCommand)command;
+
+            Assert.Equal(name, createFunctionCommand.FunctionName.Name);
+            Assert.Equal(bodyWithNormalizedLineEndings, createFunctionCommand.Body);
+        }
+
+
+        [Fact]
+        public void WithInlineQuery()
+        {
+            var name = "FunctionWithExpressionInWhere";
+            var body = @"mytable
+    | where id in (myOtherTable | where prop == a | project id)";
+            var bodyWithNormalizedLineEndings = body.ReplaceLineEndings("\n"); // Kusto parsing returns \n as line endings
+
+            var script = $@".create-or-alter function {name}() {{
+{bodyWithNormalizedLineEndings}
+}}";
+            var command = ParseOneCommand(script);
+
+            Assert.IsType<CreateFunctionCommand>(command);
+
+            var createFunctionCommand = (CreateFunctionCommand)command;
+
+            Assert.Equal(name, createFunctionCommand.FunctionName.Name);
+            Assert.Equal(bodyWithNormalizedLineEndings, createFunctionCommand.Body);
+        }
     }
 }
