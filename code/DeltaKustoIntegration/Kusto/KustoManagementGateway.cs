@@ -65,7 +65,7 @@ namespace DeltaKustoIntegration.Kusto
 
             _tracer.WriteLine(true, "Fetch schema commands start");
 
-            var schemaOutputTask = ExecuteCommandAsync(".show database schema as csl script", ct);
+            var schemaOutputTask = ExecuteCommandAsync($".show database ['{_database}'] schema as csl script", ct);
             var schemaOutput = await schemaOutputTask;
 
             _tracer.WriteLine(true, "Fetch schema commands end");
