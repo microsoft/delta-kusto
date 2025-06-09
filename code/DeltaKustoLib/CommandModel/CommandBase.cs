@@ -303,15 +303,16 @@ namespace DeltaKustoLib.CommandModel
 
             foreach (var line in lines)
             {
-                if (line.Trim() == string.Empty)
+                if (line.Trim().StartsWith('.'))
                 {
                     if (currentCommandLines.Any())
                     {
                         yield return string.Join('\n', currentCommandLines);
                         currentCommandLines.Clear();
                     }
+                    currentCommandLines.Add(line);
                 }
-                else
+                else if(line.Trim() != string.Empty)
                 {
                     currentCommandLines.Add(line);
                 }
