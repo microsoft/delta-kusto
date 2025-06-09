@@ -14,7 +14,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.Kusto.Language" Version="11.3.24011" />
+    <PackageReference Include="Microsoft.Azure.Kusto.Language" Version="11.5.4" />
   </ItemGroup>
 
   <ItemGroup>
